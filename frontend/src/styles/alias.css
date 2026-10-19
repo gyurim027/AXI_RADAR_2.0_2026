@@ -1,0 +1,38 @@
+/* 디자인 시스템 토큰 중 의미값·부품값이 없는 간격·글자·모서리에 붙인 짧은 이름이다.
+   값은 user-tokens.css의 기본값(primitive)을 가리키기만 한다. 새 값을 여기서 만들지 않는다. */
+:root {
+  --space-4: var(--primitive-spacing-4);
+  --space-8: var(--primitive-spacing-8);
+  --space-12: var(--primitive-spacing-12);
+  --space-16: var(--primitive-spacing-16);
+  --space-20: var(--primitive-spacing-20);
+  --space-24: var(--primitive-spacing-24);
+  --space-32: var(--primitive-spacing-32);
+  --space-40: var(--primitive-spacing-40);
+  --space-48: var(--primitive-spacing-48);
+
+  --fs-caption: var(--primitive-fontSize-caption);
+  --fs-small: var(--primitive-fontSize-small);
+  --fs-body: var(--primitive-fontSize-body);
+  --fs-body-lg: var(--primitive-fontSize-body-lg);
+  --fs-h3: var(--primitive-fontSize-h3);
+  --fs-h2: var(--primitive-fontSize-h2);
+  --fs-h1: var(--primitive-fontSize-h1);
+  --fw-regular: var(--primitive-fontWeight-regular);
+  --fw-medium: var(--primitive-fontWeight-medium);
+  --fw-bold: var(--primitive-fontWeight-bold);
+  --lh-tight: var(--primitive-lineHeight-tight);
+  --lh-normal: var(--primitive-lineHeight-normal);
+  --font-sans: var(--primitive-fontFamily-sans);
+
+  --radius-xs: var(--primitive-radius-xs);
+  --radius-sm: var(--primitive-radius-sm);
+  --radius-md: var(--primitive-radius-md);
+  --radius-lg: var(--primitive-radius-lg);
+  --radius-xl: var(--primitive-radius-xl);
+  --radius-full: var(--primitive-radius-full);
+
+  --control-h: var(--primitive-size-control-h);
+  --control-h-sm: var(--primitive-size-control-h-sm);
+  --shadow-card: var(--primitive-shadow-card);
+}
