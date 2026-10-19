@@ -1,0 +1,54 @@
+/* 왼쪽 열(스크롤)과 오른쪽 지도(꽉 참). 표 6 : 지도 4 (디자인 시스템 9-2) */
+.split {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(var(--component-split-view-table-min), 6fr) minmax(var(--component-split-view-map-min), 4fr);
+  min-height: 0;
+  width: 100%;
+}
+.left {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--semantic-color-bg-shell);
+}
+.leftInner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  padding: var(--space-24) var(--semantic-layout-page-margin) var(--space-24);
+}
+.filterRow {
+  margin-bottom: calc(-1 * var(--space-4));
+}
+.tableCard {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: clamp(360px, 52vh, 600px);
+  overflow: hidden;
+  border: 1px solid var(--component-card-border);
+  border-radius: var(--component-card-radius);
+  background: var(--component-card-bg);
+}
+.scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.mapCol {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+}
+.mapMsg {
+  position: absolute;
+  inset: 0;
+  z-index: var(--component-map-control-z);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--component-map-bg);
+}

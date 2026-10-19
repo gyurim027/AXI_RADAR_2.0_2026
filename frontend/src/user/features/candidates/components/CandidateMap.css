@@ -1,0 +1,63 @@
+.rmap.leaflet-container {
+  background: var(--component-map-bg);
+  font-family: var(--font-sans);
+  outline: none;
+}
+.rmap-point-wrap {
+  background: none;
+  border: 0;
+}
+.rmap-point {
+  display: block;
+  box-sizing: content-box;
+  width: 5px;
+  height: 5px;
+  margin: 2px; /* 지름 8px(5px + 테두리 1.5px x 2) 점을 12px 칸 가운데에 둔다 */
+  background: var(--semantic-color-text);
+  border: 1.5px solid var(--component-map-halo);
+}
+.rmap-point--circle {
+  border-radius: 50%;
+}
+.rmap-point--square {
+  border-radius: 1px;
+}
+.rmap-point--diamond {
+  transform: rotate(45deg);
+}
+.rmap-point--triangle {
+  width: 0;
+  height: 0;
+  background: none;
+  border: 5px solid transparent;
+  border-top: 0;
+  border-bottom: 9px solid var(--semantic-color-text);
+  filter: drop-shadow(0 0 1px var(--component-map-halo)) drop-shadow(0 0 1px var(--component-map-halo));
+}
+.rmap-range.leaflet-tooltip {
+  padding: 4px 8px;
+  border: 1px solid var(--semantic-color-border);
+  border-radius: 8px;
+  background: var(--semantic-color-bg-surface);
+  color: var(--semantic-color-text);
+  font-size: 12px;
+  box-shadow: none;
+}
+.rmap-range.leaflet-tooltip-bottom::before {
+  border-bottom-color: var(--semantic-color-border);
+}
+
+.rmap-issue.leaflet-tooltip {
+  padding: 4px 8px;
+  border: 1px solid var(--component-map-outline);
+  border-radius: 8px;
+  background: var(--semantic-color-bg-surface);
+  color: var(--semantic-color-text);
+  font-size: 12px;
+  box-shadow: none;
+}
+.rmap-point-wrap:focus-visible {
+  outline: 2px solid var(--semantic-color-focus-ring);
+  outline-offset: 2px;
+  border-radius: 50%;
+}

@@ -1,0 +1,32 @@
+.cand {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.line1 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4) var(--space-8);
+}
+.addr {
+  font-weight: var(--fw-medium);
+}
+.landmark {
+  font-size: var(--fs-small);
+  color: var(--semantic-color-text-muted);
+}
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+.inlineTags {
+  display: contents;
+}
+.reli {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+}

@@ -1,0 +1,103 @@
+.table {
+  width: 100%;
+  font-size: var(--component-table-cell-font-size);
+  table-layout: auto;
+}
+.th {
+  position: sticky;
+  top: 0;
+  z-index: var(--component-table-head-z);
+  height: var(--component-table-head-height);
+  padding: 0 var(--component-table-cell-pad-x);
+  background: var(--component-table-header-bg);
+  border-bottom: 1px solid var(--component-table-header-line);
+  font-size: var(--fs-small); /* 표 머리 글자는 14px, 한 줄이다 */
+  font-weight: var(--fw-bold);
+  color: var(--semantic-color-text); /* 표 머리에서는 보조 글자색을 쓰지 않는다 (4-3) */
+  white-space: nowrap;
+}
+.fixed {
+  table-layout: fixed;
+}
+/* 좁은 열이 머리글을 세 줄로 깨뜨리지 않게 좌우 여백을 줄인다 */
+.fixed .th,
+.fixed .td {
+  padding-left: var(--space-8);
+  padding-right: var(--space-8);
+}
+.wrapHead,
+.wrapHead .sortBtn {
+  white-space: normal;
+  line-height: var(--lh-tight);
+}
+.th:first-child {
+  border-top-left-radius: var(--component-table-header-radius);
+}
+.th:last-child {
+  border-top-right-radius: var(--component-table-header-radius);
+}
+.td {
+  height: var(--component-table-row-height);
+  padding: var(--space-8) var(--component-table-cell-pad-x);
+  border-bottom: 1px solid var(--component-table-row-border);
+  background: var(--semantic-color-bg-surface);
+  vertical-align: middle;
+  overflow-wrap: anywhere;
+}
+.tr.high .td {
+  background: var(--component-table-row-high-bg);
+}
+.tr.selected .td {
+  background: var(--semantic-color-primary-soft);
+}
+.tr.selected .td:first-child {
+  box-shadow: inset 3px 0 0 var(--semantic-color-primary-strong);
+}
+.clickable {
+  cursor: pointer;
+}
+.clickable:hover .td {
+  background: var(--semantic-color-bg-shell);
+}
+.clickable.selected:hover .td {
+  background: var(--semantic-color-primary-soft);
+}
+.sticky {
+  position: sticky;
+  z-index: 2;
+}
+th.sticky,
+th.stickyRight {
+  z-index: calc(var(--component-table-head-z) + 1);
+}
+.stickyRight {
+  position: sticky;
+  right: 0;
+  z-index: 2;
+  box-shadow: -1px 0 0 var(--semantic-color-border-subtle);
+}
+.edge {
+  box-shadow: 1px 0 0 var(--semantic-color-border-subtle);
+}
+.sortBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: 32px; /* 클릭 칸 24px 이상 (WCAG 2.2) */
+  padding: 0 var(--space-4);
+  border: 0;
+  background: none;
+  font-size: inherit;
+  font-weight: var(--fw-bold);
+  white-space: nowrap;
+}
+.sortOn {
+  color: var(--semantic-color-primary-strong);
+}
+.sortOff {
+  color: var(--semantic-color-text-disabled);
+}
+.emptyCell {
+  padding: 0;
+  background: var(--semantic-color-bg-surface);
+}

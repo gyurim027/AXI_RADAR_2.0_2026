@@ -1,0 +1,46 @@
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  min-height: 160px;
+  padding: var(--space-32) var(--space-16);
+  text-align: center;
+  color: var(--semantic-color-text-muted);
+}
+.main {
+  font-size: var(--fs-body);
+}
+.hint {
+  font-size: var(--fs-small);
+}
+.state button {
+  margin-top: var(--space-8);
+}
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding: var(--space-16);
+}
+.skelRow,
+.skelBlock {
+  border-radius: var(--radius-sm);
+  background: var(--semantic-color-bg-subtle);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+.skelRow {
+  height: var(--component-table-row-height);
+}
+.skelBlock {
+  width: 100%;
+  height: 100%;
+  min-height: 160px;
+  border-radius: var(--radius-xl);
+}
+@keyframes pulse {
+  50% {
+    opacity: 0.55;
+  }
+}

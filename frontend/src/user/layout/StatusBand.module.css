@@ -1,0 +1,26 @@
+.band {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+  min-height: var(--component-band-height);
+  padding: var(--space-8) var(--semantic-layout-page-margin);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-medium);
+  position: relative;
+  z-index: var(--component-band-z);
+}
+.final {
+  background: var(--component-band-final-bg);
+  color: var(--component-band-final-fg);
+  border-bottom: 1px solid var(--component-band-border);
+}
+.ref {
+  background: var(--component-band-ref-bg);
+  color: var(--component-band-ref-fg);
+  border-bottom: 1px solid var(--component-band-ref-border);
+}
+.link {
+  color: var(--semantic-color-primary-strong);
+  font-weight: var(--fw-bold);
+}

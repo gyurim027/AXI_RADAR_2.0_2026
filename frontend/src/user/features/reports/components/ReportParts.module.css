@@ -1,0 +1,57 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-32);
+  width: 100%;
+  max-width: var(--primitive-size-report-max);
+  margin: 0 auto;
+}
+.card {
+  padding: var(--component-card-padding);
+  border: 1px solid var(--component-card-border);
+  border-radius: var(--component-card-radius);
+  background: var(--component-card-bg);
+}
+.cardTitle {
+  margin-bottom: var(--space-16);
+  font-size: var(--fs-h3);
+  font-weight: var(--fw-bold);
+}
+.dl {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-12);
+}
+.making {
+  margin-right: auto;
+  color: var(--semantic-color-text-muted);
+}
+.dl button {
+  min-width: 168px; /* 진행 표시가 들어가도 버튼 폭이 변하지 않게 한다 */
+}
+.note {
+  margin-top: var(--space-16);
+  color: var(--semantic-color-text-muted);
+  font-size: var(--fs-small);
+}
+.rowBtns {
+  display: inline-flex;
+  gap: var(--space-16);
+}
+.draftList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+.rows {
+  display: flex;
+  flex-direction: column;
+}
+.row {
+  padding: var(--space-12) 0;
+  border-bottom: 1px solid var(--semantic-color-border-subtle);
+}
+.sectionGap {
+  margin-top: var(--space-24);
+}

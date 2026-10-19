@@ -1,0 +1,62 @@
+.page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--space-32);
+  background: var(--semantic-color-bg-shell);
+}
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+  width: var(--component-login-card-width);
+  padding: var(--component-login-card-padding);
+  border: 1px solid var(--semantic-color-border-card);
+  border-radius: var(--component-login-card-radius);
+  background: var(--component-login-card-bg);
+}
+.title {
+  font-size: var(--fs-h2);
+  font-weight: var(--fw-bold);
+  background: linear-gradient(90deg, var(--semantic-color-accent-title-from), var(--semantic-color-accent-title-to));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-align: center;
+}
+.subtitle {
+  color: var(--semantic-color-text-muted);
+  text-align: center;
+}
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+.error {
+  font-size: var(--fs-small);
+  color: var(--semantic-color-risk-high);
+}
+.submit {
+  width: 100%;
+}
+.help {
+  font-size: var(--fs-small);
+  color: var(--semantic-color-text-muted);
+}
+.dev {
+  position: fixed;
+  left: var(--space-16);
+  bottom: var(--space-16);
+  max-width: 360px;
+  padding: var(--space-8) var(--space-12);
+  border: 1px dashed var(--semantic-color-border);
+  border-radius: var(--radius-sm);
+  background: var(--semantic-color-bg-surface);
+  font-size: var(--fs-caption);
+  color: var(--semantic-color-text-muted);
+}
+.dev ul {
+  margin-top: var(--space-4);
+}

@@ -1,0 +1,93 @@
+.drawer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--component-drawer-z);
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: var(--component-drawer-width-min);
+  max-width: var(--component-drawer-width-max);
+  background: var(--component-drawer-bg);
+  border: 1px solid var(--component-drawer-border);
+  border-radius: var(--radius-xl) 0 0 var(--radius-xl);
+  box-shadow: var(--component-drawer-shadow);
+  outline: none;
+}
+.head {
+  flex: none;
+  padding: var(--space-20) var(--space-24) 0;
+  border-bottom: 1px solid var(--semantic-color-border);
+}
+.titleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-12);
+}
+.title {
+  font-size: var(--fs-body-lg);
+  font-weight: var(--fw-bold);
+}
+.close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: none;
+}
+.close:hover {
+  background: var(--semantic-color-bg-subtle);
+}
+.metaRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-12);
+  margin: var(--space-8) 0 var(--space-12);
+}
+.pn {
+  display: flex;
+  gap: var(--space-8);
+}
+.pnBtn {
+  height: var(--control-h-sm);
+  padding: 0 var(--space-12);
+  font-size: var(--fs-small);
+}
+.tabs {
+  display: flex;
+  gap: var(--space-4);
+  overflow-x: auto; /* 탭이 한 줄에 다 안 들어가면 가로로 스크롤한다. 지금 탭은 늘 보인다 */
+}
+.tab {
+  flex: none;
+  height: var(--primitive-size-tab-row);
+  padding: 0 var(--space-12);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--component-tab-inactive-fg);
+  font-size: var(--fs-body);
+  white-space: nowrap;
+}
+.tab:hover {
+  color: var(--semantic-color-text);
+}
+.tabOn {
+  color: var(--component-tab-active-fg);
+  font-weight: var(--fw-bold);
+  border-bottom-color: var(--component-tab-indicator);
+}
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--space-24);
+}

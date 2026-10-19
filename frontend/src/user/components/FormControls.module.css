@@ -1,0 +1,98 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+}
+.inline {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-8);
+}
+.label {
+  font-size: var(--fs-small);
+  font-weight: var(--fw-medium);
+  color: var(--semantic-color-text);
+  white-space: nowrap;
+}
+.selectWrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+}
+.select,
+.input {
+  height: var(--component-input-height);
+  padding: 0 var(--space-16);
+  border: 1px solid var(--component-input-border);
+  border-radius: var(--component-input-radius);
+  background: var(--component-input-bg);
+  font-size: var(--fs-body);
+}
+.select {
+  appearance: none;
+  min-width: 140px;
+  padding-right: 40px;
+}
+.caret {
+  position: absolute;
+  right: var(--space-12);
+  pointer-events: none;
+  color: var(--semantic-color-text-muted);
+}
+.input {
+  width: 100%;
+}
+.select:focus-visible,
+.input:focus-visible {
+  outline: 2px solid var(--component-input-focus-ring);
+  outline-offset: 1px;
+}
+.invalid {
+  border-color: var(--semantic-color-risk-high-line);
+}
+.error {
+  font-size: var(--fs-small);
+  color: var(--semantic-color-risk-high);
+}
+.help {
+  position: relative;
+  display: inline-flex;
+}
+.helpBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: none;
+  color: var(--semantic-color-text-muted);
+}
+.helpBtn:hover {
+  background: var(--semantic-color-bg-subtle);
+}
+.helpBody {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: var(--primitive-zIndex-toast);
+  width: max-content;
+  max-width: 360px;
+  padding: var(--space-12) var(--space-16);
+  border: 1px solid var(--semantic-color-border);
+  border-radius: var(--radius-sm);
+  background: var(--semantic-color-bg-surface);
+  box-shadow: var(--shadow-card);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-regular);
+  color: var(--semantic-color-text);
+  white-space: normal;
+}
+.right {
+  left: auto;
+  right: 0;
+}

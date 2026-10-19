@@ -1,0 +1,4 @@
+.source {
+  font-size: var(--fs-caption);
+  color: var(--semantic-color-text-muted);
+}
