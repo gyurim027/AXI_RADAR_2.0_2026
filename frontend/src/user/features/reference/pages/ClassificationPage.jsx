@@ -39,7 +39,7 @@ export default function ClassificationPage() {
       header: <span className="sr-only">검수</span>,
       align: 'right',
       render: (r) => {
-        if (user.readOnly) return r.done ? <Tag tone={r.done.result === '맞음' ? 'low' : 'info'} small>{r.done.result === '맞음' ? CLASSIFY.doneOk : CLASSIFY.doneFix}</Tag> : null; // 보기 전용에서는 확인 버튼을 숨긴다
+        if (user.readOnly && !r.done) return null; // 보기 전용에서는 확인 버튼을 숨긴다
         if (r.done) return <Tag tone={r.done.result === '맞음' ? 'low' : 'info'} small>{r.done.result === '맞음' ? CLASSIFY.doneOk : CLASSIFY.doneFix}</Tag>;
         if (fixingId === r.id) {
           return (

@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { stopViewAs } from '../../api/admin.js';
-import { getViewAsLabel } from '../../api/admin.js';
+import { getViewAsLabel, stopViewAs } from '../../api/admin.js';
 import { useAuth } from '../../app/providers/AuthProvider.jsx';
 import { ADMIN_COPY } from '../../admin/copy.js';
 import { fillVars } from '../../shared/utils/format.js';

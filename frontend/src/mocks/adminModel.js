@@ -297,7 +297,7 @@ export function accessRows() {
       target: x.reportName || '-',
       reason: '-',
     }));
-  return [...live, ...legacy, ...SEED_ACCESS].sort((x, y) => (x.at < y.at ? 1 : -1));
+  return [...live, ...legacy, ...SEED_ACCESS].sort((x, y) => (x.at < y.at ? 1 : -1)).map((r, i) => ({ ...r, key: String(i) }));
 }
 
 export const GU = GU_LIST;

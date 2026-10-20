@@ -97,3 +97,8 @@
   font-size: var(--a-fs-sm);
   color: var(--radar-admin-semantic-color-text-secondary);
 }
+.changed {
+  background: var(--radar-admin-component-table-changed-bg);
+  border-color: var(--radar-admin-component-table-changed-line);
+  font-weight: var(--a-fw-medium);
+}

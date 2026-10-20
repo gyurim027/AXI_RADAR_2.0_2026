@@ -27,6 +27,7 @@ import {
   logAccess,
   mockNow,
   pendingProposals,
+  peopleOf,
   regulations,
 } from './adminModel.js';
 import { ALL_GU, DECISION, DEPT_STATUS, GU_LIST, ROLE, RUN_STATUS } from '../shared/constants.js';
@@ -52,6 +53,7 @@ const baseOf = (gid) => DATASET.bases.find((b) => b.gid === gid);
 export function currentUser() {
   const s = getState();
   const real = allAccounts().find((a) => a.id === s.session) || null;
+  if (real && real.stopped) return null; // 사용을 멈춘 계정은 이미 로그인해 있어도 쓸 수 없다 (AD-15)
   if (real && real.role === ROLE.OPERATOR && s.viewAs) {
     const target = allAccounts().find((a) => a.id === s.viewAs);
     if (target) return { ...target, readOnly: true, viewerId: real.id };
@@ -620,8 +622,9 @@ export function getHalfYearSummary({ runId }) {
 /** 내려받기. 실제 파일은 백엔드가 만든다. 가안은 보고서 미리 보기 내용을 표로 만든다. */
 export function recordDownload({ runId, reportName }) {
   const user = requireUser();
+  const actor = user.readOnly ? realUser() : user; // 보기 전용으로 내려받으면 운영자 이름으로 남긴다
   const run = allRuns().find((r) => r.id === runId);
-  logAccess(user, '파일 내려받기', `${run ? run.name : ''} ${reportName}`.trim());
+  logAccess(actor, '파일 내려받기', `${run ? run.name : ''} ${reportName}`.trim());
   saveState();
   return { ok: true };
 }
@@ -632,8 +635,8 @@ export function listNotifications() {
   const s = getState();
   const read = new Set(s.notifRead[user.id] || []);
   const runs = allRuns();
-  const review = runs.find((r) => r.id === 'r2027');
-  const ref = runs.find((r) => r.status === RUN_STATUS.REF);
+  const review = runs.find((r) => r.status === RUN_STATUS.REVIEW) || runs[0];
+  const ref = runs.find((r) => r.status === RUN_STATUS.REF) || review;
   const ctx = {
     version: PROPOSALS[0].version,
     runName: review.name,
@@ -654,16 +657,22 @@ export function listNotifications() {
     ...opened.map((n) => ({
       id: n.id,
       kind: 'runOpen',
-      text: user.role === ROLE.CITY ? `${n.runName} 회차가 열렸습니다. 3개 구 점검 후보를 확인해 보세요.` : `${n.runName} 회차가 열렸습니다. ${user.gu} 점검 후보를 결정해 주세요.`,
+      text:
+        n.kind === 'ref'
+          ? `${runNameWithoutRef(n.runName)} 참고 회차가 열렸습니다. 바뀐 순위를 확인해 보세요.`
+          : user.role === ROLE.CITY
+            ? `${n.runName} 회차가 열렸습니다. 3개 구 점검 후보를 확인해 보세요.`
+            : `${n.runName} 회차가 열렸습니다. ${user.gu} 점검 후보를 결정해 주세요.`,
       date: n.date,
       read: read.has(n.id),
-      targetRunId: n.kind === 'ref' ? null : n.runId,
+      targetRunId: n.runId,
     })),
   ];
   return rows.sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 20);
 }
 export function markNotificationRead({ id }) {
   const user = requireUser();
+  if (user.readOnly) return { ok: true }; // 보기 전용으로 보는 동안에는 그 계정의 읽음 표시를 바꾸지 않는다
   const s = getState();
   s.notifRead[user.id] = [...new Set([...(s.notifRead[user.id] || []), id])];
   saveState();
@@ -674,8 +683,6 @@ export function markNotificationRead({ id }) {
 export function listProposals() {
   const user = requireUser();
   if (user.role !== ROLE.CITY) throw new ApiError('forbidden', '볼 수 없습니다.');
-  const s = getState();
-  void s;
   return pendingProposals();
 }
 export function decideProposal({ id, approve, reason }) {
@@ -687,7 +694,7 @@ export function decideProposal({ id, approve, reason }) {
     result: approve ? '승인' : '반려',
     reason: approve ? null : String(reason).trim(),
     at: isoDate(),
-    by: '박사례 (성남시 도로과 도로관리팀)',
+    by: `${peopleOf(user.id).name} (${user.org})`,
   };
   logAccess(user, '승인', `${id} ${approve ? '승인' : '돌려보내기'}`, approve ? '-' : String(reason).trim());
   s.changeLog.push({ at: new Date().toISOString(), actor: user.org, kind: approve ? '제안 승인' : '제안 반려', gid: id });

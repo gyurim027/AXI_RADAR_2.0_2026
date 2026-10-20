@@ -120,11 +120,11 @@ export function FileInput({ label, fileName, onChange, help, error, required, ac
 }
 
 /** 숫자 입력 칸 (표 안). 접근성 이름을 따로 받는다 */
-export function NumberCell({ value, onChange, label, suffix, disabled, width = 96 }) {
+export function NumberCell({ value, onChange, label, suffix, disabled, width = 96, changed = false }) {
   return (
     <span className={styles.cell}>
       <input
-        className={`${styles.input} ${styles.num} ${styles.cellInput}`}
+        className={`${styles.input} ${styles.num} ${styles.cellInput} ${changed ? styles.changed : ''}`}
         style={{ width }}
         type="number"
         inputMode="decimal"

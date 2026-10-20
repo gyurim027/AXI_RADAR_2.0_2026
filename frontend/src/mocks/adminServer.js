@@ -235,7 +235,15 @@ export function listData({ freshness = '전체', source = '전체' } = {}) {
   return dataItems()
     .filter((d) => (freshness === '전체' || d.freshness === freshness) && (source === '전체' || d.source === source))
     .sort((x, y) => rank[x.freshness] - rank[y.freshness] || (x.id < y.id ? -1 : 1))
-    .map((d) => ({ ...d, files: d.uploaded ? fileVersions(d.id) : [] }));
+    .map((d) => ({
+      ...d,
+      // API로 받은 자료는 수집일만 있고 올린 운영자는 없다 (AD-02 1-2)
+      files: d.uploaded
+        ? fileVersions(d.id)
+        : d.collectedAt
+          ? ['2027 연간', '2026 하반기 참고'].map((run) => ({ run, at: d.collectedAt.replaceAll('.', '-'), by: '-', file: '-' }))
+          : [],
+    }));
 }
 export function listUploadTargets() {
   requireOperator();
@@ -387,6 +395,11 @@ export function createRun({ kind, name }) {
   stamp();
   return { ok: true, id };
 }
+/** 새 회차 창의 예시 연도: 다음 회차의 연도 (AD-06 1-2 도움말) */
+export function getNewRunDefaults() {
+  requireOperator();
+  return { year: mockNow().getFullYear() + 1 };
+}
 export function getOpenCheck({ runId }) {
   requireOperator();
   const run = allRuns().find((r) => r.id === runId);
@@ -420,6 +433,8 @@ export function startCalc({ runId }) {
   settleExecutions();
   const run = allRuns().find((r) => r.id === runId);
   if (!run) throw new ApiError('notFound', '회차를 찾을 수 없습니다.');
+  // 산정은 '산정 중'인 회차에서만, 이미 도는 중이 아닐 때만 시작한다
+  if (run.status !== RUN_STATUS.DRAFT || executionsOf(run.name).some((e) => e.status === '실행 중')) throw new ApiError('invalid', '산정을 시작할 수 없습니다.');
   const a = adminState();
   a.executions.unshift(newExecution(run, `${run.name} 산정`, '산정'));
   logAccess(user, '설정 변경', `${run.name} 산정 시작`);
@@ -479,6 +494,7 @@ export function createVersion() {
   const list = versionList();
   const approved = list.filter((v) => v.status === '승인됨').slice(-1)[0];
   const last = list[list.length - 1];
+  if (!approved || !last) throw new ApiError('invalid', '복사할 승인된 버전이 없습니다.');
   const next = `v1.${Number(last.version.split('.')[1]) + 1}`;
   a.newVersions.push({ version: next, name: `새 버전 (${approved.version} 복사)`, run: '-', status: '작성 중', updated: nowDate(), base: approved.version });
   a.versionEdits[next] = structuredClone(versionValues(approved.version));
@@ -525,6 +541,7 @@ export function saveVersionDraft({ version, values }) {
 export function previewChange({ version, values }) {
   requireOperator();
   const meta = versionList().find((v) => v.version === version);
+  if (!meta) throw new ApiError('notFound', '버전을 찾을 수 없습니다.');
   const prev = meta.base ? versionValues(meta.base) : versionValues(version);
   return { top: 50, changed: changedCount(values, prev), at: isoLocal(mockNow()) };
 }
@@ -683,10 +700,13 @@ export function recordAdminDownload({ name }) {
 }
 
 // ------------------------------------------------------------------ 승인 이력 (AD-14)
-export function listApprovals({ days = 365 } = {}) {
+export function listApprovals({ period = '올해' } = {}) {
   requireOperator();
-  const since = mockNow().getTime() - Number(days) * 24 * 3600 * 1000;
-  return approvalRows().filter((r) => new Date(r.at).getTime() >= since);
+  const year = mockNow().getFullYear();
+  return approvalRows().filter((r) => {
+    const y = Number(String(r.at).slice(0, 4));
+    return period === '전체' || (period === '올해' ? y === year : y === year - 1);
+  });
 }
 
 // ------------------------------------------------------------------ 계정 (AD-15)

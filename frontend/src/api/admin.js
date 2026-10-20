@@ -48,3 +48,4 @@ export const setAccountStatus = mockCall('admin.setAccountStatus', (arg) => serv
 export const listAccess = mockCall('admin.listAccess', (arg) => server.listAccess(arg));
 export const getAlertEmail = mockCall('admin.getAlertEmail', (arg) => server.getAlertEmail(arg));
 export const saveAlertEmail = mockCall('admin.saveAlertEmail', (arg) => server.saveAlertEmail(arg));
+export const getNewRunDefaults = mockCall('admin.getNewRunDefaults', (arg) => server.getNewRunDefaults(arg));

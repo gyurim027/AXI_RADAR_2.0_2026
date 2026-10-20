@@ -220,8 +220,8 @@ export const SEED_VERSIONS = [
 ];
 /** 버전별로 이전 버전과 다른 값 (없으면 base 값을 그대로 쓴다) */
 export const VERSION_VALUES = {
-  'v1.1': { weights: { w1: 22, w2: 10, w5: 8, w6: 16, w7: 6, w8: 4, w9: 4, w10: 4, w11: 6, w12: 4 }, thresholds: { t1: 30, t2: 300, t3: 3, t4: 3, t5: 2 }, conditions: [{ id: 'k1', name: '사고 다발지 반복 선정', value: '3년 이상', ratio: 40, use: true }] },
-  'v1.2': { weights: {}, thresholds: {}, conditions: CONDITIONS },
+  'v1.1': { weights: { w1: 22, w2: 10, w3: 8, w4: 8, w5: 8, w6: 16, w7: 6, w8: 4, w9: 4, w10: 4, w11: 6, w12: 4 }, thresholds: { t1: 30, t2: 300, t3: 3, t4: 3, t5: 2 }, conditions: [{ id: 'k1', name: '사고 다발지 반복 선정', value: '3년 이상', ratio: 40, use: true }] },
+  'v1.2': { weights: Object.fromEntries(INDICATORS.map((i) => [i.id, i.weight])), thresholds: {}, conditions: CONDITIONS },
   'v1.3': { weights: { w1: 25, w6: 9 }, thresholds: {}, conditions: CONDITIONS },
 };
 
@@ -323,11 +323,11 @@ export const SEED_ROLE_LOG = [
 // ------------------------------------------------------------------ 접속 기록 (AD-16)
 export const ACCESS_ACTIONS = ['로그인', '화면 열람', '파일 내려받기', '결정', '승인', '설정 변경', '사용자 화면 보기'];
 export const SEED_ACCESS = [
-  { at: '2026-11-20T10:14:00', actor: OPERATOR_LABEL, accountId: 'operator', ip: '10.12.3.45', action: '파일 내려받기', target: '2027 수정구 관할 부서별 보고서', reason: '-' },
+  { at: '2026-11-20T10:14:00', actor: 'RADAR 운영팀', accountId: 'operator', ip: '10.12.3.45', action: '파일 내려받기', target: '2027 수정구 관할 부서별 보고서', reason: '-' },
   { at: '2026-11-19T17:02:00', actor: '수정구 건설과 도로관리팀', accountId: 'suj', ip: '10.12.8.21', action: '결정', target: '수정구 점검 후보 결정 12건', reason: '-' },
   { at: '2026-11-19T09:11:00', actor: '성남시 도로과 도로관리팀', accountId: 'city', ip: '10.12.1.9', action: '로그인', target: '-', reason: '-' },
   { at: '2026-11-12T11:40:00', actor: '성남시 도로과 도로관리팀', accountId: 'city', ip: '10.12.1.9', action: '화면 열람', target: '구별 우선 점검 근거표', reason: '-' },
-  { at: '2026-11-03T15:20:00', actor: OPERATOR_LABEL, accountId: 'operator', ip: '10.12.3.45', action: '설정 변경', target: '산정 기준 v1.3 승인 요청', reason: '-' },
+  { at: '2026-11-03T15:20:00', actor: 'RADAR 운영팀', accountId: 'operator', ip: '10.12.3.45', action: '설정 변경', target: '산정 기준 v1.3 승인 요청', reason: '-' },
   { at: '2026-10-28T13:05:00', actor: '분당구 건설과 보도관리팀', accountId: 'bundang-sidewalk', ip: '10.12.9.14', action: '로그인', target: '-', reason: '-' },
 ];
 

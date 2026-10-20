@@ -1,0 +1,85 @@
+.name {
+  font-weight: var(--a-fw-medium);
+}
+.stack {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--a-s2);
+}
+.versions {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--a-fs-sm);
+}
+.versions th {
+  padding: var(--a-s2) var(--a-s3);
+  text-align: left;
+  font-weight: var(--a-fw-medium);
+  color: var(--radar-admin-semantic-color-text-secondary);
+}
+.versions td {
+  padding: var(--a-s2) var(--a-s3);
+  border-top: 1px solid var(--radar-admin-semantic-color-border-subtle);
+}
+.file {
+  overflow-wrap: anywhere;
+}
+.formPanel {
+  max-width: var(--radar-admin-component-field-max-width);
+}
+.formGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--a-s6);
+}
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--a-s2);
+}
+.stackPanels {
+  display: flex;
+  flex-direction: column;
+  gap: var(--a-s6);
+}
+.lowLine {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--a-s1);
+  font-size: var(--a-fs-md);
+}
+.lowBtn {
+  min-height: 40px;
+  padding: 0 var(--a-s1);
+  border: 0;
+  border-radius: var(--a-radius-control);
+  background: none;
+  font-size: var(--radar-admin-component-kpi-value-size);
+  font-weight: var(--radar-admin-component-kpi-value-weight);
+  line-height: 1.2;
+  color: var(--radar-admin-semantic-color-text-link);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  font-variant-numeric: tabular-nums;
+}
+.lowBtn:hover {
+  background: var(--radar-admin-semantic-color-bg-hover);
+}
+.rowBtns {
+  display: inline-flex;
+  gap: var(--a-s2);
+  justify-content: flex-end;
+}
+.relevance {
+  white-space: nowrap;
+}
+.link {
+  color: var(--radar-admin-semantic-color-text-link);
+  text-underline-offset: 3px;
+}
+.note {
+  margin-top: var(--a-s2);
+  font-size: var(--a-fs-sm);
+  color: var(--radar-admin-semantic-color-text-secondary);
+}

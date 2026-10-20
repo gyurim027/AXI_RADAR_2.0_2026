@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { COMMON } from '../../shared/copy/common.js';
 import { useNavigate } from 'react-router-dom';
 import { listViewAsOptions, startViewAs } from '../../api/admin.js';
 import { useAuth } from '../../app/providers/AuthProvider.jsx';
@@ -17,15 +18,18 @@ export default function ViewAsDialog({ onClose }) {
   const { data, failed, reload } = useAsync(() => listViewAsOptions(), []);
   const [account, setAccount] = useState('');
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(false);
   const value = account || data?.[0]?.value || '';
 
   const open = async () => {
     setBusy(true);
+    setError(false);
     try {
       await startViewAs({ accountId: value });
       refreshUser();
       navigate('/candidates', { replace: true });
-    } finally {
+    } catch {
+      setError(true);
       setBusy(false);
     }
   };
@@ -44,6 +48,11 @@ export default function ViewAsDialog({ onClose }) {
       }
     >
       {failed ? <ErrorState areaName="볼 계정 목록" onRetry={reload} /> : <SelectInput label={copy.account} value={value} onChange={setAccount} options={data || []} />}
+      {error ? (
+        <p role="alert" style={{ color: 'var(--radar-admin-semantic-color-danger)' }}>
+          {COMMON.loadFailed('사용자 화면')}
+        </p>
+      ) : null}
     </Dialog>
   );
 }

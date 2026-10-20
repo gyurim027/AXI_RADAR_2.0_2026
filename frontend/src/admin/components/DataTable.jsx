@@ -26,10 +26,12 @@ export default function DataTable({
 }) {
   const expandable = typeof renderExpanded === 'function';
   const clickable = !!onRowClick;
+  // 열 폭이 모두 정해져 있으면 그 합보다 좁아지지 않게 하고, 모자라면 가로로 스크롤한다 (열을 숨기지 않는다)
+  const total = columns.every((c) => c.width) ? columns.reduce((sum, c) => sum + c.width, 0) : undefined;
   return (
     <div className={styles.wrap}>
       <div className={styles.scroll} style={maxHeight ? { maxHeight } : undefined} tabIndex={0} role="region" aria-label={caption}>
-        <table className={`${styles.table} ${compact ? styles.compact : ''}`}>
+        <table className={`${styles.table} ${compact ? styles.compact : ''}`} style={total ? { minWidth: total } : undefined}>
           {caption ? <caption className="sr-only">{caption}</caption> : null}
           <thead>
             <tr>
