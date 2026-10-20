@@ -13,6 +13,7 @@ import PageHeader from '../../components/PageHeader.jsx';
 import { EmptyState } from '../../components/States.jsx';
 import { RUNS } from './copy.js';
 import styles from './Runs.module.css';
+import { reportActionError } from '../../utils/actionError.js';
 
 /** AD-06 회차 목록 (유형 B + E): 회차를 만들고, 산정을 시작하고, 검토 중으로 연다. */
 export default function RunListPage() {
@@ -128,6 +129,8 @@ function NewRunDialog({ onClose, onCreated }) {
       const r = await createRun({ kind, name: shown });
       if (r.ok) onCreated();
       else if (r.code === 'duplicate') setError(RUNS.nameDuplicate);
+    } catch {
+      reportActionError();
     } finally {
       setBusy(false);
     }
@@ -182,6 +185,8 @@ function OpenDialog({ run, onClose, onOpened }) {
       const r = await openRun({ runId: run.id });
       if (r.ok) onOpened();
       else setError(RUNS.notFinished);
+    } catch {
+      reportActionError();
     } finally {
       setBusy(false);
     }

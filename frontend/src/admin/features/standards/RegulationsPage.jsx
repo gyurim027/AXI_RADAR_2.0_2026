@@ -9,6 +9,7 @@ import Loadable from '../../components/Loadable.jsx';
 import PageHeader from '../../components/PageHeader.jsx';
 import { EmptyState } from '../../components/States.jsx';
 import Toolbar from '../../components/Toolbar.jsx';
+import { reportActionError } from '../../utils/actionError.js';
 import { REGS } from './copy.js';
 import styles from './Standards.module.css';
 
@@ -21,7 +22,7 @@ export default function RegulationsPage() {
   const toggle = (r) => {
     const next = openId === r.id ? null : r.id;
     setOpenId(next);
-    if (next && !r.seen) markRegulationSeen({ id: r.id });
+    if (next && !r.seen) markRegulationSeen({ id: r.id }).catch(reportActionError);
   };
 
   return (

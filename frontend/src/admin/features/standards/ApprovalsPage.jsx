@@ -60,16 +60,33 @@ export default function ApprovalsPage() {
             <DataTable
               caption={APPROVALS.caption}
               columns={[
-                { key: 'target', header: APPROVALS.head[0], first: true, nowrap: true },
+                {
+                  key: 'target',
+                  header: APPROVALS.head[0],
+                  first: true,
+                  nowrap: true,
+                  // 담당 부서 표 제안은 버전이 없어 대상 이름에 링크를 건다
+                  render: (r) =>
+                    r.ref?.kind === 'dept' ? (
+                      <Link to={target(r)} className={styles.back} style={{ marginBottom: 0 }}>
+                        {r.target}
+                      </Link>
+                    ) : (
+                      r.target
+                    ),
+                },
                 {
                   key: 'version',
                   header: APPROVALS.head[1],
                   nowrap: true,
-                  render: (r) => (
-                    <Link to={target(r)} className={styles.back} style={{ marginBottom: 0, minWidth: 32, justifyContent: 'center' }}>
-                      {r.version}
-                    </Link>
-                  ),
+                  render: (r) =>
+                    r.ref?.kind === 'criteria' ? (
+                      <Link to={target(r)} className={styles.back} style={{ marginBottom: 0 }}>
+                        {r.version}
+                      </Link>
+                    ) : (
+                      r.version
+                    ),
                 },
                 { key: 'proposer', header: APPROVALS.head[2] },
                 { key: 'at', header: APPROVALS.head[3], nowrap: true, render: (r) => String(r.at).slice(0, 10).replaceAll('-', '.') },

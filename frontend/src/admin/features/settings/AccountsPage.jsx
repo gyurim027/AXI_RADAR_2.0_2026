@@ -13,6 +13,7 @@ import Panel, { Banner } from '../../components/Panel.jsx';
 import { GU_LIST } from '../../../shared/constants.js';
 import { ACCOUNTS } from './copy.js';
 import styles from './Settings.module.css';
+import { reportActionError } from '../../utils/actionError.js';
 
 /** AD-15 계정 (유형 B + E): 계정을 만들고 역할을 준다. 지우지 않고 멈추거나 다시 쓴다. 권한을 주고 바꾸고 거둔 기록을 남긴다. */
 export default function AccountsPage() {
@@ -117,6 +118,8 @@ function CreateDialog({ roles, onClose, onCreated }) {
       const r = await createAccount({ role, gu: district ? gu : null, team, name, loginId });
       if (r.ok) onCreated();
       else setErrors({ gu: r.code === 'guRequired', duplicate: r.code === 'duplicate' });
+    } catch {
+      reportActionError();
     } finally {
       setBusy(false);
     }

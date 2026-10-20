@@ -11,15 +11,19 @@ const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select:n
 export default function Dialog({ title, titleId, size = 'sm', onClose, closeLabel, children, footer, subtitle }) {
   const ref = useRef(null);
   const previous = useRef(null);
+  const closeRef = useRef(onClose);
+  useEffect(() => {
+    closeRef.current = onClose;
+  });
 
   useEffect(() => {
     previous.current = document.activeElement;
     const node = ref.current;
     (node?.querySelector(FOCUSABLE) || node)?.focus();
     const onKey = (e) => {
-      if (e.key === 'Escape' && onClose) {
+      if (e.key === 'Escape' && closeRef.current) {
         e.stopPropagation();
-        onClose();
+        closeRef.current();
       }
       if (e.key === 'Tab' && node) {
         const items = [...node.querySelectorAll(FOCUSABLE)];
@@ -40,7 +44,7 @@ export default function Dialog({ title, titleId, size = 'sm', onClose, closeLabe
       document.removeEventListener('keydown', onKey);
       previous.current?.focus?.();
     };
-  }, [onClose]);
+  }, []);
 
   return createPortal(
     <div className={styles.scrim}>

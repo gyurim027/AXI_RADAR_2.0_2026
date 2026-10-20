@@ -10,6 +10,7 @@ import PageHeader from '../../components/PageHeader.jsx';
 import Panel, { Banner } from '../../components/Panel.jsx';
 import { UPLOAD } from './copy.js';
 import styles from './Data.module.css';
+import { reportActionError } from '../../utils/actionError.js';
 
 const FORMATS = ['CSV', 'XLSX', 'SHP', 'DXF'];
 const FORMAT_TEXT = FORMATS.join(', ');
@@ -99,6 +100,8 @@ function UploadForm({ targets, preset, onUploaded }) {
       setDone(item.name);
       setFile(null);
       onUploaded();
+    } catch {
+      reportActionError();
     } finally {
       setBusy(false);
     }

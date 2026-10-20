@@ -213,7 +213,9 @@ export function getDashboard({ runId }) {
   const since = mockNow().getTime() - 30 * 24 * 3600 * 1000;
   const recent = allExecutions().filter((e) => new Date(e.at).getTime() >= since);
   const count = (st) => recent.filter((e) => e.status === st).length;
-  const approvals = approvalRows();
+  const year = mockNow().getFullYear();
+  // 승인 이력의 기본 기간(올해)과 숫자가 맞도록 올해 기록만 센다
+  const approvals = approvalRows().filter((r) => Number(String(r.at).slice(0, 4)) === year);
   return {
     run: { id: run.id, name: run.name, status: run.status },
     next: nextTask(run),
@@ -470,6 +472,8 @@ export function rerunExecution({ id }) {
   const ex = allExecutions().find((e) => e.id === id);
   if (!ex || ex.status !== '실패') throw new ApiError('invalid', '다시 실행할 수 없습니다.');
   const run = allRuns().find((r) => r.name === ex.runName);
+  // 산정 중인 회차만, 이미 도는 중이 아닐 때만 다시 실행한다
+  if (run && (run.status !== RUN_STATUS.DRAFT || executionsOf(run.name).some((e) => e.status === '실행 중'))) throw new ApiError('invalid', '다시 실행할 수 없습니다.');
   const a = adminState();
   a.executions.unshift(newExecution(run, ex.name, ex.kind));
   logAccess(user, '설정 변경', `${ex.name} 처음부터 다시 실행`);
@@ -529,7 +533,17 @@ function changedCount(cur, prev) {
   });
   return Math.min(50, Math.round(delta * 0.8));
 }
-export function saveVersionDraft({ version, values }) {
+/** 화면에서 빈 칸이 오면 0으로 보고, 이름이 없는 조건은 뺀다 */
+function cleanValues(values) {
+  const num = (v) => Number(v) || 0;
+  return {
+    weights: Object.fromEntries(Object.entries(values.weights).map(([k, v]) => [k, num(v)])),
+    thresholds: Object.fromEntries(Object.entries(values.thresholds).map(([k, v]) => [k, num(v)])),
+    conditions: values.conditions.filter((c) => String(c.name).trim()).map((c) => ({ ...c, ratio: num(c.ratio) })),
+  };
+}
+export function saveVersionDraft({ version, values: raw }) {
+  const values = cleanValues(raw);
   requireOperator();
   const meta = versionList().find((v) => v.version === version);
   if (!meta || !(meta.status === '작성 중' || meta.status === '돌려받음')) throw new ApiError('forbidden', '고칠 수 없는 버전입니다.');
@@ -538,15 +552,17 @@ export function saveVersionDraft({ version, values }) {
   stamp();
   return { ok: true };
 }
-export function previewChange({ version, values }) {
+export function previewChange({ version, values: raw }) {
   requireOperator();
+  const values = cleanValues(raw);
   const meta = versionList().find((v) => v.version === version);
   if (!meta) throw new ApiError('notFound', '버전을 찾을 수 없습니다.');
   const prev = meta.base ? versionValues(meta.base) : versionValues(version);
   return { top: 50, changed: changedCount(values, prev), at: isoLocal(mockNow()) };
 }
-export function requestVersionApproval({ version, values, reason }) {
+export function requestVersionApproval({ version, values: raw, reason }) {
   const user = requireOperator();
+  const values = cleanValues(raw);
   if (!String(reason || '').trim()) return { ok: false, code: 'reasonRequired' };
   const meta = versionList().find((v) => v.version === version);
   if (!meta || !(meta.status === '작성 중' || meta.status === '돌려받음')) throw new ApiError('forbidden', '요청할 수 없는 버전입니다.');

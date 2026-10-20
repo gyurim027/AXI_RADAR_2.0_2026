@@ -1,6 +1,8 @@
-import { useEffect } from 'react';
-import { Outlet, useMatches } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Outlet, useLocation, useMatches } from 'react-router-dom';
 import { useAdmin } from '../AdminProvider.jsx';
+import { Banner } from '../components/Panel.jsx';
+import { onActionError } from '../utils/actionError.js';
 import { ADMIN_COPY } from '../copy.js';
 import AdminTopBar from './AdminTopBar.jsx';
 import SectionNav from './SectionNav.jsx';
@@ -12,6 +14,10 @@ export default function AdminLayout() {
   const matches = useMatches();
   const pageTitle = [...matches].reverse().find((m) => m.handle?.title)?.handle.title;
   const wide = matches.some((m) => m.handle?.wide);
+  const { pathname } = useLocation();
+  const [failedAt, setFailedAt] = useState(null);
+  const actionFailed = failedAt === pathname;
+  useEffect(() => onActionError(() => setFailedAt(window.location.pathname)), []);
 
   useEffect(() => {
     document.title = pageTitle ? `${pageTitle} · ${ADMIN_COPY.serviceName}` : ADMIN_COPY.serviceName;
@@ -29,6 +35,11 @@ export default function AdminLayout() {
       <main id="admin-main" className={styles.main} tabIndex={-1}>
         <div className={`${styles.content} ${wide ? styles.wide : ''}`}>
           {/* 회차를 바꾸면 지금 메뉴를 그 회차로 다시 연다 (AD-00 2-1) */}
+          {actionFailed ? (
+            <div style={{ marginBottom: 16 }}>
+              <Banner tone="danger">{ADMIN_COPY.actionFailed}</Banner>
+            </div>
+          ) : null}
           <Outlet key={run.id} />
         </div>
       </main>

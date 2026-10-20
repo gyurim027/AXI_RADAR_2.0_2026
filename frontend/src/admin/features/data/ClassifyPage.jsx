@@ -12,6 +12,7 @@ import PageHeader from '../../components/PageHeader.jsx';
 import { EmptyState } from '../../components/States.jsx';
 import { CLASSIFY } from './copy.js';
 import styles from './Data.module.css';
+import { reportActionError } from '../../utils/actionError.js';
 
 /** AD-05 분류 검수 (유형 B + E). 사용자 화면 분류 검수와 한 기록으로 남는다. 원문 보기는 확장 단계라 MVP에서는 보이지 않는다. */
 export default function ClassifyPage() {
@@ -25,6 +26,8 @@ export default function ClassifyPage() {
     try {
       await markClassifyAdmin({ id: r.id, result: '맞음' });
       state.reload();
+    } catch {
+      reportActionError();
     } finally {
       setBusyId(null);
     }
@@ -95,6 +98,8 @@ function FixDialog({ item, relevance, types, onClose, onDone }) {
     try {
       await markClassifyAdmin({ id: item.id, result: '고침', relevance: rel, label });
       onDone();
+    } catch {
+      reportActionError();
     } finally {
       setBusy(false);
     }

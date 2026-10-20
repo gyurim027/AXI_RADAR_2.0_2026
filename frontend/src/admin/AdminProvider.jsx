@@ -34,7 +34,7 @@ export function AdminProvider({ children }) {
 
   const value = useMemo(() => ({ runs, run, setRunId, reloadRuns: reload }), [runs, run, setRunId, reload]);
 
-  if (failed) return <ErrorState areaName="회차 목록" onRetry={reload} />;
+  if (failed && !data) return <ErrorState areaName="회차 목록" onRetry={reload} />;
   if (!run) return data ? <EmptyState text="아직 만든 회차가 없습니다. 회차를 만들어 주세요." /> : null;
   return <AdminContext.Provider value={value}>{children}</AdminContext.Provider>;
 }

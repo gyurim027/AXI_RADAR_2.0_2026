@@ -49,7 +49,7 @@ export default function AdminNotifications() {
 
   return (
     <div className={styles.wrap} ref={ref}>
-      <button type="button" className={styles.bell} aria-haspopup="true" aria-expanded={open} aria-label={copy.label(unread)} onClick={() => { if (!open) reload(); setOpen((v) => !v); }}>
+      <button type="button" className={styles.bell} aria-haspopup="dialog" aria-expanded={open} aria-label={copy.label(unread)} onClick={() => { if (!open) reload(); setOpen((v) => !v); }}>
         <Icon name="bell" size={22} />
         {unread > 0 ? <span className={styles.count}>{unread}</span> : null}
       </button>

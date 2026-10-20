@@ -12,6 +12,7 @@ import SidePanel from '../../components/SidePanel.jsx';
 import { EmptyState } from '../../components/States.jsx';
 import { DEPT } from './copy.js';
 import styles from './Standards.module.css';
+import { reportActionError } from '../../utils/actionError.js';
 
 const STATUS_TONE = { 확인됨: 'success', '확인 필요': 'warning', '근거 없음': 'neutral' };
 
@@ -93,6 +94,8 @@ function DraftCard({ draft, viewed, onView, onRequested }) {
     try {
       const r = await requestDeptApproval({ draftId: draft.id, reason });
       if (r.ok) onRequested();
+    } catch {
+      reportActionError();
     } finally {
       setBusy(false);
     }

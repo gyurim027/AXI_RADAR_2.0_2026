@@ -13,6 +13,7 @@ import Tabs from '../../components/Tabs.jsx';
 import { VERSION_TONE } from './CriteriaListPage.jsx';
 import { DETAIL } from './copy.js';
 import styles from './Standards.module.css';
+import { reportActionError } from '../../utils/actionError.js';
 
 const TAB_KEYS = ['weights', 'thresholds', 'conditions'];
 
@@ -27,7 +28,7 @@ export default function CriteriaDetailPage() {
   const state = useAsync(() => getVersion({ version }), [version]);
   return (
     <div>
-      <Loadable state={state} areaName={DETAIL.failedArea} rows={6}>{(d) => <Detail key={`${d.meta.version}-${d.meta.status}`} data={d} reload={state.reload} />}</Loadable>
+      <Loadable state={state} areaName={DETAIL.failedArea} rows={6}>{(d) => <Detail key={d.meta.version} data={d} reload={state.reload} />}</Loadable>
     </div>
   );
 }
@@ -70,6 +71,8 @@ function Detail({ data, reload }) {
     try {
       await saveVersionDraft({ version: meta.version, values });
       setPreview(await previewChange({ version: meta.version, values }));
+    } catch {
+      reportActionError();
     } finally {
       setCalcBusy(false);
     }
@@ -87,6 +90,8 @@ function Detail({ data, reload }) {
         setRequested(true);
         reload();
       } else setReasonError(DETAIL.reasonError);
+    } catch {
+      reportActionError();
     } finally {
       setBusy(false);
     }

@@ -14,6 +14,7 @@ import SidePanel from '../../components/SidePanel.jsx';
 import { EmptyState } from '../../components/States.jsx';
 import { ACTIONS } from './copy.js';
 import styles from './Standards.module.css';
+import { reportActionError } from '../../utils/actionError.js';
 
 const REVIEW_TONE = { 초안: 'neutral', '검토 완료': 'success', '사용 중지': 'warning' };
 
@@ -43,6 +44,8 @@ export default function ActionsPage() {
       setSaved(r.ck);
       setArticle(null);
       state.reload();
+    } catch {
+      reportActionError();
     } finally {
       setBusyDraft(null);
     }
@@ -145,6 +148,8 @@ function EditDialog({ row, onClose, onSaved }) {
     try {
       const r = await saveActionRow({ id: row.id, patch: { ...f, dept: f.dept.trim() || null, article: f.article.trim() || null } });
       if (r.ok) onSaved(r.ck);
+    } catch {
+      reportActionError();
     } finally {
       setBusy(false);
     }

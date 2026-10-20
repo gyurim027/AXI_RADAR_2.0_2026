@@ -12,6 +12,7 @@ import { EmptyState } from '../../components/States.jsx';
 import Toolbar from '../../components/Toolbar.jsx';
 import { LOG } from './copy.js';
 import styles from './Runs.module.css';
+import { reportActionError } from '../../utils/actionError.js';
 
 /** AD-07 실행 기록 (유형 B): 최신 순. 행을 누르면 아래에 로그가 펼쳐진다. 긴 표는 안에서 스크롤하고 머리 줄은 고정한다. */
 export default function LogPage() {
@@ -43,6 +44,8 @@ export default function LogPage() {
     try {
       await rerunExecution({ id: e.id });
       state.reload();
+    } catch {
+      reportActionError();
     } finally {
       setBusy(false);
     }

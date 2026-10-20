@@ -8,6 +8,7 @@ import PageHeader from '../../components/PageHeader.jsx';
 import Panel, { Banner } from '../../components/Panel.jsx';
 import { ALERTS } from './copy.js';
 import styles from './Settings.module.css';
+import { reportActionError } from '../../utils/actionError.js';
 
 /** AD-17 알림 설정 (유형 C): 수집·산정 실패 알림을 받을 메일을 정한다. 여러 개는 쉼표로 나눠 적는다. */
 export default function AlertsPage() {
@@ -36,6 +37,8 @@ function AlertsForm({ initial }) {
         setError('');
         setDone(true);
       } else setError(ALERTS.error);
+    } catch {
+      reportActionError();
     } finally {
       setBusy(false);
     }

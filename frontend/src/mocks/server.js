@@ -63,7 +63,8 @@ export function currentUser() {
 /** 화면 가림 없이 실제로 로그인한 계정 (어드민 서버가 쓴다) */
 export function realUser() {
   const s = getState();
-  return allAccounts().find((a) => a.id === s.session) || null;
+  const a = allAccounts().find((x) => x.id === s.session) || null;
+  return a && !a.stopped ? a : null;
 }
 function requireUser() {
   const u = currentUser();
@@ -166,7 +167,8 @@ function deptResolved(runId, base, obstacleKey) {
 /** 회차의 후보를 합쳐 만든다 (결정·부서 선택 반영) */
 function mergedItems(run) {
   const s = getState();
-  const list = DATASET.byRun[run.id] || [];
+  // 새로 만든 회차는 가장 최근 후보 묶음을 그대로 쓴다 (가짜 데이터)
+  const list = DATASET.byRun[run.id] || DATASET.byRun.r2028 || [];
   return list.map((it) => {
     const base = baseOf(it.gid);
     const ov = s.decisions[run.id]?.[it.gid];
