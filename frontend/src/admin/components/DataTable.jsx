@@ -17,6 +17,7 @@ export default function DataTable({
   onRowClick,
   expandedKey,
   renderExpanded,
+  canExpand,
   rowLabel,
   maxHeight,
   compact = false,
@@ -51,12 +52,11 @@ export default function DataTable({
                 <Fragment key={key}>
                   <tr
                     className={`${styles.tr} ${clickable || expandable ? styles.clickable : ''} ${open ? styles.open : ''} ${selected ? styles.selected : ''}`}
-                    tabIndex={clickable || expandable ? 0 : undefined}
-                    aria-expanded={expandable ? open : undefined}
-                    aria-label={clickable || expandable ? rowLabel?.(row) : undefined}
+                    tabIndex={clickable && !expandable ? 0 : undefined}
+                    aria-label={clickable && !expandable ? rowLabel?.(row) : undefined}
                     onClick={clickable || expandable ? () => onRowClick?.(row) : undefined}
                     onKeyDown={
-                      clickable || expandable
+                      clickable && !expandable
                         ? (e) => {
                             if (e.target !== e.currentTarget) return;
                             if (e.key === 'Enter' || e.key === ' ') {
@@ -69,10 +69,19 @@ export default function DataTable({
                   >
                     {columns.map((c, i) => (
                       <td key={c.key} className={`${styles.td} ${c.align === 'right' ? styles.right : ''} ${c.first ? styles.first : ''} ${c.nowrap ? styles.nowrap : ''}`}>
-                        {expandable && i === 0 ? (
-                          <span className={styles.chev} aria-hidden="true">
+                        {expandable && i === 0 && canExpand?.(row) !== false ? (
+                          <button
+                            type="button"
+                            className={styles.chev}
+                            aria-expanded={open}
+                            aria-label={rowLabel?.(row)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onRowClick?.(row);
+                            }}
+                          >
                             <Icon name={open ? 'chevronUp' : 'chevronDown'} size={16} />
-                          </span>
+                          </button>
                         ) : null}
                         {c.render ? c.render(row) : row[c.key]}
                       </td>

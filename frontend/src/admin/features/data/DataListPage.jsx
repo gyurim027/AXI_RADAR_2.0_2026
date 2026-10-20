@@ -83,6 +83,7 @@ export default function DataListPage() {
             rows={rows}
             getRowKey={(d) => d.id}
             onRowClick={(d) => d.files.length > 0 && setOpenId(openId === d.id ? null : d.id)}
+            canExpand={(d) => d.files.length > 0}
             expandedKey={openId}
             renderExpanded={(d) => <Versions item={d} />}
             rowLabel={(d) => `${d.name} 회차별 원본 목록 ${openId === d.id ? '접기' : '펼치기'}`}

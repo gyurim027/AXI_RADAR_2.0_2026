@@ -142,7 +142,7 @@ function CandidateListPage() {
     } else if (district && myConfirm?.done && run.status !== RUN_STATUS.REF) {
       bar = { message: LIST.barDone(user.gu, myConfirm.date) };
     } else if (city && (reviewing || run.status === RUN_STATUS.FINAL)) {
-      bar = { message: LIST.barCity, button: LIST.barCityButton, variant: 'soft' };
+      bar = { message: '', button: LIST.barCityButton, variant: 'soft' }; // 시 도로과는 버튼만 보인다 (US-01 1-7)
     }
   }
 

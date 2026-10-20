@@ -85,9 +85,19 @@
 }
 .chev {
   display: inline-flex;
+  align-items: center;
+  justify-content: center;
   vertical-align: middle;
-  margin-right: var(--a-s2);
+  width: var(--a-size-compact);
+  height: var(--a-size-compact);
+  margin: calc(var(--a-s2) * -1) var(--a-s1) calc(var(--a-s2) * -1) calc(var(--a-s2) * -1);
+  border: 0;
+  border-radius: var(--a-radius-control);
+  background: none;
   color: var(--radar-admin-semantic-color-text-secondary);
+}
+.chev:hover {
+  background: var(--radar-admin-semantic-color-bg-hover);
 }
 .expandedRow {
   background: var(--radar-admin-component-table-row-expanded-bg);

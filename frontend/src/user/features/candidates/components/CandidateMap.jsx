@@ -297,7 +297,6 @@ export default function CandidateMap({ items, unrated, boundaries, ownGu, select
         ) : (
           <button type="button" className={styles.legendChip} aria-expanded="false" aria-label={LIST.legendToggle(false)} onClick={() => setLegendOpen(true)}>
             {LIST.legendChip}
-            <Icon name="chevronUp" size={16} />
           </button>
         )}
       </div>
