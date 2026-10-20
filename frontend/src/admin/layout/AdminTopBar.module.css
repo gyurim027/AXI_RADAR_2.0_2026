@@ -8,6 +8,9 @@
   border-bottom: 1px solid var(--radar-admin-component-nav-border);
 }
 .brand {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--a-size-compact);
   flex: none;
   font-size: var(--a-fs-md);
   font-weight: var(--a-fw-semibold);

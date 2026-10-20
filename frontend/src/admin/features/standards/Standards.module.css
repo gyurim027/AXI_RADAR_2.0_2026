@@ -18,6 +18,9 @@
   min-width: 640px;
 }
 .back {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--a-size-compact);
   display: inline-block;
   margin-bottom: var(--a-s4);
   font-size: var(--a-fs-sm);

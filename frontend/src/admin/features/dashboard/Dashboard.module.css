@@ -17,6 +17,9 @@
   color: var(--radar-admin-semantic-color-text-primary);
 }
 .link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--a-size-compact);
   display: inline-block;
   margin-top: var(--a-s3);
   font-size: var(--a-fs-md);

@@ -75,6 +75,9 @@
   white-space: nowrap;
 }
 .link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--a-size-compact);
   color: var(--radar-admin-semantic-color-text-link);
   text-underline-offset: 3px;
 }

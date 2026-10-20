@@ -66,7 +66,7 @@ export default function ApprovalsPage() {
                   header: APPROVALS.head[1],
                   nowrap: true,
                   render: (r) => (
-                    <Link to={target(r)} className={styles.back} style={{ marginBottom: 0 }}>
+                    <Link to={target(r)} className={styles.back} style={{ marginBottom: 0, minWidth: 32, justifyContent: 'center' }}>
                       {r.version}
                     </Link>
                   ),
