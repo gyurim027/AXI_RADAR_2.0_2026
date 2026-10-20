@@ -1,0 +1,113 @@
+.wrap {
+  background: var(--radar-admin-component-table-row-bg);
+  border: 1px solid var(--radar-admin-component-table-outer-border);
+  border-radius: var(--radar-admin-component-table-radius);
+  overflow: hidden;
+  min-width: 0;
+}
+.scroll {
+  overflow: auto;
+}
+.scroll:focus-visible {
+  outline-offset: -2px;
+}
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--radar-admin-component-table-font-size);
+}
+.compact {
+  font-size: var(--radar-admin-component-table-font-size-compact);
+  line-height: var(--a-lh-dense);
+}
+.th {
+  position: sticky;
+  top: 0;
+  z-index: var(--radar-admin-component-table-head-z);
+  height: var(--radar-admin-component-table-head-height);
+  padding: 0 var(--radar-admin-component-table-cell-padding-x);
+  background: var(--radar-admin-component-table-head-bg);
+  color: var(--radar-admin-component-table-head-text);
+  font-size: var(--a-fs-sm);
+  font-weight: var(--radar-admin-component-table-head-weight);
+  text-align: left;
+  white-space: nowrap;
+}
+.compact .th {
+  height: var(--radar-admin-component-table-head-height-compact);
+  padding: 0 var(--radar-admin-component-table-cell-padding-x-compact);
+}
+.td {
+  height: var(--radar-admin-component-table-row-height);
+  padding: var(--a-s2) var(--radar-admin-component-table-cell-padding-x);
+  border-top: 1px solid var(--radar-admin-semantic-color-border-subtle);
+  font-weight: var(--radar-admin-component-table-cell-weight);
+  color: var(--radar-admin-semantic-color-text-primary);
+  vertical-align: middle;
+  text-align: left;
+}
+.compact .td {
+  height: var(--radar-admin-component-table-row-height-compact);
+  padding: var(--a-s1) var(--radar-admin-component-table-cell-padding-x-compact);
+}
+.right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.first {
+  font-weight: var(--radar-admin-component-table-first-col-weight);
+}
+.nowrap {
+  white-space: nowrap;
+}
+.tr:first-child .td {
+  border-top: 0;
+}
+.clickable {
+  cursor: pointer;
+}
+.clickable:hover {
+  background: var(--radar-admin-component-table-row-hover-bg);
+}
+.clickable:focus-visible {
+  outline: var(--a-focus-width) solid var(--radar-admin-semantic-color-focus);
+  outline-offset: -2px;
+}
+.open {
+  background: var(--radar-admin-component-table-row-expanded-bg);
+}
+.selected {
+  background: var(--radar-admin-component-table-row-selected-bg);
+}
+.selected .td:first-child {
+  box-shadow: inset 2px 0 0 var(--radar-admin-semantic-color-action);
+}
+.chev {
+  display: inline-flex;
+  vertical-align: middle;
+  margin-right: var(--a-s2);
+  color: var(--radar-admin-semantic-color-text-secondary);
+}
+.expandedRow {
+  background: var(--radar-admin-component-table-row-expanded-bg);
+}
+.expandedCell {
+  padding: var(--a-s4) var(--a-s6);
+  border-top: 1px solid var(--radar-admin-semantic-color-border-subtle);
+  border-bottom: 1px solid var(--radar-admin-semantic-color-border-subtle);
+}
+.emptyCell {
+  padding: var(--a-s12) var(--a-s4);
+  text-align: center;
+}
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--a-s4);
+  padding: var(--a-s3) var(--a-s4);
+  border-top: 1px solid var(--radar-admin-semantic-color-border-subtle);
+  font-size: var(--a-fs-sm);
+  color: var(--radar-admin-semantic-color-text-secondary);
+}

@@ -17,7 +17,10 @@ export function AuthProvider({ children }) {
     setUser(null);
   }, []);
 
-  const value = useMemo(() => ({ user, signIn, signOut }), [user, signIn, signOut]);
+  /** 운영자가 '사용자 화면 보기'를 켜거나 끌 때 화면의 계정을 다시 읽는다 */
+  const refreshUser = useCallback(() => setUser(getCurrentUser()), []);
+
+  const value = useMemo(() => ({ user, signIn, signOut, refreshUser }), [user, signIn, signOut, refreshUser]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

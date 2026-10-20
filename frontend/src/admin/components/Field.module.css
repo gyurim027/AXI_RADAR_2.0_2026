@@ -1,0 +1,99 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--a-s2);
+  max-width: var(--radar-admin-component-field-max-width);
+  min-width: 0;
+}
+.inline {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--a-s2);
+  max-width: none;
+}
+.label {
+  font-size: var(--a-fs-sm);
+  font-weight: var(--a-fw-medium);
+  color: var(--radar-admin-semantic-color-text-primary);
+  white-space: nowrap;
+}
+.required {
+  font-weight: var(--a-fw-regular);
+  color: var(--radar-admin-semantic-color-text-secondary);
+}
+.input {
+  width: 100%;
+  min-height: var(--radar-admin-component-field-height);
+  padding: 0 var(--a-s3);
+  background: var(--radar-admin-component-field-bg);
+  color: var(--radar-admin-component-field-text);
+  border: 1px solid var(--radar-admin-component-field-border);
+  border-radius: var(--radar-admin-component-field-radius);
+  font-size: var(--a-fs-md);
+}
+.input:focus-visible {
+  outline: var(--radar-admin-component-field-focus-ring-width) solid var(--radar-admin-component-field-focus-ring);
+  outline-offset: var(--radar-admin-component-field-focus-ring-offset);
+}
+.input:disabled {
+  background: var(--radar-admin-component-field-disabled-bg);
+  color: var(--radar-admin-semantic-color-text-disabled);
+}
+.area {
+  padding: var(--a-s2) var(--a-s3);
+  resize: vertical;
+  line-height: var(--a-lh-body);
+}
+.invalid {
+  border-color: var(--radar-admin-component-field-error);
+}
+.selectWrap {
+  position: relative;
+  min-width: 0;
+}
+.select {
+  appearance: none;
+  padding-right: var(--a-s10);
+}
+.inline .select {
+  width: auto;
+  min-width: 160px;
+}
+.caret {
+  position: absolute;
+  right: var(--a-s3);
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--radar-admin-semantic-color-text-secondary);
+}
+.file {
+  padding: var(--a-s2) var(--a-s3);
+  font-size: var(--a-fs-sm);
+}
+.help {
+  font-size: var(--a-fs-sm);
+  line-height: var(--a-lh-dense);
+  color: var(--radar-admin-component-field-helper-text);
+}
+.error {
+  font-size: var(--a-fs-sm);
+  line-height: var(--a-lh-dense);
+  color: var(--radar-admin-component-field-error);
+}
+.cell {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--a-s2);
+}
+.cellInput {
+  min-height: var(--a-size-compact);
+}
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.suffix {
+  font-size: var(--a-fs-sm);
+  color: var(--radar-admin-semantic-color-text-secondary);
+}

@@ -1,0 +1,75 @@
+.bar {
+  display: flex;
+  align-items: center;
+  gap: var(--a-s6);
+  height: var(--radar-admin-component-shell-topbar-height);
+  padding: 0 var(--radar-admin-component-shell-content-padding);
+  background: var(--radar-admin-component-nav-bg);
+  border-bottom: 1px solid var(--radar-admin-component-nav-border);
+}
+.brand {
+  flex: none;
+  font-size: var(--a-fs-md);
+  font-weight: var(--a-fw-semibold);
+  color: var(--radar-admin-semantic-color-text-primary);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.nav {
+  display: flex;
+  align-self: stretch;
+  gap: var(--a-s1);
+}
+.tab {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--a-s4);
+  border-bottom: var(--radar-admin-component-nav-tab-indicator-height) solid transparent;
+  font-size: var(--a-fs-md);
+  font-weight: var(--a-fw-medium);
+  color: var(--radar-admin-component-nav-tab-inactive-text);
+  text-decoration: none;
+}
+.tab:hover {
+  background: var(--radar-admin-component-nav-tab-hover-bg);
+}
+.active {
+  color: var(--radar-admin-component-nav-tab-active-text);
+  border-bottom-color: var(--radar-admin-component-nav-tab-indicator);
+}
+.tools {
+  display: flex;
+  align-items: center;
+  gap: var(--a-s4);
+  margin-left: auto;
+  min-width: 0;
+}
+.muni {
+  font-size: var(--a-fs-sm);
+  color: var(--radar-admin-semantic-color-text-secondary);
+  white-space: nowrap;
+}
+.account {
+  display: flex;
+  align-items: center;
+  gap: var(--a-s3);
+  white-space: nowrap;
+  font-size: var(--a-fs-sm);
+}
+.org {
+  color: var(--radar-admin-semantic-color-text-secondary);
+}
+.logout {
+  min-height: var(--a-size-compact);
+  padding: 0 var(--a-s2);
+  border: 0;
+  background: none;
+  color: var(--radar-admin-semantic-color-text-link);
+  font-size: var(--a-fs-sm);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.tools :global(select) {
+  min-height: var(--a-size-compact);
+  font-size: var(--a-fs-sm);
+}

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { decideProposal, listProposals } from '../../../../api/reference.js';
+import { useAuth } from '../../../../app/providers/AuthProvider.jsx';
 import { useAsync } from '../../../../shared/hooks/useAsync.js';
 import Button from '../../../components/Button.jsx';
 import DataTable from '../../../components/DataTable.jsx';
@@ -12,6 +13,7 @@ import styles from './Reference.module.css';
 
 /** US-10 승인 대기 (시 도로과만). 행을 누르면 오른쪽에 비교가 열린다. 시 도로과만 승인한다. */
 export default function ApprovalsPage() {
+  const { user } = useAuth();
   const { data, failed, loading, showSkeleton, reload } = useAsync(() => listProposals(), []);
   const [selectedId, setSelectedId] = useState(null);
   const [rejecting, setRejecting] = useState(false);
@@ -54,24 +56,26 @@ export default function ApprovalsPage() {
 
         {selected ? (
           <section className={`${styles.card} ${styles.compare}`} aria-label="제안 비교">
-            <h2 className={styles.h2}>{APPROVAL.compareTitle(selected.version)}</h2>
+            <h2 className={styles.h2}>{APPROVAL.compareTitle(selected.kind, selected.version)}</h2>
             <ul className={styles.changeList}>
               {selected.changes.map((c) => (
                 <li key={c.field} className={styles.change}>
                   {/* 바뀐 칸만 진하게 보인다 */}
-                  <strong>{APPROVAL.changeRow(c.field, c.from, c.to)}</strong>
+                  <strong>{APPROVAL.changeRow(c.field, c.from, c.to, c.type)}</strong>
                 </li>
               ))}
             </ul>
-            <p>{APPROVAL.impact(selected.impact.top, selected.impact.changed)}</p>
-            <div className={styles.btns}>
-              <Button variant="soft" onClick={() => setRejecting(true)}>
-                {APPROVAL.reject}
-              </Button>
-              <Button aria-label={APPROVAL.approveLabel(selected.version)} loading={busy} onClick={approve}>
-                {APPROVAL.approve}
-              </Button>
-            </div>
+            {selected.impact ? <p>{APPROVAL.impact(selected.impact.top, selected.impact.changed)}</p> : null}
+            {user.readOnly ? null : (
+              <div className={styles.btns}>
+                <Button variant="soft" onClick={() => setRejecting(true)}>
+                  {APPROVAL.reject}
+                </Button>
+                <Button aria-label={APPROVAL.approveLabel(selected.kind, selected.version)} loading={busy} onClick={approve}>
+                  {APPROVAL.approve}
+                </Button>
+              </div>
+            )}
           </section>
         ) : null}
       </div>

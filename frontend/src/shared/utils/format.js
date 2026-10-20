@@ -47,3 +47,20 @@ export function withEulReul(word) {
   const hasBatchim = code >= 0xac00 && code <= 0xd7a3 && (code - 0xac00) % 28 !== 0;
   return `${word}${hasBatchim ? '을' : '를'}`;
 }
+
+/** 마지막 글자의 받침에 따라 '이' 또는 '가'를 붙인다 (예: 지침이, 조례가) */
+export function withIga(word) {
+  const last = String(word).trim().slice(-1);
+  const code = last.charCodeAt(0);
+  const hasBatchim = code >= 0xac00 && code <= 0xd7a3 && (code - 0xac00) % 28 !== 0;
+  return `${word}${hasBatchim ? '이' : '가'}`;
+}
+
+/** '으로' 또는 '로'를 붙인다. 받침이 없거나 ㄹ 받침이면 '로' (예: 데이터 목록으로, 검사 결과로) */
+export function withEuro(word) {
+  const last = String(word).trim().slice(-1);
+  const code = last.charCodeAt(0);
+  const isHangul = code >= 0xac00 && code <= 0xd7a3;
+  const jong = isHangul ? (code - 0xac00) % 28 : 0;
+  return `${word}${jong === 0 || jong === 8 ? '로' : '으로'}`;
+}
