@@ -6,6 +6,9 @@ const KEY = 'radar.mock.state.v1';
 function initial() {
   return {
     session: null, // 로그인한 계정 id
+    viewAs: null, // 운영자가 '사용자 화면 보기'로 보는 계정 id (AD-00 4-1)
+    runReview: {}, // { 회차: 검토 시작일 'YYYY.MM.DD' }
+    admin: null, // 어드민 상태 (adminModel.adminState가 처음 부를 때 채운다)
     loginFails: {}, // { 아이디: { count, lockedUntil } }
     guConfirm: structuredClone(INITIAL_GU_CONFIRM), // { 회차: { 구: 'YYYY-MM-DD' | null } }
     runStatus: {}, // 3개 구가 모두 확정하면 '확정'으로 바꾼다

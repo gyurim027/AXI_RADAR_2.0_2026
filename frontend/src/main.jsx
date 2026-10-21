@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import './styles/user-tokens.css';
 import './styles/admin-tokens.css';
 import './styles/alias.css';
+import './styles/admin-alias.css';
 import './styles/base.css';
 import App from './app/App.jsx';
 

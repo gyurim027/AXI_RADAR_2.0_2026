@@ -15,4 +15,22 @@ US-11,기준정보 > 분류 검수,/reference/classification,src/user/features/r
 US-12,기준정보 > 데이터 목록,/reference/data,src/user/features/reference/pages/DataListPage.jsx,reference,"도로관리팀, 시 도로과",구현
 US-13,기준정보 > 규정 변경,/reference/regulations,src/user/features/reference/pages/RegulationsPage.jsx,reference,"도로관리팀, 시 도로과",구현
 US-14,기준정보 > 조치 제안 표,/reference/actions,src/user/features/reference/pages/ActionsPage.jsx,reference,"도로관리팀, 시 도로과",구현
-AD-00~AD-17,어드민 전체,/admin,src/admin/AdminPlaceholder.jsx,admin,RADAR 운영자,미구현 (다음 단계)
+CM-02,어드민 공통 규칙,(모든 어드민 화면),src/admin/copy.js · src/admin/components/*,admin,RADAR 운영자,구현
+AD-00,공통 상단,(모든 어드민 화면),src/admin/layout/*,admin,RADAR 운영자,구현
+AD-01,대시보드,/admin,src/admin/features/dashboard/DashboardPage.jsx,admin/dashboard,RADAR 운영자,구현
+AD-02,데이터 > 데이터 목록,/admin/data/list,src/admin/features/data/DataListPage.jsx,admin/data,RADAR 운영자,구현
+AD-03,데이터 > 업로드,/admin/data/upload,src/admin/features/data/UploadPage.jsx,admin/data,RADAR 운영자,구현
+AD-04,데이터 > 검사 결과,/admin/data/checks,src/admin/features/data/ChecksPage.jsx,admin/data,RADAR 운영자,구현
+AD-05,데이터 > 분류 검수,/admin/data/classify,src/admin/features/data/ClassifyPage.jsx,admin/data,RADAR 운영자,구현 (원문 열람 창은 확장 단계라 제외)
+AD-06,산정 > 회차 목록,/admin/runs/list,src/admin/features/runs/RunListPage.jsx,admin/runs,RADAR 운영자,구현
+AD-07,산정 > 실행 기록,/admin/runs/log,src/admin/features/runs/LogPage.jsx,admin/runs,RADAR 운영자,구현
+AD-08,산정 > 실행 일정,/admin/runs/schedule,src/admin/features/runs/SchedulePage.jsx,admin/runs,RADAR 운영자,구현
+AD-09,기준정보 > 산정 기준,/admin/standards/criteria,src/admin/features/standards/CriteriaListPage.jsx,admin/standards,RADAR 운영자,구현
+AD-10,기준정보 > 산정 기준 상세,/admin/standards/criteria/:version,src/admin/features/standards/CriteriaDetailPage.jsx,admin/standards,RADAR 운영자,구현
+AD-11,기준정보 > 담당 부서 표,/admin/standards/dept,src/admin/features/standards/DeptPage.jsx,admin/standards,RADAR 운영자,구현
+AD-12,기준정보 > 규정 변경,/admin/standards/regulations,src/admin/features/standards/RegulationsPage.jsx,admin/standards,RADAR 운영자,구현
+AD-13,기준정보 > 조치 제안 표,/admin/standards/actions,src/admin/features/standards/ActionsPage.jsx,admin/standards,RADAR 운영자,구현
+AD-14,기준정보 > 승인 이력,/admin/standards/approvals,src/admin/features/standards/ApprovalsPage.jsx,admin/standards,RADAR 운영자,구현
+AD-15,설정 > 계정,/admin/settings/accounts,src/admin/features/settings/AccountsPage.jsx,admin/settings,RADAR 운영자,구현
+AD-16,설정 > 접속 기록,/admin/settings/access,src/admin/features/settings/AccessPage.jsx,admin/settings,RADAR 운영자,구현
+AD-17,설정 > 알림 설정,/admin/settings/alerts,src/admin/features/settings/AlertsPage.jsx,admin/settings,RADAR 운영자,구현

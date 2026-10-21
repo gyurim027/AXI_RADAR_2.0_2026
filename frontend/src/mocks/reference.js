@@ -33,7 +33,7 @@ export const PROPOSALS = [
     version: 'v1.3',
     summary: '반영 비율 조정',
     date: '2026.11.03',
-    changes: [{ field: '보도', from: '20%', to: '25%' }],
+    changes: [{ type: 'weight', field: '보도', from: '20%', to: '25%' }],
     impact: { top: 50, changed: 4 },
   },
 ];

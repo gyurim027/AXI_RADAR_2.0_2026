@@ -25,11 +25,11 @@ export const LIST = {
 
   // 2-2 시스템 제안 얼럿 (우선 확인 조건)
   alertTitle: 'RADAR 시스템 제안',
-  alertText: (n) => `우선 확인 조건에 해당하는 구역이 ${n}곳 있습니다.`,
-  alertButton: '확인하기',
-  alertActiveText: '우선 확인 조건에 해당하는 곳만 보고 있습니다.', // 제안: 되돌리는 법
-  alertActiveButton: '전체 보기',
-  conditionHelp: '점수와 상관없이 먼저 확인할 곳을 고르는 조건입니다. 예: 사고 다발지에 3년 연속 선정. 맞는 곳에는 맞은 조건과 반영 비율을 꼬리표로 보여 줍니다.',
+  alertText: (n) => `우선 확인 조건에 맞는 후보가 ${n}곳 있습니다.`,
+  alertButton: '맞는 후보만 보기',
+  alertActiveText: '우선 확인 조건에 맞는 후보만 보고 있습니다.',
+  alertActiveButton: '모든 후보 보기',
+  conditionHelp: '점수와 상관없이 먼저 확인할 곳을 고르는 조건입니다. 예: 사고 다발지에 3년 연속 선정.',
   conditionHelpLabel: '우선 확인 조건 뜻 보기',
   conditionTag: (name, ratio) => `${name} · 반영 비율 ${ratio}%`,
 
@@ -37,25 +37,24 @@ export const LIST = {
   tableCaption: '점검 후보 순위 표',
   candidateHead: '후보', // 주소 + 대표 지점
   needCheck: '현장 확인 필요',
-  decisionMenuLabel: (address) => `${address} 결정 바꾸기`,
+  decisionMenuLabel: (address) => `${address} 결정 상태 바꾸기`,
 
   // 3 평가하지 못한 구역
-  unratedTitle: (n) => `평가하지 못한 구역(${n}곳)`,
-  unratedDesc: '데이터 결측으로 평가 대상에서 제외된 곳입니다.',
+  unratedTitle: (n) => `평가하지 못한 구역 (${n}곳)`,
+  unratedDesc: '데이터 결측으로 순위를 매기지 못한 항목입니다.',
   unratedHead: ['구역', '수집한 데이터', '수집하지 못한 데이터'],
 
   // 4 바텀 바
-  barUndecided: (n) => `아직 점검 여부를 결정하지 않은 ${n}곳이 있습니다. 모든 결정을 마친 뒤 확정해 주세요.`,
-  barDecided: '모든 점검 여부를 결정했습니다. 우선 점검 대상을 확정해 주세요.',
+  barUndecided: (n) => `아직 결정하지 않은 후보가 ${n}곳 있습니다. 모두 결정한 뒤 확정해 주세요.`,
+  barDecided: '모든 후보를 결정했습니다. 우선 점검 대상을 확정해 주세요.',
   barButton: '우선 점검 대상 확정',
-  barDone: (gu, date) => `${gu} 점검 대상 확정 완료 · ${date}`, // 명세 완료 문구
-  barCity: '3개 구 확정 현황은 여기서 볼 수 있습니다.', // 제안
-  barCityButton: '확정 현황 보기', // 제안
+  barDone: (gu, date) => `${gu} 우선 점검 대상 확정 완료 · ${date}`,
+  barCityButton: '3개 구 확정 현황 보기',
 
   // 5 지도
   legend: ['점검 필요도 상위 10%', '10~30%', '나머지', '평가하지 못함'],
   legendToggle: (open) => (open ? '범례 접기' : '범례 펼치기'),
-  legendChip: '범례',
+  legendChip: '범례 ˅', // 접었을 때 글자 (US-01 1-5)
   mapLabel: '점검 후보 지도',
 
   // 3-1 구별 비교
@@ -165,17 +164,17 @@ export const DRAWER = {
 
 export const CONFIRM = {
   // US-04 시 도로과
-  cityTitle: '3개 구 점검 대상 확정 현황',
+  cityTitle: '3개 구 우선 점검 대상 확정 현황',
   cityStatus: (gu, done, date) => `${gu} ${done ? `확정 완료 ${date}` : '확정 전'}`,
   close: '닫기',
   // US-04 도로관리팀
-  title: (gu) => `${gu} 점검 대상을 확정할까요?`,
+  title: (gu) => `${gu} 우선 점검 대상을 확정할까요?`,
   sub: (gu) => `확정하면 ${gu} 결정은 더 고칠 수 없습니다.`,
-  numbers: (c) => `우선 점검 대상 ${c.target} · 제외 ${c.exclude} · 보류 ${c.hold} · 결정 전 ${c.none}`,
+  numbers: (c) => `결정 전 ${c.none}곳 · 우선 점검 대상 ${c.target}곳 · 보류 ${c.hold}곳 · 제외 ${c.exclude}곳`,
   warning: (n) => `아직 결정하지 않은 후보가 ${n}곳 있습니다. 지금 확정하면 이 후보들은 결정 없이 남습니다.`,
   more: '후보 더 결정하기',
   confirm: '우선 점검 대상 확정',
-  doneTitle: (gu) => `${gu} 점검 대상을 확정했습니다.`,
+  doneTitle: (gu) => `${gu} 우선 점검 대상을 확정했습니다.`,
   doneNote: '이제 관할 부서별 보고서를 만들 수 있습니다.',
   doneButton: '관할 부서별 보고서 만들기',
 };
