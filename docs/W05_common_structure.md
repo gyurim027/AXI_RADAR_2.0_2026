@@ -24,7 +24,7 @@ uv run python -m pytest tests                 # 시험 (실제 DB 없이 도는 
 | `app/main.py` | 서버 하나. 기능 라우터를 `ROUTER_MODULES`에 한 줄씩 적는다 (그 브랜치에 아직 없는 기능은 자동으로 건너뜀) |
 | `app/api/<기능>_<이름>_api.py` | 주소(라우터)만. 예: `ai05_law_api.py` |
 | `app/services/<기능>/` | 본체 로직. 예: `app/services/ai05/` |
-| `app/core/` | 공통 부품: `config.py`(설정) · `db.py`(공용 DB) · `responses.py`(응답·오류 형식) · `request_log.py`(요청 로그). 다음: `auth.py`(I-01) · `access_audit.py`(I-04) · `llm.py`(W05-05, 규림) |
+| `app/core/` | 공통 부품: `config.py`(설정) · `db.py`(공용 DB) · `responses.py`(응답·오류 형식) · `request_log.py`(요청 로그) · `auth.py`(로그인·권한, I-01) · `access_audit.py`(접근 기록, I-04) · `llm.py`(W05-05, 규림) |
 | `data/<기능>/` | 기능에 꼭 필요하고 **공개 자료로 만든** 작은 파일만 |
 | `data/private/` | 올리면 안 되는 자료를 내 PC에 둘 곳 (저장소에 안 올라감) |
 | `scripts/<기능>_*.py` | 배치(정해진 때 돌리는 실행 파일) |
@@ -73,14 +73,29 @@ uv run python -m pytest tests                 # 시험 (실제 DB 없이 도는 
 - 각자 `feature/<기능>` 브랜치에서 **자기 폴더만** 고친다: `app/api/<기능>_*.py`, `app/services/<기능>/`, `data/<기능>/`, `scripts/<기능>_*.py`, `tests/test_<기능>_*.py`, `docs/<기능>/`.
 - 공통 파일(`app/main.py`, `app/core/`, `pyproject.toml`, `uv.lock`, `.env.example`, `.gitignore`)은 고치지 않는다. 필요한 패키지·환경변수·라우터 줄은 PR 설명에 적는다.
 - 미리 돌려 보려면 내 브랜치에서 `git merge origin/feature/w05-core` (develop에는 금요일 전까지 아무것도 합치지 않음).
-- 금요일: `feature/w05-core` → 기능 브랜치 하나씩. 하나 합칠 때마다 `uv run python -m pytest tests`와 `/health` 확인.
+- 금요일: `feature/w05-core` → `feature/w05-llm`(공통 LLM 모듈) → 기능 브랜치 하나씩. 하나 합칠 때마다 `uv run python -m pytest tests`와 `/health` 확인.
 
 ## 9. 저장소에 올리면 안 되는 것
 
 `.env`·`local.env`, 수치지형도 원본·가공 자료, 개인정보·민원 자료(민원에서 뽑은 샘플 포함), 캐시(`out/`, `*_cache.json`). 필요하면 `data/private/`(무시됨)에 둔다.
 
-## 10. 다음 단계 (골격 7~9)
+## 10. 로그인·권한 (I-01)과 접근 기록 (I-04) — 초안 v0.1
 
-- I-01 로그인·권한: 로그인 → 토큰 → 요청마다 확인. 역할 3개(구 도로관리팀·시 도로과·RADAR 운영자), 5번 실패 10분 잠금(POL-022). 60 `app_user`에 잠금 칸 추가가 필요해 SQL v2.x로 올린다.
-- I-04 접근 기록: 70 `access_audit`. 민원 점 위치는 로그인 한 번 동안 구마다 한 줄, 추가만, 2년 이상.
-- 로그인이 붙기 전까지 AI-07 API는 이 PC(127.0.0.1)에서 온 요청만 받는다.
+**화면 쪽**
+- `POST /api/auth/login` `{"loginId", "password"}` → `{"token", "tokenType": "Bearer", "expiresIn", "user": {"id", "role", "gu", "org", "name", "readOnly"}}` (목업 `publicUser` 모양, role = `district` / `city` / `operator`)
+- 이후 모든 요청 머리에 `Authorization: Bearer <token>`. `GET /api/auth/me`로 지금 사용자 확인. 로그아웃은 토큰을 버리면 됨.
+- 실패: 401 `wrong_password`(+ `remaining` 남은 횟수, `lockMinutes`) · 423 `account_locked`(5번 틀리면 10분) · 403 `inactive_account` · 401 `login_required` / `token_expired`(다시 로그인)
+
+**기능 API 쪽** (`app/core/auth.py`, `app/core/access_audit.py` 맨 위 설명 참고)
+- 로그인만 확인: `user: dict = Depends(current_user)` → `user["user_id"]`, `user["role"]`, `user["gu"]`
+- 역할 제한: `dependencies=[Depends(require_roles("city"))]`
+- 구 제한: `allowed_gus(user)` (구 도로관리팀은 자기 구만), 다른 구 요청은 `check_gu(user, gu)`가 403
+- 접근 기록: 민원 점 위치는 `access_audit.complaint_points(request, user, gu, reason)` (로그인 한 번 동안 구·업무 목적마다 한 줄), 파일 내려받기·결정·승인·설정 변경은 `access_audit.record(request, user, 종류, key)`. 로그인은 자동.
+- 비밀번호는 해시(scrypt)만 저장. 시험 계정 6개: `scripts/auth_create_test_users.py` (비밀번호는 `RADAR_SEED_PASSWORD`로만)
+
+**남은 것**
+- 60 `app_user`에 `failed_count`·`locked_until` 칸 (SQL v2.1). 칸이 없으면 잠금 횟수를 서버 메모리에 둠(다시 켜면 초기화). 칸을 더한 뒤에는 서버를 다시 켠다.
+- 70 `access_audit` 수정·삭제를 DB에서 막는 트리거 (공용 DB 권한 확인 뒤)
+- 계정 만들기·역할 바꾸기 API (어드민 계정 화면, 61 `role_change_log`)
+- API마다 어느 역할이 쓰는지 (각 기능 담당이 PR에 적기)
+- 로그인을 각 기능에 붙이기 전까지 AI-07 API는 이 PC(127.0.0.1)에서 온 요청만 받는다.

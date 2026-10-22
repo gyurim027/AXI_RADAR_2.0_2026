@@ -4,7 +4,7 @@
     uv run uvicorn app.main:app --port 8000        # http://127.0.0.1:8000/docs 에서 모든 API 확인
 
 새 기능 붙이기: app/api/<기능>_<이름>_api.py 에 router = APIRouter(prefix="/api/<기능>") 를 만들고
-아래 ROUTERS에 한 줄 더한다. 자세한 규칙은 docs/W05_common_structure.md
+아래 ROUTER_MODULES에 한 줄 더한다. 자세한 규칙은 docs/W05_common_structure.md
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -18,6 +18,7 @@ import importlib
 
 # 붙일 기능 목록 (기능 이름, 라우터 모듈). 그 브랜치에 아직 없는 기능은 건너뛴다 → 금요일에 하나씩 합쳐도 main.py를 고치지 않음
 ROUTER_MODULES = [
+    ("AUTH", "app.api.auth_api"),             # /api/auth  로그인·권한 (은경, I-01)
     ("AI-05", "app.api.ai05_law_api"),        # /api/ai05  법령 근거 (은경)
     ("AI-07", "app.api.ai07_explain_api"),    # /api/ai07  근거 설명문 (진이)
     ("AI-10", "app.api.ai10_review_api"),     # /api/ai10  조치 제안 검토 (대환)

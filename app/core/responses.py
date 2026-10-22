@@ -65,8 +65,9 @@ def _same(response, body: bytes):
 class ApiError(Exception):
     """기능 코드에서 공통 모양의 오류를 내고 싶을 때: raise ApiError(400, "invalid_run", "실행 번호 형식이 틀립니다")"""
 
-    def __init__(self, status: int, code: str, message: str = ""):
+    def __init__(self, status: int, code: str, message: str = "", extra: dict | None = None):
         self.status, self.code, self.message = status, code, message or code
+        self.extra = extra or {}                 # 화면에 필요한 값만 (예: 남은 횟수). 원문·SQL·비밀번호 X
 
 
 _CODES = {400: "bad_request", 401: "unauthorized", 403: "forbidden", 404: "not_found", 405: "method_not_allowed",
@@ -74,14 +75,16 @@ _CODES = {400: "bad_request", 401: "unauthorized", 403: "forbidden", 404: "not_f
           503: "unavailable"}
 
 
-def error_body(status: int, code: str, message: str) -> dict:
-    return {"error": {"status": status, "code": code, "message": message}}
+def error_body(status: int, code: str, message: str, extra: dict | None = None) -> dict:
+    return {"error": {"status": status, "code": code, "message": message, **(extra or {})}}
 
 
 def install_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(ApiError)
     async def _api_error(_req: Request, exc: ApiError):
-        return JSONResponse(error_body(exc.status, exc.code, exc.message), status_code=exc.status)
+        headers = {"WWW-Authenticate": "Bearer"} if exc.status == 401 else None
+        return JSONResponse(error_body(exc.status, exc.code, exc.message, exc.extra), status_code=exc.status,
+                            headers=headers)
 
     @app.exception_handler(HTTPException)
     async def _http_error(_req: Request, exc: HTTPException):

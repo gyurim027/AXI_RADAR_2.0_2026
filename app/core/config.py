@@ -44,10 +44,17 @@ class DbSettings:
 
 
 @dataclass(frozen=True)
+class AuthSettings:
+    jwt_secret: str = field(repr=False)              # 토큰 서명 키. 비면 서버를 켤 때마다 임시 키(dev만)
+    token_hours: float = 8.0                         # 로그인 토큰 유효 시간
+
+
+@dataclass(frozen=True)
 class Settings:
     db: DbSettings
     cors_origins: list[str]
     app_env: str                                     # dev / demo
+    auth: AuthSettings = AuthSettings(jwt_secret="")
 
 
 @lru_cache(maxsize=1)
@@ -65,4 +72,6 @@ def get_settings() -> Settings:
         read_timeout=int(env.get("RADAR_DB_READ_TIMEOUT", "30")),
     )
     origins = _split(env.get("RADAR_CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"))
-    return Settings(db=db, cors_origins=origins, app_env=env.get("RADAR_APP_ENV", "dev"))
+    auth = AuthSettings(jwt_secret=env.get("RADAR_JWT_SECRET", ""),
+                        token_hours=float(env.get("RADAR_TOKEN_HOURS", "8")))
+    return Settings(db=db, cors_origins=origins, app_env=env.get("RADAR_APP_ENV", "dev"), auth=auth)
