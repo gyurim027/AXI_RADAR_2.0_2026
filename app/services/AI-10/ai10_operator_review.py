@@ -10,7 +10,7 @@ import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 SOURCE = ROOT / 'data' / 'ai10_review_report_v3.json'
 STORE = ROOT / 'data' / 'ai10_operator_review_dev.json'
 

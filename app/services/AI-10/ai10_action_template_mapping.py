@@ -1,4 +1,4 @@
-"""AI-10 개발용 JSON -> SQL v1.10 81 action_template 저장값 사전 검증.
+"""AI-10 개발용 JSON -> SQL v2 81 action_template 저장값 사전 검증.
 
 DB 쓰기·접속 없음. SQL에 없는 상태나 이력 필드를 생성하지 않음.
 이 모듈은 현행 스키마와의 기술적 대응만 검사하며 운영 승인 정책을 확정하지 않음.
@@ -64,9 +64,9 @@ def preview_action_template_update(item: dict, reviewer_user_id: int | None = No
         # UTC 기준 문자열이며 실제 MySQL 세션/운영 시간대 정책은 별도 확인 필요.
 
     return {
-        '항목ID': rid,
-        '조치_제안_문장': sentence,
-        '문장_검토_상태': db_status,
-        '검토자': reviewer_user_id,
-        '검토_일시': reviewed_at,
+        'item_id': rid,
+        'action_sentence': sentence,
+        'sentence_review_status': db_status,
+        'reviewer': reviewer_user_id,
+        'reviewed_at': reviewed_at,
     }

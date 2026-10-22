@@ -13,8 +13,8 @@ from typing import Any
 from app.services.ai10_confirmed_ck_handoff import handoff_confirmed_ck
 from app.services.ai10_operator_review import STORE
 
-ROOT = Path(__file__).resolve().parents[2]
-SAMPLES = ROOT / 'data' / 'RADAR_AI10_민원샘플_정리_v2.json'
+ROOT = Path(__file__).resolve().parents[3]
+SAMPLES = ROOT / 'data' / 'ai10_synthetic_legacy22_v1.json'
 
 
 def run_22_confirmed_handoff(
@@ -73,8 +73,20 @@ def main() -> None:
     if args.confirmed_json:
         inputs = json.loads(args.confirmed_json.read_text(encoding='utf-8-sig'))
     result = run_22_confirmed_handoff(records, inputs, store=args.store)
+    from app.services.ai10_report_format import show_case
     for row in result['records']:
-        print(f"{row['sample_id']} | {row['status']} | {row['confirmed_rule_id'] or '-'}")
+        proposal = row.get('proposal') or {}
+        show_case(identity=f"{row['sample_id']} | 확정 CK 인계 확인",
+                  claim='이 인계 결과에는 민원 주장 원문이 포함되지 않음',
+                  verification='상위 기능에서 전달한 CK 확정 상태 및 승인 문장 연결 결과; 현장 검증 아님',
+                  unverified='현장 사실 및 인계 데이터 외 근거',
+                  link=f"{row.get('confirmed_rule_id') or row.get('ck_provisional') or '없음'} / {row['status']}",
+                  gemini='미호출 (기존 승인 문장 조회)',
+                  draft='새 Gemini 초안 미생성 / 기존 승인 문장 조회만 수행',
+                  note='연결 성공은 현장 조치 완료를 뜻하지 않음',
+                  final=proposal.get('action_proposal_sentence') or '없음 / 확정 CK·승인 문장·필수 연결조건 미충족',
+                  extra=[('기존 잠정 CK', row.get('ck_provisional') or '없음'),
+                         ('확정 CK 전달', row.get('confirmed_rule_id') or '연결 안 됨')])
     c = result['counts']
     print(f"결과: {c['total']}건 / 연결 {c['linked']}건 / 미연결 {c['not_linked']}건 | Gemini/DB 미호출")
 

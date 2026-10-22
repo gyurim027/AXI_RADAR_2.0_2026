@@ -11,7 +11,7 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 RULES_PATH = ROOT / 'data' / 'ai10_ck_rules_v0.4.1.json'
 
 class DraftOutput(BaseModel):
@@ -70,7 +70,31 @@ def make_prompt(rule: dict, *, confirmed_source_text: str | None = None) -> str:
         '출력은 rule_id, draft_template, review_note를 가진 JSON만 만드세요.\n'
         f'CK: {json.dumps(allowed, ensure_ascii=False)}\n'
         f'운영자가 직접 대조한 확정 근거 원문(없으면 null): {json.dumps(confirmed_source, ensure_ascii=False)}'
+        + load_planning_reference(str(rule.get('rule_id', '')))
     )
+
+def load_planning_reference(rule_id: str) -> str:
+    """실제 과업지시서에서 추출·요약한 CK 연관 항목만 전달한다.
+
+    과업지시서는 계획 수립 용역 지시이며 시설 현황/법적 의무의 실증 근거가 아니다.
+    원본 HWP 대신 버전 관리 가능한 검토용 발췌 JSON을 참조한다.
+    """
+    path = ROOT / 'data' / 'ai10_reference' / 'seongnam_mobility_plan_excerpt_2026.json'
+    if not path.is_file():
+        raise FileNotFoundError(f'AI-10 추가 근거자료가 없습니다: {path}')
+    data = json.loads(path.read_text(encoding='utf-8-sig'))
+    related = data['ck_references'].get(rule_id, [])
+    if not related:
+        return ''
+    return (
+        '\n[추가 근거자료 / 정책·계획 방향 참고]\n'
+        f"자료명: {data['title']} (발행: {data['date']})\n"
+        + '\n'.join(f"- {x['section']}: {x['content']}" for x in related)
+        + '\n이 자료는 2026년 수립 용역의 과업지시서입니다. 이미 조사·설치·개선이 완료됐다고 쓰지 말고, '
+          '개별 시설의 실제 상태·위반 여부·법적 의무를 확정하거나 법령 조문 검증자료처럼 인용하지 마세요. '
+          'CK 기준표가 우선이며, 연관 항목만 계획 방향의 보조 근거로 활용하세요.\n'
+    )
+
 
 def _ck10_unverified_width_claim(text: str) -> bool:
     """보도 폭 실측 근거 없는 확정적 수치/기준미달 주장만 차단한다."""
@@ -162,7 +186,6 @@ def generate_draft(rule_id: str, *, confirmed_source_text: str | None = None) ->
     """
     from dotenv import load_dotenv
     from google import genai
-    from google.genai import types
     load_dotenv(ROOT / '.env', override=True)
     api_key=os.getenv('GEMINI_API_KEY'); model=os.getenv('GEMINI_MODEL')
     if not api_key or not model:
@@ -173,11 +196,16 @@ def generate_draft(rule_id: str, *, confirmed_source_text: str | None = None) ->
     client=genai.Client(api_key=api_key)
     try:
         for attempt in (1,2):
-            response=client.models.generate_content(
-                model=model, contents=prompt,
-                config=types.GenerateContentConfig(response_mime_type='application/json',response_schema=DraftOutput,temperature=0.2)
-            )
-            raw=DraftOutput.model_validate_json(response.text or '')
+            # 실제 AI-10 프롬프트로 정상 응답이 확인된 기본 호출을 사용합니다.
+            # 구조화 응답 스키마 요청에서 반복된 503 문제를 회피합니다.
+            response=client.models.generate_content(model=model, contents=prompt)
+            response_text=(response.text or '').strip()
+            # 기본 호출은 JSON을 ```json ... ``` 코드 블록으로 감쌀 수 있습니다.
+            if response_text.startswith('```'):
+                lines=response_text.splitlines()
+                if len(lines) >= 3 and lines[-1].strip() == '```':
+                    response_text='\n'.join(lines[1:-1]).strip()
+            raw=DraftOutput.model_validate_json(response_text)
             try:
                 result=validate_draft(raw,rule_id,confirmed_source_text=confirmed_source_text)
             except ValueError as exc:

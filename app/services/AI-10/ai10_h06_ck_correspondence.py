@@ -9,7 +9,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 RULES_PATH = ROOT / 'data' / 'ai10_ck_rules_v0.4.1.json'
 
 

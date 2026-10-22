@@ -9,7 +9,7 @@ import re
 from datetime import datetime, timezone
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_RULES = ROOT / 'data' / 'ai10_ck_rules_v0.4.json'
 DEFAULT_BATCH = ROOT / 'data' / 'ai10_draft_test_results.json'
 DEFAULT_RETRY = ROOT / 'data' / 'ai10_ck03_retry.json'

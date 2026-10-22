@@ -13,8 +13,8 @@ from pathlib import Path
 from typing import Any
 from .ai10_assessment_ck_match import match_assessment_ck
 
-ROOT = Path(__file__).resolve().parents[2]
-SAMPLES = ROOT / 'data' / 'RADAR_AI10_민원샘플_정리_v2.json'
+ROOT = Path(__file__).resolve().parents[3]
+SAMPLES = ROOT / 'data' / 'ai10_synthetic_legacy22_v1.json'
 ID_FIELDS = {
     '07_assess_crosswalk': '횡단보도관리번호',
     '08_assess_sidewalk': 'UFID',
@@ -97,8 +97,19 @@ def main() -> None:
     records = json.loads(SAMPLES.read_text(encoding='utf-8-sig'))['records']
     links = json.loads(args.links_json.read_text(encoding='utf-8-sig')) if args.links_json else {}
     result = check_22_assessment_links(records, links, load_csv_tables(args.csv_zip))
+    from app.services.ai10_report_format import show_case
     for row in result['records']:
-        print(f"{row['sample_id']} | {row['status']} | {','.join(c['rule_id'] for c in row['ck_candidates']) or '-'}")
+        candidates = row['ck_candidates']
+        show_case(identity=f"{row['sample_id']} | 시설 판정 연결 점검",
+                  claim='이 연결 결과에는 민원 주장 원문이 포함되지 않음',
+                  verification='시설 식별번호와 판정 CSV 일치 여부의 기술적 대조; 실제 현장 확인 아님',
+                  unverified='민원이 해당 시설을 실제로 가리키는지, 현재 시설 상태',
+                  link=f"{','.join(c['rule_id'] for c in candidates) or '없음'} / {row['status']}",
+                  gemini='미호출 (판정자료 연결 점검)',
+                  note='CK 최종 확정·운영자 승인 없음',
+                  extra=[('판정 데이터 출처', str(row.get('table') or '연결 없음')),
+                         ('시설번호', str(row.get('facility_id') or '연결 없음')),
+                         ('CK 후보 목록', ', '.join(c['rule_id'] for c in candidates) or '없음')])
     print(f"결과: {result['counts']['total']}건 / 연결표 {result['counts']['provided_links']}건 / CK 후보 {result['counts']['candidate_records']}건 / 확정 0건 | Gemini/DB 미호출")
 
 if __name__ == '__main__':
