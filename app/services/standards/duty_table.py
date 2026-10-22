@@ -17,7 +17,7 @@ DEPT = re.compile(r"^[가-힣]{2,12}(과|관|담당관|팀|센터|사업소|단|
 SKIP = re.compile(r"^(소\s*관|부\s*서|일련|번호|위\s*임.*명|근\s*거.*규|■.*|<.*>|구청장에게.*|\d+)$")
 LAW = re.compile(r"(법|령|규칙|조례|규정|지침|고시)(\s|$|\s*제|\s*\d|,)|같은\s*법|제\d+조")
 BULLET_TOP = re.compile(r"^○\s*")
-BULLET_SUB = re.compile(r"^(ㆍ|·|-|－)\s*")
+BULLET_SUB = re.compile(r"^(ㆍ|·|․|‧|-|－)\s*")
 RELATED = ("보도", "보행", "횡단", "가로등", "보안등", "조명", "도로", "주ㆍ정차", "주정차", "주·정차", "주차", "교통약자",
            "보호구역", "점용", "적치", "신호", "육교", "지하보도", "통학로")
 
@@ -120,12 +120,41 @@ def compare(old: list[Duty], new: list[Duty], name: str = "업무분장") -> dic
             d = nb[k][0]
             add("근거 바뀜", d.dept, ob[k][0].basis, d.basis, d)
 
+    changes = _pair_similar(changes)
     od, nd = {d.dept for d in old}, {d.dept for d in new}
     depts = {"new": sorted(nd - od), "gone": sorted(od - nd)}
     changes.sort(key=lambda c: (not c["related"], c["change"], c["where"]))
     return {"changes": changes, "depts": depts,
             "summary": {"old_duties": len(old), "new_duties": len(new), "changes": len(changes),
                         "related": sum(1 for c in changes if c["related"])}}
+
+
+def _pair_similar(changes: list[dict]) -> list[dict]:
+    """글자만 조금 고친 사무가 '없어진 사무 + 새 사무' 두 줄로 나오지 않게 묶는다.
+    같은 부서에서 비슷하면(0.6 이상) '바뀜', 다른 부서로 거의 그대로(0.8 이상) 옮겼으면 '부서 옮김'."""
+    from difflib import SequenceMatcher
+    gone = [c for c in changes if c["change"] == "없어진 사무"]
+    new = [c for c in changes if c["change"] == "새 사무"]
+    used_g, used_n, merged = set(), set(), []
+    for i, g in enumerate(gone):
+        best, bj = 0.0, None
+        for j, n in enumerate(new):
+            if j in used_n:
+                continue
+            r = SequenceMatcher(None, g["duty"], n["duty"]).ratio()
+            need = 0.6 if g["where"] == n["where"] else 0.8
+            if r >= need and r > best:
+                best, bj = r, j
+        if bj is None:
+            continue
+        n = new[bj]
+        used_g.add(i); used_n.add(bj)
+        same = g["where"] == n["where"]
+        merged.append({**n, "change": "바뀜" if same else "부서 옮김", "before": g["before"], "after": n["after"],
+                       "from_dept": g["where"], "to_dept": n["where"], "related": g["related"] or n["related"],
+                       "similarity": round(best, 2)})
+    rest = [c for c in changes if not ((c in gone and gone.index(c) in used_g) or (c in new and new.index(c) in used_n))]
+    return rest + merged
 
 
 def to_rows(duties: list[Duty]) -> list[dict]:

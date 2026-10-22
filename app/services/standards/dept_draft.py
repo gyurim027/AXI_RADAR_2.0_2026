@@ -93,7 +93,7 @@ def make_drafts(changes: Iterable[dict], jurisdiction: Iterable[dict], doc_name:
                 to = DELEGATED_TO if delegation_annex else ch.get("to_dept")
             else:
                 to = ch.get("from_dept") if delegation_annex else "확인 필요 (사무가 없어짐)"
-            if not to or to == row.get("dept"):
+            if not to or to in (row.get("dept") or ""):        # 이미 그 부서가 맡고 있으면 고칠 것 없음
                 continue
             drafts.append({
                 "id": f"dd-{len(drafts) + 1}", "jur_id": row.get("id"), "problem": row.get("problem"),

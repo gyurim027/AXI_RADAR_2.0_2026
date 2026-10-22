@@ -184,3 +184,55 @@ class StandardsApiTests(unittest.TestCase):
     def test_seen(self):
         self.assertEqual(self.c.post("/api/standards/changes/1/seen", headers=self.h).status_code, 200)
         self.assertEqual(self.c.post("/api/standards/changes/9/seen", headers=self.h).status_code, 404)
+
+
+ORG_PAGE = """홈
+조직도
+부서별 팩스번호
+건설과
+직위
+전화번호
+건설과장
+031-729-7016
+담당업무
+보도관리팀장
+031-729-7350
+보도관리팀 업무 총괄
+주무관
+031-729-7351
+보도, 자전거도로, 소송 등
+주무관
+031-729-7352
+영조물배상, 보도안전시설물
+주무관
+031-729-7353
+영조물배상, 보도안전시설물
+직위
+전화번호
+도로조명팀장
+031-729-7360
+도로조명팀 업무 총괄
+주무관
+031-729-7361
+○ 가로등 및 보안등 유지관리
+○ 가로등 관리
+"""
+
+
+class OrgPageTests(unittest.TestCase):
+    def test_parse_ward_page(self):
+        from app.services.standards.org_pages import parse_org_page
+        d = parse_org_page(ORG_PAGE)
+        self.assertEqual([(x.dept, x.duty) for x in d], [
+            ("분당구 건설과 보도관리팀", "보도, 자전거도로, 소송 등"),
+            ("분당구 건설과 보도관리팀", "영조물배상, 보도안전시설물"),            # 같은 업무 두 명 → 한 줄
+            ("분당구 건설과 도로조명팀", "가로등 및 보안등 유지관리"),
+            ("분당구 건설과 도로조명팀", "가로등 관리"),
+        ])
+        self.assertNotIn("031", " ".join(x.duty for x in d))                     # 전화번호는 남기지 않음
+
+    def test_small_edit_is_one_change(self):
+        from app.services.standards.org_pages import parse_org_page
+        new = ORG_PAGE.replace("보도, 자전거도로, 소송 등", "보도, 자전거도로, 소송, 점자블록 등")
+        rep = duty_compare(parse_org_page(ORG_PAGE), parse_org_page(new))
+        self.assertEqual([c["change"] for c in rep["changes"]], ["바뀜"])

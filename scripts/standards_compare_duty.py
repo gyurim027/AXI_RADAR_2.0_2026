@@ -37,6 +37,15 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "out" / "standards"
 
 
+def load_duties(path: str):
+    """폴더 = 누리집 부서 페이지 묶음(org_pages), 파일 = 사무위임 별표 모양(duty_table)."""
+    p = Path(path)
+    if p.is_dir():
+        from app.services.standards.org_pages import parse_org_folder
+        return parse_org_folder(p)
+    return parse(read_text(path))
+
+
 def read_text(path: str) -> str:
     p = Path(path)
     if p.suffix.lower() == ".txt":
@@ -48,8 +57,8 @@ def read_text(path: str) -> str:
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description="A-12 업무분장 변경 확인 + F-05 수정안")
-    ap.add_argument("--old", required=True)
-    ap.add_argument("--new", required=True)
+    ap.add_argument("--old", required=True, help="이전 판: 사무위임 별표 파일, 또는 누리집 부서 페이지 PDF를 모은 폴더")
+    ap.add_argument("--new", required=True, help="새 판: 같은 모양")
     ap.add_argument("--name", default="업무분장", help="문서 이름 (결과·수정안 근거에 씀)")
     ap.add_argument("--jurisdiction", help="담당 부서 표 JSON (있으면 F-05 수정안까지)")
     ap.add_argument("--not-delegation", action="store_true", help="사무위임 별표가 아닌 일반 업무분장 문서")
@@ -58,7 +67,7 @@ def main(argv=None) -> int:
 
     OUT.mkdir(parents=True, exist_ok=True)
     with track("검사", f"업무분장 변경 확인 ({args.name})", module="A-12") as job:
-        old, new = parse(read_text(args.old)), parse(read_text(args.new))
+        old, new = load_duties(args.old), load_duties(args.new)
         job.log(f"이전 판 사무 {len(old)}개, 새 판 사무 {len(new)}개를 읽었습니다")
         rep = compare(old, new, args.name)
         from app.core import db
