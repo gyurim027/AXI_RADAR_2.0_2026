@@ -101,6 +101,14 @@ class MySQLStore:
     def count_rows(self) -> int:
         return int(self._all("SELECT COUNT(*) AS n FROM src_complaint")[0]["n"])
 
+    def list_uploads(self, limit: int) -> list[dict]:
+        """AD-03 '올린 기록': 84 data_upload 최신 순 (올린 운영자 이름은 60 app_user에서)."""
+        return self._all(
+            "SELECT u.upload_id, u.data_name, u.file_name, u.source, u.ref_date, u.period_start, u.period_end, "
+            "u.is_official_raw, u.uploaded_by, a.display_name AS uploaded_by_name, u.uploaded_at, u.check_result, "
+            "u.row_cnt, u.remark FROM data_upload u LEFT JOIN app_user a ON a.user_id = u.uploaded_by "
+            "ORDER BY u.uploaded_at DESC, u.upload_id DESC LIMIT %s", (int(limit),))
+
     # --- 쓰기 ---
     def create_upload(self, meta, file_name: str) -> int:
         with self.con.cursor() as cur:
@@ -200,6 +208,10 @@ class MemoryStore:
 
     def count_rows(self):
         return len(self.complaints)
+
+    def list_uploads(self, limit):
+        rows = sorted(self.uploads.values(), key=lambda u: -u["upload_id"])[:limit]
+        return [dict(u, uploaded_by_name=None, uploaded_at=None) for u in rows]
 
     def create_upload(self, meta, file_name):
         uid = max(self.uploads, default=0) + 1
