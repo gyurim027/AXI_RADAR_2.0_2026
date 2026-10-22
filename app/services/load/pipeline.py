@@ -60,13 +60,13 @@ def validate_meta(meta: UploadMeta) -> None:
 
 
 def run_load(data: bytes, file_name: str, meta: UploadMeta, store, refine: Callable | None = None,
-             rerun_ai01: bool = False) -> LoadResult:
+             rerun_ai01: bool = False, request_id: str | None = None) -> LoadResult:
     """rerun_ai01=True: 이미 AI-01 결과가 있는 민원도 다시 돌린다 (모델을 바꿨을 때). 바뀐 값은 80에 'AI-01'로 남는다."""
     validate_meta(meta)
     upload_id = store.create_upload(meta, file_name[:200])
     store.commit()                                   # 실패해도 84 줄은 남긴다
     try:
-        result = _process(data, file_name, meta, store, refine, upload_id, rerun_ai01)
+        result = _process(data, file_name, meta, store, refine, upload_id, rerun_ai01, request_id)
         store.commit()
         return result
     except Exception as e:
@@ -79,7 +79,8 @@ def run_load(data: bytes, file_name: str, meta: UploadMeta, store, refine: Calla
         raise
 
 
-def _process(data: bytes, file_name: str, meta: UploadMeta, store, refine, upload_id: int, rerun_ai01: bool) -> LoadResult:
+def _process(data: bytes, file_name: str, meta: UploadMeta, store, refine, upload_id: int, rerun_ai01: bool,
+             request_id: str | None) -> LoadResult:
     rows = sorted(read_rows(data), key=lambda r: r.number)
     if not rows:
         raise LoadFileError("empty_file", "민원이 한 건도 없는 파일입니다.")
@@ -106,7 +107,7 @@ def _process(data: bytes, file_name: str, meta: UploadMeta, store, refine, uploa
         if old is not None and old.get("masked_summary") is not None and not rerun_ai01:
             for c in AI_COLS:                          # 이미 채워진 값은 그대로 두고 비교에서도 같게 본다
                 rec[c] = old.get(c)
-    ai = apply_ai01([rows[i] for i in todo], [records[i] for i in todo], refine)
+    ai = apply_ai01([rows[i] for i in todo], [records[i] for i in todo], refine, upload_id=upload_id, request_id=request_id)
     for r in rows:                                    # 4단계가 끝나면 원문을 메모리에서 버린다 (ISS-032)
         r.title = r.body = ""
 
@@ -126,6 +127,11 @@ def _process(data: bytes, file_name: str, meta: UploadMeta, store, refine, uploa
     rows_after = store.count_rows()
 
     warnings = []
+    if ai.attempted and ai.backend == "stub":
+        warnings.append("AI-01을 불러오지 못해 AI-01 칸을 채우지 않았습니다" if ai.unavailable
+                        else "AI-01 함수가 아직 연결되지 않아 AI-01 칸을 채우지 않았습니다")
+    elif ai.mask_failed or ai.error:
+        warnings.append(f"AI-01: 가림 실패 {ai.mask_failed}건, 오류 {ai.error}건은 AI-01 칸을 비워 두었습니다")
     if recur_cnt is None:
         warnings.append("79에 재발 표시 칸이 없어 재발 표시를 건너뛰었어요 (SQL v2.x 필요)")
     if check.top50_overlap is not None and check.top50_overlap < check.top50_total:

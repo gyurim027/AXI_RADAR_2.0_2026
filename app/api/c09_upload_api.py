@@ -52,7 +52,7 @@ def _load_sync(data: bytes, file_name: str, meta: UploadMeta, user_id: int, requ
         with _lock:
             with track("업로드", meta.data_name, module="C-09", triggered_by=user_id, request_id=request_id) as job:
                 try:
-                    res = run_load(data, file_name, meta, MySQLStore(con))
+                    res = run_load(data, file_name, meta, MySQLStore(con), request_id=request_id)
                 except LoadFileError as e:       # 화면에 보여도 되는 실패 원인(원문 없음)을 알림에 그대로 남긴다
                     raise JobFailed(e.code, e.message) from e
                 job.ref("data_upload", res.upload_id)

@@ -9,8 +9,10 @@ from app.api import c09_upload_api as api
 from app.core import job_run
 from app.core.auth import make_token
 from app.core.responses import CamelCaseMiddleware, install_error_handlers
+from app.services.load import ai01_port
+from app.services.load.ai01_stub import Ai01Result, ComplaintInput as StubInput
 from app.services.load.store import MemoryStore
-from tests.test_load_fixtures import GRID, SOURCE, general, spp, xlsx
+from tests.test_load_fixtures import BaseLoadCase, GRID, SOURCE, general, spp, xlsx
 
 QS = dict(source=SOURCE, refDate="2025-11-30", periodStart="2025-11-01", periodEnd="2025-11-30",
           fileName="민원 상세정보 현황-20261022190720.xlsx")
@@ -54,8 +56,9 @@ def make_app():
     return app
 
 
-class ApiTests(unittest.TestCase):
+class ApiTests(BaseLoadCase):
     def setUp(self):
+        super().setUp()
         self.store = MemoryStore(GRID)
         self.jobs = MemoryJobStore()
         job_run.set_store(self.jobs)
@@ -88,9 +91,21 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(up["file_name"], "민원 상세정보 현황-20261022190720.xlsx")
         self.assertEqual(up["uploaded_by"], OPERATOR_ID)                    # 올린 운영자 계정이 자동으로 기록됨
         run = self.jobs.runs[1]
-        self.assertEqual((run["kind"], run["module"], run["status"], run["triggered_by"]), ("업로드", "C-09", "성공", OPERATOR_ID))
+        # 이 시험 환경에는 AI-01 함수가 없어 가짜로 대신하므로 경고로 끝난다 (아래 시험은 AI-01이 있는 경우)
+        self.assertEqual((run["kind"], run["module"], run["status"], run["triggered_by"]), ("업로드", "C-09", "경고", OPERATOR_ID))
         self.assertEqual((run["ref_table"], run["ref_id"], run["row_cnt"]), ("data_upload", "1", 2))
         self.assertEqual(self.jobs.alerts, [])
+        self.assertTrue(any("AI-01" in w for w in j["warnings"]))
+
+    def test_upload_succeeds_cleanly_when_ai01_works(self):
+        def ok(items, **_):
+            return [Ai01Result(i.complaint_id, "ok", "요약", "보행안전 관련", None, 0.9, "근거", "mask-1+sum-2+cls-2") for i in items]
+        with mock.patch.object(ai01_port, "resolve_backend", return_value=ai01_port.Backend(ok, StubInput, "ai01")):
+            r = self.post()
+        self.assertEqual(r.status_code, 201, r.text)
+        self.assertEqual(self.jobs.runs[1]["status"], "성공")
+        self.assertEqual(r.json()["warnings"], [])
+        self.assertTrue(all(c["masked_summary"] == "요약" for c in self.store.complaints.values()))
 
     def test_second_upload_is_existing(self):
         self.post()

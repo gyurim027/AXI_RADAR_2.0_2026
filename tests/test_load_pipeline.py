@@ -7,7 +7,7 @@ from app.services.load.ai01_stub import Ai01Result
 from app.services.load.pipeline import UploadMeta, run_load, validate_meta
 from app.services.load.reader import LoadFileError
 from app.services.load.store import MemoryStore
-from tests.test_load_fixtures import GRID, general, meta, spp, xlsx
+from tests.test_load_fixtures import BaseLoadCase, GRID, general, meta, spp, xlsx
 
 FILE = "민원 상세정보 현황-20261022190720.xlsx"
 
@@ -16,8 +16,9 @@ def rows_basic():
     return [spp(1), spp(2, processed="-"), general(3), general(4, title="같은 제목", body="같은 본문")]
 
 
-class PipelineTests(unittest.TestCase):
+class PipelineTests(BaseLoadCase):
     def setUp(self):
+        super().setUp()
         self.store = MemoryStore(GRID)
 
     def load(self, rows, **kw):
@@ -127,8 +128,9 @@ class PipelineTests(unittest.TestCase):
         validate_meta(meta())
 
 
-class Ai01Tests(unittest.TestCase):
+class Ai01Tests(BaseLoadCase):
     def setUp(self):
+        super().setUp()
         self.store = MemoryStore(GRID)
 
     def test_stub_is_called_but_not_stored(self):
@@ -159,7 +161,7 @@ class Ai01Tests(unittest.TestCase):
             return [Ai01Result(i.complaint_id, "ok", "요약", "보행안전 관련", None, 0.9, "근거", "mask v0.9") for i in items]
         run_load(xlsx(rows_basic()), FILE, meta(), self.store, refine=refine)
         res = run_load(xlsx(rows_basic()), FILE, meta(), self.store, refine=refine)
-        self.assertEqual(calls, [4, 0])                                # 두 번째에는 보낼 민원이 없음
+        self.assertEqual(calls, [4])                                   # 두 번째에는 보낼 민원이 없어 부르지 않음
         self.assertEqual((res.counts.existing, res.counts.updated), (4, 0))
         self.assertEqual(self.store.changes, [])
 
@@ -199,7 +201,7 @@ class Ai01Tests(unittest.TestCase):
         self.assertEqual(res.counts.new, 4)
 
 
-class NoRawTextTests(unittest.TestCase):
+class NoRawTextTests(BaseLoadCase):
     def test_raw_text_never_reaches_store_logs_or_messages(self):
         marker_t, marker_b = "원문제목ZQX", "원문본문ZQX"
         rows = [general(1, title=marker_t, body=marker_b + " 010-9999-8888"), spp(2)]
@@ -213,7 +215,7 @@ class NoRawTextTests(unittest.TestCase):
         self.assertEqual(next(iter(store.complaints.values()))["raw_pii_patterns"], "휴대전화")
 
 
-class CoordGuardTests(unittest.TestCase):
+class CoordGuardTests(BaseLoadCase):
     def test_ai03_filled_coords_survive_reupload(self):
         st = MemoryStore(GRID)
         run_load(xlsx([spp(1, pos=""), general(2)]), FILE, meta(), st)

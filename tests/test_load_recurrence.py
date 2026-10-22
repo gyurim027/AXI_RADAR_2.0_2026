@@ -4,7 +4,7 @@ import unittest
 from app.services.load.pipeline import run_load
 from app.services.load.recurrence import mark_recurrence
 from app.services.load.store import MemoryStore
-from tests.test_load_fixtures import GRID, meta, spp, xlsx
+from tests.test_load_fixtures import BaseLoadCase, GRID, meta, spp, xlsx
 
 FILE = "민원 상세정보 현황-20261022190720.xlsx"
 
@@ -45,7 +45,7 @@ class MarkTests(unittest.TestCase):
         self.assertEqual((rs[0]["recurrence_flag"], rs[0]["recurrence_prev_id"]), ("재발 2회", "P2"))
 
 
-class PipelineRecurrenceTests(unittest.TestCase):
+class PipelineRecurrenceTests(BaseLoadCase):
     def rows(self):
         a = list(spp(1, received="2025-11-01", processed="2025-11-03"))
         b = list(spp(2, received="2025-11-10", processed="-"))
@@ -77,7 +77,7 @@ class PipelineRecurrenceTests(unittest.TestCase):
         self.assertEqual(by["SPP-2511-ABC0002"]["recurrence_flag"], "재발 1회")
 
 
-class KindAndRecomputeTests(unittest.TestCase):
+class KindAndRecomputeTests(BaseLoadCase):
     def test_ped_type_is_preferred_over_report_type(self):
         rs = [dict(rec("A", received="2025-11-01", processed="2025-11-03"), ped_type="불법주정차"),
               dict(rec("B", typ="다른 신고분류"), ped_type="불법주정차")]
@@ -103,7 +103,7 @@ class KindAndRecomputeTests(unittest.TestCase):
         self.assertEqual(sorted(c["changed_column"] for c in st.changes)[:1], ["recurrence_flag"])
 
 
-class ForeignKeyOrderTests(unittest.TestCase):
+class ForeignKeyOrderTests(BaseLoadCase):
     """실제 MySQL 시험에서 나온 문제: 재발 표시가 같은 파일의 나중에 들어갈 민원을 가리키면 외래키 오류."""
 
     def test_prev_id_pointing_to_later_row_in_same_file(self):

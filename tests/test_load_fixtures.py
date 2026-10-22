@@ -1,6 +1,8 @@
 """민원 적재 시험용 가짜 자료 (실제 민원 글자는 쓰지 않는다)."""
 import datetime as dt
 import io
+import unittest
+from unittest import mock
 
 import openpyxl
 
@@ -41,3 +43,18 @@ def meta(**kw):
                 period_start=dt.date(2025, 11, 1), period_end=dt.date(2025, 11, 30))
     base.update(kw)
     return UploadMeta(**base)
+
+
+class BaseLoadCase(unittest.TestCase):
+    """적재 시험의 기반: AI-01 본체가 합쳐진 트리에서도 시험이 진짜 모델을 부르지 않도록 가짜 함수로 고정한다.
+    진짜 함수를 거치는 시험은 tests/test_load_ai01_real.py (여기서 상속하지 않음)."""
+
+    def setUp(self):
+        from app.services.load import ai01_port as port
+        from app.services.load.ai01_stub import ComplaintInput, refine_complaints
+
+        def resolve(refine=None):
+            return port.Backend(refine, ComplaintInput, "custom") if refine else port.Backend(refine_complaints, ComplaintInput, "stub")
+        p = mock.patch.object(port, "resolve_backend", side_effect=resolve)
+        p.start()
+        self.addCleanup(p.stop)
