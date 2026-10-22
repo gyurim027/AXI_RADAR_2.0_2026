@@ -83,7 +83,7 @@ max_tokens = 300
 ```
 
 - 빠진 값은 `[defaults]`를 쓴다 (temperature 0, max_tokens 1024, timeout_s 60, max_retries 2, json_retries 1).
-- 지금 들어 있는 작업은 실제로 LLM을 부르는 두 곳뿐이다: `ai03_refine`(위치 글자 다듬기), `ai10_draft`(조치 제안 문장 초안). 값은 지금 각 코드와 같다.
+- 지금 들어 있는 작업은 LLM을 부르거나 붙이기로 한 세 곳이다: `ai03_refine`(위치 글자 다듬기), `ai07_explain`(설명문 다듬기), `ai10_draft`(조치 제안 문장 초안). AI-03·AI-10 값은 지금 각 코드와 같다.
 
 ## 6. 작업 더하기·바꾸기
 

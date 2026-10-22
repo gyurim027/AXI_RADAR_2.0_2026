@@ -25,6 +25,12 @@ model = "exaone3.5:7.8b"
 temperature = 0
 max_tokens = 300
 
+[tasks.ai07_explain]
+# AI-07 설명문 다듬기 (E-03). 점수·근거는 바꾸지 않으므로 같은 입력이면 같은 문장이 나오게 temperature 0.
+route = "internal"
+model = "exaone3.5:7.8b"
+temperature = 0
+
 [tasks.ai10_draft]
 # AI-10 조치 제안 문장 초안 (app/services/ai10_draft.py의 generate_draft). 값은 지금 코드 기준.
 route = "external"
