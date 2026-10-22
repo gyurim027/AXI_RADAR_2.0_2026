@@ -1,0 +1,38 @@
+# 공통 LLM 모듈(W05-05) 작업별 설정. 읽는 곳: app/core/llm.py
+# 모델은 아직 정하지 않았다(ISS-017). 모델을 바꿀 때는 이 파일만 고친다.
+#
+# route: internal(내부 Ollama) / external(외부 Gemini). 비우면 .env의 LLM_DEFAULT_ROUTE.
+# model: 비우면 internal은 오류, external은 .env의 GEMINI_MODEL을 쓴다.
+# 외부(external)로는 아래 [external_allowed]에 있는 자료만, 가리기 전 원문이 없을 때만 보낸다(POL-008, POL-021).
+# 조건이 맞지 않으면 외부로 보내지 않고 실패(external_not_allowed)로 돌려준다.
+
+[defaults]
+temperature = 0
+max_tokens = 1024
+timeout_s = 60          # 한 번 부를 때 기다리는 최대 시간(초)
+max_retries = 2         # 일시 오류(시간 초과·속도 제한·서버 오류) 때 다시 부르는 횟수
+json_retries = 1        # JSON으로 답하게 했는데 형식이 틀렸을 때 다시 부르는 횟수
+
+[external_allowed]
+# 대장 06 데이터 목록의 '외부 AI 전송' 칸이 허용인 자료 ID만 적는다 (예: "DAT-00").
+# 목록에 없거나 미확인인 자료가 하나라도 들어가면 외부로 보내지 않는다.
+data_ids = []
+
+[tasks.ai03_refine]
+# AI-03 위치 글자 다듬기 (ai03_location_refine/llm.py의 _call). 값은 담당자 정리 문서 기준.
+route = "internal"
+model = "exaone3.5:7.8b"
+temperature = 0
+max_tokens = 300
+
+[tasks.ai07_explain]
+# AI-07 설명문 다듬기 (E-03). 점수·근거는 바꾸지 않으므로 같은 입력이면 같은 문장이 나오게 temperature 0.
+route = "internal"
+model = "exaone3.5:7.8b"
+temperature = 0
+
+[tasks.ai10_draft]
+# AI-10 조치 제안 문장 초안 (app/services/ai10_draft.py의 generate_draft). 값은 지금 코드 기준.
+route = "external"
+model = ""              # 지금처럼 .env의 GEMINI_MODEL을 쓴다
+temperature = 0.2
