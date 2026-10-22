@@ -14,5 +14,5 @@ def check_target(allow_shared: bool) -> str:
     host = s.host or "(소켓)"
     local = bool(s.socket) or (s.host or "") in LOCAL
     if not local and not allow_shared:
-        sys.exit(f"{host} 은(는) 로컬 DB가 아닙니다. 시험 적재는 내 PC 로컬 DB로 하세요. (공용 DB에 쓰려면 팀에 알린 뒤 --allow-shared-db)")
+        sys.exit(f"{host} 은(는) 로컬 DB가 아닙니다. 시험 적재는 개발 PC의 로컬 DB로 하세요. (공용 DB에 쓰려면 팀에 알린 뒤 --allow-shared-db)")
     return f"{host}:{s.port}/{s.name}"
