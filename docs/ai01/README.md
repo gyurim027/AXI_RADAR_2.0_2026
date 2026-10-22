@@ -1,0 +1,51 @@
+# AI-01 민원 정제 (초안)
+
+민원 적재(W07-01) 4단계에서 부르는 함수다. 민원마다 개인정보를 가리고, 가린 요약을 만들고, 보행안전 관련 여부를 정한다.
+기준: 기능정의서 C-03(개인정보 지우기), C-04(보행안전 관련 민원 고르기), 05 AI-01 · 민원 적재 규칙 명세서 · DB 79 src_complaint
+
+## 부르는 법
+```python
+from app.services.ai01.refine import ComplaintInput, refine_complaints
+
+results = refine_complaints(
+    [ComplaintInput(complaint_id, source_type, title, body, report_type_raw)],   # 한 업로드 파일 묶음
+    upload_id=upload_id,
+)
+for r in results:   # 같은 순서·같은 개수
+    r.status        # ok / mask_failed / error
+    r.masked_summary, r.relevance, r.ped_type, r.class_confidence, r.class_reason   # DB 79의 27·31~34
+```
+| status | 적재가 할 일 |
+|---|---|
+| ok | 27·31~34칸에 쓴다 (ped_type은 유형 목록이 정해질 때까지 None) |
+| mask_failed | 가림 검사를 통과하지 못한 민원. class_reason만 '가림 실패', 나머지 칸은 비운다. 분류로 보내지 않는다 |
+| error | 모델 호출 실패 등. AI-01 칸을 비워 두고 나중에 다시 돌린다 |
+
+- 원문(title·body)은 함수 안에서만 쓴다. 결과·로그·실행 기록에 원문을 남기지 않는다(ISS-032).
+- 28 raw_pii_patterns(원문 개인정보 꼴)는 적재 3단계가 채운다.
+- 실행 기록: '분류' 한 줄(건수·상태만, app/core/job_run).
+
+## 처리 순서
+1. 전처리: 제목 + 본문에서 꼬리표·좌표·촬영 시각 줄을 뺀다
+2. 가림: 규칙(접수번호·전화·차량번호·동호수·생년월일·직함 앞 이름 등) → 이름 찾기 모델(koelectra-ko-pii-ner) → 가림 검사. 장소 표현은 남긴다
+3. 가린 요약: 200자 이하면 가린 글 그대로, 길면 내부 모델(작업 ai01_summarize)로 두 문장 이하. 요약에 개인정보 꼴이 남으면 다시 가리고, 가린 글에 없는 장소가 나오면 요약을 버리고 가린 글 앞부분을 쓴다
+4. 관련 여부
+   - 신고 분류가 있으면: 신고 분류 낱말(data/ai01/report_type_rules.csv)로 기본값을 정하고 가린 본문으로 확인한다. 관련 기본값인데 본문에 '주차장 안' 같은 신호가 있거나, 비관련 기본값인데 본문에 보행 신호(인도·횡단보도·보행 등)가 있으면 내부 모델로 다시 판단한다. 낱말로 기본값을 못 정하면(기타·황색선 주정차 등) 지금은 불명
+   - 신고 분류가 없으면: 규칙 2개 → 내부 모델(작업 ai01_classify)
+   - 값: 보행안전 관련 / 비관련 / 불명. 신뢰도는 관련 여부 판단이 얼마나 확실한지(위치 정확도 아님). 대응표·규칙은 1.0, 모델은 모델이 낸 값(보정 전)
+   - 판단 근거: "묶음: 설명" 한 문장 (분류 검수 화면에 그대로 보임)
+
+## 준비
+- 선택 묶음 ai01 (torch, transformers). 이름 찾기 모델은 처음 실행할 때 한 번 내려받는다
+- Ollama + exaone3.5:7.8b (공통 LLM 모듈, docs/W05_llm_module.md)
+- .env의 `AI01_COMMON_WORDS`: 흔한 낱말 목록 파일 경로. 이름 찾기 모델이 일반 낱말을 이름으로 잘못 보는 것을 거른다. 민원에서 만든 목록이라 저장소에 두지 않는다. 만드는 법: `scripts/ai01_build_common_words.py`
+
+## 시험
+```
+uv run python -m pytest tests/test_ai01_refine.py     # 가짜 문장, 이름 모델·LLM 없이 돈다
+```
+
+## 아직 없는 것
+- 유형 분류(C-05, 유형 목록 확정 뒤)
+- 분류 대응표 중 '불명'으로 둔 신고 분류(기타·황색선 주정차 등)를 본문으로 다시 볼지
+- 신뢰도 기준값(표본을 늘려 정함)
