@@ -139,3 +139,18 @@ def compare(old: list[dict], new: list[dict], criteria: Iterable[dict] = ()) -> 
             "summary": {"laws_checked": len(law_rows), "laws_changed": len(touched), "articles_changed": len(changes),
                         "criteria_to_check": sorted({x["criterion_id"] for c in changes for x in c["criteria"] if x["criterion_id"]}),
                         "criteria_same_law": sorted({x["criterion_id"] for r in touched for x in r["criteria"] if x["criterion_id"]})}}
+
+
+LAW_STATUS_TO_CHANGE = {"시행일 바뀜": "시행일 바뀜", "새로 들어옴": "새 조문", "빠짐": "없어짐"}
+
+
+def rows_to_save(rep: dict) -> list[dict]:
+    """89 standard_change에 넣을 줄: 조문 변경 + 조문 변경 없이 법령째 바뀐 것(시행일 바뀜·새로 들어옴·빠짐)."""
+    out = list(rep["changes"])
+    with_articles = {c["name"] for c in rep["changes"]}
+    for law in rep["laws"]:
+        if law["status"] in LAW_STATUS_TO_CHANGE and law["name"] not in with_articles:
+            out.append({"kind": "법령", "name": law["name"], "where": "법령 전체", "change": LAW_STATUS_TO_CHANGE[law["status"]],
+                        "date": law.get("new_effective"), "before": law.get("old_effective"), "after": law.get("new_effective"),
+                        "criteria": law.get("criteria", [])})
+    return out

@@ -31,7 +31,7 @@ except ImportError:                     # pragma: no cover
             def rows(self, *_): pass
         yield _J()
 from app.services.ai05 import chunk, extract
-from app.services.standards.revision import compare, read_chunks
+from app.services.standards.revision import compare, read_chunks, rows_to_save
 
 ROOT = Path(__file__).resolve().parents[1]
 D = ROOT / "data" / "ai05"
@@ -45,6 +45,7 @@ def main(argv=None) -> int:
     src.add_argument("--new-chunks", help="이미 만든 새 chunks.jsonl (시험용)")
     ap.add_argument("--date", default=datetime.date.today().isoformat(), help="기준일 (시행 전 판단)")
     ap.add_argument("--apply", action="store_true", help="비교 뒤 색인을 새 원문으로 바꾸기")
+    ap.add_argument("--no-save", action="store_true", help="89 standard_change에 남기지 않기 (기본: DB가 있으면 남김)")
     args = ap.parse_args(argv)
 
     OUT.mkdir(parents=True, exist_ok=True)
@@ -75,6 +76,7 @@ def main(argv=None) -> int:
         if s["criteria_same_law"]:
             print("  같은 법령을 쓰는 행(참고):", ", ".join(s["criteria_same_law"]))
         print("자세한 결과:", path)
+        _save(rows_to_save(rep), getattr(job, "run_id", None), args.no_save)
 
         if args.apply and s["laws_changed"]:
             if new_docs is None:
@@ -87,6 +89,18 @@ def main(argv=None) -> int:
             job.log("색인을 새 원문으로 바꿨습니다")
             print("색인을 바꿨습니다. 서버를 다시 켜면 새 색인을 씁니다.")
     return 0
+
+
+def _save(rows, run_id, no_save) -> None:
+    """89 standard_change(규정 변경 기록)에 남기고, 걸리는 담당 부서 표(87)를 붙인다. DB가 없으면 건너뜀."""
+    from app.core import db
+    if no_save or not rows or not db.is_configured():
+        return
+    from app.services.standards.dept_draft import link_jurisdiction
+    from app.services.standards.repository import get_repository
+    repo = get_repository()
+    link_jurisdiction(rows, repo.jurisdiction())
+    print(f"규정 변경 기록(89)에 {repo.save_changes(rows, run_id)}줄 남겼습니다")
 
 
 if __name__ == "__main__":

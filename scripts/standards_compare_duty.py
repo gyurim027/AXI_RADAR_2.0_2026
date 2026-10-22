@@ -30,7 +30,7 @@ except ImportError:                     # pragma: no cover
             def rows(self, *_): pass
         yield _J()
 from app.services.ai05.extract import READERS
-from app.services.standards.dept_draft import make_drafts
+from app.services.standards.dept_draft import link_jurisdiction, make_drafts
 from app.services.standards.duty_table import compare, parse
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -53,6 +53,7 @@ def main(argv=None) -> int:
     ap.add_argument("--name", default="업무분장", help="문서 이름 (결과·수정안 근거에 씀)")
     ap.add_argument("--jurisdiction", help="담당 부서 표 JSON (있으면 F-05 수정안까지)")
     ap.add_argument("--not-delegation", action="store_true", help="사무위임 별표가 아닌 일반 업무분장 문서")
+    ap.add_argument("--no-save", action="store_true", help="89 standard_change에 남기지 않기 (기본: DB가 있으면 남김)")
     args = ap.parse_args(argv)
 
     OUT.mkdir(parents=True, exist_ok=True)
@@ -60,8 +61,15 @@ def main(argv=None) -> int:
         old, new = parse(read_text(args.old)), parse(read_text(args.new))
         job.log(f"이전 판 사무 {len(old)}개, 새 판 사무 {len(new)}개를 읽었습니다")
         rep = compare(old, new, args.name)
+        from app.core import db
+        rows = None
         if args.jurisdiction:
             rows = json.loads(Path(args.jurisdiction).read_text(encoding="utf-8"))
+        elif db.is_configured():                                  # SQL v2.1: 87·88 담당 부서 표
+            from app.services.standards.repository import get_repository
+            rows = get_repository().jurisdiction()
+        if rows is not None:
+            link_jurisdiction(rep["changes"], rows)
             rep["drafts"] = make_drafts(rep["changes"], rows, args.name, delegation_annex=not args.not_delegation)
             job.log(f"담당 부서 표 수정안 {len(rep['drafts'])}개를 만들었습니다")
         rep["checked_at"] = datetime.datetime.now().isoformat(timespec="seconds")
@@ -79,6 +87,10 @@ def main(argv=None) -> int:
             for d in rep["drafts"]:
                 print(f"  수정안 {d['jur_id']} {d['problem']}: {d['from']} → {d['to']}")
         print("자세한 결과:", path)
+        if not args.no_save and db.is_configured() and rep["changes"]:
+            from app.services.standards.repository import get_repository
+            n = get_repository().save_changes(rep["changes"], getattr(job, "run_id", None))
+            print(f"규정 변경 기록(89)에 {n}줄 남겼습니다")
     return 0
 
 

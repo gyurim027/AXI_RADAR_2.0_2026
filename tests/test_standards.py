@@ -103,3 +103,84 @@ class LawRevisionTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class LinkAndSaveTests(unittest.TestCase):
+    def test_link_jurisdiction(self):
+        from app.services.standards.dept_draft import link_jurisdiction
+        rows = [{"id": "JUR-05", "problem": "가로등·보안등 문제", "basis": "사무위임 조례 별표1"},
+                {"id": "JUR-06", "problem": "불법주정차", "basis": "도로교통법 제32조·제35조"}]
+        ch = [{"kind": "업무분장", "duty": "도로 > 가로등·보안등 설치 및 유지관리"},
+              {"kind": "법령", "name": "도로교통법"}]
+        link_jurisdiction(ch, rows)
+        self.assertEqual([c["related_jur"] for c in ch], [["JUR-05"], ["JUR-06"]])
+
+    def test_rows_to_save_adds_law_level(self):
+        from app.services.standards.revision import rows_to_save
+        rep = {"changes": [], "laws": [{"name": "도로법", "status": "시행일 바뀜", "old_effective": "2026-09-18",
+                                        "new_effective": "2027-03-23", "criteria": []}]}
+        rows = rows_to_save(rep)
+        self.assertEqual((rows[0]["change"], rows[0]["where"], rows[0]["date"]), ("시행일 바뀜", "법령 전체", "2027-03-23"))
+
+
+class StandardsApiTests(unittest.TestCase):
+    def setUp(self):
+        from fastapi.testclient import TestClient
+        from app.core import access_audit
+        from app.core.auth import make_token
+        from app.main import app
+        from app.services.standards import repository
+
+        class FakeRepo(repository.StandardsRepository):
+            def __init__(self):
+                self.props, self.seen = [], []
+
+            def jurisdiction(self):
+                return [{"id": "JUR-05", "problem": "가로등", "dept": "수정구: 도로조명팀", "related": None, "status": "확인됨",
+                         "basis": "-", "mvp": "MVP", "note": None, "setting_version_id": None,
+                         "depts": [{"gu_name": "수정구", "condition_text": None, "dept_name": "도로조명팀", "org_level": "구"}]}]
+
+            def list_changes(self, unseen_only, limit):
+                return []
+
+            def mark_seen(self, cid, uid):
+                self.seen.append(cid)
+                return cid == 1
+
+            def submit_proposal(self, label, content, by):
+                self.props.append((label, content, by))
+                return 7
+
+        class Audit(access_audit.AuditStore):
+            def insert(self, *a):
+                pass
+
+        self.repo = FakeRepo()
+        repository.set_repository(self.repo)
+        access_audit.set_store(Audit())
+        self.c = TestClient(app, base_url="http://127.0.0.1:8000")
+        tok, _ = make_token({"user_id": 3, "login_id": "operator", "role": "operator", "gu": None})
+        self.h = {"Authorization": "Bearer " + tok}
+
+    def tearDown(self):
+        from app.core import access_audit
+        from app.services.standards import repository
+        repository.set_repository(repository.StandardsRepository())
+        access_audit.set_store(access_audit.AuditStore())
+
+    def test_jurisdiction_and_guard(self):
+        self.assertEqual(self.c.get("/api/standards/jurisdiction").status_code, 401)
+        j = self.c.get("/api/standards/jurisdiction", headers=self.h).json()["jurisdiction"]
+        self.assertEqual(j[0]["depts"][0]["deptName"], "도로조명팀")
+
+    def test_submit_draft(self):
+        body = {"jurId": "JUR-05", "problem": "가로등", "from": "수정구 도로조명팀", "to": "시 도로과 도로관리팀",
+                "basis": "성남시 사무위임 조례 별표 1"}
+        r = self.c.post("/api/standards/drafts", json=body, headers=self.h)
+        self.assertEqual((r.status_code, r.json()["settingVersionId"]), (200, 7))
+        bad = dict(body, to="각 구 (구청장 위임, 담당 팀 확인 필요)")
+        self.assertEqual(self.c.post("/api/standards/drafts", json=bad, headers=self.h).status_code, 400)
+
+    def test_seen(self):
+        self.assertEqual(self.c.post("/api/standards/changes/1/seen", headers=self.h).status_code, 200)
+        self.assertEqual(self.c.post("/api/standards/changes/9/seen", headers=self.h).status_code, 404)

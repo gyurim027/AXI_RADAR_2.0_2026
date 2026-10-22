@@ -34,16 +34,41 @@ SYNONYMS = {
     "점용": ("점용",),
     "보호구역": ("보호구역",),
     "자전거": ("자전거",),
+    "노점": ("노점", "적치", "가두판매점"),
+    "공사": ("점용", "굴착"),
+    "육교": ("육교", "지하차도", "교량"),
+    "지하보도": ("지하보도", "지하차도"),
+    "교통안전시설": ("교통안전시설", "노면", "표지"),
 }
 DELEGATED_TO = "각 구 (구청장 위임, 담당 팀 확인 필요)"
+
+
+GENERIC = {"보도", "도로", "도로유지관리", "도로 유지", "유지관리", "보수"}   # 여러 유형에 다 걸리는 말은 약하게
+
+
+def _core(problem: str) -> str:
+    """'불법주정차 (보도·횡단보도 금지구역)' → '불법주정차' (괄호 안 설명은 비교에서 뺌)"""
+    return re.sub(r"\([^)]*\)", "", problem or "").replace(" ", "")
 
 
 def _words(problem: str) -> list[str]:
     out = []
     for key, words in SYNONYMS.items():
-        if key in (problem or "").replace(" ", ""):
+        if key in _core(problem):
             out += words
     return list(dict.fromkeys(out))
+
+
+def score(problem: str, duty: str) -> float:
+    """문제 유형과 사무 글자가 얼마나 겹치나. 구체적인 말 1점, 흔한 말(보도·도로·유지관리) 0.5점, 같은 말은 한 번만."""
+    return sum(0.5 if w in GENERIC else 1.0 for w in _words(problem) if w in (duty or ""))
+
+
+def best_rows(rows: list[dict], duty: str) -> list[dict]:
+    """점수가 가장 높은 유형만 (1점 이상). 흔한 말만 겹친 유형은 고르지 않는다."""
+    scored = [(score(r.get("problem", ""), duty), r) for r in rows]
+    top = max((sc for sc, _ in scored), default=0)
+    return [r for sc, r in scored if sc >= 1 and sc == top]
 
 
 def _short(text: str, n: int = 120) -> str:
@@ -60,11 +85,8 @@ def make_drafts(changes: Iterable[dict], jurisdiction: Iterable[dict], doc_name:
         if ch.get("change") not in ("부서 옮김", "새 사무", "없어진 사무"):
             continue
         duty = ch.get("duty") or ""
-        for row in rows:
-            words = _words(row.get("problem", ""))
-            hit = next((w for w in words if w in duty), None)
-            if not hit:
-                continue
+        for row in best_rows(rows, duty):
+            hit = ", ".join(w for w in _words(row.get("problem", "")) if w in duty)
             if ch["change"] == "부서 옮김":
                 to = ch.get("to_dept")
             elif ch["change"] == "새 사무":
@@ -90,21 +112,29 @@ def proposal_text(draft: dict) -> str:
     return s if len(s) <= 255 else s[:254] + "…"
 
 
-class ProposalStore:
-    """62 setting_version에 '제안' 한 줄. 승인·돌려보내기는 I-07(진규)이 한다."""
+def submit(draft: dict, proposed_by: int, label: str | None = None) -> int:
+    """확인을 마친 수정안을 62 setting_version에 '제안'으로 올린다 (SQL v2.1 자동 번호). 승인·돌려보내기는 I-07(진규)."""
+    from app.services.standards.repository import get_repository
+    check_draft(draft)
+    return get_repository().submit_proposal(label or f"담당 부서 표 수정안 {draft.get('jur_id')}", proposal_text(draft),
+                                            proposed_by)
 
-    def submit(self, draft: dict, proposed_by: int, label: str | None = None) -> int:
-        from app.core import db
-        with db.connect() as con:
-            with con.cursor() as cur:
-                cur.execute("SELECT COALESCE(MAX(setting_version_id), 0) + 1 AS n FROM setting_version FOR UPDATE")
-                new_id = int(cur.fetchone()["n"])
-                cur.execute(
-                    "INSERT INTO setting_version (setting_version_id, setting_kind, version_label, content_ref, "
-                    "proposed_by, proposed_at, approval_status) VALUES (%s, '담당 부서 표', %s, %s, %s, NOW(), '제안')",
-                    (new_id, label or f"담당 부서 표 수정안 {draft.get('jur_id')}", proposal_text(draft), proposed_by))
-            con.commit()
-        return new_id
+
+def link_jurisdiction(changes: list[dict], jurisdiction: Iterable[dict]) -> list[dict]:
+    """변경마다 걸리는 담당 부서 표 ID(related_jur)를 붙인다 (89 standard_change.related_jur).
+    업무분장 변경 = 사무 글자가 문제 유형의 말과 겹침 · 법령 변경 = 표의 근거 칸에 그 법령 이름이 나옴"""
+    rows = list(jurisdiction)
+    for ch in changes:
+        hits = []
+        for row in rows:
+            if ch.get("kind") == "업무분장":
+                continue
+            elif ch.get("name") and ch["name"].replace(" ", "") in (row.get("basis") or "").replace(" ", ""):
+                hits.append(row.get("id"))
+        if ch.get("kind") == "업무분장":
+            hits = [r.get("id") for r in best_rows(rows, ch.get("duty") or "")]
+        ch["related_jur"] = sorted({h for h in hits if h})
+    return changes
 
 
 def check_draft(draft: dict) -> None:

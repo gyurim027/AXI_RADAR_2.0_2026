@@ -6,9 +6,14 @@
 |---|---|---|---|
 | A-11 법령 개정 확인 | 새 법령 원문으로 만든 조문 조각을 지금 AI-05 색인과 비교 → 바뀐 법령·조문, 그 조를 쓰는 57 criterion 행 | `scripts/standards_check_law_revision.py --new-src <원문 폴더> [--apply]` | 동작 (파일 비교 방식) |
 | A-12 업무분장 변경 확인 | 사무위임 조례 별표·업무분장 문서 두 판 비교 → 부서 옮김·새 사무·없어진 사무·근거 바뀜 (보행 관련 먼저) | `scripts/standards_compare_duty.py --old <이전판> --new <새판>` | 동작 (별표 1 모양 기준) |
-| F-05 담당 부서 표 수정안 | A-12 결과 × 담당 부서 표 → 고칠 안 (확인 필요 표시). 사람이 고쳐 62 `setting_version`에 '제안' | 위 명령에 `--jurisdiction <표 JSON>` | 안 만들기까지. 표가 DB에 없음 |
+| F-05 담당 부서 표 수정안 | A-12 결과 × 담당 부서 표(87·88) → 고칠 안 (확인 필요 표시). 사람이 고쳐 62 `setting_version`에 '제안' | 위 명령 (DB가 있으면 87·88을 읽음, 없으면 `--jurisdiction <표 JSON>`) · `POST /api/standards/drafts` | 동작 (SQL v2.1) |
 
 모두 법을 해석하지 않는다. 바뀐 글자와 연결된 곳을 보여 주고, 확정은 사람이 한다 (AD-13).
+
+## SQL v2.1 연결 (10/23)
+- 87 `jurisdiction`·88 `jurisdiction_dept` = 담당 부서 표 (대장 v0.4.2 05 관할 매핑). 62 `setting_version` 자동 번호로 수정안 제안
+- 89 `standard_change` = A-11·A-12가 찾은 변경 한 건에 한 줄 (스크립트가 DB가 있으면 자동으로 남김, `--no-save`로 끔). 걸리는 담당 부서 표 ID(related_jur)·법령 색인 ID(related_criteria)를 붙임
+- 화면 API (RADAR 운영자): `GET /api/standards/jurisdiction` · `GET /api/standards/changes` · `POST /api/standards/changes/{id}/seen` · `POST /api/standards/drafts`
 
 ## 확인한 것 (10/22)
 - A-12: 보유한 「성남시 사무위임 조례」 [별표 1]을 읽어 29개 부서·사무 524개로 나눔. 시험용으로 한 줄을 지우고 한 줄을 더한 판과 비교해 두 곳을 찾음
@@ -18,17 +23,5 @@
 ## 한계 / 정해야 할 것
 - A-11 자동 확인: 지금은 새 원문 파일을 받아 넣는 방식. 국가법령정보센터 Open API로 개정을 자동으로 알려면 인증키(OC)가 필요
 - A-12: 별표 1처럼 "부서 → ○ 사무 → 근거 법규" 모양만 읽는다. 구청 업무분장 등 다른 모양 문서는 견본을 받아 규칙을 더해야 함. 근거 법규가 여러 줄로 끊긴 일부 행은 사무 이름에 섞일 수 있음
-- F-05: **담당 부서 표가 DB에 없음** (파트 분배 v5.8 04 #5). 문제 유형 ↔ 사무 글자 대응(`dept_draft.SYNONYMS`)은 초안이라 표가 정해지면 같이 맞춤
-- 화면 API(규정 변경·수정안 목록·올리기)는 표와 결과 저장 위치를 정한 뒤 붙인다
-
-## 담당 부서 표 제안 (SQL v2.x 후보, 어드민 목업 JURISDICTION 모양)
-| 칸 | 형식 | 설명 |
-|---|---|---|
-| `jurisdiction_id` | VARCHAR(20) PK | JUR-01 … |
-| `problem` | VARCHAR(100) NOT NULL | 문제 유형 (예: 불법 주정차) |
-| `dept` | VARCHAR(200) | 담당 부서·팀 |
-| `related_dept` | VARCHAR(200) | 협조 부서 |
-| `status` | VARCHAR(20) | 확인됨 · 확인 필요 |
-| `basis` | VARCHAR(300) | 근거 (예: 사무위임 조례 별표1) |
-| `setting_version_id` | BIGINT NULL, FK → 62 | 이 줄을 바꾼 승인 버전 |
-| `updated_at` | DATETIME | 바뀐 시각 |
+- F-05: 문제 유형 ↔ 사무 글자 대응(`dept_draft.SYNONYMS`)은 초안. 승인된 수정안을 87·88에 반영하는 일은 승인 흐름(I-07, 진규)과 맞춘 뒤
+- 87·88은 대장 v0.4.2 기준. 대장 05가 바뀌면 다시 넣어야 함 (대장 담당 규림)
