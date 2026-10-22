@@ -49,3 +49,31 @@ async def request_draft(request:Request,payload:dict[str,Any]=Body(...)):
 @router.post('/synthetic/report',summary='가상 자료로 연간 검토 보고서 문장 틀 만들기 (AI 미호출)')
 async def report(request:Request,payload:dict[str,Any]=Body(...)):
     return await invoke(request,payload,build_report)
+
+# 진규님 TEST_ONLY 근거의 미평가 설명 시험. DB·LLM 호출 없음.
+@router.post(
+    "/development/unevaluated-explanation",
+    summary="개발용 미평가 근거 설명 시험",
+)
+async def unevaluated_explanation(
+    request: Request,
+    payload: dict[str, Any] = Body(...),
+):
+    from decimal import InvalidOperation
+    from app.services.ai07.engine_explainer import explain
+
+    def generate(body):
+        try:
+            text = explain(body)
+        except InvalidOperation:
+            raise ValueError("invalid_count") from None
+        return {
+            "status": "ok",
+            "explanation": text,
+            "official_use": False,
+            "generation_method": "local_template",
+            "external_api_called": False,
+            "db_written": False,
+        }
+
+    return await invoke(request, payload, generate)
