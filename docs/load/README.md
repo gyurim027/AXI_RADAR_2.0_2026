@@ -7,10 +7,13 @@
 ```text
 POST /api/c09/uploads?source=…&refDate=2026-09-30&periodStart=2026-09-01&periodEnd=2026-09-30[&dataName=…][&isOfficialRaw=가공본][&fileName=…]
 본문: xlsx 파일 그대로 (multipart 아님)
+GET  /api/c09/uploads?limit=50      올린 기록 (84 data_upload 최신 순)
 ```
 - 출처·기준일·기간은 필수. 기간은 한 달(1일~말일). 파일 안 민원등록일이 기간 밖이면 거절.
 - 한 번에 파일 하나. 파일마다 84에 한 줄. 같은 달을 다시 올리면 바뀐 칸만 고치고 80에 남긴다.
-- 로그인(I-01) 전까지는 이 PC(127.0.0.1) 요청만 받는다. DB 접속은 `.env`의 `RADAR_DB_*`.
+- **RADAR 운영자(`operator`)만** 쓴다 (`Authorization: Bearer <토큰>`). 로그인한 계정이 84 `uploaded_by`에 자동 기록된다.
+- 적재는 실행 기록(`track("업로드")`)에 남고, 실패하면 운영자 알림이 쌓인다. 85·86 표가 없는 DB에서는 기록만 못 남기고 적재는 정상이다.
+- DB 접속은 `.env`의 `RADAR_DB_*`.
 
 ```powershell
 # 로컬 DB로 시험 적재 (로컬이 아니면 --allow-shared-db 없이는 멈춘다)
@@ -34,4 +37,4 @@ uv run python -m pytest tests -k load
 - DB(SQL v2.x): 79에 `recurrence_flag`, `recurrence_prev_id` (없으면 재발 표시만 건너뛰고 나머지는 동작)
 
 ## 정의서와 다른 점 · 제외한 것
-재발 표시는 구현했지만 DB 칸이 있어야 저장된다. 알림(71), 올린 운영자 계정(I-01), 주소 변환(AI-03), 구 불일치 '낮음' 판정, 정보공개청구 회신 파일, CSV 업로드는 이번 범위에 없다.
+재발 표시는 구현했지만 DB 칸이 있어야 저장된다. 주소 변환(AI-03), 구 불일치 '낮음' 판정, 정보공개청구 회신 파일, CSV 업로드, 행 단위 검사 오류 목록, 백그라운드 실행은 이번 범위에 없다.
