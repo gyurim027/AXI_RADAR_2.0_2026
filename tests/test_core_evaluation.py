@@ -18,6 +18,8 @@ class HarnessTests(unittest.TestCase):
         self.assertEqual(judge(C("포함", ["제35조"]), ["제32조"])[0], False)
         self.assertEqual(judge(C("안 들어감", ["010-"]), "가린 문장 [휴대전화]")[0], True)
         self.assertEqual(judge(C("안 들어감", ["홍길동"]), "홍길동 신고")[0], False)
+        self.assertEqual(judge(C("안 들어감", ["위험하다"]), None)[0], False)          # 빈 결과는 통과 아님
+        self.assertEqual(judge(C("안 들어감", ["위험하다"]), "")[0], False)
         self.assertEqual(judge(C("3등 안", ["유효폭"]), ["a", "b", "3-2 유효폭", "d"])[0], True)
         self.assertEqual(judge(C("2등 안", ["유효폭"]), ["a", "b", "3-2 유효폭"])[0], False)
         self.assertEqual(judge(C("못 찾음"), [])[0], True)
