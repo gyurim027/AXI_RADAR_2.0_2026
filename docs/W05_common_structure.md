@@ -93,7 +93,27 @@ uv run python -m pytest tests                 # 시험 (실제 DB 없이 도는 
 - 접근 기록: 민원 점 위치는 `access_audit.complaint_points(request, user, gu, reason)` (로그인 한 번 동안 구·업무 목적마다 한 줄), 파일 내려받기·결정·승인·설정 변경은 `access_audit.record(request, user, 종류, key)`. 로그인은 자동.
 - 비밀번호는 해시(scrypt)만 저장. 시험 계정 6개: `scripts/auth_create_test_users.py` (비밀번호는 `RADAR_SEED_PASSWORD`로만)
 
-**남은 것**
+## 11. 실행 기록 (I-06) · 실패 알림 (I-03) · 운영 대시보드 (I-05) — 초안 v0.1, SQL v2.1 필요
+
+**각 기능(배치·API)에서** — 돌릴 때마다 감싸기만 하면 85 `job_run`·86 `job_run_log`에 남고, 실패하면 71 `alert_delivery`에 운영자 알림이 생긴다.
+```python
+from app.core.job_run import track, JobFailed
+with track("좌표", "2026 하반기 민원 좌표", module="AI-03") as job:   # 종류: 수집·업로드·검사·좌표·분류·산정·설명문·조치 제안·색인
+    job.log("주소 2,546건을 읽었습니다")       # 단계 한 줄 (원문·개인정보·SQL X)
+    job.rows(2546)                            # 처리 건수 · job.warn("…") 이면 '경고'로 끝남
+raise JobFailed("missing_column", "보도 면적 열이 비어 있음")       # 화면에 보여도 되는 실패 원인
+```
+상태: 실행 중 · 성공 · 경고 · 실패 · 건너뜀 (화면 목업과 같음). 다른 예외는 원인 칸에 예외 종류만 남는다. 기록이 실패해도 본래 작업은 계속된다.
+
+**화면 쪽 (RADAR 운영자만)**: `GET /api/ops/dashboard` · `GET /api/ops/runs?days=30&status=실패` · `GET /api/ops/runs/{id}`(단계 기록 포함) · `GET /api/ops/notifications` · `POST /api/ops/notifications/{id}/read`
+
+## 12. 공통 평가 틀 (W05-06) — 초안 v0.1
+
+- 정답 목록: `data/eval/<기능>_cases.csv` (칸: case_id · 입력 · 기대 답 · 맞음 기준 · 메모). 맞음 기준 = 같음 · 포함 · 안 들어감 · N등 안 · 못 찾음. 민원 원문·개인정보 넣지 않음.
+- 어댑터: 각 기능이 `app/services/<기능>/eval_adapter.py`에 `run(입력) -> 결과` 하나 (예: AI-05)
+- 실행: `uv run python -m scripts.eval_run --name ai05 --cases data/eval/ai05_cases.csv --adapter app.services.ai05.eval_adapter:run` → 요약은 화면, 자세한 결과는 `out/eval/`
+
+## 13. 남은 것 (로그인·운영)
 - 60 `app_user`에 `failed_count`·`locked_until` 칸 (SQL v2.1). 칸이 없으면 잠금 횟수를 서버 메모리에 둠(다시 켜면 초기화). 칸을 더한 뒤에는 서버를 다시 켠다.
 - 70 `access_audit` 수정·삭제를 DB에서 막는 트리거 (공용 DB 권한 확인 뒤)
 - 계정 만들기·역할 바꾸기 API (어드민 계정 화면, 61 `role_change_log`)
