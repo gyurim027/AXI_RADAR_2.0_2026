@@ -47,10 +47,18 @@ def _model_tag() -> str:
     return f"{masking.VERSION}+{summ.VERSION}+{cls.VERSION}"
 
 
-def refine_one(item: ComplaintInput, ner=None, request_id: str | None = None) -> Ai01Result:
-    m = masking.mask(item.title, item.body, ner=ner)
+def refine_one(item: ComplaintInput, ner=None, request_id: str | None = None,
+               drop: frozenset = frozenset()) -> Ai01Result:
+    m = masking.mask(item.title, item.body, ner=ner, drop=drop)
     if not m.ok:
         return Ai01Result(item.complaint_id, "mask_failed", class_reason=MASK_FAILED_REASON, model=_model_tag())
+    if item.report_type_raw:                                  # 신고 분류가 본문과 맞으면 모델 없이 끝낸다 (처리 시간)
+        quick = cls.decide_without_model(item.report_type_raw, m.text)
+        if quick:
+            relevance, conf, reason = quick
+            summary = summ.rule_summary(cls.normalize_type(item.report_type_raw), m.text)
+            return Ai01Result(item.complaint_id, "ok", masked_summary=summary, relevance=relevance, ped_type=None,
+                              class_confidence=conf, class_reason=reason, model=_model_tag())
     summary, _ = summ.summarize(m.text, request_id=request_id)
     if not summary:
         return Ai01Result(item.complaint_id, "error", model=_model_tag())
@@ -67,9 +75,18 @@ def refine_complaints(items: list[ComplaintInput], *, upload_id=None, request_id
     results = []
     with track("분류", f"민원 정제 AI-01 ({len(items)}건)", module="AI-01", ref_table="data_upload",
                ref_id=upload_id, request_id=request_id) as job:
+        # 파일 안에서 반복되는 안내 줄 찾기: 출처별 + (출처, 신고 분류)별. 앱이 신고 메뉴마다 다른 안내 문장을 붙이기 때문
+        key = lambda i: (i.source_type, cls.normalize_type(i.report_type_raw))
+        by_src, by_type = {}, {}
+        for i in items:
+            by_src.setdefault(i.source_type, []).append(i.body)
+            by_type.setdefault(key(i), []).append(i.body)
+        drop_src = {k: masking.repeated_lines(v) for k, v in by_src.items()}
+        drop_type = {k: masking.repeated_lines(v) for k, v in by_type.items()}
         for item in items:
             try:
-                results.append(refine_one(item, ner=ner, request_id=request_id))
+                drop = drop_src.get(item.source_type, frozenset()) | drop_type.get(key(item), frozenset())
+                results.append(refine_one(item, ner=ner, request_id=request_id, drop=drop))
             except Exception:
                 results.append(Ai01Result(item.complaint_id, "error", model=_model_tag()))   # 예외 글자에 원문이 섞일 수 있어 남기지 않음
         n = {s: sum(r.status == s for r in results) for s in ("ok", "mask_failed", "error")}

@@ -139,16 +139,21 @@ def by_model(summary: str, request_id: str | None = None):
     return value, conf, reason
 
 
+def decide_without_model(report_type_raw: str | None, masked_text: str, unknown_to_ai: bool = False):
+    """신고 분류가 있는 민원을 모델 없이 정할 수 있으면 (값, 신뢰도, 근거), 아니면 None."""
+    decided = by_type(report_type_raw, masked_text)
+    if decided:
+        return decided
+    if type_default(report_type_raw) == UNKNOWN and not unknown_to_ai and not WALK.search(masked_text):
+        return UNKNOWN, 1.0, f"신고 분류 '{normalize_type(report_type_raw)}': 장소를 알 수 없음"
+    return None
+
+
 def classify(summary: str, report_type_raw: str | None = None, request_id: str | None = None,
              masked_text: str | None = None, unknown_to_ai: bool = False):
     """(관련 여부, 신뢰도, 판단 근거). 모델 호출이 실패하면 None.
     unknown_to_ai: 신고 분류가 있는데 낱말로 기본값을 못 정한 민원(기타·황색선 주정차 등)을 모두 AI로 볼지.
                    False(기본)면 본문에 보행 신호(인도·횡단보도·보행 등)가 있을 때만 AI로 보고, 없으면 불명."""
-    text = masked_text or summary
-    decided = by_type(report_type_raw, text)
-    if decided:
-        return decided
-    if type_default(report_type_raw) == UNKNOWN and not unknown_to_ai and not WALK.search(text):
-        # 기타·황색선 주정차 등: 본문에 보행 신호가 없으면 AI도 근거 없이 '관련'을 지어냄(2026-10-23 30건 확인) → 불명
-        return UNKNOWN, 1.0, f"신고 분류 '{normalize_type(report_type_raw)}': 장소를 알 수 없음"
-    return by_rule(summary) or by_model(summary, request_id)
+    # 기타·황색선 주정차 등은 본문에 보행 신호가 없으면 AI도 근거 없이 '관련'을 지어냄(2026-10-23 30건 확인) → 불명
+    decided = decide_without_model(report_type_raw, masked_text or summary, unknown_to_ai)
+    return decided or by_rule(summary) or by_model(summary, request_id)

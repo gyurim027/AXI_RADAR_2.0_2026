@@ -94,9 +94,25 @@ class MaskResult:
     location_lost: bool = False                # 위치 표현 개수가 줄었는지
 
 
-def preprocess(title: str, body: str) -> str:
-    """2단계 전처리: 제목 + 본문에서 꼬리표·좌표·촬영 시각 같은 틀 줄을 뺀다."""
-    lines = [x for x in (body or "").splitlines() if x.strip() and not _TEMPLATE.match(x)]
+TEMPLATE_MIN_SHARE = 0.3      # 한 업로드 파일 안 같은 출처 민원의 30% 넘게 똑같이 나오는 줄은 앱 안내 문구로 본다
+TEMPLATE_MIN_COUNT = 20
+
+
+def repeated_lines(bodies: list[str]) -> frozenset:
+    """같은 파일 안에서 반복되는 줄(앱 안내 문구)을 찾는다. 메모리에서만 쓰고 저장하지 않는다."""
+    if len(bodies) < TEMPLATE_MIN_COUNT:
+        return frozenset()
+    cnt = collections.Counter()
+    for b in bodies:
+        cnt.update({x.strip() for x in (b or "").splitlines() if x.strip()})
+    need = max(TEMPLATE_MIN_COUNT, int(len(bodies) * TEMPLATE_MIN_SHARE))
+    return frozenset(line for line, n in cnt.items() if n >= need)
+
+
+def preprocess(title: str, body: str, drop: frozenset = frozenset()) -> str:
+    """2단계 전처리: 제목 + 본문에서 꼬리표·좌표·촬영 시각 같은 틀 줄과, 파일 안에서 반복되는 안내 줄(drop)을 뺀다."""
+    lines = [x for x in (body or "").splitlines()
+             if x.strip() and not _TEMPLATE.match(x) and x.strip() not in drop]
     return (title or "").strip() + "\n" + "\n".join(lines)
 
 
@@ -169,9 +185,9 @@ def left_kinds(text: str) -> list:
     return [k for k, p in CHECK.items() if p.search(text)]
 
 
-def mask(title: str, body: str, ner=None) -> MaskResult:
+def mask(title: str, body: str, ner=None, drop: frozenset = frozenset()) -> MaskResult:
     """한 민원을 가린다. 원문은 돌려주지 않는다."""
-    raw = preprocess(title, body)
+    raw = preprocess(title, body, drop)
     counts = collections.Counter()
     masked = ner_mask(rule_mask(raw, counts), counts, ner=ner)
     left = left_kinds(masked)

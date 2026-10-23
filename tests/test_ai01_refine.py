@@ -57,6 +57,15 @@ class MaskingTests(unittest.TestCase):
         self.assertEqual(t, "제목\n본문입니다")
 
 
+class BatchTemplateTests(unittest.TestCase):
+    def test_repeated_lines_are_dropped(self):
+        bodies = ["안내 문구 한 줄\n본문 %d" % i for i in range(30)]
+        drop = masking.repeated_lines(bodies)
+        self.assertEqual(drop, frozenset({"안내 문구 한 줄"}))
+        self.assertEqual(masking.preprocess("제목", bodies[0], drop), "제목\n본문 0")
+        self.assertEqual(masking.repeated_lines(bodies[:5]), frozenset())     # 너무 적으면 찾지 않음
+
+
 class ClassifyTests(unittest.TestCase):
     def setUp(self):
         cls.type_rules.cache_clear()
@@ -126,6 +135,17 @@ class RefineTests(unittest.TestCase):
             out, hits = summ.summarize(long)
         self.assertEqual(hits, ["지어낸 장소"])
         self.assertNotIn("정자동", out)
+
+    def test_report_type_agrees_skips_models(self):
+        item = refine.ComplaintInput("C000000000003", "안전신문고(SPP)", "횡단보도 불법 주정차 신고입니다",
+                                     "횡단보도 위에 차가 서 있습니다", "횡단보도 불법 주정차")
+        with mock.patch.object(masking, "common_words", return_value=frozenset()), \
+             mock.patch.object(summ, "call_llm") as s, mock.patch.object(cls, "call_llm") as c:
+            r = refine.refine_complaints([item], ner=fake_ner(()))[0]
+        s.assert_not_called()
+        c.assert_not_called()
+        self.assertEqual((r.status, r.relevance, r.class_confidence), ("ok", cls.RELATED, 1.0))
+        self.assertEqual(r.masked_summary, "횡단보도 불법 주정차 · 횡단보도 위에 차가 서 있습니다")
 
     def test_mask_failure_is_not_classified(self):
         with mock.patch.object(masking, "left_kinds", return_value=["휴대전화"]):
