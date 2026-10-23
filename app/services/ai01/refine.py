@@ -5,7 +5,8 @@
 
 한 업로드 파일의 민원을 묶음으로 받아 같은 순서·같은 개수로 결과를 돌려준다.
 - status ok: DB 79의 27 masked_summary, 31 relevance, 32 ped_type, 33 class_confidence, 34 class_reason에 쓴다
-- status mask_failed: 가림 검사를 통과하지 못함. class_reason만 '가림 실패', 나머지는 None (분류로 보내지 않음, C-03)
+  class_method(관련 여부를 정한 방법: 규칙 / AI)는 79에 class_method 칸이 생기면 쓴다
+- status mask_failed: 가림 검사를 통과하지 못함. class_reason만 '가림 실패', 나머지(class_method 포함)는 None (분류로 보내지 않음, C-03)
 - status error: 모델 호출 실패 등. 적재는 이 민원의 AI-01 칸을 비워 두고 나중에 다시 돌린다
 - ped_type(유형)은 유형 목록(ISS-016)이 정해질 때까지 None
 - 원문(title·body)은 이 함수 안에서만 쓰고 결과·로그에 남기지 않는다 (ISS-032). 28 raw_pii_patterns는 적재 3단계가 채운다
@@ -40,6 +41,7 @@ class Ai01Result:
     ped_type: str | None = None
     class_confidence: float | None = None
     class_reason: str | None = None
+    class_method: str | None = None     # 규칙 / AI. 실패면 None
     model: str = ""
 
 
@@ -58,16 +60,16 @@ def refine_one(item: ComplaintInput, ner=None, request_id: str | None = None,
             relevance, conf, reason = quick
             summary = summ.rule_summary(cls.normalize_type(item.report_type_raw), m.text)
             return Ai01Result(item.complaint_id, "ok", masked_summary=summary, relevance=relevance, ped_type=None,
-                              class_confidence=conf, class_reason=reason, model=_model_tag())
+                              class_confidence=conf, class_reason=reason, class_method=cls.BY_RULE, model=_model_tag())
     summary, _ = summ.summarize(m.text, request_id=request_id)
     if not summary:
         return Ai01Result(item.complaint_id, "error", model=_model_tag())
     decided = cls.classify(summary, item.report_type_raw, request_id=request_id, masked_text=m.text)
     if decided is None:
         return Ai01Result(item.complaint_id, "error", masked_summary=summary, model=_model_tag())
-    relevance, conf, reason = decided
+    relevance, conf, reason, method = decided
     return Ai01Result(item.complaint_id, "ok", masked_summary=summary, relevance=relevance, ped_type=None,
-                      class_confidence=conf, class_reason=reason, model=_model_tag())
+                      class_confidence=conf, class_reason=reason, class_method=method, model=_model_tag())
 
 
 def refine_complaints(items: list[ComplaintInput], *, upload_id=None, request_id: str | None = None,

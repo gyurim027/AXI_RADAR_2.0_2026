@@ -14,12 +14,13 @@ results = refine_complaints(
 for r in results:   # 같은 순서·같은 개수
     r.status        # ok / mask_failed / error
     r.masked_summary, r.relevance, r.ped_type, r.class_confidence, r.class_reason   # DB 79의 27·31~34
+    r.class_method   # 관련 여부를 정한 방법: 규칙 / AI (79에 칸이 생기면 쓴다)
 ```
 | status | 적재가 할 일 |
 |---|---|
 | ok | 27·31~34칸에 쓴다 (ped_type은 유형 목록이 정해질 때까지 None) |
-| mask_failed | 가림 검사를 통과하지 못한 민원. class_reason만 '가림 실패', 나머지 칸은 비운다. 분류로 보내지 않는다 |
-| error | 모델 호출 실패 등. AI-01 칸을 비워 두고 나중에 다시 돌린다 |
+| mask_failed | 가림 검사를 통과하지 못한 민원. class_reason만 '가림 실패', 나머지 칸(class_method 포함)은 비운다. 분류로 보내지 않는다 |
+| error | 모델 호출 실패 등. AI-01 칸을 비워 두고 나중에 다시 돌린다. 이미 정상 값이 있는 민원이면 그 값을 지우지 않는다 |
 
 - 원문(title·body)은 함수 안에서만 쓴다. 결과·로그·실행 기록에 원문을 남기지 않는다(ISS-032).
 - 28 raw_pii_patterns(원문 개인정보 꼴)는 적재 3단계가 채운다.
@@ -34,6 +35,7 @@ for r in results:   # 같은 순서·같은 개수
    - 신고 분류가 없으면: 규칙 2개 → 내부 모델(작업 ai01_classify)
    - 값: 보행안전 관련 / 비관련 / 불명. 신뢰도는 관련 여부 판단이 얼마나 확실한지(위치 정확도 아님). 대응표·규칙은 1.0, 모델은 모델이 낸 값(보정 전)
    - 판단 근거: "묶음: 설명" 한 문장 (분류 검수 화면에 그대로 보임)
+   - 정한 방법(class_method): 신고 분류 낱말·본문 규칙으로 정했으면 `규칙`, 모델로 정했으면 `AI`. 정한 길에서 바로 붙인다(신뢰도나 근거 문구로 거꾸로 추측하지 않는다). 모델이 신뢰도 1.0을 내도 `AI`, 규칙이 낸 `불명`은 `규칙`
 
 ## 준비
 - 선택 묶음 ai01 (torch, transformers). 이름 찾기 모델은 처음 실행할 때 한 번 내려받는다

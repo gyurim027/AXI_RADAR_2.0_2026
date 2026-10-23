@@ -19,6 +19,7 @@ from app.core.config import ROOT
 from app.core.llm import call_llm
 
 RELATED, UNRELATED, UNKNOWN = "보행안전 관련", "비관련", "불명"
+BY_RULE, BY_AI = "규칙", "AI"          # 관련 여부를 정한 방법 (DB 79 class_method). 사람이 고친 값('사람')은 C-08이 쓴다
 _SHORT = {"관련": RELATED, "비관련": UNRELATED, "불명": UNKNOWN}
 VERSION = "cls-2"
 RULES_PATH = ROOT / "data" / "ai01" / "report_type_rules.csv"
@@ -151,9 +152,14 @@ def decide_without_model(report_type_raw: str | None, masked_text: str, unknown_
 
 def classify(summary: str, report_type_raw: str | None = None, request_id: str | None = None,
              masked_text: str | None = None, unknown_to_ai: bool = False):
-    """(관련 여부, 신뢰도, 판단 근거). 모델 호출이 실패하면 None.
+    """(관련 여부, 신뢰도, 판단 근거, 정한 방법). 모델 호출이 실패하면 None.
+    정한 방법은 실제로 결정한 길로 정한다(규칙 / AI). 모델이 신뢰도 1.0을 내도 AI다.
     unknown_to_ai: 신고 분류가 있는데 낱말로 기본값을 못 정한 민원(기타·황색선 주정차 등)을 모두 AI로 볼지.
                    False(기본)면 본문에 보행 신호(인도·횡단보도·보행 등)가 있을 때만 AI로 보고, 없으면 불명."""
     # 기타·황색선 주정차 등은 본문에 보행 신호가 없으면 AI도 근거 없이 '관련'을 지어냄(2026-10-23 30건 확인) → 불명
     decided = decide_without_model(report_type_raw, masked_text or summary, unknown_to_ai)
-    return decided or by_rule(summary) or by_model(summary, request_id)
+    decided = decided or by_rule(summary)
+    if decided:
+        return (*decided, BY_RULE)
+    decided = by_model(summary, request_id)
+    return (*decided, BY_AI) if decided else None

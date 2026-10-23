@@ -120,6 +120,18 @@ class ClassifyTests(unittest.TestCase):
                                                                    "reason": "보행 공간 파손: 보도블록\n둘째 줄"})):
             self.assertEqual(cls.by_model("보도블록이 깨졌습니다"), (cls.RELATED, 1.0, "보행 공간 파손: 보도블록"))
 
+    def test_method_follows_decision_path(self):
+        self.assertEqual(cls.classify("불법 주정차 신고", "기타 불법 주정차")[3], cls.BY_RULE)            # 규칙이 낸 불명
+        self.assertEqual(cls.classify("공영주차장 내 충전 구역에 일반 차 주차")[3], cls.BY_RULE)
+        with mock.patch.object(cls, "call_llm", return_value=llm({"relevance": "관련", "confidence": 1.0,
+                                                                   "reason": "보행 공간 파손: 보도블록"})):
+            self.assertEqual(cls.classify("보도블록이 깨졌습니다")[2:], ("보행 공간 파손: 보도블록", cls.BY_AI))  # 1.0이어도 AI
+        with mock.patch.object(cls, "call_llm", return_value=llm({"relevance": "불명", "confidence": 0.4,
+                                                                   "reason": "불명: 장소 없음"})):
+            self.assertEqual(cls.classify("확인 부탁드립니다")[::3], (cls.UNKNOWN, cls.BY_AI))             # 모델이 낸 불명
+        with mock.patch.object(cls, "call_llm", return_value=LlmResult(ok=False, task="t", error_code="timeout")):
+            self.assertIsNone(cls.classify("보도블록이 깨졌습니다"))
+
 
 class RefineTests(unittest.TestCase):
     def run_one(self, body="긴 글 " * 60, summary="○○로 인도에 차가 주차되어 보행자가 차도로 걷습니다.", answer=None):
@@ -132,7 +144,7 @@ class RefineTests(unittest.TestCase):
 
     def test_ok_fills_five_columns(self):
         r = self.run_one("○○로 인도에 매일 차가 주차합니다. " * 20)
-        self.assertEqual((r.status, r.relevance, r.class_confidence), ("ok", cls.RELATED, 0.9))
+        self.assertEqual((r.status, r.relevance, r.class_confidence, r.class_method), ("ok", cls.RELATED, 0.9, cls.BY_AI))
         self.assertIsNone(r.ped_type)
         self.assertTrue(r.masked_summary and r.class_reason)
 
@@ -162,13 +174,13 @@ class RefineTests(unittest.TestCase):
             r = refine.refine_complaints([item], ner=fake_ner(()))[0]
         s.assert_not_called()
         c.assert_not_called()
-        self.assertEqual((r.status, r.relevance, r.class_confidence), ("ok", cls.RELATED, 1.0))
+        self.assertEqual((r.status, r.relevance, r.class_confidence, r.class_method), ("ok", cls.RELATED, 1.0, cls.BY_RULE))
         self.assertEqual(r.masked_summary, "횡단보도 불법 주정차 · 횡단보도 위에 차가 서 있습니다")
 
     def test_mask_failure_is_not_classified(self):
         with mock.patch.object(masking, "left_kinds", return_value=["휴대전화"]):
             r = self.run_one("아무 글")
-        self.assertEqual((r.status, r.class_reason, r.relevance), ("mask_failed", "가림 실패", None))
+        self.assertEqual((r.status, r.class_reason, r.relevance, r.class_method), ("mask_failed", "가림 실패", None, None))
 
     def test_llm_failure_is_error_without_text(self):
         item = refine.ComplaintInput("C000000000002", "일반 민원", "제목", "본문 010-1234-5678 " + "긴 글 " * 60)
@@ -177,6 +189,7 @@ class RefineTests(unittest.TestCase):
             r = refine.refine_complaints([item], ner=fake_ner(()))[0]
         self.assertEqual(r.status, "error")
         self.assertIsNone(r.masked_summary)
+        self.assertIsNone(r.class_method)
 
 
 if __name__ == "__main__":
