@@ -98,6 +98,22 @@ TEMPLATE_MIN_SHARE = 0.3      # 한 업로드 파일 안 같은 출처 민원의
 TEMPLATE_MIN_COUNT = 20
 
 
+SPP_TEMPLATE_PATH = Path(__file__).resolve().parents[3] / "data" / "ai01" / "spp_template_lines.txt"
+
+
+def is_spp(source_type: str | None) -> bool:
+    return (source_type or "").startswith("안전신문고")
+
+
+@lru_cache(maxsize=1)
+def spp_template_lines() -> frozenset:
+    """안전신문고 앱 안내 줄 (저장소 data/ai01). 묶음 크기와 관계없이 늘 지운다."""
+    if not SPP_TEMPLATE_PATH.exists():
+        return frozenset()
+    return frozenset(x.strip() for x in SPP_TEMPLATE_PATH.read_text(encoding="utf-8").splitlines()
+                     if x.strip() and not x.startswith("#"))
+
+
 def repeated_lines(bodies: list[str]) -> frozenset:
     """같은 파일 안에서 반복되는 줄(앱 안내 문구)을 찾는다. 메모리에서만 쓰고 저장하지 않는다."""
     if len(bodies) < TEMPLATE_MIN_COUNT:

@@ -65,6 +65,24 @@ class BatchTemplateTests(unittest.TestCase):
         self.assertEqual(masking.preprocess("제목", bodies[0], drop), "제목\n본문 0")
         self.assertEqual(masking.repeated_lines(bodies[:5]), frozenset())     # 너무 적으면 찾지 않음
 
+    def test_only_spp_lines_are_dropped(self):
+        same = "우리 단지 앞 인도에 매일 차가 올라와 있습니다"            # 집단 민원: 같은 글을 여러 번 올림
+        items = [refine.ComplaintInput("C%012d" % i, "일반 민원", "제목", same) for i in range(30)]
+        seen = []
+        orig = masking.mask
+        def spy(title, body, ner=None, drop=frozenset()):
+            seen.append(drop)
+            return orig(title, body, ner=ner, drop=drop)
+        with mock.patch.object(masking, "mask", side_effect=spy), \
+             mock.patch.object(masking, "common_words", return_value=frozenset()), \
+             mock.patch.object(summ, "call_llm", return_value=llm({"summary": "인도 주차"})), \
+             mock.patch.object(cls, "call_llm", return_value=llm({"relevance": "관련", "confidence": 0.9, "reason": "보행 공간: 인도"})):
+            refine.refine_complaints(items, ner=fake_ner(()))
+        self.assertTrue(all(d == frozenset() for d in seen))
+
+    def test_spp_fixed_template_lines(self):
+        self.assertIn("횡단보도 불법 주정차 신고입니다.", masking.spp_template_lines())
+
 
 class ClassifyTests(unittest.TestCase):
     def setUp(self):

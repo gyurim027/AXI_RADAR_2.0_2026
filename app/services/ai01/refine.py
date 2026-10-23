@@ -75,17 +75,19 @@ def refine_complaints(items: list[ComplaintInput], *, upload_id=None, request_id
     results = []
     with track("분류", f"민원 정제 AI-01 ({len(items)}건)", module="AI-01", ref_table="data_upload",
                ref_id=upload_id, request_id=request_id) as job:
-        # 파일 안에서 반복되는 안내 줄 찾기: 출처별 + (출처, 신고 분류)별. 앱이 신고 메뉴마다 다른 안내 문장을 붙이기 때문
-        key = lambda i: (i.source_type, cls.normalize_type(i.report_type_raw))
-        by_src, by_type = {}, {}
-        for i in items:
-            by_src.setdefault(i.source_type, []).append(i.body)
-            by_type.setdefault(key(i), []).append(i.body)
-        drop_src = {k: masking.repeated_lines(v) for k, v in by_src.items()}
+        # 안내 줄 지우기는 안전신문고만 (안내 문구는 앱이 붙인다). 일반 민원은 같은 글을 여러 번 올린 집단 민원이 있어
+        # 반복 줄이 실제 내용일 수 있으므로 지우지 않는다 (2026-10-23 적재 쪽 재확인: 일반 민원 25%의 본문이 지워짐).
+        # 안전신문고: 저장소의 고정 안내 줄 + 이 묶음 안에서 반복되는 줄(전체·신고 분류별)
+        spp = [i for i in items if masking.is_spp(i.source_type)]
+        by_type = {}
+        for i in spp:
+            by_type.setdefault(cls.normalize_type(i.report_type_raw), []).append(i.body)
+        drop_all = masking.spp_template_lines() | masking.repeated_lines([i.body for i in spp])
         drop_type = {k: masking.repeated_lines(v) for k, v in by_type.items()}
         for item in items:
             try:
-                drop = drop_src.get(item.source_type, frozenset()) | drop_type.get(key(item), frozenset())
+                drop = (drop_all | drop_type.get(cls.normalize_type(item.report_type_raw), frozenset())
+                        if masking.is_spp(item.source_type) else frozenset())
                 results.append(refine_one(item, ner=ner, request_id=request_id, drop=drop))
             except Exception:
                 results.append(Ai01Result(item.complaint_id, "error", model=_model_tag()))   # 예외 글자에 원문이 섞일 수 있어 남기지 않음
