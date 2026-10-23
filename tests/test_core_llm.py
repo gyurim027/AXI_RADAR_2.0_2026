@@ -128,6 +128,42 @@ class LlmTests(unittest.TestCase):
             llm.call_llm("t_internal", [{"role": "user"}])
 
 
+class OllamaBodyTests(unittest.TestCase):
+    def test_keep_alive_sent(self):
+        sent = {}
+
+        class Resp:
+            def __enter__(self): return self
+            def __exit__(self, *a): return False
+            def read(self): return json.dumps({"message": {"content": "답"}}).encode("utf-8")
+
+        def fake_urlopen(req, timeout):
+            sent.update(json.loads(req.data.decode("utf-8")))
+            return Resp()
+
+        cfg = llm.TaskConfig("t", "internal", "local-model", 0, 10, 5, 0, 0, keep_alive="30m")
+        with mock.patch.object(llm.urllib.request, "urlopen", fake_urlopen):
+            llm._call_ollama(cfg, MSG, False)
+        self.assertEqual(sent["keep_alive"], "30m")
+
+    def test_keep_alive_empty_not_sent(self):
+        sent = {}
+
+        class Resp:
+            def __enter__(self): return self
+            def __exit__(self, *a): return False
+            def read(self): return json.dumps({"message": {"content": "답"}}).encode("utf-8")
+
+        def fake_urlopen(req, timeout):
+            sent.update(json.loads(req.data.decode("utf-8")))
+            return Resp()
+
+        cfg = llm.TaskConfig("t", "internal", "local-model", 0, 10, 5, 0, 0)
+        with mock.patch.object(llm.urllib.request, "urlopen", fake_urlopen):
+            llm._call_ollama(cfg, MSG, False)
+        self.assertNotIn("keep_alive", sent)
+
+
 class TaskFileTests(unittest.TestCase):
     def test_real_task_file(self):
         llm.load_tasks.cache_clear()

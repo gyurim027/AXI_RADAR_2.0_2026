@@ -82,8 +82,9 @@ temperature = 0
 max_tokens = 300
 ```
 
-- 빠진 값은 `[defaults]`를 쓴다 (temperature 0, max_tokens 1024, timeout_s 60, max_retries 2, json_retries 1).
-- 지금 들어 있는 작업은 LLM을 부르거나 붙이기로 한 세 곳이다: `ai03_refine`(위치 글자 다듬기), `ai07_explain`(설명문 다듬기), `ai10_draft`(조치 제안 문장 초안). AI-03·AI-10 값은 지금 각 코드와 같다.
+- 빠진 값은 `[defaults]`를 쓴다 (temperature 0, max_tokens 1024, timeout_s 120, keep_alive "30m", max_retries 2, json_retries 1).
+- `timeout_s`에는 공용 PC에서 차례를 기다리는 시간도 들어간다. `keep_alive`는 Ollama가 모델을 올려 둔 채로 둘 시간이다(비우면 Ollama 기본 5분).
+- 지금 들어 있는 작업은 다섯 개다: `ai01_summarize`(민원 가린 요약), `ai01_classify`(보행안전 관련 여부), `ai03_refine`(위치 글자 다듬기), `ai07_explain`(설명문 다듬기), `ai10_draft`(조치 제안 문장 초안). 내부 작업은 모두 `exaone3.5:7.8b` 하나를 쓴다.
 
 ## 6. 작업 더하기·바꾸기
 
@@ -107,6 +108,11 @@ uv run python -m pytest tests/test_core_llm.py      # 실제 모델·키 없이 
 ## 9. 키·모델 쓰는 법
 
 - 각자 시험: Ollama는 각자 PC에 설치하고 `llm_tasks.toml`과 같은 모델을 받는다. Gemini 키는 각자 받아 `.env`에 넣는다.
+- 팀 공용 PC: Ollama를 공용 PC 한 대에서 돌리고 같은 네트워크에서 함께 쓸 수 있다.
+  - 쓰는 사람: 공용 PC 주소를 팀 채널에서 받아 `.env`에 `OLLAMA_BASE_URL=http://<공용 PC 주소>:11434`로 넣는다. 주소는 저장소·문서에 쓰지 않는다. 같은 네트워크 밖에서는 닿지 않는다(`internal_unavailable`)
+  - 공용 PC 설정: `OLLAMA_HOST=0.0.0.0`(다른 PC에서 받기), 방화벽 11434 포트 열기, `OLLAMA_NUM_PARALLEL=1`(한 번에 하나씩 처리, 나머지는 차례를 기다림), `OLLAMA_MAX_LOADED_MODELS=1`(모델 하나만 올림). 설정을 바꾸면 Ollama를 다시 켠다
+  - 공용 PC로 보내는 글은 가린 글이다. 가리기 전 원문을 다루는 모델(AI-01 이름 찾기)은 각자 PC에서 돈다
+  - 대량 작업(AI-03 일괄, AI-01 월 적재)은 시연 시간과 겹치지 않게 돌린다
   **무료 키로는 공개 자료나 가짜 문장만 보낸다.** 무료 서비스는 보낸 내용이 Google 제품 개선에 쓰이고 사람이 읽을 수 있다 (Gemini API 추가 약관).
 - 시연·공용 서버: 팀 공용 유료 키 하나를 서버 `.env`에만 넣는다. 키는 저장소·채팅·문서에 올리지 않는다.
 - 비용은 로그의 토큰 수로 확인한다.
