@@ -22,6 +22,8 @@ ROUTER_MODULES = [
     ("OPS", "app.api.ops_api"),               # /api/ops   운영: 대시보드·실행 기록·실패 알림 (은경, I-03·05·06)
     ("PRIORITY", "app.api.priority_api"),     # /api/priority  우선순위 결과 조회 77·78·82 (은경, 계산은 진규)
     ("AI-05", "app.api.ai05_law_api"),        # /api/ai05  법령 근거 (은경)
+    ("APPROVALS", "app.api.approvals_api"),    # /api/approvals I-07 (진규)
+    ("SETTINGS", "app.api.settings_api"),      # /api/settings/versions I-02 조회 (진규)
     ("STANDARDS", "app.api.standards_api"),   # /api/standards  법령·업무 기준: A-11·A-12·F-05 (은경)
     ("AI-07", "app.api.ai07_explain_api"),    # /api/ai07  근거 설명문 (진이)
     ("AI-10", "app.api.ai10_review_api"),     # /api/ai10  조치 제안 검토 (대환)

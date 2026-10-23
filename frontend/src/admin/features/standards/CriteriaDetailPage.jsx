@@ -14,6 +14,8 @@ import { VERSION_TONE } from './CriteriaListPage.jsx';
 import { DETAIL } from './copy.js';
 import styles from './Standards.module.css';
 import { reportActionError } from '../../utils/actionError.js';
+import {settingsBackendEnabled} from '../../../api/backend.js';
+import {StoredSettingDetail} from './StoredSettings.jsx';
 
 const TAB_KEYS = ['weights', 'thresholds', 'conditions'];
 
@@ -24,6 +26,10 @@ function Changed({ on, children }) {
 
 /** AD-10 산정 기준 상세 (유형 D): 이전 값과 현재 값을 나란히 놓고, 아래에 바꾸는 이유와 고정 작업 줄이 있다. 게시 버튼은 없다. */
 export default function CriteriaDetailPage() {
+  return settingsBackendEnabled?<StoredSettingDetail/>:<MockCriteriaDetailPage/>;
+}
+
+function MockCriteriaDetailPage() {
   const { version } = useParams();
   const state = useAsync(() => getVersion({ version }), [version]);
   return (
