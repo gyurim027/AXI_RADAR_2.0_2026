@@ -1,0 +1,94 @@
+{
+  "run_id": 920002,
+  "gid": "다사60ba32ba",
+  "gu": "분당구",
+  "calculation_status": "EXPERIMENTAL",
+  "official_score": null,
+  "experimental_score": 14.0291,
+  "experimental_rank": 602,
+  "selected_yn": null,
+  "setting_version_id": 920002,
+  "setting_status": "제안",
+  "rule_version": "EXP_scope_positive_upper",
+  "details": {
+    "base_adjustment": -1.9033867008939631,
+    "base_score": 15.9325,
+    "cap_adjustment": 0.0,
+    "classification_status": "OFFICIAL_INPUT_MISSING",
+    "complaint_signal": 0.0,
+    "complaint_signal_points": 0.0,
+    "count_excl_low": 8,
+    "indicator_contributions": {
+      "cond_blind_spot_cnt": null,
+      "cond_delineator_detect_cnt": 3.9122137404580157,
+      "cond_obstacle_cnt": null,
+      "cond_pothole_detect_cnt": 5.604719764011799,
+      "exp_board_alight_daily_avg": 6.4155629139072845,
+      "res_fatal_accident_cnt": 0.0,
+      "res_hotspot_cnt": 0.0,
+      "res_ped_hotspot_cnt": 0.0,
+      "vul_zone_total": 0.0
+    },
+    "manifest": {
+      "build_id": "bundle-6af10e9-scoring-integration",
+      "code_sha256": "e5da9b119989eca9cb0865a8012cacc2e9e4063e2466f26aa6af3a725cfdc6a7",
+      "execution_fingerprint": "59a99519a73c259556e54c19ddb2eb7910ae8fcd421c7f99ef01fcd2350eb860",
+      "input_sha256": "f5b9fc7bf348c7de4f1a6ff768904e5ffbbebba0c22f0e1004b6572ec1e7cda6",
+      "inputs": {
+        "complaints": "228cc4f64c7b795880b4fba334f00d9cc2ad25d7b0612ca7cd7456aa61e13c80",
+        "grid": "f5b9fc7bf348c7de4f1a6ff768904e5ffbbebba0c22f0e1004b6572ec1e7cda6"
+      },
+      "policies": [
+        {
+          "build_id": "bundle-6af10e9-scoring-integration",
+          "coefficient_points": 5,
+          "comparison_population": "hazard_observed",
+          "complaint_mode": "inside_hazard",
+          "fit_population": "all_input_positive_counts",
+          "input_status": "EXPLORATORY_PROXY",
+          "label": "EXP_scope_positive_upper",
+          "period_note": "Existing mixed-period snapshot; NOT a half-year comparison",
+          "policy": {
+            "accident_reduce": "mean",
+            "domain_weights": {
+              "accident": 0.25,
+              "exposure": 0.25,
+              "hazard": 0.25,
+              "vulnerability": 0.25
+            },
+            "label": "EXP_scope_positive_upper",
+            "missing": "renormalize",
+            "normalization": "positive_upper",
+            "observation": "scope_aware"
+          },
+          "run_id": 920002,
+          "schema_version": 1,
+          "setting_version_id": 920002
+        }
+      ],
+      "run_id": 920002
+    },
+    "net_change": -1.9033999999999995,
+    "observation_states": {
+      "cond_blind_spot_cnt": "NO_RECORD_COVERAGE_UNKNOWN",
+      "cond_delineator_detect_cnt": "RECORD_VALUE",
+      "cond_obstacle_cnt": "OUTSIDE_SURVEY_SCOPE",
+      "cond_pothole_detect_cnt": "RECORD_VALUE",
+      "exp_board_alight_daily_avg": "RECORD_VALUE",
+      "res_fatal_accident_cnt": "RECORD_VALUE",
+      "res_hotspot_cnt": "RECORD_VALUE",
+      "res_ped_hotspot_cnt": "RECORD_VALUE",
+      "vul_zone_total": "RECORD_VALUE"
+    },
+    "proxy_count": 0,
+    "raw_complaint_count": 8,
+    "reasons": [
+      "EXPERIMENTAL_PROXY_NOT_OFFICIAL"
+    ],
+    "rounding_adjustment": -1.3299106036868125e-05,
+    "stored": true,
+    "tie_size": 1
+  },
+  "integration_status": "VERIFIED_ISOLATED_JOIN",
+  "production_ready": false
+}
