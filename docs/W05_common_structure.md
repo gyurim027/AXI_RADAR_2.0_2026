@@ -109,7 +109,9 @@ raise JobFailed("missing_column", "보도 면적 열이 비어 있음")       # 
 
 ## 12. 공통 평가 틀 (W05-06) — 초안 v0.1
 
-- 정답 목록: `data/eval/<기능>_cases.csv` (칸: case_id · 입력 · 기대 답 · 맞음 기준 · 메모). 맞음 기준 = 같음 · 포함 · 안 들어감 · N등 안 · 못 찾음. 민원 원문·개인정보 넣지 않음.
+- 정답 목록: `data/eval/<기능>_cases.csv` (칸: case_id · 입력 · 기대 답 · 맞음 기준 · 메모). 맞음 기준 = 같음 · 포함 · 안 들어감 · 아님 · N등 안 · 못 찾음. 민원 원문·개인정보 넣지 않음.
+- `안 들어감`은 빈 결과를 틀림으로 센다 (AI-07·AI-01 가림). `아님`은 "이 값을 내면 오답, 못 찾은 건 오답 아님" (AI-03 사람 검수 '틀림').
+- 점수표에 같이 나오는 값: 결과 낸 수 · 오연결(결과를 냈는데 틀림) · **오연결률 = 오연결 / 결과 낸 수** · 찾은 비율 = 찾아야 하는 문제(같음·포함·N등 안) 중 결과를 낸 비율. AI-03은 두 값을 함께 본다(10/23 세은).
 - 어댑터: 각 기능이 `app/services/<기능>/eval_adapter.py`에 `run(입력) -> 결과` 하나 (예: AI-05)
 - 실행: `uv run python -m scripts.eval_run --name ai05 --cases data/eval/ai05_cases.csv --adapter app.services.ai05.eval_adapter:run` → 요약은 화면, 자세한 결과는 `out/eval/`
 

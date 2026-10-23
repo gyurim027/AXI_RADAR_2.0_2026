@@ -26,6 +26,20 @@ class HarnessTests(unittest.TestCase):
         self.assertEqual(judge(C("못 찾음"), None)[0], True)
         self.assertEqual(judge(C("못 찾음"), ["뭔가"])[0], False)
 
+    def test_not_rule(self):                                                       # AI-03 "이 gid를 내면 오답"
+        self.assertEqual(judge(C("아님", ["다사01"]), "다사02")[0], True)
+        self.assertEqual(judge(C("아님", ["다사01"]), "다사01")[0], False)
+        self.assertEqual(judge(C("아님", ["다사01"]), None)[0], True)                  # 못 찾은 건 오답 아님
+
+    def test_wrong_link_and_find_rate(self):
+        cases = [C("같음", ["g1"], "a"), C("같음", ["g2"], "b"), C("같음", ["g3"], "c"),
+                 C("아님", ["g9"], "d"), C("못 찾음", [], "e")]
+        answers = {"a": "g1", "b": "gX", "c": None, "d": "g9", "e": "g5"}
+        rep = evaluate("ai03", cases, lambda s: answers[s])
+        self.assertEqual((rep.answered, rep.answered_wrong), (4, 3))     # b·d·e는 냈는데 틀림
+        self.assertEqual(rep.wrong_link_rate, 75.0)                     # 분모 = 결과 낸 수 (전체 아님)
+        self.assertEqual((rep.found, rep.should_find, rep.find_rate), (2, 3, 66.7))
+
     def test_spacing_and_case_ignored(self):
         self.assertTrue(judge(C("같음", ["EPSG 5179"]), "epsg  5179")[0])
 
