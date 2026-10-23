@@ -24,3 +24,14 @@
   color: var(--semantic-color-primary-strong);
   font-weight: var(--fw-bold);
 }
+.linkBtn {
+  min-height: 32px;
+  padding: 0 var(--space-8);
+  border: 0;
+  background: none;
+  color: var(--semantic-color-primary-strong);
+  font: inherit;
+  font-weight: var(--fw-bold);
+  text-decoration: underline;
+  cursor: pointer;
+}

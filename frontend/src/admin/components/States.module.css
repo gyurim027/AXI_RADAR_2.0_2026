@@ -1,0 +1,27 @@
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--a-s3);
+  padding: var(--a-s10) var(--a-s4);
+  text-align: center;
+}
+.main {
+  font-size: var(--a-fs-md);
+  color: var(--radar-admin-semantic-color-text-primary);
+}
+.hint {
+  font-size: var(--a-fs-sm);
+  color: var(--radar-admin-semantic-color-text-secondary);
+}
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--a-s2);
+  padding: var(--a-s4);
+}
+.row {
+  height: var(--radar-admin-component-table-row-height);
+  border-radius: var(--a-radius-control);
+  background: var(--radar-admin-semantic-color-bg-hover);
+}

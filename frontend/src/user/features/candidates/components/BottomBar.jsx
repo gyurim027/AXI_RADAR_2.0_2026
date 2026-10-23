@@ -67,7 +67,7 @@ export default function BottomBar({ scrollRef, message, buttonLabel, buttonVaria
       onMouseEnter={() => setEngaged(true)}
       onMouseLeave={() => setEngaged(false)}
     >
-      <p className={styles.msg}>{message}</p>
+      <p className={styles.msg}>{message}</p> {/* 시 도로과는 버튼만 있어 글이 비어 있다 */}
       {buttonLabel ? (
         <Button variant={buttonVariant} className={styles.btn} onClick={onButton}>
           {buttonLabel}

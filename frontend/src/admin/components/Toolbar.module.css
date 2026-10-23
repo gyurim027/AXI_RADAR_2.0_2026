@@ -1,0 +1,18 @@
+.bar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--a-s4);
+  margin-bottom: var(--a-s4);
+  flex-wrap: wrap;
+}
+.filters {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--a-s4);
+  flex-wrap: wrap;
+}
+.actions {
+  display: flex;
+  gap: var(--a-s2);
+}

@@ -1,0 +1,31 @@
+.list {
+  display: flex;
+  gap: var(--a-s1);
+  border-bottom: 1px solid var(--radar-admin-semantic-color-border-default);
+}
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--a-s2);
+  min-height: var(--a-size-control);
+  padding: 0 var(--a-s4);
+  border: 0;
+  border-bottom: var(--radar-admin-component-nav-tab-indicator-height) solid transparent;
+  margin-bottom: -1px;
+  background: none;
+  font-size: var(--a-fs-md);
+  font-weight: var(--a-fw-medium);
+  color: var(--radar-admin-component-nav-tab-inactive-text);
+}
+.tab:hover {
+  background: var(--radar-admin-component-nav-tab-hover-bg);
+}
+.active {
+  color: var(--radar-admin-component-nav-tab-active-text);
+  border-bottom-color: var(--radar-admin-component-nav-tab-indicator);
+}
+.count {
+  font-size: var(--a-fs-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--radar-admin-semantic-color-text-secondary);
+}

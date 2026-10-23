@@ -132,7 +132,9 @@ function CandidateListPage() {
   // 4 바텀 바: 도로관리팀은 결정 완료 여부에 따라 두 글, 확정한 뒤에는 완료 문구, 시 도로과는 확정 현황. 확정·참고 회차에는 없다.
   let bar = null;
   if (data) {
-    if (district && reviewing && myConfirm && !myConfirm.done) {
+    if (user.readOnly && district) {
+      bar = null; // 보기 전용: 확정 버튼과 안내를 숨긴다 (AD-00 4-1)
+    } else if (district && reviewing && myConfirm && !myConfirm.done) {
       bar =
         data.counts.none > 0
           ? { message: LIST.barUndecided(data.counts.none), button: LIST.barButton, variant: 'neutral' }
@@ -140,7 +142,7 @@ function CandidateListPage() {
     } else if (district && myConfirm?.done && run.status !== RUN_STATUS.REF) {
       bar = { message: LIST.barDone(user.gu, myConfirm.date) };
     } else if (city && (reviewing || run.status === RUN_STATUS.FINAL)) {
-      bar = { message: LIST.barCity, button: LIST.barCityButton, variant: 'soft' };
+      bar = { message: '', button: LIST.barCityButton, variant: 'soft' }; // 시 도로과는 버튼만 보인다 (US-01 1-7)
     }
   }
 

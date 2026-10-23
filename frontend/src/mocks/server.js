@@ -1,7 +1,6 @@
 // 가짜 서버. 백엔드가 붙으면 이 파일이 하던 일(역할별 걸러 내리기, 규칙 검사)을 서버가 맡는다.
 // 화면 코드는 이 파일을 직접 부르지 않고 src/api/*.js만 부른다.
-import { ACCOUNTS, MOCK_PASSWORD } from './accounts.js';
-import { RUNS } from './runs.js';
+import { MOCK_PASSWORD } from './accounts.js';
 import {
   DATASET,
   OB,
@@ -14,13 +13,23 @@ import {
 } from './generate.js';
 import {
   NOTIFICATIONS,
-  DATA_LIST,
-  REGULATIONS,
   PROPOSALS,
   CLASSIFY_SAMPLES,
-  ACTION_TABLE,
 } from './reference.js';
 import { getState, saveState } from './store.js';
+import {
+  actionRows,
+  adminState,
+  allAccounts,
+  allRuns,
+  dataListForUser,
+  dotDate,
+  logAccess,
+  mockNow,
+  pendingProposals,
+  peopleOf,
+  regulations,
+} from './adminModel.js';
 import { ALL_GU, DECISION, DEPT_STATUS, GU_LIST, ROLE, RUN_STATUS } from '../shared/constants.js';
 import { formatDate, runNameWithoutRef } from '../shared/utils/format.js';
 
@@ -36,12 +45,26 @@ export class ApiError extends Error {
 
 const today = () => formatDate(new Date());
 const todayIso = () => new Date().toISOString().slice(0, 10);
+const isoDate = () => dotDate(mockNow()).replaceAll('.', '-');
 const baseOf = (gid) => DATASET.bases.find((b) => b.gid === gid);
 
 // ------------------------------------------------------------------ 계정
+/** 로그인한 계정. 운영자가 '사용자 화면 보기'를 켠 동안에는 고른 계정으로 보이고 보기 전용(readOnly)이 된다. */
 export function currentUser() {
   const s = getState();
-  return ACCOUNTS.find((a) => a.id === s.session) || null;
+  const real = allAccounts().find((a) => a.id === s.session) || null;
+  if (real && real.stopped) return null; // 사용을 멈춘 계정은 이미 로그인해 있어도 쓸 수 없다 (AD-15)
+  if (real && real.role === ROLE.OPERATOR && s.viewAs) {
+    const target = allAccounts().find((a) => a.id === s.viewAs);
+    if (target) return { ...target, readOnly: true, viewerId: real.id };
+  }
+  return real;
+}
+/** 화면 가림 없이 실제로 로그인한 계정 (어드민 서버가 쓴다) */
+export function realUser() {
+  const s = getState();
+  const a = allAccounts().find((x) => x.id === s.session) || null;
+  return a && !a.stopped ? a : null;
 }
 function requireUser() {
   const u = currentUser();
@@ -56,7 +79,7 @@ export function login(loginId, password) {
   if (rec.lockedUntil > now) {
     return { ok: false, reason: 'locked', lockMinutes: LOCK_MINUTES };
   }
-  const account = ACCOUNTS.find((a) => a.id === loginId);
+  const account = allAccounts().find((a) => a.id === loginId && !a.stopped);
   if (!account || password !== MOCK_PASSWORD) {
     const count = rec.count + 1;
     if (count >= MAX_FAILS) {
@@ -70,6 +93,8 @@ export function login(loginId, password) {
   }
   s.loginFails[loginId] = { count: 0, lockedUntil: 0 };
   s.session = account.id;
+  s.viewAs = null;
+  logAccess(account, '로그인');
   saveState();
   return { ok: true, user: publicUser(account) };
 }
@@ -77,11 +102,12 @@ export function login(loginId, password) {
 export function logout() {
   const s = getState();
   s.session = null;
+  s.viewAs = null;
   saveState();
 }
 
 export function publicUser(a) {
-  return { id: a.id, role: a.role, gu: a.gu, org: a.org };
+  return { id: a.id, role: a.role, gu: a.gu, org: a.org, readOnly: !!a.readOnly };
 }
 
 // ------------------------------------------------------------------ 회차
@@ -97,12 +123,13 @@ function allConfirmed(runId) {
 /** 사용자 화면에서 볼 수 있는 회차: 산정 중은 보이지 않는다 (US-00 1-1) */
 export function listRuns() {
   requireUser();
-  return RUNS.map((r) => ({ ...r, status: liveStatus(r) }))
+  return allRuns()
+    .map((r) => ({ ...r, status: liveStatus(r) }))
     .filter((r) => r.status !== RUN_STATUS.DRAFT)
     .map(({ openedAt, ...r }) => ({ ...r, openedAt }));
 }
 function getRun(runId) {
-  const r = RUNS.find((x) => x.id === runId);
+  const r = allRuns().find((x) => x.id === runId);
   if (!r) throw new ApiError('notFound', '회차를 찾을 수 없습니다.');
   const status = liveStatus(r);
   if (status === RUN_STATUS.DRAFT) throw new ApiError('notFound', '회차를 찾을 수 없습니다.');
@@ -140,7 +167,8 @@ function deptResolved(runId, base, obstacleKey) {
 /** 회차의 후보를 합쳐 만든다 (결정·부서 선택 반영) */
 function mergedItems(run) {
   const s = getState();
-  const list = DATASET.byRun[run.id] || [];
+  // 새로 만든 회차는 가장 최근 후보 묶음을 그대로 쓴다 (가짜 데이터)
+  const list = DATASET.byRun[run.id] || DATASET.byRun.r2028 || [];
   return list.map((it) => {
     const base = baseOf(it.gid);
     const ov = s.decisions[run.id]?.[it.gid];
@@ -242,7 +270,7 @@ export function listCandidates({ runId, gu }) {
     obstacleOptions: OBSTACLES.map((o) => o.name).filter((n, i, arr) => arr.indexOf(n) === i),
     myConfirm: user.role === ROLE.DISTRICT ? confirmOf(runId, user.gu) : null,
     // 결정 상태 칸을 버튼으로 보일지: 도로관리팀 · 검토 중 회차 · 자기 구를 아직 확정하기 전 (CM-00 10번)
-    canDecide: user.role === ROLE.DISTRICT && run.status === RUN_STATUS.REVIEW && !confirmOf(runId, user.gu).done,
+    canDecide: !user.readOnly && user.role === ROLE.DISTRICT && run.status === RUN_STATUS.REVIEW && !confirmOf(runId, user.gu).done,
   };
 }
 
@@ -272,7 +300,7 @@ export function getCandidateDetail({ runId, gid }) {
   const ownGu = user.role === ROLE.DISTRICT && base.gu === user.gu;
   const reviewing = run.status === RUN_STATUS.REVIEW;
   const confirmed = ownGu ? confirmOf(runId, user.gu).done : false;
-  const canDecide = ownGu && reviewing && !confirmed;
+  const canDecide = ownGu && reviewing && !confirmed && !user.readOnly;
 
   // 요청안·조치 제안 (⑥)
   const problems = [];
@@ -339,8 +367,8 @@ export function getCandidateDetail({ runId, gid }) {
     bounds: base.bounds,
     points: base.points,
     canDecide,
-    showDecisionTab: ownGu && reviewing, // ⑤ 탭: 검토 중 회차의 자기 구 후보에서만 보인다
-    canPickDept: ownGu && reviewing && !confirmed,
+    showDecisionTab: ownGu && reviewing && !user.readOnly, // ⑤ 탭: 검토 중 회차의 자기 구 후보에서만 보인다
+    canPickDept: ownGu && reviewing && !confirmed && !user.readOnly,
     showRequest: ownGu && m.decision === DECISION.TARGET,
     confirmedByGu: confirmed,
     problems,
@@ -354,7 +382,7 @@ export function saveDecision({ runId, gid, decision, reasonKey, reasonText, memo
   const user = requireUser();
   const run = getRun(runId);
   const base = baseOf(gid);
-  if (user.role !== ROLE.DISTRICT || base.gu !== user.gu) throw new ApiError('forbidden', '결정할 수 없습니다.');
+  if (user.readOnly || user.role !== ROLE.DISTRICT || base.gu !== user.gu) throw new ApiError('forbidden', '결정할 수 없습니다.');
   if (run.status !== RUN_STATUS.REVIEW) throw new ApiError('forbidden', '결정할 수 없는 회차입니다.');
   if (confirmOf(runId, user.gu).done) throw new ApiError('locked', '이미 확정한 구입니다.');
   if (![DECISION.TARGET, DECISION.EXCLUDE, DECISION.HOLD].includes(decision)) {
@@ -383,6 +411,7 @@ export function saveDecision({ runId, gid, decision, reasonKey, reasonText, memo
     history: [...(prev ? prev.history : []), ...(from !== decision ? [{ date: today(), from, to: decision, org: user.org }] : [])],
   };
   s.changeLog.push({ at: new Date().toISOString(), actor: user.org, kind: '결정', gid, from, to: decision });
+  logAccess(user, '결정', `${run.name} 후보 ${gid} ${decision}`);
   saveState();
   return { ok: true };
 }
@@ -392,7 +421,7 @@ export function setDept({ runId, gid, deptName }) {
   const user = requireUser();
   const run = getRun(runId);
   const base = baseOf(gid);
-  if (user.role !== ROLE.DISTRICT || base.gu !== user.gu) throw new ApiError('forbidden', '정할 수 없습니다.');
+  if (user.readOnly || user.role !== ROLE.DISTRICT || base.gu !== user.gu) throw new ApiError('forbidden', '정할 수 없습니다.');
   if (run.status !== RUN_STATUS.REVIEW || confirmOf(runId, user.gu).done) {
     throw new ApiError('forbidden', '정할 수 없는 회차입니다.');
   }
@@ -455,13 +484,14 @@ export function getConfirmSummary({ runId }) {
 export function confirmGu({ runId }) {
   const user = requireUser();
   const run = getRun(runId);
-  if (user.role !== ROLE.DISTRICT) throw new ApiError('forbidden', '확정할 수 없습니다.');
+  if (user.readOnly || user.role !== ROLE.DISTRICT) throw new ApiError('forbidden', '확정할 수 없습니다.');
   if (run.status !== RUN_STATUS.REVIEW) throw new ApiError('forbidden', '확정할 수 없는 회차입니다.');
   const s = getState();
   s.guConfirm[runId] = s.guConfirm[runId] || {};
   if (s.guConfirm[runId][user.gu]) throw new ApiError('locked', '이미 확정했습니다.');
   s.guConfirm[runId][user.gu] = todayIso();
   s.changeLog.push({ at: new Date().toISOString(), actor: user.org, kind: '구 확정', to: user.gu });
+  logAccess(user, '결정', `${run.name} ${user.gu} 우선 점검 대상 확정`);
   // 3개 구가 모두 확정하면 회차가 확정된다. 이 사실은 구 사용자에게 따로 알리지 않는다.
   if (allConfirmed(runId)) s.runStatus[runId] = RUN_STATUS.FINAL;
   saveState();
@@ -592,17 +622,11 @@ export function getHalfYearSummary({ runId }) {
 }
 
 /** 내려받기. 실제 파일은 백엔드가 만든다. 가안은 보고서 미리 보기 내용을 표로 만든다. */
-export function recordDownload({ runId, reportName, format }) {
+export function recordDownload({ runId, reportName }) {
   const user = requireUser();
-  const s = getState();
-  s.accessLog.push({
-    at: new Date().toISOString(),
-    actor: user.org,
-    action: '내려받기',
-    runId,
-    reportName,
-    format,
-  });
+  const actor = user.readOnly ? realUser() : user; // 보기 전용으로 내려받으면 운영자 이름으로 남긴다
+  const run = allRuns().find((r) => r.id === runId);
+  logAccess(actor, '파일 내려받기', `${run ? run.name : ''} ${reportName}`.trim());
   saveState();
   return { ok: true };
 }
@@ -612,28 +636,45 @@ export function listNotifications() {
   const user = requireUser();
   const s = getState();
   const read = new Set(s.notifRead[user.id] || []);
-  const review = RUNS.find((r) => r.status === RUN_STATUS.REVIEW);
-  const ref = RUNS.find((r) => r.status === RUN_STATUS.REF);
+  const runs = allRuns();
+  const review = runs.find((r) => r.status === RUN_STATUS.REVIEW) || runs[0];
+  const ref = runs.find((r) => r.status === RUN_STATUS.REF) || review;
   const ctx = {
     version: PROPOSALS[0].version,
     runName: review.name,
     refName: runNameWithoutRef(ref.name),
     gu: user.gu,
   };
-  return NOTIFICATIONS.filter((n) => n.roles.includes(user.role))
-    .map((n) => ({
+  // 어드민이 회차를 검토 중으로 열면 시 도로과와 구 도로관리팀에게 알림이 간다 (AD-06 2-1)
+  const opened = adminState().runOpenNotices.filter((n) => n.roles.includes(user.role));
+  const rows = [
+    ...NOTIFICATIONS.filter((n) => n.roles.includes(user.role)).map((n) => ({
       id: n.id,
       kind: n.kind,
       text: n.text(ctx),
       date: n.date,
       read: read.has(n.id),
       targetRunId: n.kind === 'halfYear' ? ref.id : n.kind === 'runOpen' ? review.id : null,
-    }))
-    .sort((a, b) => (a.date < b.date ? 1 : -1))
-    .slice(0, 20);
+    })),
+    ...opened.map((n) => ({
+      id: n.id,
+      kind: 'runOpen',
+      text:
+        n.kind === 'ref'
+          ? `${runNameWithoutRef(n.runName)} 참고 회차가 열렸습니다. 바뀐 순위를 확인해 보세요.`
+          : user.role === ROLE.CITY
+            ? `${n.runName} 회차가 열렸습니다. 3개 구 점검 후보를 확인해 보세요.`
+            : `${n.runName} 회차가 열렸습니다. ${user.gu} 점검 후보를 결정해 주세요.`,
+      date: n.date,
+      read: read.has(n.id),
+      targetRunId: n.runId,
+    })),
+  ];
+  return rows.sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 20);
 }
 export function markNotificationRead({ id }) {
   const user = requireUser();
+  if (user.readOnly) return { ok: true }; // 보기 전용으로 보는 동안에는 그 계정의 읽음 표시를 바꾸지 않는다
   const s = getState();
   s.notifRead[user.id] = [...new Set([...(s.notifRead[user.id] || []), id])];
   saveState();
@@ -644,15 +685,20 @@ export function markNotificationRead({ id }) {
 export function listProposals() {
   const user = requireUser();
   if (user.role !== ROLE.CITY) throw new ApiError('forbidden', '볼 수 없습니다.');
-  const s = getState();
-  return PROPOSALS.filter((p) => !s.proposals[p.id]);
+  return pendingProposals();
 }
 export function decideProposal({ id, approve, reason }) {
   const user = requireUser();
-  if (user.role !== ROLE.CITY) throw new ApiError('forbidden', '할 수 없습니다.');
+  if (user.readOnly || user.role !== ROLE.CITY) throw new ApiError('forbidden', '할 수 없습니다.');
   if (!approve && !String(reason || '').trim()) return { ok: false, code: 'reasonRequired' };
   const s = getState();
-  s.proposals[id] = { result: approve ? '승인' : '반려', reason: approve ? null : String(reason).trim() };
+  s.proposals[id] = {
+    result: approve ? '승인' : '반려',
+    reason: approve ? null : String(reason).trim(),
+    at: isoDate(),
+    by: `${peopleOf(user.id).name} (${user.org})`,
+  };
+  logAccess(user, '승인', `${id} ${approve ? '승인' : '돌려보내기'}`, approve ? '-' : String(reason).trim());
   s.changeLog.push({ at: new Date().toISOString(), actor: user.org, kind: approve ? '제안 승인' : '제안 반려', gid: id });
   saveState();
   return { ok: true };
@@ -674,7 +720,7 @@ export function listClassifySamples({ runId }) {
 }
 export function markClassify({ id, result, label }) {
   const user = requireUser();
-  if (user.role !== ROLE.DISTRICT) throw new ApiError('forbidden', '할 수 없습니다.');
+  if (user.readOnly || user.role !== ROLE.DISTRICT) throw new ApiError('forbidden', '할 수 없습니다.');
   const s = getState();
   s.classify[id] = { result, label: label || null };
   saveState();
@@ -683,13 +729,18 @@ export function markClassify({ id, result, label }) {
 
 export function listDataList() {
   requireUser();
-  return DATA_LIST;
+  return dataListForUser();
 }
 export function listRegulations() {
   requireUser();
-  return REGULATIONS;
+  return regulations()
+    .map((r) => ({ id: r.id, name: r.name, changed: r.where, date: r.date }))
+    .sort((a, b) => (a.date < b.date ? 1 : -1));
 }
+/** 검토 완료인 문장 틀만 사용자 화면에 보인다 (ISS-035) */
 export function listActionTable() {
   requireUser();
-  return ACTION_TABLE;
+  return actionRows()
+    .filter((r) => r.review === '검토 완료')
+    .map(({ id, problem, check, action, sentence, dept, article }) => ({ id, problem, check, action, sentence, dept, article }));
 }

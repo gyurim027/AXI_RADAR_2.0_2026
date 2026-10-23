@@ -1,0 +1,24 @@
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--a-s6);
+}
+.log {
+  display: flex;
+  flex-direction: column;
+  gap: var(--a-s2);
+  margin-top: var(--a-s3);
+  font-size: var(--a-fs-md);
+}
+.formPanel {
+  max-width: var(--radar-admin-component-field-max-width);
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--a-s4);
+}
+.actions {
+  display: flex;
+  justify-content: flex-end;
+}

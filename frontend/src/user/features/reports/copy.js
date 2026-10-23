@@ -17,7 +17,7 @@ export const ANNUAL = {
   head: ['관할 부서', '대상 수'],
   rowCount: (n) => `대상 ${n}곳`,
   notSend: 'RADAR는 파일을 보내지 않습니다. 받는 부서 담당자를 확인한 뒤 직접 보내 주세요.',
-  empty: '점검 대상을 확정한 뒤 만들 수 있습니다.',
+  empty: '우선 점검 대상을 확정한 뒤 만들 수 있습니다.',
   goDecide: '점검 후보 결정하러 가기',
 };
 
@@ -30,7 +30,7 @@ export const BASIS = {
   count: (n) => `${n}곳`,
   draftTitle: '연간 검토 보고서 초안',
   draftBody: '현황 · 데이터 근거 · 관련 기준 · 데이터로 모르는 것 · 조치 제안',
-  draftEmptyCity: '3개 구가 모두 점검 대상을 확정한 뒤 만들 수 있습니다.',
+  draftEmptyCity: '3개 구가 모두 우선 점검 대상을 확정한 뒤 만들 수 있습니다.',
   draftEmptyDistrict: (runName) => `${runName} 회차가 확정되면 만들 수 있습니다.`,
 };
 
@@ -40,7 +40,7 @@ export const CONDITION = {
   title: (year) => `${year} 산정 조건 기록서`,
   subtitle: '이번 회차에 어떤 자료와 기준으로 순위를 냈는지 남긴 문서입니다.',
   body: (n, version, fields, cond) => `사용한 데이터 ${n}종 · 산정 기준 ${version} · 평가하지 못한 분야: ${fields} · 우선 확인 조건 ${cond}개`,
-  emptyCity: '3개 구가 모두 점검 대상을 확정하면 만들어집니다.',
+  emptyCity: '3개 구가 모두 우선 점검 대상을 확정하면 만들어집니다.',
   emptyDistrict: (runName) => `${runName} 회차가 확정되면 만들어집니다.`,
 };
 

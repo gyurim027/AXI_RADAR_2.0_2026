@@ -3,7 +3,7 @@
 ## 브랜치
 - `main`: 배포용. `develop`에서만 합칩니다.
 - `develop`: 통합용. 작업 브랜치를 PR로 합칩니다.
-- `feature/영문-주제`: 작업용. `develop`에서 따서 작업합니다. 예: `feature/admin-login`
+- `feature/영역-기능`: 작업용. `develop`에서 따서 작업합니다. 영역은 `ai`, `backend`, `frontend` 중 하나입니다. 예: `feature/ai-complaint-classify`, `feature/backend-candidate-list`, `feature/frontend-admin`
 
 ## 커밋 메시지
 `종류: 한 줄 요약` 형식으로 씁니다. 요약은 한국어로 쓰고 마침표는 찍지 않습니다.

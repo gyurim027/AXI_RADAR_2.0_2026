@@ -1,0 +1,81 @@
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--a-s2);
+  min-height: var(--radar-admin-component-button-height);
+  padding: 0 var(--radar-admin-component-button-padding-x);
+  border: 1px solid transparent;
+  border-radius: var(--radar-admin-component-button-radius);
+  font-size: var(--a-fs-sm);
+  font-weight: var(--a-fw-medium);
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.compact {
+  min-height: var(--radar-admin-component-button-compact-height);
+}
+.primary {
+  background: var(--radar-admin-component-button-primary-bg);
+  color: var(--radar-admin-component-button-primary-text);
+}
+.primary:hover {
+  background: var(--radar-admin-component-button-primary-hover);
+}
+.primary:active {
+  background: var(--radar-admin-component-button-primary-active);
+}
+.soft {
+  background: var(--radar-admin-component-button-soft-bg);
+  color: var(--radar-admin-component-button-soft-text);
+}
+.soft:hover {
+  background: var(--radar-admin-semantic-color-bg-hover);
+}
+.secondary {
+  background: var(--radar-admin-component-button-secondary-bg);
+  color: var(--radar-admin-component-button-secondary-text);
+  border-color: var(--radar-admin-component-button-secondary-border);
+}
+.secondary:hover {
+  background: var(--radar-admin-component-button-secondary-hover-bg);
+}
+.danger {
+  background: var(--radar-admin-component-button-danger-bg);
+  color: var(--radar-admin-component-button-danger-on);
+}
+.text {
+  background: none;
+  color: var(--radar-admin-semantic-color-text-link);
+  min-height: var(--a-size-compact);
+  padding: 0 var(--a-s2);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.text:hover {
+  background: var(--radar-admin-semantic-color-bg-hover);
+}
+.btn:disabled {
+  background: var(--radar-admin-component-button-disabled-bg);
+  color: var(--radar-admin-component-button-disabled-text);
+  border-color: transparent;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+.loading {
+  cursor: progress;
+}
+.loading .label {
+  visibility: hidden;
+}
+.spin {
+  position: absolute;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -14,7 +14,7 @@
   gap: var(--space-4);
   font-size: var(--fs-small);
   font-weight: var(--fw-bold);
-  color: var(--semantic-color-primary-strong);
+  color: var(--semantic-color-primary-hover); /* 회색 상자 위에서 대비 4.5:1 이상으로 하려고 한 단계 진한 파랑 */
 }
 .body {
   display: flex;

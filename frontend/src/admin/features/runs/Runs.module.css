@@ -1,0 +1,51 @@
+.h3 {
+  font-size: var(--a-fs-md);
+  font-weight: var(--a-fw-semibold);
+  margin-bottom: var(--a-s2);
+}
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--a-s1);
+  padding-left: var(--a-s5);
+  list-style: disc;
+}
+.note {
+  font-size: var(--a-fs-sm);
+  color: var(--radar-admin-semantic-color-text-secondary);
+}
+.error {
+  margin-bottom: var(--a-s4);
+  font-size: var(--a-fs-sm);
+  color: var(--radar-admin-semantic-color-danger);
+}
+.log {
+  margin: 0;
+  padding: var(--a-s3) var(--a-s4);
+  background: var(--radar-admin-semantic-color-bg-surface);
+  border: 1px solid var(--radar-admin-semantic-color-border-subtle);
+  border-radius: var(--a-radius-control);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: var(--a-fs-sm);
+  line-height: var(--a-lh-body);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.expanded {
+  display: flex;
+  flex-direction: column;
+  gap: var(--a-s3);
+  align-items: flex-start;
+}
+.h4 {
+  font-size: var(--a-fs-md);
+  font-weight: var(--a-fw-semibold);
+}
+.cause {
+  font-size: var(--a-fs-md);
+  color: var(--radar-admin-semantic-color-danger);
+}
+.help {
+  font-size: var(--a-fs-sm);
+  color: var(--radar-admin-semantic-color-text-secondary);
+}
