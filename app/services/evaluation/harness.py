@@ -4,7 +4,7 @@
     case_id | 입력 | 기대 답 | 맞음 기준 | 메모
     01      | T18  | 도로교통법 제32조 | 3등 안 | 주정차 단속
 - 기대 답이 여러 개면 ' | ' 또는 ';'로 나눈다.
-- 맞음 기준: 같음 · 포함 · 안 들어감 · N등 안(예: 5등 안) · 못 찾음
+- 맞음 기준: 같음 · 포함 · 안 들어감 · 아님 · N등 안(예: 5등 안) · 못 찾음
 - 민원 원문·개인정보는 넣지 않는다 (ISS-032). 가린 문장이나 만든 문장만.
 
 어댑터 = 각 기능이 만드는 함수 하나: run(입력 글자) -> 결과
@@ -15,9 +15,15 @@
     같음      결과(글자)가 기대 답 중 하나와 같음. 목록이면 1등이 같음
     포함      기대 답이 모두 결과 안에 있음 (목록이면 이어 붙인 글자에서 찾음)
     안 들어감  결과가 있고, 기대 답이 하나도 결과 안에 없음 (빈 결과·오류는 통과 아님)
+    아님      결과(1등)가 기대 답과 다르거나 결과가 없음 (예: AI-03 "이 gid를 내면 오답" — 못 찾는 건 오답 아님)
     N등 안    기대 답 중 하나가 목록 앞 N개 중 하나에 들어 있음
     못 찾음    결과가 None 또는 빈 값
 비교 전에 띄어쓰기를 하나로 줄이고 영문은 소문자로 바꾼다.
+
+함께 세는 값 (모든 기능 공통, AI-03에서 가장 중요)
+    결과 낸 수      어댑터가 빈 값이 아닌 결과를 낸 문제 수
+    오연결          결과를 냈는데 틀린 문제 수.  오연결률 = 오연결 / 결과 낸 수
+    찾은 비율       찾아야 하는 문제(같음 · 포함 · N등 안) 중 결과를 낸 비율
 """
 from __future__ import annotations
 
@@ -32,7 +38,8 @@ from typing import Any, Callable
 
 COLS = {"case_id": ("case_id", "번호", "id"), "input": ("입력", "input"), "expected": ("기대 답", "기대답", "expected"),
         "rule": ("맞음 기준", "맞음기준", "rule"), "note": ("메모", "note")}
-RULES = ("같음", "포함", "안 들어감", "못 찾음")
+RULES = ("같음", "포함", "안 들어감", "아님", "못 찾음")
+SHOULD_FIND = ("같음", "포함")            # + N등 안
 TOP_N = re.compile(r"^\s*(\d+)\s*등\s*안\s*$")
 
 
@@ -63,10 +70,23 @@ class Report:
     failed: list = field(default_factory=list)
     errors: int = 0
     at: str = ""
+    answered: int = 0            # 결과 낸 수
+    answered_wrong: int = 0      # 결과를 냈는데 틀림 (오연결)
+    should_find: int = 0         # 찾아야 하는 문제 수 (같음 · 포함 · N등 안)
+    found: int = 0               # 그중 결과를 낸 수
 
     @property
     def rate(self) -> float:
         return round(self.passed / self.total * 100, 1) if self.total else 0.0
+
+    @property
+    def wrong_link_rate(self) -> float | None:
+        """오연결률 = 결과를 냈는데 틀린 수 / 결과 낸 수 (분모는 전체가 아님 — 못 찾은 게 많아도 낮아 보이지 않게)"""
+        return round(self.answered_wrong / self.answered * 100, 1) if self.answered else None
+
+    @property
+    def find_rate(self) -> float | None:
+        return round(self.found / self.should_find * 100, 1) if self.should_find else None
 
 
 def norm(s: Any) -> str:
@@ -82,7 +102,7 @@ def check_rule(rule: str) -> str:
     rule = " ".join((rule or "").split())
     if rule in RULES or TOP_N.match(rule):
         return rule
-    raise ValueError(f"맞음 기준을 알 수 없습니다: '{rule}' (같음 · 포함 · 안 들어감 · N등 안 · 못 찾음)")
+    raise ValueError(f"맞음 기준을 알 수 없습니다: '{rule}' (같음 · 포함 · 안 들어감 · 아님 · N등 안 · 못 찾음)")
 
 
 # ── 정답 목록 읽기 ───────────────────────────────────
@@ -145,6 +165,10 @@ def judge(case: Case, got: Any) -> tuple[bool, str]:
             return False, "결과 없음"
         hit = [e for e in exp if e in blob]
         return (not hit), ("들어감: " + ", ".join(hit) if hit else "")
+    if rule == "아님":
+        if not items:                                  # 못 찾은 것은 오답이 아니다
+            return True, ""
+        return (items[0] not in exp), ("오답으로 정한 값을 냄" if items[0] in exp else "")
     n = int(TOP_N.match(rule).group(1))
     ok = any(e in it for it in items[:n] for e in exp)
     return ok, ("" if ok else f"앞 {n}개 안에 없음")
@@ -154,6 +178,12 @@ def load_adapter(spec: str) -> Callable[[str], Any]:
     """'app.services.ai05.eval_adapter:run' 꼴."""
     mod, _, fn = spec.partition(":")
     return getattr(importlib.import_module(mod), fn or "run")
+
+
+def _has_result(got: Any) -> bool:
+    if isinstance(got, (list, tuple)):
+        return any(x not in (None, "") for x in got)
+    return got not in (None, "")
 
 
 def evaluate(name: str, cases: list[Case], adapter: Callable[[str], Any]) -> Report:
@@ -168,6 +198,14 @@ def evaluate(name: str, cases: list[Case], adapter: Callable[[str], Any]) -> Rep
         except Exception as exc:                 # 한 문제가 오류여도 나머지는 계속
             got, ok, why = None, False, f"오류({type(exc).__name__})"
             rep.errors += 1
+        has = _has_result(got)
+        if has:
+            rep.answered += 1
+            if not ok:
+                rep.answered_wrong += 1
+        if c.rule in SHOULD_FIND or TOP_N.match(c.rule):
+            rep.should_find += 1
+            rep.found += int(has)
         if ok:
             rep.passed += 1
             b["passed"] += 1
@@ -179,6 +217,10 @@ def evaluate(name: str, cases: list[Case], adapter: Callable[[str], Any]) -> Rep
 
 def summary_text(rep: Report) -> str:
     lines = [f"[{rep.name}] {rep.passed}/{rep.total} 맞음 ({rep.rate}%)" + (f" · 오류 {rep.errors}" if rep.errors else "")]
+    wl = "-" if rep.wrong_link_rate is None else f"{rep.wrong_link_rate}%"
+    fr = "-" if rep.find_rate is None else f"{rep.find_rate}%"
+    lines.append(f"  결과 낸 수 {rep.answered} · 그중 틀림(오연결) {rep.answered_wrong} → 오연결률 {wl}"
+                 f" · 찾은 비율 {rep.found}/{rep.should_find} ({fr})")
     for rule, b in rep.by_rule.items():
         lines.append(f"  - {rule}: {b['passed']}/{b['total']}")
     for f in rep.failed:
@@ -190,6 +232,7 @@ def save_report(rep: Report, out_dir: str | Path = "out/eval") -> Path:
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
     path = out / f"{rep.name}_{datetime.now():%y%m%d_%H%M}.json"
-    path.write_text(json.dumps({**asdict(rep), "rate": rep.rate}, ensure_ascii=False, indent=2, default=str),
+    path.write_text(json.dumps({**asdict(rep), "rate": rep.rate, "wrong_link_rate": rep.wrong_link_rate,
+                                "find_rate": rep.find_rate}, ensure_ascii=False, indent=2, default=str),
                     encoding="utf-8")
     return path
