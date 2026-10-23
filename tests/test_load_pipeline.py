@@ -143,7 +143,7 @@ class Ai01Tests(BaseLoadCase):
     def test_real_result_is_stored_and_rerun_logs_ai_change(self):
         def fake(model, summary):
             def refine(items):
-                return [Ai01Result(i.complaint_id, "ok", summary, "보행안전 관련", None, 0.9, "근거", model) for i in items]
+                return [Ai01Result(i.complaint_id, "ok", summary, "보행안전 관련", None, 0.9, "근거", model=model) for i in items]
             return refine
         run_load(xlsx(rows_basic()), FILE, meta(), self.store, refine=fake("mask v0.9", "요약1"))
         self.assertTrue(all(c["masked_summary"] == "요약1" for c in self.store.complaints.values()))
@@ -158,7 +158,7 @@ class Ai01Tests(BaseLoadCase):
 
         def refine(items):
             calls.append(len(items))
-            return [Ai01Result(i.complaint_id, "ok", "요약", "보행안전 관련", None, 0.9, "근거", "mask v0.9") for i in items]
+            return [Ai01Result(i.complaint_id, "ok", "요약", "보행안전 관련", None, 0.9, "근거", model="mask v0.9") for i in items]
         run_load(xlsx(rows_basic()), FILE, meta(), self.store, refine=refine)
         res = run_load(xlsx(rows_basic()), FILE, meta(), self.store, refine=refine)
         self.assertEqual(calls, [4])                                   # 두 번째에는 보낼 민원이 없어 부르지 않음
@@ -167,14 +167,14 @@ class Ai01Tests(BaseLoadCase):
 
     def test_first_fill_of_existing_rows_is_not_logged_in_80(self):
         run_load(xlsx(rows_basic()), FILE, meta(), self.store)         # AI-01 칸은 비어 있음 (가짜 함수 결과는 안 씀)
-        real = lambda items: [Ai01Result(i.complaint_id, "ok", "요약", "관련", None, 0.9, "근거", "mask v0.9") for i in items]
+        real = lambda items: [Ai01Result(i.complaint_id, "ok", "요약", "관련", None, 0.9, "근거", model="mask v0.9") for i in items]
         res = run_load(xlsx(rows_basic()), FILE, meta(), self.store, refine=real)
         self.assertEqual(res.counts.updated, 0)
         self.assertEqual(self.store.changes, [])
         self.assertTrue(all(c["masked_summary"] == "요약" for c in self.store.complaints.values()))
 
     def test_failed_rerun_does_not_wipe_existing_values(self):
-        ok = lambda items: [Ai01Result(i.complaint_id, "ok", "요약", "관련", None, 0.9, "근거", "m") for i in items]
+        ok = lambda items: [Ai01Result(i.complaint_id, "ok", "요약", "관련", None, 0.9, "근거", model="m") for i in items]
         run_load(xlsx(rows_basic()), FILE, meta(), self.store, refine=ok)
 
         def fail(items):
@@ -187,7 +187,7 @@ class Ai01Tests(BaseLoadCase):
             out = []
             for k, i in enumerate(items):
                 st = ["ok", "mask_failed", "error", "ok"][k % 4]
-                out.append(Ai01Result(i.complaint_id, st, "요약" if st == "ok" else None, None, None, None, None, "m"))
+                out.append(Ai01Result(i.complaint_id, st, "요약" if st == "ok" else None, None, None, None, None, model="m"))
             return out
         res = run_load(xlsx(rows_basic()), FILE, meta(), self.store, refine=refine)
         self.assertEqual((res.ai.ok, res.ai.mask_failed, res.ai.error), (2, 1, 1))

@@ -99,7 +99,7 @@ class ApiTests(BaseLoadCase):
 
     def test_upload_succeeds_cleanly_when_ai01_works(self):
         def ok(items, **_):
-            return [Ai01Result(i.complaint_id, "ok", "요약", "보행안전 관련", None, 0.9, "근거", "mask-1+sum-2+cls-2") for i in items]
+            return [Ai01Result(i.complaint_id, "ok", "요약", "보행안전 관련", None, 0.9, "근거", model="mask-1+sum-2+cls-2") for i in items]
         with mock.patch.object(ai01_port, "resolve_backend", return_value=ai01_port.Backend(ok, StubInput, "ai01")):
             r = self.post()
         self.assertEqual(r.status_code, 201, r.text)

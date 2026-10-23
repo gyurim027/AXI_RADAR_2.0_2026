@@ -13,7 +13,7 @@ from datetime import date
 from typing import Callable
 
 from app.services.load import dupes
-from app.services.load.ai01_port import AI_COLS, AiSummary, apply_ai01
+from app.services.load.ai01_port import AI_COLS, HUMAN, METHOD_COL, AiSummary, apply_ai01
 from app.services.load.checks import CheckReport, run_checks
 from app.services.load.coords import Grid
 from app.services.load.fields import build_record, parse_date
@@ -89,6 +89,8 @@ def _process(data: bytes, file_name: str, meta: UploadMeta, store, refine, uploa
         raise LoadFileError("period_mismatch", f"민원등록일이 적은 기간 밖인 민원이 {outside}건 있습니다.")
 
     ids, _numbered = make_ids(rows)
+    has_method = store.supports_class_method()
+    ai_cols = AI_COLS + ((METHOD_COL,) if has_method else ())
     grid = Grid(store.grid_rows())
     marks = dupes.mark(rows)
     records = []
@@ -96,16 +98,20 @@ def _process(data: bytes, file_name: str, meta: UploadMeta, store, refine, uploa
         rec = build_record(r, cid, meta.period_start.year, meta.period_start.month, grid)
         rec.update(dup_flag=dup, repeated_title=rep, masked_summary=None, relevance=None, ped_type=None,
                    class_confidence=None, class_reason=None)
+        if has_method:
+            rec[METHOD_COL] = None                    # 관련 여부를 정한 방법 (79에 칸이 있는 DB에서만)
         records.append(rec)
 
     # 4단계 AI-01: 새 민원과 아직 AI-01 결과가 없는 기존 민원에만 부른다 (건당 수 초가 걸려, 이미 채워진 것을 다시 돌리지 않음)
     existing = store.get_existing(ids)
-    todo = [i for i, rec in enumerate(records) if rerun_ai01 or rec["complaint_id"] not in existing
-            or existing[rec["complaint_id"]].get("masked_summary") is None]
+    is_human = lambda old: old is not None and old.get(METHOD_COL) == HUMAN       # C-08에서 사람이 고친 관련 여부
+    todo = [i for i, rec in enumerate(records)
+            if not is_human(existing.get(rec["complaint_id"]))
+            and (rerun_ai01 or rec["complaint_id"] not in existing or existing[rec["complaint_id"]].get("masked_summary") is None)]
     for i, rec in enumerate(records):
         old = existing.get(rec["complaint_id"])
-        if old is not None and old.get("masked_summary") is not None and not rerun_ai01:
-            for c in AI_COLS:                          # 이미 채워진 값은 그대로 두고 비교에서도 같게 본다
+        if old is not None and (is_human(old) or (old.get("masked_summary") is not None and not rerun_ai01)):
+            for c in ai_cols:                          # 이미 채워진 값(사람이 고친 값은 재실행해도)은 그대로 두고 비교에서도 같게 본다
                 rec[c] = old.get(c)
     ai = apply_ai01([rows[i] for i in todo], [records[i] for i in todo], refine, upload_id=upload_id, request_id=request_id)
     for r in rows:                                    # 4단계가 끝나면 원문을 메모리에서 버린다 (ISS-032)
@@ -134,6 +140,8 @@ def _process(data: bytes, file_name: str, meta: UploadMeta, store, refine, uploa
         warnings.append(f"AI-01: 가림 실패 {ai.mask_failed}건, 오류 {ai.error}건은 AI-01 칸을 비워 두었습니다")
     if recur_cnt is None:
         warnings.append("79에 재발 표시 칸이 없어 재발 표시를 건너뛰었어요 (SQL v2.x 필요)")
+    if not has_method:
+        warnings.append("79에 관련 여부 방법 칸(class_method)이 없어 방법을 저장하지 않았어요 (SQL v2.x 필요)")
     if check.top50_overlap is not None and check.top50_overlap < check.top50_total:
         warnings.append(f"낮음 포함/제외 상위 50칸이 달라요 ({check.top50_overlap}/{check.top50_total})")
     if check.low_heavy_cells:

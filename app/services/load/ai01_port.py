@@ -18,6 +18,9 @@ from app.services.load.reader import RawRow
 
 log = logging.getLogger("radar.load")
 AI_COLS = ("masked_summary", "relevance", "ped_type", "class_confidence", "class_reason")
+METHOD_COL = "class_method"                              # 관련 여부를 정한 방법: 규칙 / AI (사람은 C-08이 씀). 79에 칸이 있을 때만 레코드에 들어옴
+METHODS = ("규칙", "AI")
+HUMAN = "사람"
 MASK_FAILED_REASON = "가림 실패"
 _MISSING = ("app.services.ai01", "app.services.ai01.refine")
 
@@ -103,9 +106,14 @@ def apply_ai01(rows: Sequence[RawRow], records: Sequence[dict], refine: Callable
                 continue
             for c in AI_COLS:
                 rec[c] = getattr(res, c)
+            if METHOD_COL in rec:                        # 방법은 AI-01이 실제 결정 경로를 직접 돌려준 값만 쓴다 (근거 문구·신뢰도로 추측하지 않음)
+                method = getattr(res, METHOD_COL, None)
+                rec[METHOD_COL] = method if method in METHODS else None
             if has_pii(rec["masked_summary"]):           # 요약에 개인정보 꼴이 남음: 이 민원만 쓰지 않는다
                 for c in AI_COLS:
                     rec[c] = None
+                if METHOD_COL in rec:
+                    rec[METHOD_COL] = None
                 rec["class_reason"] = MASK_FAILED_REASON
                 summary.ok -= 1
                 summary.mask_failed += 1

@@ -58,7 +58,7 @@ class PipelineRecurrenceTests(BaseLoadCase):
         self.assertIsNone(by["SPP-2511-ABC0001"]["recurrence_flag"])
         self.assertEqual(by["SPP-2511-ABC0002"]["recurrence_flag"], "재발 1회")
         self.assertEqual(by["SPP-2511-ABC0002"]["recurrence_prev_id"], by["SPP-2511-ABC0001"]["complaint_id"])
-        self.assertTrue(res.remark.endswith("재발 1"))
+        self.assertIn("재발 1", res.remark)
         again = run_load(xlsx(self.rows()), FILE, meta(), st)
         self.assertEqual((again.counts.existing, again.counts.updated), (2, 0))
 

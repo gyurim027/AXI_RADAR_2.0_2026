@@ -85,10 +85,12 @@ def diff_record(new: dict, old: dict) -> tuple[dict, dict]:
             continue
         if a != b:
             changes[c] = (old.get(c), new.get(c))
-    derived = list(AI_COLS) + (list(RECURRENCE_COLS) if "recurrence_flag" in new else [])
+    human = old.get("class_method") == "사람"           # 사람이 고친 관련 여부는 덮어쓰지 않는다 (C-08)
+    ai_like = list(AI_COLS) + (["class_method"] if "class_method" in new else [])
+    derived = ai_like + (list(RECURRENCE_COLS) if "recurrence_flag" in new else [])
     for c in derived:                                 # AI-01 · 재발 표시: 처음 채우는 것은 80에 남기지 않고, 값이 바뀔 때만 남긴다
         a, b = norm_value(c, old.get(c)), norm_value(c, new.get(c))
-        if a == b or (b is None and c in AI_COLS):
+        if a == b or (b is None and c in ai_like) or (human and c in ai_like):
             continue
         if a is None:
             silent[c] = new[c]
@@ -119,7 +121,7 @@ def apply_records(store, records: Sequence[dict], existing: dict[str, dict], upl
         if changes:
             counts.updated += 1
             for col, (o, n) in changes.items():
-                label = ("AI-01 " if col in AI_COLS else "") + batch
+                label = ("AI-01 " if col in AI_COLS or col == "class_method" else "") + batch
                 change_rows.append(dict(complaint_id=rec["complaint_id"], changed_column=col, old_value=as_text(o),
                                         new_value=as_text(n), load_batch=label[:60], changed_by_type="적재", changed_by_user=None))
         else:

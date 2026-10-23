@@ -70,6 +70,13 @@ class RealAi01Tests(unittest.TestCase):
             self.assertLessEqual(len(c["relevance"]), 10)                       # 79 relevance VARCHAR(10)
         self.assertFalse(any("AI-01" in w for w in res.warnings))
 
+    def test_class_method_comes_from_the_real_decision_path(self):
+        self.load([spp(1), general(2, body=LONG)])
+        rows = {c["raw_position"].rsplit(" ", 1)[1]: c for c in self.store.complaints.values()}
+        self.assertIn(rows["1"]["class_method"], ("규칙", "AI"))              # 신고 분류가 있는 안전신문고: 규칙 또는 모델
+        self.assertEqual(rows["2"]["class_method"], "AI")                     # 신고 분류 없는 일반 민원: 모델(가짜 LLM)
+        self.assertEqual(rows["2"]["class_confidence"], 0.9)
+
     def test_upload_id_reaches_the_ai01_job_run(self):
         res = self.load([general(1, body=LONG)])
         runs = [r for r in self.jobs.runs.values() if r["kind"] == "분류"]

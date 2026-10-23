@@ -25,8 +25,10 @@ class Ai01Result:
     ped_type: str | None = None
     class_confidence: float | None = None
     class_reason: str | None = None
+    class_method: str | None = None         # 규칙 / AI (관련 여부를 정한 방법). 실패면 None
     model: str = ""
 
 
 def refine_complaints(items: list[ComplaintInput], **_) -> list[Ai01Result]:      # 진짜 함수와 같은 호출을 받기 위해 upload_id 등 여분 인자는 무시
-    return [Ai01Result(i.complaint_id, "ok", "(가짜 요약) 민원 내용", "불명", None, 0.0, "가짜 결과(stub)", "stub") for i in items]
+    return [Ai01Result(i.complaint_id, "ok", masked_summary="(가짜 요약) 민원 내용", relevance="불명", class_confidence=0.0,
+                      class_reason="가짜 결과(stub)", model="stub") for i in items]

@@ -14,7 +14,7 @@ FILE = "민원 상세정보 현황-20261022190720.xlsx"
 
 
 def ok(item, summary="요약", model="mask-1+sum-2+cls-2"):
-    return Ai01Result(item.complaint_id, "ok", summary, "보행안전 관련", None, 0.9, "근거", model)
+    return Ai01Result(item.complaint_id, "ok", summary, "보행안전 관련", None, 0.9, "근거", model=model)
 
 
 def rows_and_records(n=2):
@@ -148,3 +148,15 @@ class WarningTests(unittest.TestCase):
         store = MemoryStore(GRID)
         res = run_load(xlsx([general(1)]), FILE, meta(), store, refine=refine, request_id="req-1")
         self.assertEqual(seen, dict(upload_id=res.upload_id, request_id="req-1"))
+
+
+class StubSafetyTests(unittest.TestCase):
+    def test_stub_result_is_marked_stub_and_never_stored(self):
+        """가짜 결과 클래스에 칸이 더해져도 model='stub'이 유지되어 DB에 저장되지 않는다 (칸 순서가 바뀐 적이 있어 고정)."""
+        out = stub_refine([ComplaintInput("C1", "일반 민원", "t", "b", None)])[0]
+        self.assertEqual((out.model, out.class_method), ("stub", None))
+        store = MemoryStore(GRID)
+        run_load(xlsx([general(1)]), FILE, meta(), store, refine=stub_refine)
+        row = next(iter(store.complaints.values()))
+        self.assertEqual([row[c] for c in port.AI_COLS], [None] * 5)
+        self.assertIsNone(row["class_method"])

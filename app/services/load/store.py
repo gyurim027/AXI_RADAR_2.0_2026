@@ -19,6 +19,8 @@ COMPLAINT_COLS = [
 ]
 # C-10 재발 표시 (SQL v2.x에서 79에 더할 칸 — docs/load/ 재발표시_DB추가_제안). 칸이 없는 DB에서는 쓰지 않는다.
 RECURRENCE_COLS = ["recurrence_flag", "recurrence_prev_id"]
+# 관련 여부를 정한 방법: 규칙 / AI / 사람 (C-08 연계, 79 새 칸). 칸이 없는 DB에서는 쓰지 않는다.
+CLASS_METHOD_COLS = ["class_method"]
 CHANGE_COLS = ["complaint_id", "changed_column", "old_value", "new_value", "load_batch", "changed_by_type", "changed_by_user"]
 _CHUNK = 500
 
@@ -32,16 +34,27 @@ class MySQLStore:
     def __init__(self, con):
         self.con = con
         self._recur: bool | None = None
+        self._method: bool | None = None
+
+    def _has_columns(self, table: str, names: Sequence[str]) -> bool:
+        marks = ", ".join(["%s"] * len(names))
+        rows = self._all("SELECT COUNT(*) AS n FROM information_schema.columns WHERE table_schema = DATABASE() "
+                         f"AND table_name = %s AND column_name IN ({marks})", (table, *names))
+        return int(rows[0]["n"]) == len(names)
 
     def supports_recurrence(self) -> bool:
         if self._recur is None:
-            rows = self._all("SELECT COUNT(*) AS n FROM information_schema.columns WHERE table_schema = DATABASE() "
-                             "AND table_name = 'src_complaint' AND column_name IN (%s, %s)", RECURRENCE_COLS)
-            self._recur = int(rows[0]["n"]) == len(RECURRENCE_COLS)
+            self._recur = self._has_columns("src_complaint", RECURRENCE_COLS)
         return self._recur
 
+    def supports_class_method(self) -> bool:
+        if self._method is None:
+            self._method = self._has_columns("src_complaint", CLASS_METHOD_COLS)
+        return self._method
+
     def cols(self) -> list[str]:
-        return COMPLAINT_COLS + (RECURRENCE_COLS if self.supports_recurrence() else [])
+        return (COMPLAINT_COLS + (RECURRENCE_COLS if self.supports_recurrence() else [])
+                + (CLASS_METHOD_COLS if self.supports_class_method() else []))
 
     def find_priors(self, gids: Sequence[str]) -> list[dict]:
         """재발 판단용: 이 칸들에서 처리가 끝난(처리일이 있는) 지난 민원."""
@@ -157,9 +170,11 @@ class MySQLStore:
 class MemoryStore:
     """시험용 가짜 DB. commit 때 상태를 저장하고 rollback 때 되돌린다."""
 
-    def __init__(self, grid_rows: Iterable[tuple] = (), fail_on_change_insert: bool = False, recurrence: bool = True):
+    def __init__(self, grid_rows: Iterable[tuple] = (), fail_on_change_insert: bool = False, recurrence: bool = True,
+                 class_method: bool = True):
         self._grid = list(grid_rows)
         self._recur = recurrence
+        self._method = class_method
         self.complaints: dict[str, dict] = {}
         self.changes: list[dict] = []
         self.uploads: dict[int, dict] = {}
@@ -181,8 +196,11 @@ class MemoryStore:
     def supports_recurrence(self):
         return self._recur
 
+    def supports_class_method(self):
+        return self._method
+
     def cols(self):
-        return COMPLAINT_COLS + (RECURRENCE_COLS if self._recur else [])
+        return COMPLAINT_COLS + (RECURRENCE_COLS if self._recur else []) + (CLASS_METHOD_COLS if self._method else [])
 
     def recurrence_rows(self):
         return [dict(r, complaint_id=i) for i, r in self.complaints.items() if r.get("gid") or r.get("recurrence_flag")]
