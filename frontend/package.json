@@ -7,7 +7,11 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "test:i07": "node --test tests/i07-api.test.js",
+    "test:i07:dom": "node --test --test-force-exit tests/i07-ui.test.mjs",
+    "test:i07:browser": "node --test tests/i07-browser.test.mjs",
+    "test:i02:browser": "node --test tests/i02-browser.test.mjs"
   },
   "dependencies": {
     "leaflet": "^1.9.4",

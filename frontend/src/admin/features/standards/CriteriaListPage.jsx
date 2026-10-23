@@ -11,11 +11,17 @@ import PageHeader from '../../components/PageHeader.jsx';
 import Toolbar from '../../components/Toolbar.jsx';
 import { CRITERIA } from './copy.js';
 import styles from './Standards.module.css';
+import {settingsBackendEnabled} from '../../../api/backend.js';
+import {StoredSettingsList} from './StoredSettings.jsx';
 
 export const VERSION_TONE = { '작성 중': 'neutral', '승인 대기': 'warning', 승인됨: 'success', 돌려받음: 'danger' };
 
 /** AD-09 산정 기준 목록 (유형 B): 쪽 넘김 없이 한 표. 행을 누르면 상세로 간다. 새 버전은 지금 승인된 버전을 복사해 만든다. */
 export default function CriteriaListPage() {
+  return settingsBackendEnabled?<StoredSettingsList/>:<MockCriteriaListPage/>;
+}
+
+function MockCriteriaListPage() {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const status = params.get('status') || '전체';
