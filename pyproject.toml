@@ -26,7 +26,10 @@ ai03 = [                        # AI-03 위치 글자 다듬기 배치 (세은)
     "requests>=2.31",
     "openai>=1.40",             # Ollama 호환 호출용
 ]
-ai01 = []                       # AI-01 민원 정제 (규림) — torch·transformers 등 확정되면 여기에
+ai01 = [                        # AI-01 민원 정제 (규림) — CPU판 (그래픽카드는 Ollama가 씀, 10/23 규림 확인)
+    "torch>=2.5",
+    "transformers>=4.44,<5",
+]
 
 [dependency-groups]
 dev = [
@@ -36,3 +39,12 @@ dev = [
 
 [tool.uv]
 package = false
+
+# torch는 CPU판으로 받는다 (GPU판보다 훨씬 작음). ai01 묶음을 설치할 때만 쓰임
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
