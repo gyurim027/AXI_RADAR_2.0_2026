@@ -1,0 +1,209 @@
+{
+  "schema_version": "ai07.h04.synthetic.v0.1",
+  "data_kind": "synthetic",
+  "run_id": "SYNTHETIC-RUN-A",
+  "report_year": 2026,
+  "run_status": "confirmed",
+  "snapshot_complete": true,
+  "scope": {
+    "role": "city",
+    "district": null
+  },
+  "candidates": [
+    {
+      "district": "수정구",
+      "request": {
+        "schema_version": "ai07.f06.synthetic.v0.1",
+        "data_kind": "synthetic",
+        "card": {
+          "schema_version": "ai07.e02.synthetic.v0.1",
+          "data_kind": "synthetic",
+          "run_id": "SYNTHETIC-RUN-A",
+          "gid": "SYNTHETIC-GRID-1",
+          "place": "가상 장소 1",
+          "calculation_year": 2026,
+          "score": "65.0000",
+          "rank": 2,
+          "total": 100,
+          "rank_scope": "가상시 전체",
+          "formula_version": "SYNTHETIC-FORMULA-A",
+          "calculation_status": "test_not_approved",
+          "evidence": [
+            {
+              "evidence_id": "SYNTHETIC-EVIDENCE-A",
+              "run_id": "SYNTHETIC-RUN-A",
+              "gid": "SYNTHETIC-GRID-1",
+              "label": "가상 항목 A",
+              "value": "2",
+              "unit": "건",
+              "basis_year": 2025,
+              "source": "가상 출처 A",
+              "status": "observed",
+              "reason": null,
+              "contribution_points": "20.0000"
+            },
+            {
+              "evidence_id": "SYNTHETIC-EVIDENCE-B",
+              "run_id": "SYNTHETIC-RUN-A",
+              "gid": "SYNTHETIC-GRID-1",
+              "label": "가상 항목 B",
+              "value": "1",
+              "unit": "곳",
+              "basis_year": 2024,
+              "source": "가상 출처 B",
+              "status": "observed",
+              "reason": null,
+              "contribution_points": "15.0000"
+            }
+          ]
+        },
+        "decision": {
+          "run_id": "SYNTHETIC-RUN-A",
+          "gid": "SYNTHETIC-GRID-1",
+          "status": "confirmed_target",
+          "record_id": "SYNTHETIC-DECISION-1"
+        },
+        "department": {
+          "name": "가상 담당 부서 A",
+          "status": "confirmed"
+        },
+        "action": {
+          "text": "제공된 항목의 현장 상태를 확인해 주세요.",
+          "review_status": "reviewed",
+          "reference_id": "SYNTHETIC-ACTION-A"
+        },
+        "laws": []
+      }
+    },
+    {
+      "district": "중원구",
+      "request": {
+        "schema_version": "ai07.f06.synthetic.v0.1",
+        "data_kind": "synthetic",
+        "card": {
+          "schema_version": "ai07.e02.synthetic.v0.1",
+          "data_kind": "synthetic",
+          "run_id": "SYNTHETIC-RUN-A",
+          "gid": "SYNTHETIC-GRID-2",
+          "place": "가상 장소 2",
+          "calculation_year": 2026,
+          "score": "65.0000",
+          "rank": 2,
+          "total": 100,
+          "rank_scope": "가상시 전체",
+          "formula_version": "SYNTHETIC-FORMULA-A",
+          "calculation_status": "test_not_approved",
+          "evidence": [
+            {
+              "evidence_id": "SYNTHETIC-EVIDENCE-A",
+              "run_id": "SYNTHETIC-RUN-A",
+              "gid": "SYNTHETIC-GRID-2",
+              "label": "가상 항목 A",
+              "value": "2",
+              "unit": "건",
+              "basis_year": 2025,
+              "source": "가상 출처 A",
+              "status": "observed",
+              "reason": null,
+              "contribution_points": "20.0000"
+            },
+            {
+              "evidence_id": "SYNTHETIC-EVIDENCE-B",
+              "run_id": "SYNTHETIC-RUN-A",
+              "gid": "SYNTHETIC-GRID-2",
+              "label": "가상 항목 B",
+              "value": "1",
+              "unit": "곳",
+              "basis_year": 2024,
+              "source": "가상 출처 B",
+              "status": "observed",
+              "reason": null,
+              "contribution_points": "15.0000"
+            }
+          ]
+        },
+        "decision": {
+          "run_id": "SYNTHETIC-RUN-A",
+          "gid": "SYNTHETIC-GRID-2",
+          "status": "confirmed_target",
+          "record_id": "SYNTHETIC-DECISION-2"
+        },
+        "department": {
+          "name": "가상 담당 부서 A",
+          "status": "confirmed"
+        },
+        "action": {
+          "text": "제공된 항목의 현장 상태를 확인해 주세요.",
+          "review_status": "reviewed",
+          "reference_id": "SYNTHETIC-ACTION-A"
+        },
+        "laws": []
+      }
+    },
+    {
+      "district": "분당구",
+      "request": {
+        "schema_version": "ai07.f06.synthetic.v0.1",
+        "data_kind": "synthetic",
+        "card": {
+          "schema_version": "ai07.e02.synthetic.v0.1",
+          "data_kind": "synthetic",
+          "run_id": "SYNTHETIC-RUN-A",
+          "gid": "SYNTHETIC-GRID-3",
+          "place": "가상 장소 3",
+          "calculation_year": 2026,
+          "score": "65.0000",
+          "rank": 2,
+          "total": 100,
+          "rank_scope": "가상시 전체",
+          "formula_version": "SYNTHETIC-FORMULA-A",
+          "calculation_status": "test_not_approved",
+          "evidence": [
+            {
+              "evidence_id": "SYNTHETIC-EVIDENCE-A",
+              "run_id": "SYNTHETIC-RUN-A",
+              "gid": "SYNTHETIC-GRID-3",
+              "label": "가상 항목 A",
+              "value": "2",
+              "unit": "건",
+              "basis_year": 2025,
+              "source": "가상 출처 A",
+              "status": "observed",
+              "reason": null,
+              "contribution_points": "20.0000"
+            },
+            {
+              "evidence_id": "SYNTHETIC-EVIDENCE-B",
+              "run_id": "SYNTHETIC-RUN-A",
+              "gid": "SYNTHETIC-GRID-3",
+              "label": "가상 항목 B",
+              "value": "1",
+              "unit": "곳",
+              "basis_year": 2024,
+              "source": "가상 출처 B",
+              "status": "observed",
+              "reason": null,
+              "contribution_points": "15.0000"
+            }
+          ]
+        },
+        "decision": {
+          "run_id": "SYNTHETIC-RUN-A",
+          "gid": "SYNTHETIC-GRID-3",
+          "status": "held",
+          "record_id": "SYNTHETIC-DECISION-3"
+        },
+        "department": {
+          "name": "가상 담당 부서 A",
+          "status": "confirmed"
+        },
+        "action": {
+          "text": "제공된 항목의 현장 상태를 확인해 주세요.",
+          "review_status": "reviewed",
+          "reference_id": "SYNTHETIC-ACTION-A"
+        },
+        "laws": []
+      }
+    }
+  ]
+}
