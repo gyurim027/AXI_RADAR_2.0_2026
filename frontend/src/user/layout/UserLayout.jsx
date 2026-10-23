@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { Outlet, useMatches } from 'react-router-dom';
+import { Link, Outlet, useLocation, useMatches, useNavigate } from 'react-router-dom';
+import { i07BackendEnabled } from '../../api/backend.js';
 import { RUN_STATUS } from '../../shared/constants.js';
 import { useAuth } from '../../app/providers/AuthProvider.jsx';
 import { useRun } from '../../app/providers/RunProvider.jsx';
@@ -7,9 +8,35 @@ import TopBar from './TopBar.jsx';
 import StatusBand from './StatusBand.jsx';
 import ViewAsBand from './ViewAsBand.jsx';
 import styles from './UserLayout.module.css';
+import bar from './TopBar.module.css';
 
 /** US-00 공통 상단 + 상태 띠 + 본문. 순위 안내는 각 화면 머리(PageHeader)가 보인다. */
 export default function UserLayout() {
+  const { pathname } = useLocation();
+  if (i07BackendEnabled && pathname.replace(/\/$/, '') === '/reference/approvals') return <ApprovalOnlyLayout />;
+  return <RunUserLayout />;
+}
+
+// 승인 작업은 회차·점수 생성에 의존하지 않는다. 기존 승인 화면과 공통 스타일을 사용한다.
+function ApprovalOnlyLayout() {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  useEffect(() => { document.title = '승인 대기 · RADAR 보도 점검 우선순위'; }, []);
+  const logout = async () => { await signOut(); navigate('/login', { replace: true }); };
+  return (
+    <div className={styles.shell}>
+      <a href="#main" className={styles.skip}>본문 바로가기</a>
+      <header className={bar.bar}>
+        <Link to="/reference/approvals" className={bar.brand}>RADAR 보도 점검 우선순위</Link>
+        <nav aria-label="주 메뉴"><Link to="/reference/approvals">승인 대기</Link></nav>
+        <div className={bar.account}><span>{user.org}</span><button type="button" className={bar.logout} onClick={logout}>로그아웃</button></div>
+      </header>
+      <main className={styles.main} id="main" tabIndex={-1}><div className={styles.content}><Outlet /></div></main>
+    </div>
+  );
+}
+
+function RunUserLayout() {
   const { run } = useRun();
   const { user } = useAuth();
   const matches = useMatches();

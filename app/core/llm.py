@@ -87,6 +87,7 @@ class TaskConfig:
     timeout_s: float
     max_retries: int
     json_retries: int
+    keep_alive: str = ""
 
 
 class LlmError(Exception):
@@ -127,6 +128,7 @@ def task_config(task: str) -> TaskConfig | None:
         timeout_s=float(raw.get("timeout_s", d.get("timeout_s", 60))),
         max_retries=int(raw.get("max_retries", d.get("max_retries", 2))),
         json_retries=int(raw.get("json_retries", d.get("json_retries", 1))),
+        keep_alive=str(raw.get("keep_alive", d.get("keep_alive", ""))),
     )
 
 
@@ -147,6 +149,8 @@ def _call_ollama(cfg: TaskConfig, messages: list[dict], want_json: bool) -> tupl
             "options": {"temperature": cfg.temperature, "num_predict": cfg.max_tokens}}
     if want_json:
         body["format"] = "json"
+    if cfg.keep_alive:                       # 모델을 올려 둔 채로 둘 시간 (다시 올리는 지연 막기)
+        body["keep_alive"] = cfg.keep_alive
     req = urllib.request.Request(base + "/api/chat", data=json.dumps(body).encode("utf-8"),
                                  headers={"Content-Type": "application/json"}, method="POST")
     try:
