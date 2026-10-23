@@ -14,7 +14,7 @@
 판정
     같음      결과(글자)가 기대 답 중 하나와 같음. 목록이면 1등이 같음
     포함      기대 답이 모두 결과 안에 있음 (목록이면 이어 붙인 글자에서 찾음)
-    안 들어감  기대 답이 하나도 결과 안에 없음
+    안 들어감  결과가 있고, 기대 답이 하나도 결과 안에 없음 (빈 결과·오류는 통과 아님)
     N등 안    기대 답 중 하나가 목록 앞 N개 중 하나에 들어 있음
     못 찾음    결과가 None 또는 빈 값
 비교 전에 띄어쓰기를 하나로 줄이고 영문은 소문자로 바꾼다.
@@ -141,6 +141,8 @@ def judge(case: Case, got: Any) -> tuple[bool, str]:
         miss = [e for e in exp if e not in blob]
         return (not miss), ("없음: " + ", ".join(miss) if miss else "")
     if rule == "안 들어감":
+        if not items:                                  # 빈 결과는 '안 들어감'을 통과한 게 아니다
+            return False, "결과 없음"
         hit = [e for e in exp if e in blob]
         return (not hit), ("들어감: " + ", ".join(hit) if hit else "")
     n = int(TOP_N.match(rule).group(1))

@@ -20,9 +20,12 @@ import importlib
 ROUTER_MODULES = [
     ("AUTH", "app.api.auth_api"),             # /api/auth  로그인·권한 (은경, I-01)
     ("OPS", "app.api.ops_api"),               # /api/ops   운영: 대시보드·실행 기록·실패 알림 (은경, I-03·05·06)
+    ("PRIORITY", "app.api.priority_api"),     # /api/priority  우선순위 결과 조회 77·78·82 (은경, 계산은 진규)
     ("AI-05", "app.api.ai05_law_api"),        # /api/ai05  법령 근거 (은경)
+    ("STANDARDS", "app.api.standards_api"),   # /api/standards  법령·업무 기준: A-11·A-12·F-05 (은경)
     ("AI-07", "app.api.ai07_explain_api"),    # /api/ai07  근거 설명문 (진이)
     ("AI-10", "app.api.ai10_review_api"),     # /api/ai10  조치 제안 검토 (대환)
+    ("C-09", "app.api.c09_upload_api"),       # /api/c09   민원 파일 등록 (규림, W07-01)
     # 새 기능은 여기에 한 줄: ("AI-03", "app.api.ai03_xxx_api"), ("ENGINE", "app.api.engine_xxx_api") …
 ]
 
