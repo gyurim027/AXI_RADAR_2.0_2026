@@ -109,9 +109,20 @@ raise JobFailed("missing_column", "보도 면적 열이 비어 있음")       # 
 
 ## 12. 공통 평가 틀 (W05-06) — 초안 v0.1
 
-- 정답 목록: `data/eval/<기능>_cases.csv` (칸: case_id · 입력 · 기대 답 · 맞음 기준 · 메모). 맞음 기준 = 같음 · 포함 · 안 들어감 · N등 안 · 못 찾음. 민원 원문·개인정보 넣지 않음.
+- 정답 목록: `data/eval/<기능>_cases.csv` (칸: case_id · 입력 · 기대 답 · 맞음 기준 · 메모). 맞음 기준 = 같음 · 포함 · 안 들어감 · 아님 · N등 안 · 못 찾음. 민원 원문·개인정보 넣지 않음.
+- `안 들어감`은 빈 결과를 틀림으로 센다 (AI-07·AI-01 가림). `아님`은 "이 값을 내면 오답, 못 찾은 건 오답 아님" (AI-03 사람 검수 '틀림').
+- 점수표에 같이 나오는 값: 결과 낸 수 · 오연결(결과를 냈는데 틀림) · **오연결률 = 오연결 / 결과 낸 수** · 찾은 비율 = 찾아야 하는 문제(같음·포함·N등 안) 중 결과를 낸 비율. AI-03은 두 값을 함께 본다(10/23 세은).
 - 어댑터: 각 기능이 `app/services/<기능>/eval_adapter.py`에 `run(입력) -> 결과` 하나 (예: AI-05)
 - 실행: `uv run python -m scripts.eval_run --name ai05 --cases data/eval/ai05_cases.csv --adapter app.services.ai05.eval_adapter:run` → 요약은 화면, 자세한 결과는 `out/eval/`
+
+## 12-1. 우선순위 결과 조회 (77·78·82) — 초안 v0.1, 10/23
+
+- 계산·후보 선정은 진규 산정 기능이 77 `priority_run`·78 `priority_candidate`에 쓴다. 이 API는 **읽기만** 한다 (`app/services/priority/`, `app/api/priority_api.py`).
+- `GET /api/priority/runs` · `GET /api/priority/runs/{runId}/candidates?gu=&selected=Y&limit=&offset=` · `GET /api/priority/runs/{runId}/candidates/{gid}` (82 조치 제안 포함)
+- 로그인한 사람 모두. 구 도로관리팀은 자기 구만 (구는 05 `id_gu`에서 '성남시 '를 뗀 이름). 구가 빈 격자 44개는 시 도로과·RADAR 운영자만 봄.
+- NULL은 NULL 그대로. 점수가 없으면 `scoreStatus: "미산출"` (0점으로 바꾸지 않음). 순위 없는 격자는 목록 뒤로.
+- 78 상세 5칸(진규 추가안 `78_상세칸_추가안_운영미적용.sql`)은 아직 DB에 없음 → `details.stored=false`, 모두 null. v2.2에서 칸이 생기면 여기서 읽도록 바꾼다.
+- `runId`는 숫자 (77 BIGINT). 글자면 422.
 
 ## 13. 남은 것 (로그인·운영)
 - 60 `app_user`에 `failed_count`·`locked_until` 칸 (SQL v2.1). 칸이 없으면 잠금 횟수를 서버 메모리에 둠(다시 켜면 초기화). 칸을 더한 뒤에는 서버를 다시 켠다.
