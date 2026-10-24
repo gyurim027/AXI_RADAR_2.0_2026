@@ -40,6 +40,13 @@ model = "exaone3.5:7.8b"
 temperature = 0
 max_tokens = 300
 
+[tasks.ai01_type]
+# AI-01 민원 유형 (관련 민원의 가린 요약 → 유형 9개 중 하나 + 근거, ISS-016). 내부 모델만.
+route = "internal"
+model = "exaone3.5:7.8b"
+temperature = 0
+max_tokens = 80
+
 [tasks.ai03_refine]
 # AI-03 위치 글자 다듬기 (ai03_location_refine/llm.py의 _call). 값은 담당자 정리 문서 기준.
 route = "internal"

@@ -7,7 +7,7 @@ from unittest import mock
 from app.core.llm import LlmResult
 from app.services.ai01 import classify as cls
 from app.services.ai01 import judge as jdg
-from app.services.ai01 import masking, refine
+from app.services.ai01 import masking, ptype, refine
 from app.services.ai01 import summarize as summ
 
 
@@ -77,7 +77,8 @@ class BatchTemplateTests(unittest.TestCase):
         with mock.patch.object(masking, "mask", side_effect=spy), \
              mock.patch.object(masking, "common_words", return_value=frozenset()), \
              mock.patch.object(summ, "call_llm", return_value=llm({"summary": "인도 주차"})), \
-             mock.patch.object(cls, "call_llm", return_value=llm({"relevance": "관련", "confidence": 0.9, "reason": "보행 공간: 인도"})):
+             mock.patch.object(cls, "call_llm", return_value=llm({"relevance": "관련", "confidence": 0.9, "reason": "보행 공간: 인도"})), \
+             mock.patch.object(ptype, "call_llm", return_value=llm({"ped_type": "주정차", "reason": "인도 주차"})):
             refine.refine_complaints(items, ner=fake_ner(()))
         self.assertTrue(all(d == frozenset() for d in seen))
 
@@ -134,7 +135,32 @@ class ClassifyTests(unittest.TestCase):
             self.assertIsNone(cls.classify("보도블록이 깨졌습니다"))
 
 
+class TypeTests(unittest.TestCase):
+    def test_parking_report_type_is_rule(self):
+        with mock.patch.object(ptype, "call_llm") as c:
+            self.assertEqual(ptype.decide_type("요약", "횡단보도 불법 주정차"), "주정차")
+        c.assert_not_called()
+
+    def test_model_answer_must_be_in_list(self):
+        with mock.patch.object(ptype, "call_llm", return_value=llm({"ped_type": "노면", "reason": "보도블록 파손"})):
+            self.assertEqual(ptype.decide_type("보도블록이 깨졌습니다"), "노면")
+        with mock.patch.object(ptype, "call_llm", return_value=llm({"ped_type": "도로 파손", "reason": "-"})):
+            self.assertIsNone(ptype.decide_type("보도블록이 깨졌습니다"))
+        with mock.patch.object(ptype, "call_llm", return_value=LlmResult(ok=False, task="t", error_code="timeout")):
+            self.assertIsNone(ptype.decide_type("보도블록이 깨졌습니다"))
+
+    def test_nine_types(self):
+        self.assertEqual(len(ptype.TYPES), 9)
+        for t in ptype.TYPES:
+            self.assertIn(t + ":", ptype.SYSTEM)
+
+
 class RefineTests(unittest.TestCase):
+    def setUp(self):
+        p = mock.patch.object(ptype, "call_llm", return_value=llm({"ped_type": "점유", "reason": "인도 적치물"}))
+        self.type_llm = p.start()
+        self.addCleanup(p.stop)
+
     def run_one(self, body="긴 글 " * 60, summary="○○로 인도에 차가 주차되어 보행자가 차도로 걷습니다.", answer=None):
         return self.run_many([body], summary, answer)[0][0]
 
@@ -154,7 +180,7 @@ class RefineTests(unittest.TestCase):
     def test_ok_fills_five_columns(self):
         r = self.run_one("○○로 인도에 매일 차가 주차합니다. " * 20)
         self.assertEqual((r.status, r.relevance, r.class_confidence, r.class_method), ("ok", cls.RELATED, 0.9, cls.BY_AI))
-        self.assertIsNone(r.ped_type)
+        self.assertEqual(r.ped_type, "점유")                      # 관련 민원만 유형을 붙인다
         self.assertTrue(r.masked_summary and r.class_reason)
 
     def test_summary_is_checked_again(self):
@@ -191,6 +217,8 @@ class RefineTests(unittest.TestCase):
         c.assert_not_called()
         self.assertEqual((r.status, r.relevance, r.class_confidence, r.class_method), ("ok", cls.RELATED, 1.0, cls.BY_RULE))
         self.assertEqual(r.masked_summary, "횡단보도 불법 주정차 · 횡단보도 위에 차가 서 있습니다")
+        self.assertEqual(r.ped_type, "주정차")                     # 신고 분류로 규칙
+        self.type_llm.assert_not_called()
 
     def test_mask_failure_is_not_classified(self):
         with mock.patch.object(masking, "left_kinds", return_value=["휴대전화"]):

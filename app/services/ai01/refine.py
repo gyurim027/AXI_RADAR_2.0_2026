@@ -8,7 +8,7 @@
   class_method(관련 여부를 정한 방법: 규칙 / AI)는 79에 class_method 칸이 생기면 쓴다
 - status mask_failed: 가림 검사를 통과하지 못함. class_reason만 '가림 실패', 나머지(class_method 포함)는 None (분류로 보내지 않음, C-03)
 - status error: 모델 호출 실패 등. 적재는 이 민원의 AI-01 칸을 비워 두고 나중에 다시 돌린다
-- ped_type(유형)은 유형 목록(ISS-016)이 정해질 때까지 None
+- ped_type(유형): 보행안전 관련 민원에만 9개 중 하나(ISS-016, ptype). 신고 분류가 주정차면 규칙, 그 밖은 모델. 정하지 못하면 None
 - 원문(title·body)은 이 함수 안에서만 쓰고 결과·로그에 남기지 않는다 (ISS-032). 28 raw_pii_patterns는 적재 3단계가 채운다
 - 긴 글은 요약과 관련 여부를 모델 한 번으로 받는다(judge). 한 묶음 안에서 가린 글이 같은 민원은 한 번만 처리하고 결과를 복사한다
 - 실행 기록: app.core.job_run 의 '분류' 한 줄(건수·상태만)
@@ -21,7 +21,7 @@ from dataclasses import dataclass, replace
 from app.core.job_run import track
 from app.services.ai01 import classify as cls
 from app.services.ai01 import judge as jdg
-from app.services.ai01 import masking, summarize as summ
+from app.services.ai01 import masking, ptype, summarize as summ
 
 MASK_FAILED_REASON = "가림 실패"
 # 긴 글: 요약 → 분류 두 번(False, 기본) / 요약·관련 여부를 한 번에(True)
@@ -54,7 +54,7 @@ class Ai01Result:
 
 def _model_tag() -> str:
     one = f"+{jdg.VERSION}" if ONE_CALL else ""
-    return f"{masking.VERSION}+{summ.VERSION}+{cls.VERSION}{one}"
+    return f"{masking.VERSION}+{summ.VERSION}+{cls.VERSION}+{ptype.VERSION}{one}"
 
 
 def decide(masked_text: str, report_type_raw: str | None = None, request_id: str | None = None):
@@ -90,7 +90,8 @@ def refine_one(item: ComplaintInput, ner=None, request_id: str | None = None,
     summary, relevance, conf, reason, method = decide(m.text, item.report_type_raw, request_id)
     if not summary or relevance is None:
         return Ai01Result(item.complaint_id, "error", masked_summary=summary, model=_model_tag())
-    r = Ai01Result(item.complaint_id, "ok", masked_summary=summary, relevance=relevance, ped_type=None,
+    ped = ptype.decide_type(summary, item.report_type_raw, request_id) if relevance == cls.RELATED else None
+    r = Ai01Result(item.complaint_id, "ok", masked_summary=summary, relevance=relevance, ped_type=ped,
                    class_confidence=conf, class_reason=reason, class_method=method, model=_model_tag())
     if seen is not None:
         seen[key] = r
