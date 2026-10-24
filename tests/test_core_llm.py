@@ -146,6 +146,25 @@ class OllamaBodyTests(unittest.TestCase):
             llm._call_ollama(cfg, MSG, False)
         self.assertEqual(sent["keep_alive"], "30m")
 
+    def test_think_sent_only_when_set(self):
+        sent = {}
+
+        class Resp:
+            def __enter__(self): return self
+            def __exit__(self, *a): return False
+            def read(self): return json.dumps({"message": {"content": "답"}}).encode("utf-8")
+
+        def fake_urlopen(req, timeout):
+            sent.clear()
+            sent.update(json.loads(req.data.decode("utf-8")))
+            return Resp()
+
+        with mock.patch.object(llm.urllib.request, "urlopen", fake_urlopen):
+            llm._call_ollama(llm.TaskConfig("t", "internal", "m", 0, 10, 5, 0, 0, think=False), MSG, False)
+            self.assertIs(sent["think"], False)
+            llm._call_ollama(llm.TaskConfig("t", "internal", "m", 0, 10, 5, 0, 0), MSG, False)
+            self.assertNotIn("think", sent)
+
     def test_keep_alive_empty_not_sent(self):
         sent = {}
 

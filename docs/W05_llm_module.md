@@ -83,8 +83,9 @@ max_tokens = 300
 ```
 
 - 빠진 값은 `[defaults]`를 쓴다 (temperature 0, max_tokens 1024, timeout_s 120, keep_alive "30m", max_retries 2, json_retries 1).
+- `think`: 생각하기 모델(qwen3 등)만 작업 줄에 `think = false`로 쓴다. 생각 글을 먼저 내 느리고 JSON이 깨지는 것을 막는다. 다른 모델 작업에는 쓰지 않는다(빼면 보내지 않음).
 - `timeout_s`에는 공용 PC에서 차례를 기다리는 시간도 들어간다. `keep_alive`는 Ollama가 모델을 올려 둔 채로 둘 시간이다(비우면 Ollama 기본 5분).
-- 지금 들어 있는 작업은 다섯 개다: `ai01_summarize`(민원 가린 요약), `ai01_classify`(보행안전 관련 여부), `ai03_refine`(위치 글자 다듬기), `ai07_explain`(설명문 다듬기), `ai10_draft`(조치 제안 문장 초안). 내부 작업은 모두 `exaone3.5:7.8b` 하나를 쓴다.
+- 지금 들어 있는 작업은 여섯 개다: `ai01_judge`(민원 긴 글의 요약과 관련 여부를 한 번에), `ai01_summarize`(민원 가린 요약), `ai01_classify`(보행안전 관련 여부), `ai03_refine`(위치 글자 다듬기), `ai07_explain`(설명문 다듬기), `ai10_draft`(조치 제안 문장 초안). 내부 작업은 모두 `exaone3.5:7.8b` 하나를 쓴다.
 
 ## 6. 작업 더하기·바꾸기
 

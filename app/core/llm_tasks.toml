@@ -33,6 +33,13 @@ model = "exaone3.5:7.8b"
 temperature = 0
 max_tokens = 120
 
+[tasks.ai01_judge]
+# AI-01 요약과 관련 여부를 한 번에 (가린 민원 글 → 요약 + 관련 / 비관련 / 불명 + 판단 근거). 긴 글만. 내부 모델만.
+route = "internal"
+model = "exaone3.5:7.8b"
+temperature = 0
+max_tokens = 300
+
 [tasks.ai03_refine]
 # AI-03 위치 글자 다듬기 (ai03_location_refine/llm.py의 _call). 값은 담당자 정리 문서 기준.
 route = "internal"

@@ -131,12 +131,17 @@ def by_model(summary: str, request_id: str | None = None):
     r = call_llm("ai01_classify", msgs, contains_raw=False, response_format="json", request_id=request_id)
     if not r.ok or not isinstance(r.data, dict):
         return None
-    value = _SHORT.get(str(r.data.get("relevance", "")).strip(), UNKNOWN)
+    return read_answer(r.data)
+
+
+def read_answer(data: dict):
+    """모델 답 JSON → (관련 여부, 신뢰도, 판단 근거)."""
+    value = _SHORT.get(str(data.get("relevance", "")).strip(), UNKNOWN)
     try:
-        conf = max(0.0, min(1.0, round(float(r.data.get("confidence", 0)), 2)))
+        conf = max(0.0, min(1.0, round(float(data.get("confidence", 0)), 2)))
     except (TypeError, ValueError):
         conf = 0.0
-    reason = str(r.data.get("reason", "")).split("\n")[0].strip()[:80] or "불명: 판단 근거 없음"
+    reason = str(data.get("reason", "")).split("\n")[0].strip()[:80] or "불명: 판단 근거 없음"
     return value, conf, reason
 
 

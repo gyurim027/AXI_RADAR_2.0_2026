@@ -6,6 +6,7 @@ from unittest import mock
 
 from app.core.llm import LlmResult
 from app.services.ai01 import classify as cls
+from app.services.ai01 import judge as jdg
 from app.services.ai01 import masking, refine
 from app.services.ai01 import summarize as summ
 
@@ -135,12 +136,19 @@ class ClassifyTests(unittest.TestCase):
 
 class RefineTests(unittest.TestCase):
     def run_one(self, body="긴 글 " * 60, summary="○○로 인도에 차가 주차되어 보행자가 차도로 걷습니다.", answer=None):
+        return self.run_many([body], summary, answer)[0][0]
+
+    def run_many(self, bodies, summary="○○로 인도에 차가 주차되어 보행자가 차도로 걷습니다.", answer=None):
+        """긴 글은 한 번에 받는 호출(judge)로 간다. 돌려준 값: (결과 목록, judge 호출 수)."""
         answer = answer or {"relevance": "관련", "confidence": 0.9, "reason": "보행 공간 불법 주정차: 인도 주차"}
-        item = refine.ComplaintInput("C000000000001", "일반 민원", "제목", body)
+        items = [refine.ComplaintInput(f"C00000000000{i}", "일반 민원", "제목", b) for i, b in enumerate(bodies)]
         with mock.patch.object(masking, "common_words", return_value=frozenset()), \
-             mock.patch.object(summ, "call_llm", return_value=llm({"summary": summary})), \
-             mock.patch.object(cls, "call_llm", return_value=llm(answer)):
-            return refine.refine_complaints([item], ner=fake_ner(()))[0]
+             mock.patch.object(jdg, "call_llm", return_value=llm({"summary": summary, **answer})) as j, \
+             mock.patch.object(summ, "call_llm") as s, mock.patch.object(cls, "call_llm") as c:
+            out = refine.refine_complaints(items, ner=fake_ner(()))
+        s.assert_not_called()                                 # 긴 글은 요약·분류를 따로 부르지 않는다
+        c.assert_not_called()
+        return out, j.call_count
 
     def test_ok_fills_five_columns(self):
         r = self.run_one("○○로 인도에 매일 차가 주차합니다. " * 20)
@@ -182,10 +190,34 @@ class RefineTests(unittest.TestCase):
             r = self.run_one("아무 글")
         self.assertEqual((r.status, r.class_reason, r.relevance, r.class_method), ("mask_failed", "가림 실패", None, None))
 
+    def test_rule_wins_over_model_in_one_call(self):
+        r = self.run_one("○○로 인도 주차. " * 30, summary="불법 주정차 때문에 중앙분리대 설치 요청",
+                         answer={"relevance": "비관련", "confidence": 0.6, "reason": "차량 흐름: 정체"})
+        self.assertEqual((r.relevance, r.class_confidence, r.class_method), (cls.RELATED, 1.0, cls.BY_RULE))
+
+    def test_same_text_is_judged_once(self):
+        body = "○○로 인도에 매일 차가 주차합니다. " * 20
+        out, calls = self.run_many([body, body, body + "  ", "다른 글입니다. ○○동 보도블록이 깨졌습니다. " * 20])
+        self.assertEqual(calls, 2)                            # 같은 글 3건(공백만 다름 포함)은 한 번
+        self.assertEqual([r.complaint_id for r in out], [f"C00000000000{i}" for i in range(4)])
+        self.assertEqual({r.status for r in out}, {"ok"})
+
+    def test_two_calls_still_work(self):
+        with mock.patch.object(refine, "ONE_CALL", False):
+            item = refine.ComplaintInput("C000000000001", "일반 민원", "제목", "○○로 인도에 매일 차가 주차합니다. " * 20)
+            with mock.patch.object(masking, "common_words", return_value=frozenset()), \
+                 mock.patch.object(summ, "call_llm", return_value=llm({"summary": "○○로 인도 주차"})), \
+                 mock.patch.object(cls, "call_llm", return_value=llm({"relevance": "관련", "confidence": 0.9,
+                                                                       "reason": "보행 공간 불법 주정차: 인도"})), \
+                 mock.patch.object(jdg, "call_llm") as j:
+                r = refine.refine_complaints([item], ner=fake_ner(()))[0]
+        j.assert_not_called()
+        self.assertEqual((r.status, r.class_method), ("ok", cls.BY_AI))
+
     def test_llm_failure_is_error_without_text(self):
         item = refine.ComplaintInput("C000000000002", "일반 민원", "제목", "본문 010-1234-5678 " + "긴 글 " * 60)
         with mock.patch.object(masking, "common_words", return_value=frozenset()), \
-             mock.patch.object(summ, "call_llm", return_value=LlmResult(ok=False, task="t", error_code="internal_unavailable")):
+             mock.patch.object(jdg, "call_llm", return_value=LlmResult(ok=False, task="t", error_code="internal_unavailable")):
             r = refine.refine_complaints([item], ner=fake_ner(()))[0]
         self.assertEqual(r.status, "error")
         self.assertIsNone(r.masked_summary)

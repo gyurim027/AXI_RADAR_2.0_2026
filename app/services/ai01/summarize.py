@@ -65,7 +65,11 @@ def summarize(masked_text: str, request_id: str | None = None) -> tuple[str | No
                  contains_raw=False, response_format="json", request_id=request_id)
     if not r.ok or not isinstance(r.data, dict):
         return None, []
-    summary = str(r.data.get("summary", "")).strip()
+    return check(str(r.data.get("summary", "")).strip(), masked_text)
+
+
+def check(summary: str, masked_text: str) -> tuple[str | None, list]:
+    """모델이 낸 요약 검사 (7-1단계): 지어낸 장소면 가린 글 앞부분, 개인정보 꼴이 남으면 다시 가린다."""
     if not summary:
         return None, []
     if made_up_places(summary, masked_text):
