@@ -139,10 +139,11 @@ class RefineTests(unittest.TestCase):
         return self.run_many([body], summary, answer)[0][0]
 
     def run_many(self, bodies, summary="○○로 인도에 차가 주차되어 보행자가 차도로 걷습니다.", answer=None):
-        """긴 글은 한 번에 받는 호출(judge)로 간다. 돌려준 값: (결과 목록, judge 호출 수)."""
+        """한 번에 받기(ONE_CALL=True)로 돌린다. 돌려준 값: (결과 목록, judge 호출 수)."""
         answer = answer or {"relevance": "관련", "confidence": 0.9, "reason": "보행 공간 불법 주정차: 인도 주차"}
         items = [refine.ComplaintInput(f"C00000000000{i}", "일반 민원", "제목", b) for i, b in enumerate(bodies)]
-        with mock.patch.object(masking, "common_words", return_value=frozenset()), \
+        with mock.patch.object(refine, "ONE_CALL", True), \
+             mock.patch.object(masking, "common_words", return_value=frozenset()), \
              mock.patch.object(jdg, "call_llm", return_value=llm({"summary": summary, **answer})) as j, \
              mock.patch.object(summ, "call_llm") as s, mock.patch.object(cls, "call_llm") as c:
             out = refine.refine_complaints(items, ner=fake_ner(()))
@@ -166,6 +167,12 @@ class RefineTests(unittest.TestCase):
             out, hits = summ.summarize("횡단보도 위 [차량번호] 주차")
         c.assert_not_called()
         self.assertEqual((out, hits), ("횡단보도 위 주차", []))
+
+    def test_particle_ro_is_not_made_up_place(self):
+        text = "○○초등학교 앞 인도에 차가 매일 주차합니다. 단속과 볼라드 설치를 원합니다."
+        self.assertEqual(summ.made_up_places("인도로 차가 올라와 볼라드 설치로 막아 달라는 요청", text), [])
+        self.assertEqual(summ.made_up_places("성남시 ○○초등학교 앞 인도 주차", text), [])
+        self.assertEqual(summ.made_up_places("분당구 정자동 교차로에 주차", text), ["분당구", "정자동"])      # 지어낸 장소는 그대로 잡는다
 
     def test_made_up_place_falls_back(self):
         long = "○○로 인도에 차가 매일 주차합니다. " * 20
@@ -202,8 +209,9 @@ class RefineTests(unittest.TestCase):
         self.assertEqual([r.complaint_id for r in out], [f"C00000000000{i}" for i in range(4)])
         self.assertEqual({r.status for r in out}, {"ok"})
 
-    def test_two_calls_still_work(self):
-        with mock.patch.object(refine, "ONE_CALL", False):
+    def test_default_is_two_calls(self):
+        self.assertFalse(refine.ONE_CALL)                     # 한 번에 받기는 게이트 미달(2026-10-24)
+        if True:
             item = refine.ComplaintInput("C000000000001", "일반 민원", "제목", "○○로 인도에 매일 차가 주차합니다. " * 20)
             with mock.patch.object(masking, "common_words", return_value=frozenset()), \
                  mock.patch.object(summ, "call_llm", return_value=llm({"summary": "○○로 인도 주차"})), \
@@ -217,7 +225,7 @@ class RefineTests(unittest.TestCase):
     def test_llm_failure_is_error_without_text(self):
         item = refine.ComplaintInput("C000000000002", "일반 민원", "제목", "본문 010-1234-5678 " + "긴 글 " * 60)
         with mock.patch.object(masking, "common_words", return_value=frozenset()), \
-             mock.patch.object(jdg, "call_llm", return_value=LlmResult(ok=False, task="t", error_code="internal_unavailable")):
+             mock.patch.object(summ, "call_llm", return_value=LlmResult(ok=False, task="t", error_code="internal_unavailable")):
             r = refine.refine_complaints([item], ner=fake_ner(()))[0]
         self.assertEqual(r.status, "error")
         self.assertIsNone(r.masked_summary)

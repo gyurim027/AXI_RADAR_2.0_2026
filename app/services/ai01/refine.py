@@ -24,7 +24,9 @@ from app.services.ai01 import judge as jdg
 from app.services.ai01 import masking, summarize as summ
 
 MASK_FAILED_REASON = "가림 실패"
-ONE_CALL = True          # 긴 글: 요약·관련 여부를 한 번에(True) / 요약 → 분류 두 번(False, 비교 시험용)
+# 긴 글: 요약 → 분류 두 번(False, 기본) / 요약·관련 여부를 한 번에(True)
+# 한 번에 받기는 2026-10-24 시험에서 비관련을 관련으로 크게 기울어 게이트 미달(7.8b 64%) → 기본값을 두 번으로 되돌림
+ONE_CALL = False
 _SAME = re.compile(r"[\s\W_]+")
 
 
