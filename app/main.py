@@ -21,6 +21,7 @@ ROUTER_MODULES = [
     ("AUTH", "app.api.auth_api"),             # /api/auth  로그인·권한 (은경, I-01)
     ("OPS", "app.api.ops_api"),               # /api/ops   운영: 대시보드·실행 기록·실패 알림 (은경, I-03·05·06)
     ("PRIORITY", "app.api.priority_api"),     # /api/priority  우선순위 결과 조회 77·78·82 (은경, 계산은 진규)
+    ("ALERT-MAIL", "app.api.alert_settings_api"),  # /api/admin/alert-email 실패 알림 메일 설정 (은경, I-03)
     ("AI-05", "app.api.ai05_law_api"),        # /api/ai05  법령 근거 (은경)
     ("APPROVALS", "app.api.approvals_api"),    # /api/approvals I-07 (진규)
     ("SETTINGS", "app.api.settings_api"),      # /api/settings/versions I-02 조회 (진규)
