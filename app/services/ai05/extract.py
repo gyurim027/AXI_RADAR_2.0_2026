@@ -111,10 +111,66 @@ def _doc_info(path):
         if b: info.update(law_name=b[3].strip(), annex=b[1].strip(), annex_title=b[2].strip())
     return info
 
+# 공공데이터 제공 표준(행정안전부, 항목 정의 CSV) — 300개 데이터셋 중 보행안전에 쓰는 것만 색인에 넣는다 (전부 넣으면 검색이 흐려짐)
+# 법령 색인 G06·G06a가 가리키는 번호 + 보행자우선도로(103)·옐로카펫(229)
+STANDARD_KEEP = {3, 46, 80, 99, 101, 102, 103, 112, 143, 229}
+STANDARD_NAME = re.compile(r'^공공데이터 제공 표준\((?P<date>\d{8})\)$')
+
+def read_standard_csv(path, keep=STANDARD_KEEP):
+    """데이터셋마다 문서 한 개: law_name '공공데이터 제공 표준', annex '143번 자전거도로'. 항목 한 줄 = 항목명·필수·설명·허용값·단위"""
+    import csv
+    m = STANDARD_NAME.match(path.stem)
+    eff = f"{m['date'][:4]}-{m['date'][4:6]}-{m['date'][6:]}" if m else None
+    rows = list(csv.DictReader(open(path, encoding='utf-8-sig', newline='')))
+    by = {}
+    for r in rows:
+        try:
+            n = int(r.get('데이터셋일련번호') or 0)
+        except ValueError:
+            continue
+        if n in keep:
+            by.setdefault(n, []).append(r)
+    docs = []
+    for n, rs in sorted(by.items()):
+        h = rs[0]
+        lines = [f"{h['데이터셋명']} (공공데이터 제공 표준 {n}번)", f"제공범위: {h.get('제공범위내용') or '-'}",
+                 f"관계법령: {h.get('관계법령내용') or '-'}", f"소관기관: {h.get('소관기관명') or '-'} · 제공기관: {h.get('제공기관명') or '-'} · 갱신주기: {h.get('갱신주기') or '-'}"]
+        for r in rs:
+            lines.append(f"{r.get('항목번호')}. {r.get('항목명')} (필수 {r.get('필수여부') or '-'}): {r.get('항목설명') or ''}"
+                         + (f" / 허용값: {r['허용값']}" if r.get('허용값') else '') + (f" / 단위: {r['단위설명']}" if r.get('단위설명') else ''))
+        text = '\n'.join(lines)
+        docs.append({'file': path.name, 'folder': path.parent.name, 'group': FOLDER_KIND.get(path.parent.name, '기타'),
+                     'law_name': '공공데이터 제공 표준', 'law_kind': None, 'law_no': None, 'effective': eff,
+                     'annex': f"{n}번 {h['데이터셋명']}", 'annex_title': h['데이터셋명'], 'chars': len(text), 'text': text})
+    return docs
+
+def read_folder(src):
+    """폴더 안 원문 → 문서 목록 (main과 같은 규칙, 표준 CSV도 읽음)"""
+    out = []
+    for p in sorted(Path(src).rglob('*')):
+        if not p.is_file() or p.parent.name not in FOLDER_KIND:
+            continue
+        if p.suffix.lower() == '.csv' and STANDARD_NAME.match(p.stem):
+            out += read_standard_csv(p); continue
+        if p.suffix.lower() not in READERS:
+            continue
+        info = doc_info(p)
+        try:
+            text = READERS[p.suffix.lower()](p)
+        except Exception as e:
+            info['error'] = str(e); text = ''
+        info['chars'] = len(text)
+        out.append({**info, 'text': text})
+    return out
+
 def main(src, out):
     src = Path(src); n = bad = 0
     with open(out, 'w', encoding='utf-8') as f:
         for p in sorted(src.rglob('*')):
+            if p.is_file() and p.parent.name in FOLDER_KIND and p.suffix.lower() == '.csv' and STANDARD_NAME.match(p.stem):
+                for d in read_standard_csv(p):
+                    f.write(json.dumps(d, ensure_ascii=False) + '\n'); n += 1
+                continue
             if not p.is_file() or p.suffix.lower() not in READERS or p.parent.name not in FOLDER_KIND: continue
             info = doc_info(p)
             try:
