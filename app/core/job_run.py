@@ -151,9 +151,15 @@ def track(kind: str, name: str, *, module: str | None = None, ref_table: str | N
     if kind not in KINDS:
         raise ValueError(f"모르는 job_kind: {kind} (가능: {', '.join(KINDS)})")
     name = _cut(name, 200)
+    from app.core import rerun                       # 화면에서 '다시 실행'(I-06)으로 돌린 것이면 누른 운영자·원래 번호를 남김
+    again = rerun.current()
+    if again and triggered_by is None:
+        triggered_by = again[1]
     run_id = _safe(_store.start, kind, name, module, ref_table, None if ref_id is None else str(ref_id),
                    triggered_by, request_id)
     job = JobHandle(run_id)
+    if again:
+        job.log(f"실행 #{again[0]}(실패)을 처음부터 다시 실행")
     try:
         yield job
     except JobSkipped as exc:
