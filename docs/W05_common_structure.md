@@ -85,6 +85,8 @@ uv run python -m pytest tests                 # 시험 (실제 DB 없이 도는 
 - `POST /api/auth/login` `{"loginId", "password"}` → `{"token", "tokenType": "Bearer", "expiresIn", "user": {"id", "role", "gu", "org", "name", "readOnly"}}` (목업 `publicUser` 모양, role = `district` / `city` / `operator`)
 - 이후 모든 요청 머리에 `Authorization: Bearer <token>`. `GET /api/auth/me`로 지금 사용자 확인. 로그아웃은 토큰을 버리면 됨.
 - 실패: 401 `wrong_password`(+ `remaining` 남은 횟수, `lockMinutes`) · 423 `account_locked`(5번 틀리면 10분) · 403 `inactive_account` · 401 `login_required` / `token_expired`(다시 로그인)
+- DB가 있으면 요청마다 계정 상태도 본다(30초 캐시): 운영자가 계정을 멈추면 401 `account_inactive`, 역할·담당 구를 바꾸면 401 `role_changed`(다시 로그인). 토큰이 살아 있어도 막힌다.
+- **계정 관리·접속 기록 화면**: `/api/admin/accounts` · `/api/admin/access` (RADAR 운영자만). 응답 예시는 `docs/api/admin_accounts.md`
 
 **기능 API 쪽** (`app/core/auth.py`, `app/core/access_audit.py` 맨 위 설명 참고)
 - 로그인만 확인: `user: dict = Depends(current_user)` → `user["user_id"]`, `user["role"]`, `user["gu"]`
@@ -127,6 +129,7 @@ raise JobFailed("missing_column", "보도 면적 열이 비어 있음")       # 
 ## 13. 남은 것 (로그인·운영)
 - 60 `app_user`에 `failed_count`·`locked_until` 칸 (SQL v2.1). 칸이 없으면 잠금 횟수를 서버 메모리에 둠(다시 켜면 초기화). 칸을 더한 뒤에는 서버를 다시 켠다.
 - 70 `access_audit` 수정·삭제를 DB에서 막는 트리거 (공용 DB 권한 확인 뒤)
-- 계정 만들기·역할 바꾸기 API (어드민 계정 화면, 61 `role_change_log`)
+- ~~계정 만들기·역할 바꾸기 API~~ → 10/26 `/api/admin/accounts` (61 `role_change_log`에 주기·바꾸기·거두기 기록)
+- 비밀번호 바꾸기(본인) API: 지금은 운영자가 임시 비밀번호를 다시 만들어 주는 것만 있음
 - API마다 어느 역할이 쓰는지 (각 기능 담당이 PR에 적기)
 - 로그인을 각 기능에 붙이기 전까지 AI-07 API는 이 PC(127.0.0.1)에서 온 요청만 받는다.

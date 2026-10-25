@@ -19,6 +19,7 @@ import importlib
 # 붙일 기능 목록 (기능 이름, 라우터 모듈). 그 브랜치에 아직 없는 기능은 건너뛴다 → 금요일에 하나씩 합쳐도 main.py를 고치지 않음
 ROUTER_MODULES = [
     ("AUTH", "app.api.auth_api"),             # /api/auth  로그인·권한 (은경, I-01)
+    ("ACCOUNTS", "app.api.accounts_api"),     # /api/admin 계정 관리·접속 기록 조회 (은경, I-01·I-04)
     ("OPS", "app.api.ops_api"),               # /api/ops   운영: 대시보드·실행 기록·실패 알림 (은경, I-03·05·06)
     ("PRIORITY", "app.api.priority_api"),     # /api/priority  우선순위 결과 조회 77·78·82 (은경, 계산은 진규)
     ("AI-05", "app.api.ai05_law_api"),        # /api/ai05  법령 근거 (은경)
