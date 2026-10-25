@@ -24,7 +24,7 @@ router = APIRouter(prefix="/api/ai05", tags=["AI-05 법령 근거"])
 def health():
     svc = get_service()
     return {"status": "ok", "module": "AI-05", "조각 수": len(svc.ix.C), "법령 수": len(svc.ix.by_law),
-            "조치 제안 표": svc.actions_source}
+            "조치 제안 표": svc.actions_source, "검색 방식": svc.search_mode}
 
 
 @router.get("/related")

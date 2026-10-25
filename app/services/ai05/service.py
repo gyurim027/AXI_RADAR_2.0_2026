@@ -34,6 +34,8 @@ class LawService:
     def __init__(self, data_dir=DATA):
         d = Path(data_dir)
         self.ix = LawIndex.load(d / 'law_index.pkl')
+        from .embed import attach                              # 임베딩(공통 LLM 모듈 call_embed)이 있으면 붙이고, 없으면 낱말 검색만
+        self.search_mode = attach(self.ix, d)
         self.criterion = json.load(open(d / 'criterion.json', encoding='utf-8'))
         self.actions, self.actions_source = load_actions_from_db()
         if self.actions is None:                               # DB가 없으면 대장 05_03을 옮긴 파일

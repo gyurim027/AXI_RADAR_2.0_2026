@@ -20,3 +20,7 @@ out/
 
 # 시험이 만드는 결과 파일
 tests/_ai05_last_eval.json
+
+# AI-05 임베딩 숫자 묶음 (공용 PC에서 scripts/ai05_build_embeddings로 만듦, 약 7MB)
+data/ai05/embeddings.npy
+data/ai05/embeddings_meta.json
