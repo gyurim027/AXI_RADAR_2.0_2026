@@ -5,7 +5,7 @@ export const RUNS = {
   title: '회차 목록',
   subtitle: '회차를 만들고 산정을 실행한 뒤 검토 중으로 엽니다.',
   create: '회차 만들기',
-  head: ['회차', '종류', '상태', '산정 기준 버전', '만든 날', '검토 시작일'],
+  head: ['회차', '종류', '상태', '산정 기준 버전', '민원 접수 기간', '만든 날', '검토 시작일'],
   startCalc: '산정 시작하기',
   openRun: '검토 중으로 열기',
   empty: '아직 만든 회차가 없습니다. 회차를 만들어 주세요.',
@@ -21,6 +21,21 @@ export const RUNS = {
   name: '회차 이름',
   nameHelp: (annual, half) => `이름은 '${annual}'이나 '${half}'처럼 입력해 주세요.`,
   nameDuplicate: '같은 이름의 회차가 있습니다. 다른 이름을 적어 주세요.',
+  // 1-2 민원 접수 기간 (정의서 v0.5.4, ISS-037)
+  period: '민원 접수 기간',
+  periodStart: '시작일',
+  periodEnd: '끝일',
+  periodHelp: '이 회차에서 쓸 민원이 접수된 기간입니다. 비워 두면 민원 없이 산정합니다. 산정을 시작하면 고칠 수 없습니다.',
+  periodGaps: (months) => `이 기간에 민원 파일이 없는 달이 있습니다: ${months.join(', ')}. 이대로 만들 수 있습니다.`,
+  periodErrors: {
+    periodBoth: '시작일과 끝일을 둘 다 적어 주세요.',
+    periodOrder: '끝일은 시작일보다 빠를 수 없습니다.',
+    periodFuture: '끝일은 오늘 이후로 정할 수 없습니다.',
+  },
+  fixPeriod: '민원 기간 고치기',
+  fixPeriodTitle: '민원 접수 기간 고치기',
+  fixPeriodClose: '민원 기간 고치기 창 닫기',
+  periodLocked: '산정을 시작해서 민원 접수 기간을 고칠 수 없습니다.',
   suggest: (year, kind) => (kind === '연간' ? `${year} 연간` : `${year} 상반기 참고`),
 
   // 2-1 회차 열기 확인 창

@@ -12,6 +12,7 @@ export const RUNS = [
     version: 'v1.2',
     unratedFields: ['연결성'],
     hasComplaints: true,
+    complaintPeriod: { start: '2021-01-01', end: '2026-09-30' }, // 회차의 민원 접수 기간 (AD-06 1-2, ISS-037)
     conditionCount: 2,
     dataCount: 31,
   },
@@ -25,6 +26,7 @@ export const RUNS = [
     version: 'v1.2',
     unratedFields: ['연결성'],
     hasComplaints: true,
+    complaintPeriod: { start: '2021-01-01', end: '2026-03-31' },
     conditionCount: 2,
     dataCount: 31,
   },
@@ -38,6 +40,7 @@ export const RUNS = [
     version: 'v1.1',
     unratedFields: ['연결성'],
     hasComplaints: false, // 첫 해: 민원 자료 없음 (US-03 1-2 빈 화면 문구, US-11 메뉴 숨김)
+    complaintPeriod: null,
     conditionCount: 1,
     dataCount: 29,
   },
@@ -52,6 +55,7 @@ export const RUNS = [
     version: 'v1.3',
     unratedFields: ['연결성'],
     hasComplaints: true,
+    complaintPeriod: { start: '2021-01-01', end: '2026-09-30' },
     conditionCount: 2,
     dataCount: 31,
   },

@@ -734,7 +734,7 @@ export function listClassifySamples({ runId }) {
     available: run.hasComplaints,
     labels: OBSTACLES.map((o) => o.name).filter((n, i, arr) => arr.indexOf(n) === i),
     items: run.hasComplaints
-      ? (CLASSIFY_SAMPLES[user.gu] || []).map((x) => ({ ...x, done: s.classify[x.id] || null }))
+      ? (CLASSIFY_SAMPLES[user.gu] || []).filter((x) => x.relevance === '관련').map((x) => ({ ...x, done: s.classify[x.id] || null })) // 도로관리팀은 자기 구의 관련 민원만 본다
       : [],
   };
 }

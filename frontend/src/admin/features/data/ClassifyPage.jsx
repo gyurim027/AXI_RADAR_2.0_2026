@@ -44,7 +44,7 @@ export default function ClassifyPage() {
               columns={[
                 { key: 'summary', header: CLASSIFY.head[0], first: true },
                 { key: 'relevance', header: CLASSIFY.head[1], nowrap: true },
-                { key: 'label', header: CLASSIFY.head[2] },
+                { key: 'label', header: CLASSIFY.head[2], render: (r) => r.label || '-' },
                 { key: 'keywords', header: CLASSIFY.head[3] },
                 { key: 'confidence', header: CLASSIFY.head[4], align: 'right', render: (r) => CLASSIFY.confidence(r.confidence) },
                 {
@@ -91,12 +91,12 @@ export default function ClassifyPage() {
 
 function FixDialog({ item, relevance, types, onClose, onDone }) {
   const [rel, setRel] = useState(item.relevance);
-  const [label, setLabel] = useState(item.label);
+  const [label, setLabel] = useState(item.label || types[0]);
   const [busy, setBusy] = useState(false);
   const apply = async () => {
     setBusy(true);
     try {
-      await markClassifyAdmin({ id: item.id, result: '고침', relevance: rel, label });
+      await markClassifyAdmin({ id: item.id, result: '고침', relevance: rel, label: rel === '관련' ? label : null });
       onDone();
     } catch {
       reportActionError();
@@ -118,7 +118,7 @@ function FixDialog({ item, relevance, types, onClose, onDone }) {
       }
     >
       <SelectInput label={CLASSIFY.fixRelevance} value={rel} onChange={setRel} options={relevance} />
-      <SelectInput label={CLASSIFY.fixType} value={label} onChange={setLabel} options={types} />
+      <SelectInput label={CLASSIFY.fixType} value={rel === '관련' ? label : ''} onChange={setLabel} options={types} placeholder="-" disabled={rel !== '관련'} help={CLASSIFY.fixTypeHelp} />
     </Dialog>
   );
 }

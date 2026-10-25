@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createRun, getNewRunDefaults, getOpenCheck, listAdminRuns, openRun, startCalc } from '../../../api/admin.js';
+import { createRun, getNewRunDefaults, getOpenCheck, getPeriodGaps, listAdminRuns, openRun, setRunPeriod, startCalc } from '../../../api/admin.js';
 import { useAsync } from '../../../shared/hooks/useAsync.js';
 import { useAdmin } from '../../AdminProvider.jsx';
 import Badge, { RUN_TONE } from '../../components/Badge.jsx';
@@ -22,6 +22,7 @@ export default function RunListPage() {
   const state = useAsync(() => listAdminRuns(), []);
   const [creating, setCreating] = useState(false);
   const [opening, setOpening] = useState(null);
+  const [fixing, setFixing] = useState(null);
   const [busyId, setBusyId] = useState(null);
   const [error, setError] = useState('');
 
@@ -43,8 +44,9 @@ export default function RunListPage() {
     { key: 'kindLabel', header: RUNS.head[1], nowrap: true },
     { key: 'status', header: RUNS.head[2], nowrap: true, render: (r) => <Badge tone={RUN_TONE[r.status]}>{r.status}</Badge> },
     { key: 'version', header: RUNS.head[3], nowrap: true },
-    { key: 'created', header: RUNS.head[4], nowrap: true },
-    { key: 'review', header: RUNS.head[5], nowrap: true, render: (r) => r.review || '-' },
+    { key: 'period', header: RUNS.head[4], nowrap: true },
+    { key: 'created', header: RUNS.head[5], nowrap: true },
+    { key: 'review', header: RUNS.head[6], nowrap: true, render: (r) => r.review || '-' },
     {
       key: 'action',
       header: <span className="sr-only">동작</span>,
@@ -59,10 +61,16 @@ export default function RunListPage() {
           );
         }
         if (!r.ran) {
+          // 산정을 시작하기 전에만 민원 접수 기간을 고칠 수 있다 (AD-06 1-1)
           return (
-            <Button compact variant="secondary" loading={busyId === r.id} onClick={() => start(r)} aria-label={`${r.name} ${RUNS.startCalc}`}>
-              {RUNS.startCalc}
-            </Button>
+            <span className={styles.rowBtns}>
+              <Button compact variant="secondary" onClick={() => setFixing(r)} aria-label={`${r.name} ${RUNS.fixPeriod}`}>
+                {RUNS.fixPeriod}
+              </Button>
+              <Button compact variant="secondary" loading={busyId === r.id} onClick={() => start(r)} aria-label={`${r.name} ${RUNS.startCalc}`}>
+                {RUNS.startCalc}
+              </Button>
+            </span>
           );
         }
         return null;
@@ -97,6 +105,17 @@ export default function RunListPage() {
           }}
         />
       ) : null}
+      {fixing ? (
+        <PeriodDialog
+          run={fixing}
+          onClose={() => setFixing(null)}
+          onDone={() => {
+            setFixing(null);
+            state.reload();
+            reloadRuns();
+          }}
+        />
+      ) : null}
       {opening ? (
         <OpenDialog
           run={opening}
@@ -112,23 +131,55 @@ export default function RunListPage() {
   );
 }
 
-/** 1-2 새 회차 창: 종류를 고르면 이름을 자동으로 채운다. 고칠 수 있다. */
+/** 민원 접수 기간 두 칸과 빠진 달 안내 (AD-06 1-2). 두 칸을 모두 비우면 민원 없이 산정하는 회차다. */
+function PeriodFields({ start, end, onStart, onEnd, error }) {
+  const both = start && end && end >= start;
+  const gaps = useAsync(() => (both ? getPeriodGaps({ periodStart: start, periodEnd: end }) : Promise.resolve({ gaps: [] })), [start, end]);
+  const months = gaps.data?.gaps || [];
+  return (
+    <fieldset className={styles.period}>
+      <legend>{RUNS.period}</legend>
+      <div className={styles.periodRow}>
+        <TextInput label={RUNS.periodStart} type="date" value={start} onChange={onStart} />
+        <TextInput label={RUNS.periodEnd} type="date" value={end} onChange={onEnd} />
+      </div>
+      <p className={styles.help}>{RUNS.periodHelp}</p>
+      {error ? (
+        <p role="alert" className={styles.error}>
+          {error}
+        </p>
+      ) : null}
+      {months.length > 0 ? (
+        <p role="status" className={styles.note}>
+          {RUNS.periodGaps(months)}
+        </p>
+      ) : null}
+    </fieldset>
+  );
+}
+
+/** 1-2 새 회차 창: 종류를 고르면 이름과 민원 접수 기간을 자동으로 채운다. 고칠 수 있다. */
 function NewRunDialog({ onClose, onCreated }) {
   const defaults = useAsync(() => getNewRunDefaults(), []);
   const year = defaults.data?.year ?? new Date().getFullYear() + 1;
   const [kind, setKind] = useState('연간');
   const [name, setName] = useState('');
   const [touched, setTouched] = useState(false);
+  const [period, setPeriod] = useState(null); // 직접 고친 기간. 없으면 기본값을 보인다
   const [error, setError] = useState('');
+  const [periodError, setPeriodError] = useState('');
   const [busy, setBusy] = useState(false);
   const shown = touched ? name : RUNS.suggest(year, kind);
+  const start = period ? period.start : defaults.data?.period.start || '';
+  const end = period ? period.end : defaults.data?.period.end || '';
 
   const submit = async () => {
     setBusy(true);
     try {
-      const r = await createRun({ kind, name: shown });
+      const r = await createRun({ kind, name: shown, periodStart: start, periodEnd: end });
       if (r.ok) onCreated();
       else if (r.code === 'duplicate') setError(RUNS.nameDuplicate);
+      else if (RUNS.periodErrors[r.code]) setPeriodError(RUNS.periodErrors[r.code]);
     } catch {
       reportActionError();
     } finally {
@@ -143,7 +194,7 @@ function NewRunDialog({ onClose, onCreated }) {
       onClose={onClose}
       closeLabel={RUNS.newClose}
       footer={
-        <Button variant="primary" loading={busy} disabled={!shown.trim()} onClick={submit}>
+        <Button variant="primary" loading={busy} disabled={!shown.trim() || !defaults.data} onClick={submit}>
           {RUNS.create}
         </Button>
       }
@@ -154,6 +205,8 @@ function NewRunDialog({ onClose, onCreated }) {
         onChange={(v) => {
           setKind(v);
           setError('');
+          setPeriod(null); // 종류를 고르면 이름과 기간을 다시 자동으로 채운다
+          setPeriodError('');
         }}
         options={RUNS.kinds}
       />
@@ -166,6 +219,70 @@ function NewRunDialog({ onClose, onCreated }) {
           setError('');
         }}
         help={RUNS.nameHelp(RUNS.suggest(year, '연간'), RUNS.suggest(year, '반기 참고'))}
+        error={error}
+      />
+      <PeriodFields
+        start={start}
+        end={end}
+        onStart={(v) => {
+          setPeriod({ start: v, end });
+          setPeriodError('');
+        }}
+        onEnd={(v) => {
+          setPeriod({ start, end: v });
+          setPeriodError('');
+        }}
+        error={periodError}
+      />
+    </Dialog>
+  );
+}
+
+/** 1-1 '민원 기간 고치기': 새 회차 창과 같은 창이 열린다. 이름과 종류는 고칠 수 없고 민원 접수 기간만 고친다. */
+function PeriodDialog({ run, onClose, onDone }) {
+  const [start, setStart] = useState(run.complaintPeriod?.start || '');
+  const [end, setEnd] = useState(run.complaintPeriod?.end || '');
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const submit = async () => {
+    setBusy(true);
+    try {
+      const r = await setRunPeriod({ runId: run.id, periodStart: start, periodEnd: end });
+      if (r.ok) onDone();
+      else if (r.code === 'locked') setError(RUNS.periodLocked);
+      else if (RUNS.periodErrors[r.code]) setError(RUNS.periodErrors[r.code]);
+    } catch {
+      reportActionError();
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Dialog
+      title={RUNS.fixPeriodTitle}
+      titleId="fix-period-title"
+      subtitle={run.name}
+      onClose={onClose}
+      closeLabel={RUNS.fixPeriodClose}
+      footer={
+        <Button variant="primary" loading={busy} onClick={submit}>
+          {RUNS.fixPeriod}
+        </Button>
+      }
+    >
+      <PeriodFields
+        start={start}
+        end={end}
+        onStart={(v) => {
+          setStart(v);
+          setError('');
+        }}
+        onEnd={(v) => {
+          setEnd(v);
+          setError('');
+        }}
         error={error}
       />
     </Dialog>

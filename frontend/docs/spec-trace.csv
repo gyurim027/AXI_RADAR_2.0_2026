@@ -614,8 +614,8 @@ AD-05,데이터 > 분류 검수,원문 열람 창,2-1,원문 열람 창,,8,본�
 AD-06,산정 > 회차 목록,기본,0-1,화면 머리,RADAR 운영자,1,타이틀,회차 목록,제안,src/admin/features/runs/RunListPage.jsx,구현 (제안),
 AD-06,산정 > 회차 목록,기본,0-1,화면 머리,,2,서브 타이틀,회차를 만들고 산정을 실행한 뒤 검토 중으로 엽니다.,,src/admin/features/runs/RunListPage.jsx,구현,
 AD-06,산정 > 회차 목록,기본,1-1,회차 표,RADAR 운영자,1,버튼,회차 만들기,확정,src/admin/features/runs/RunListPage.jsx,구현,
-AD-06,산정 > 회차 목록,기본,1-1,회차 표,,2,표 열 머리,회차 · 종류 · 상태 · 산정 기준 버전 · 만든 날 · 검토 시작일,,src/admin/features/runs/RunListPage.jsx,구현,
-AD-06,산정 > 회차 목록,기본,1-1,회차 표,,3,표 행,%회차 이름% · %회차 종류% · %회차 상태% · %버전% · %만든 날% · %검토 시작일%,,src/admin/features/runs/RunListPage.jsx,구현,
+AD-06,산정 > 회차 목록,기본,1-1,회차 표,,2,표 열 머리,회차 · 종류 · 상태 · 산정 기준 버전 · 민원 접수 기간 · 만든 날 · 검토 시작일,,src/admin/features/runs/RunListPage.jsx,구현,정의서 v0.5.4 (ISS-037)
+AD-06,산정 > 회차 목록,기본,1-1,회차 표,,3,표 행,%회차 이름% · %회차 종류% · %회차 상태% · %버전% · %민원 접수 기간% · %만든 날% · %검토 시작일%,,src/admin/features/runs/RunListPage.jsx,구현,정의서 v0.5.4 (ISS-037)
 AD-06,산정 > 회차 목록,기본,1-1,회차 표,,4,버튼,산정 시작하기,,src/admin/features/runs/RunListPage.jsx,구현,
 AD-06,산정 > 회차 목록,기본,1-1,회차 표,,5,버튼,검토 중으로 열기,,src/admin/features/runs/RunListPage.jsx,구현,
 AD-06,산정 > 회차 목록,기본,1-1,회차 표,,6,빈 화면 문구,아직 만든 회차가 없습니다. 회차를 만들어 주세요.,,src/admin/features/runs/RunListPage.jsx,구현,
@@ -638,6 +638,12 @@ AD-06,산정 > 회차 목록,회차 열기 확인 창,2-1,회차 열기 확인 �
 AD-06,산정 > 회차 목록,회차 열기 확인 창,2-1,회차 열기 확인 창,,8,버튼,빠진 자료 올리러 가기,,src/admin/features/runs/RunListPage.jsx,구현,"""빠진 자료 올리러 가기""는 빠진 자료가 있을 때만 보인다(명세는 조건이 없다)."
 AD-06,산정 > 회차 목록,회차 열기 확인 창,2-1,회차 열기 확인 창,,9,버튼,검토 중으로 열기,,src/admin/features/runs/RunListPage.jsx,구현,"""빠진 자료 올리러 가기""는 빠진 자료가 있을 때만 보인다(명세는 조건이 없다)."
 AD-06,산정 > 회차 목록,회차 열기 확인 창,2-1,회차 열기 확인 창,,10,오류 문구,산정이 끝나지 않아 열 수 없습니다.,,src/admin/features/runs/RunListPage.jsx,구현,"""빠진 자료 올리러 가기""는 빠진 자료가 있을 때만 보인다(명세는 조건이 없다)."
+AD-06,산정 > 회차 목록,기본,1-2,새 회차 창,,1,라벨,민원 접수 기간,확정,src/admin/features/runs/RunListPage.jsx · src/admin/features/runs/copy.js · src/mocks/adminServer.js,구현,정의서 v0.5.4 (ISS-037). 제안 행
+AD-06,산정 > 회차 목록,기본,1-2,새 회차 창,,2,입력,%시작일% · %끝일%,확정,src/admin/features/runs/RunListPage.jsx · src/admin/features/runs/copy.js · src/mocks/adminServer.js,구현,"종류를 고르면 올린 민원 파일 기간(가장 이른 시작일~가장 늦은 끝일)으로 채운다. 고칠 수 있고, 두 칸을 모두 비우면 민원 없이 산정"
+AD-06,산정 > 회차 목록,기본,1-2,새 회차 창,,3,안내 문구,이 기간에 민원 파일이 없는 달이 있습니다: %빠진 달%. 이대로 만들 수 있습니다.,확정,src/admin/features/runs/RunListPage.jsx · src/admin/features/runs/copy.js · src/mocks/adminServer.js,구현,기간 안에 올린 민원 파일이 없는 달이 있을 때
+AD-06,산정 > 회차 목록,기본,1-2,새 회차 창,,4,오류 문구,시작일과 끝일을 둘 다 적어 주세요. / 끝일은 시작일보다 빠를 수 없습니다. / 끝일은 오늘 이후로 정할 수 없습니다.,확정,src/admin/features/runs/RunListPage.jsx · src/admin/features/runs/copy.js · src/mocks/adminServer.js,구현,
+AD-06,산정 > 회차 목록,기본,1-1,회차 표,,5,버튼,민원 기간 고치기,확정,src/admin/features/runs/RunListPage.jsx · src/admin/features/runs/copy.js · src/mocks/adminServer.js,구현,상태가 산정 중이고 산정을 아직 돌리지 않았을 때. 이름·종류는 고칠 수 없고 기간만 고친다
+AD-06,산정 > 회차 목록,회차 열기 확인 창,2-1,회차 열기 확인 창,,6,표 행,성남데이터넷 민원 %빠진 달%분 (파일 없음),확정,src/admin/features/runs/RunListPage.jsx · src/admin/features/runs/copy.js · src/mocks/adminServer.js,구현,빠진 자료 목록에 같이 보인다
 AD-07,산정 > 실행 기록,기본,0-1,화면 머리,RADAR 운영자,1,타이틀,실행 기록,제안,src/admin/features/runs/LogPage.jsx,구현 (제안),
 AD-07,산정 > 실행 기록,기본,0-1,화면 머리,,2,서브 타이틀,수집과 산정을 돌린 결과와 로그를 봅니다.,,src/admin/features/runs/LogPage.jsx,구현,
 AD-07,산정 > 실행 기록,기본,1-1,실행 표,RADAR 운영자,1,라벨,기간,확정,src/admin/features/runs/LogPage.jsx,구현,기간 선택지(최근 7·30·90일)는 명세에 없어 지었다. 실행 중인 기록이 있으면 1.5초마다 다시 본다.

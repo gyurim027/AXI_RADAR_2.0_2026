@@ -80,6 +80,7 @@ export const CLASSIFY = {
   fixClose: '분류 고치기 창 닫기',
   fixRelevance: '관련 여부',
   fixType: '유형',
+  fixTypeHelp: '비관련·불명으로 고치면 유형은 비워집니다.',
   fixApply: '고친 분류 반영하기',
   confidence: (n) => `${n}%`,
   failedArea: '분류 표본',

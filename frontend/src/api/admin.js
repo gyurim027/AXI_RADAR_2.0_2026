@@ -54,3 +54,5 @@ export const listAccess = mockCall('admin.listAccess', (arg) => server.listAcces
 export const getAlertEmail = mockCall('admin.getAlertEmail', (arg) => server.getAlertEmail(arg));
 export const saveAlertEmail = mockCall('admin.saveAlertEmail', (arg) => server.saveAlertEmail(arg));
 export const getNewRunDefaults = mockCall('admin.getNewRunDefaults', (arg) => server.getNewRunDefaults(arg));
+export const getPeriodGaps = mockCall('admin.periodGaps', (arg) => server.getPeriodGaps(arg));
+export const setRunPeriod = mockCall('admin.setRunPeriod', (arg) => server.setRunPeriod(arg));

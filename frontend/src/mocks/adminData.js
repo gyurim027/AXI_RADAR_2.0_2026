@@ -140,6 +140,19 @@ export const LOW_LOCATION = { count: 354, topCells: 50, changedCells: 0 };
 
 // ------------------------------------------------------------------ 분류 검수 (AD-05)
 export const RELEVANCE = ['관련', '비관련', '불명'];
+/** 민원 유형 9개 (ISS-016, 정의서 v0.5.4). 관련 민원에만 하나 붙고 비관련·불명은 비운다. */
+export const PED_TYPES = ['주정차', '점유', '공사', '노면', '보행로', '시설', '신호', '조명', '기타'];
+
+/** 올린 민원 파일이 있는 달 (84 업로드 기록). 2026.07분은 빠져 있다 (AD-06 1-2 안내 문구 예시). */
+export const COMPLAINT_FILE_MONTHS = (() => {
+  const out = [];
+  for (let y = 2021; y <= 2026; y++) for (let m = 1; m <= 12; m++) {
+    if (y === 2026 && m > 9) break;
+    if (y === 2026 && m === 7) continue;
+    out.push(`${y}-${String(m).padStart(2, '0')}`);
+  }
+  return out;
+})();
 
 // ------------------------------------------------------------------ 실행 기록 (AD-07)
 const at = (d, t) => `2026-${d}T${t}:00`;
