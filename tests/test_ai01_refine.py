@@ -134,6 +134,10 @@ class ClassifyTests(unittest.TestCase):
         with mock.patch.object(cls, "call_llm", return_value=LlmResult(ok=False, task="t", error_code="timeout")):
             self.assertIsNone(cls.classify("보도블록이 깨졌습니다"))
 
+    def test_broken_answer_is_unknown(self):
+        with mock.patch.object(cls, "call_llm", return_value=LlmResult(ok=False, task="t", error_code="invalid_json")):
+            self.assertEqual(cls.classify("재산세 감면 기한을 문의합니다"), (cls.UNKNOWN, 0.0, cls.BROKEN_ANSWER, cls.BY_AI))
+
 
 class TypeTests(unittest.TestCase):
     def test_parking_report_type_is_rule(self):

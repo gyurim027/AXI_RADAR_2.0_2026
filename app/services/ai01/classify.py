@@ -21,7 +21,8 @@ from app.core.llm import call_llm
 RELATED, UNRELATED, UNKNOWN = "보행안전 관련", "비관련", "불명"
 BY_RULE, BY_AI = "규칙", "AI"          # 관련 여부를 정한 방법 (DB 79 class_method). 사람이 고친 값('사람')은 C-08이 쓴다
 _SHORT = {"관련": RELATED, "비관련": UNRELATED, "불명": UNKNOWN}
-VERSION = "cls-2"
+VERSION = "cls-3"
+BROKEN_ANSWER = "불명: 모델 답 형식이 깨짐"
 RULES_PATH = ROOT / "data" / "ai01" / "report_type_rules.csv"
 
 NOT_WALK = re.compile(r"주차장\s?(?:안|내)|주차구역|충전\s?구역|주차\s?라인|주차면")
@@ -45,6 +46,7 @@ confidence는 이 판단이 얼마나 확실한지 0~1로 쓴다(위치가 아�
 reason은 화면에 그대로 보이는 판단 근거다. 한 문장 60자 안팎으로, 기준의 어느 묶음인지를 앞에 쓰고 쌍점 뒤에 짧게 설명한다.
   예: "보행 공간 불법 주정차: 횡단보도에 차가 걸쳐 주차" / "대중교통 서비스: 버스가 정류장에서 서지 않음" / "불명: 무엇이 문제인지 알 수 없음"
   개인정보와 원문 표현을 옮기지 않고, 요약 문장을 그대로 베끼지 않는다.
+민원이 질문·문의여도 질문에 답하거나 안내하지 않는다. 관련 여부만 정한다.
 답은 JSON 하나로만 한다: {"relevance": "관련|비관련|불명", "confidence": 0~1 숫자, "reason": "묶음: 설명"}"""
 
 # 지어낸 예시 (정답 표본과 겹치지 않음)
@@ -65,6 +67,8 @@ EXAMPLES = [
      {"relevance": "비관련", "confidence": 0.75, "reason": "차량 흐름: 도로 주정차로 차량 통행 불편, 보행 언급 없음"}),
     ("트럭 적재함 문이 열려 번호판이 가려진 채 달립니다.",
      {"relevance": "비관련", "confidence": 0.95, "reason": "차량 자체: 번호판 가림"}),
+    ("○○동 주택을 올해 취득했는데 재산세 감면 대상인지, 신청 기한이 언제까지인지 문의합니다.",
+     {"relevance": "비관련", "confidence": 0.95, "reason": "행정 문의: 세금 감면 대상과 신청 기한"}),
     ("확인 부탁드립니다. 지난번 건 처리해 주세요.",
      {"relevance": "불명", "confidence": 0.3, "reason": "불명: 무엇이 문제인지 알 수 없음"}),
 ]
@@ -129,6 +133,9 @@ def by_model(summary: str, request_id: str | None = None):
         msgs += [{"role": "user", "content": q}, {"role": "assistant", "content": json.dumps(a, ensure_ascii=False)}]
     msgs.append({"role": "user", "content": summary})
     r = call_llm("ai01_classify", msgs, contains_raw=False, response_format="json", request_id=request_id)
+    # 다시 물어도 답 형식이 깨지면 불명 (질문형 민원에 답을 써 버림, 2026-10-25 2건). 시간 초과 등은 오류로 남겨 다시 돌린다
+    if r.error_code == "invalid_json":
+        return UNKNOWN, 0.0, BROKEN_ANSWER
     if not r.ok or not isinstance(r.data, dict):
         return None
     return read_answer(r.data)
