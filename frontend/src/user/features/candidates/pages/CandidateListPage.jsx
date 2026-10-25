@@ -15,6 +15,7 @@ import { LIST } from '../copy.js';
 import { EMPTY_FILTERS, activeTags, applyFilters, isPriority, sortRows } from '../filters.js';
 import BottomBar from '../components/BottomBar.jsx';
 import CandidateMap from '../components/CandidateMap.jsx';
+import { prefersReducedMotion } from '../components/mapUtils.js';
 import ConfirmModal from '../components/ConfirmModal.jsx';
 import DetailDrawer from '../components/DetailDrawer.jsx';
 import FilterBar from '../components/FilterBar.jsx';
@@ -57,6 +58,7 @@ function CandidateListPage() {
   const [version, setVersion] = useState(0);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const scrollRef = useRef(null);
+  const mapColRef = useRef(null);
 
   const list = useAsync(() => listCandidates({ runId: run.id, gu }), [run.id, gu, user.id, version]);
   const detail = useAsync(
@@ -99,6 +101,8 @@ function CandidateListPage() {
       const idx = sorted.findIndex((r) => r.gid === gid);
       if (idx >= 0) setPage(Math.floor(idx / PAGE_SIZE) + 1); // 지도에서 고르면 표의 그 행이 있는 쪽으로 간다
       setSearch({ sel: gid, detail: null, tab: null });
+      // 태블릿 폭에서는 지도가 표 아래에 있어, 구역을 고르면 지도로 내려가 보여 준다
+      if (window.innerWidth < 1100) mapColRef.current?.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' });
       // 그 구의 민원 점을 처음 볼 때 접속 기록을 남긴다 (로그인 한 번에 구마다 한 줄, I-04)
       const row = sorted[idx];
       if (row) logComplaintPointView({ gu: row.gu, hasPoints: (row.complaintPoints?.length || 0) > 0 }).catch(() => {});
@@ -253,7 +257,7 @@ function CandidateListPage() {
         ) : null}
       </div>
 
-      <div className={styles.mapCol}>
+      <div className={styles.mapCol} ref={mapColRef}>
         <CandidateMap
           items={filtered}
           unrated={unrated}

@@ -71,3 +71,10 @@
 .close:hover {
   background: var(--radar-admin-semantic-color-bg-hover);
 }
+
+@media (max-width: 1099px) {
+  .dialog,
+  .panel {
+    max-width: calc(100vw - 32px);
+  }
+}

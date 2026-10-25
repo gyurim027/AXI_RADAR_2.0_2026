@@ -83,3 +83,9 @@
   font-size: var(--a-fs-md);
   color: var(--radar-admin-semantic-color-text-secondary);
 }
+
+@media (max-width: 1099px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

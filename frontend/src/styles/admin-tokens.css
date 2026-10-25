@@ -106,7 +106,7 @@
   --radar-admin-primitive-size-side-panel: 480px;
   --radar-admin-primitive-size-form-max: 640px;
   --radar-admin-primitive-size-content-max: 1600px;
-  --radar-admin-primitive-size-content-min: 1280px;
+  --radar-admin-primitive-size-content-min: 1024px;
   --radar-admin-primitive-size-focus-ring: 2px;
   --radar-admin-primitive-size-focus-offset: 2px;
   --radar-admin-primitive-size-tab-indicator: 2px;
@@ -130,7 +130,7 @@
   --radar-admin-primitive-grid-gutter: 24px;
   --radar-admin-primitive-grid-margin: 32px;
   /* primitive / breakpoint */
-  --radar-admin-primitive-breakpoint-min: 1280px;
+  --radar-admin-primitive-breakpoint-min: 1024px;
   --radar-admin-primitive-breakpoint-content-max: 1600px;
   /* semantic / color */
   --radar-admin-semantic-color-bg-canvas: var(--radar-admin-primitive-color-gray-50);

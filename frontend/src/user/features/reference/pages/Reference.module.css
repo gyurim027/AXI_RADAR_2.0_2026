@@ -58,3 +58,13 @@
   font-size: var(--fs-caption);
   color: var(--semantic-color-text-muted);
 }
+
+@media (max-width: 1099px) {
+  .splitOpen {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .compare {
+    position: static;
+    padding: var(--space-16);
+  }
+}

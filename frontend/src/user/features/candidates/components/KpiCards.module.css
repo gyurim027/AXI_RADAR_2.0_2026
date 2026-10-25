@@ -44,3 +44,15 @@
 .unit {
   font-size: var(--fs-small);
 }
+
+@media (max-width: 1099px) {
+  .list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.value,
+.label,
+.unit {
+  white-space: nowrap;
+}

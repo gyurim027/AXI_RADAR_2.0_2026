@@ -31,7 +31,7 @@ export default function TopBar() {
   return (
     <header className={styles.bar}>
       <Link to="/candidates" className={styles.brand}>
-        RADAR 보도 점검 우선순위
+        RADAR<span className={styles.brandRest}> 보도 점검 우선순위</span>
       </Link>
       <nav aria-label="주 메뉴" className={styles.nav}>
         {menu.map((m) => {

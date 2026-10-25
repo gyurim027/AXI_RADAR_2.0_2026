@@ -85,3 +85,30 @@
   justify-content: center;
   background: var(--component-map-bg);
 }
+
+/* 1360px 미만: 표와 지도를 5:5로, 최소 폭을 줄인다 */
+@media (max-width: 1359px) {
+  .split {
+    grid-template-columns: minmax(480px, 5fr) minmax(320px, 5fr);
+  }
+}
+/* 1100px 미만(태블릿): 표 위, 지도 아래로 쌓는다. 한 쪽이 스크롤한다. */
+@media (max-width: 1099px) {
+  .split {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  .left {
+    flex: none;
+    overflow: visible;
+  }
+  .mapCol {
+    flex: none;
+    height: min(60vh, 560px);
+    min-height: 420px;
+  }
+  .tableCard {
+    height: clamp(360px, 60vh, 640px);
+  }
+}

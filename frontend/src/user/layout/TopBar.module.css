@@ -135,3 +135,59 @@
   font-size: var(--fs-small);
   font-weight: var(--fw-bold);
 }
+
+@media (max-width: 1359px) {
+  .bar {
+    gap: var(--space-16);
+  }
+  .brandRest,
+  .org {
+    display: none;
+  }
+  .navItem {
+    padding: 0 var(--space-8);
+  }
+}
+/* 1100px 미만: 메뉴 줄과 도구 줄을 두 줄로 나눈다 */
+@media (max-width: 1099px) {
+  .bar {
+    flex-wrap: wrap;
+    height: auto;
+    row-gap: 0;
+    padding-top: var(--space-4);
+  }
+  .brand {
+    order: 0;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+  .nav {
+    order: 2;
+    flex-basis: 100%;
+    min-height: 44px;
+    overflow-x: auto;
+  }
+  .tools {
+    order: 1;
+    flex-wrap: wrap;
+    gap: var(--space-8);
+  }
+  .logout,
+  .navItem {
+    min-height: 44px;
+  }
+}
+
+.navItem,
+.logout,
+.brand {
+  white-space: nowrap;
+}
+
+@media (max-width: 1099px) {
+  .nav {
+    height: auto;
+    align-items: stretch;
+  }
+}

@@ -80,3 +80,47 @@
 .runDim {
   opacity: 0.55;
 }
+
+/* 1360px 미만: 이름을 줄이고 소속·지자체 글자를 숨긴다 */
+@media (max-width: 1359px) {
+  .bar {
+    gap: var(--a-s4);
+  }
+  .brandRest,
+  .muni,
+  .org {
+    display: none;
+  }
+  .tab {
+    padding: 0 var(--a-s3);
+  }
+}
+/* 1100px 미만: 메뉴 줄과 도구 줄을 두 줄로 나눈다 */
+@media (max-width: 1099px) {
+  .bar {
+    flex-wrap: wrap;
+    height: auto;
+    row-gap: 0;
+  }
+  .nav {
+    min-height: var(--radar-admin-component-shell-topbar-height);
+    order: 2;
+    flex-basis: 100%;
+    overflow-x: auto;
+  }
+  .tools {
+    order: 1;
+    margin-left: auto;
+    flex-wrap: wrap;
+  }
+  .brand {
+    order: 0;
+    min-height: 44px;
+  }
+}
+
+.tab,
+.logout,
+.brand {
+  white-space: nowrap;
+}

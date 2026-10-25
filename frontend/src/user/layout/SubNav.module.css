@@ -26,3 +26,15 @@
   font-weight: var(--fw-bold);
   border-bottom-color: var(--component-topbar-menu-indicator);
 }
+
+.nav {
+  overflow-x: auto;
+}
+@media (max-width: 1099px) {
+  .nav {
+    padding: 0 var(--space-16);
+  }
+  .item {
+    min-height: 44px;
+  }
+}

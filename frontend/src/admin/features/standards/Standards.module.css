@@ -214,3 +214,20 @@
   gap: var(--a-s1) var(--a-s4);
   font-size: var(--a-fs-md);
 }
+
+@media (max-width: 1099px) {
+  .row {
+    flex-direction: column;
+  }
+  .main {
+    min-width: 0;
+    width: 100%;
+  }
+  .cmp {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .jurTable {
+    display: block;
+    overflow-x: auto;
+  }
+}

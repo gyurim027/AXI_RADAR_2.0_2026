@@ -48,3 +48,12 @@
 .main:focus {
   outline: none;
 }
+
+@media (max-width: 1359px) {
+  .content {
+    padding-left: var(--space-16);
+    padding-right: var(--space-16);
+  }
+}
+
+

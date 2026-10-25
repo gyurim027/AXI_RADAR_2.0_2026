@@ -126,7 +126,7 @@
   --primitive-size-report-max: 1000px;
   --primitive-size-tab-row: 48px;
   --primitive-fontFamily-sans: 'Pretendard', 'Pretendard Variable', 'Noto Sans KR', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
-  --primitive-breakpoint-min: 1280px;
+  --primitive-breakpoint-min: 1024px;
   --primitive-breakpoint-base: 1440px;
   --primitive-breakpoint-wide: 1920px;
   --primitive-split-table: 6;

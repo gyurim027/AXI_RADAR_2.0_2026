@@ -107,3 +107,12 @@
   font-size: var(--a-fs-sm);
   color: var(--radar-admin-semantic-color-text-secondary);
 }
+
+@media (max-width: 1099px) {
+  .formGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .formPanel {
+    max-width: none;
+  }
+}

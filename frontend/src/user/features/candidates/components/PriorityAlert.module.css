@@ -36,3 +36,12 @@
   font-size: var(--fs-small);
   background: var(--semantic-color-bg-surface);
 }
+
+@media (max-width: 1359px) {
+  .box {
+    flex-wrap: wrap;
+  }
+  .text {
+    flex-wrap: wrap;
+  }
+}

@@ -29,7 +29,8 @@ export default function AdminTopBar() {
   return (
     <header className={styles.bar}>
       <Link to="/admin" className={styles.brand}>
-        {ADMIN_COPY.serviceName}
+        <span>RADAR</span>
+        <span className={styles.brandRest}>{ADMIN_COPY.serviceName.replace(/^RADAR/, '')}</span>
       </Link>
       <nav aria-label={ADMIN_COPY.mainMenuLabel} className={styles.nav}>
         {ADMIN_COPY.menu.map((m) => {
