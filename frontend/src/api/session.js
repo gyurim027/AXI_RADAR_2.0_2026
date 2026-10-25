@@ -14,13 +14,15 @@ export const login = async (arg) => {
   if (!backendAuthEnabled) return mockLogin(arg);
   try {
     const result = await backendRequest('/api/auth/login', { method: 'POST', body: arg });
-    if (!result.token || !result.user) throw new BackendError(502, 'invalid_response', '로그인 응답을 확인하지 못했습니다.');
-    if (!allowedBackendRole(result.user.role)) throw new BackendError(403, 'forbidden_role', '현재 연결된 화면은 산정 설정의 RADAR 운영자 또는 승인 대기의 시 도로과 계정으로 접속해 주세요.');
+    if (!result.token || !result.user) throw new BackendError(502, 'invalid_response', '로그인하지 못했습니다. 잠시 뒤에 다시 시도해 주세요.');
+    if (!allowedBackendRole(result.user.role)) throw new BackendError(403, 'forbidden_role', '이 계정은 아직 사용할 수 없는 화면 범위입니다. RADAR 운영자 또는 시 도로과 계정으로 로그인해 주세요.');
     saveBackendSession({ token: result.token, user: result.user });
     return { ok: true, user: result.user };
   } catch (error) {
-    if (error.code === 'wrong_password') return { ok: false, reason: 'wrong', ...error.details };
-    if (error.code === 'account_locked') return { ok: false, reason: 'locked', ...error.details };
+    // 서버는 잠금 시간을 lock_minutes로 준다. 화면은 lockMinutes로 읽는다.
+    const lockMinutes = error.details?.lock_minutes ?? error.details?.lockMinutes;
+    if (error.code === 'wrong_password') return { ok: false, reason: 'wrong', remaining: error.details?.remaining, lockMinutes };
+    if (error.code === 'account_locked') return { ok: false, reason: 'locked', lockMinutes };
     throw error;
   }
 };
@@ -30,7 +32,7 @@ export const validateBackendSession = async () => {
   const data = await backendRequest('/api/auth/me');
   if(!allowedBackendRole(data.user?.role)){
     clearBackendSession();
-    throw new BackendError(403,'forbidden_role','현재 연결된 화면의 계정으로 다시 로그인해 주세요.');
+    throw new BackendError(403,'forbidden_role','이 계정은 아직 사용할 수 없는 화면 범위입니다. RADAR 운영자 또는 시 도로과 계정으로 로그인해 주세요.');
   }
   saveBackendSession({ ...readBackendSession(), user: data.user });
   return data.user;
