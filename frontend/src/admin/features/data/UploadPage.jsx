@@ -97,7 +97,7 @@ function UploadForm({ targets, preset, onUploaded }) {
         return;
       }
       setErrors({});
-      setDone(item.name);
+      setDone({ name: item.name, counts: r.counts });
       setFile(null);
       onUploaded();
     } catch {
@@ -111,7 +111,8 @@ function UploadForm({ targets, preset, onUploaded }) {
 
   return (
     <Panel className={styles.formPanel}>
-      <form className={styles.formGrid} onSubmit={submit} noValidate>
+      <form className={styles.formGrid} onSubmit={submit} noValidate aria-busy={busy}>
+        <fieldset className={styles.lock} disabled={busy}>
         <SelectInput label={UPLOAD.data} value={dataId} onChange={pick} options={options} required />
         <FileInput key={done ? 'done' : 'form'} label={UPLOAD.file} fileName={file?.name} onChange={setFile} help={UPLOAD.fileHelp(FORMAT_TEXT)} error={errors.format ? UPLOAD.errorFormat(FORMAT_TEXT) : null} required />
         <TextInput label={UPLOAD.source} value={source} onChange={setSource} placeholder={UPLOAD.sourcePlaceholder} error={errors.sourceBasis && !source.trim() ? UPLOAD.errorSourceBasis : null} required />
@@ -119,9 +120,14 @@ function UploadForm({ targets, preset, onUploaded }) {
         <SelectInput label={UPLOAD.received} value={received} onChange={setReceived} options={RECEIVED} />
         <SelectInput label={UPLOAD.official} value={official} onChange={setOfficial} options={OFFICIAL} />
         {item.complaint ? <TextInput label={UPLOAD.period} value={period} onChange={setPeriod} /> : null}
+        {busy ? (
+          <Banner tone="info" role="status">
+            {UPLOAD.busy}
+          </Banner>
+        ) : null}
         {done ? (
           <Banner tone="success">
-            {UPLOAD.done(done)}{' '}
+            {done.counts ? UPLOAD.doneComplaint(done.counts) : UPLOAD.done(done.name)}{' '}
             <Link to="/admin/data/checks" className={styles.link}>
               {UPLOAD.goChecks}
             </Link>
@@ -132,6 +138,7 @@ function UploadForm({ targets, preset, onUploaded }) {
             {UPLOAD.submit}
           </Button>
         </div>
+        </fieldset>
       </form>
     </Panel>
   );

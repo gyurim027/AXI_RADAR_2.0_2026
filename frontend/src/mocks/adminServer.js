@@ -309,7 +309,15 @@ export function uploadFile({ dataId, fileName, source, basis, received, official
   };
   logAccess(user, '설정 변경', `${item.name} 파일 올리기`);
   stamp();
-  return { ok: true, upload: { ...upload, atLabel: dotDate(upload.at) } };
+  // 민원 파일은 적재 건수를 돌려준다 (신규 + 기존 + 갱신 = 전체). 가짜 값은 파일 이름 길이로 정한다.
+  let counts = null;
+  if (dataId === 'DAT-07') {
+    const rows = 8000 + ((String(fileName).length * 137) % 6000);
+    const existing = Math.round(rows * 0.04);
+    const updated = Math.round(rows * 0.005);
+    counts = { rows, new: rows - existing - updated, existing, updated };
+  }
+  return { ok: true, upload: { ...upload, atLabel: dotDate(upload.at) }, counts };
 }
 
 function checkRows() {

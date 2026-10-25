@@ -173,7 +173,8 @@ US-01,점검 후보 > 후보 목록,기본,1-5,지도,,1-2,지도 범례,● 민
 US-01,점검 후보 > 후보 목록,기본,1-5,지도,,1-3,지도 범례,숫자 원: 가까운 민원 묶음 (숫자는 건수),제안,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapPoints.js · src/user/features/candidates/components/mapUtils.js,구현,"정의서 수정안 (작업파일/261025 지도_민원점_수정안, ISS-038). 묶음이 있을 때만 보인다"
 US-01,점검 후보 > 후보 목록,기본,1-5,지도,,1-4,안내 문구,이 칸에는 민원 점이 많아 가까운 점을 묶어 보입니다. 숫자는 민원 건수이고 지도를 확대하면 나뉩니다.,제안,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapPoints.js · src/user/features/candidates/components/mapUtils.js,구현,정의서 수정안 (ISS-038). 민원 점이 300개를 넘을 때 (가정값)
 US-01,점검 후보 > 후보 목록,기본,1-5,지도,,1-5,도움말,민원 %묶음 건수%건 · 원본 좌표 %원본 건수%건 · 근처 위치 %근처 건수%건,제안,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapPoints.js · src/user/features/candidates/components/mapUtils.js,구현,정의서 수정안 (ISS-038). 묶음에 마우스를 올리거나 포커스가 올 때
-US-01,점검 후보 > 후보 목록,기본,1-5,지도,,2,안내 문구,"지도 자료: 국토지리정보원 수치지형도 (1:5,000, 2025) · 주소 좌표: 국토교통부 브이월드",,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapPoints.js · src/user/features/candidates/components/mapUtils.js,구현,
+US-01,점검 후보 > 후보 목록,기본,1-5,지도,,2,안내 문구,"지도 자료: 국토지리정보원 수치지형도 (1:5,000, 2025)",제안,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapPoints.js · src/user/features/candidates/components/mapUtils.js,구현,"정의서 v0.5.3 문구는 ""· 주소 좌표: 국토교통부 브이월드""까지 한 줄. 사용자 결정(261025)으로 구역을 고르면 이 줄이 ""주소 좌표: 국토교통부 브이월드""로 바뀐다(제안)"
+US-01,점검 후보 > 후보 목록,기본,1-5,지도,,2-2,안내 문구,주소 좌표: 국토교통부 브이월드,제안,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapPoints.js · src/user/features/candidates/components/mapUtils.js,구현,구역을 골랐고 그 칸에 민원 점이 있을 때 위 출처 줄 자리에 보인다 (정의서 수정안 261025)
 US-01,점검 후보 > 후보 목록,기본,1-5,지도,,3,도움말,%보행 문제 유형% %건수%건%근처 위치 표시%,,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapPoints.js · src/user/features/candidates/components/mapUtils.js,구현,
 US-01,점검 후보 > 후보 목록,기본,1-5,지도,,4,버튼,범례 ˅,,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapPoints.js · src/user/features/candidates/components/mapUtils.js,구현,
 US-01,점검 후보 > 후보 목록,기본,1-5,지도,수정·중원·분당구 (구 도로관리팀),1,지도 범례,점검 필요도 상위 %상위 구간 기준% · %중간 구간 기준% · 나머지 · 평가하지 못함,,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapPoints.js · src/user/features/candidates/components/mapUtils.js,구현,
@@ -182,7 +183,8 @@ US-01,점검 후보 > 후보 목록,기본,1-5,지도,,1-2,지도 범례,● 민
 US-01,점검 후보 > 후보 목록,기본,1-5,지도,,1-3,지도 범례,숫자 원: 가까운 민원 묶음 (숫자는 건수),제안,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapPoints.js · src/user/features/candidates/components/mapUtils.js,구현,"정의서 수정안 (작업파일/261025 지도_민원점_수정안, ISS-038). 묶음이 있을 때만 보인다"
 US-01,점검 후보 > 후보 목록,기본,1-5,지도,,1-4,안내 문구,이 칸에는 민원 점이 많아 가까운 점을 묶어 보입니다. 숫자는 민원 건수이고 지도를 확대하면 나뉩니다.,제안,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapPoints.js · src/user/features/candidates/components/mapUtils.js,구현,정의서 수정안 (ISS-038). 민원 점이 300개를 넘을 때 (가정값)
 US-01,점검 후보 > 후보 목록,기본,1-5,지도,,1-5,도움말,민원 %묶음 건수%건 · 원본 좌표 %원본 건수%건 · 근처 위치 %근처 건수%건,제안,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapPoints.js · src/user/features/candidates/components/mapUtils.js,구현,정의서 수정안 (ISS-038). 묶음에 마우스를 올리거나 포커스가 올 때
-US-01,점검 후보 > 후보 목록,기본,1-5,지도,,2,안내 문구,"지도 자료: 국토지리정보원 수치지형도 (1:5,000, 2025) · 주소 좌표: 국토교통부 브이월드",,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapPoints.js · src/user/features/candidates/components/mapUtils.js,구현,
+US-01,점검 후보 > 후보 목록,기본,1-5,지도,,2,안내 문구,"지도 자료: 국토지리정보원 수치지형도 (1:5,000, 2025)",제안,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapPoints.js · src/user/features/candidates/components/mapUtils.js,구현,"정의서 v0.5.3 문구는 ""· 주소 좌표: 국토교통부 브이월드""까지 한 줄. 사용자 결정(261025)으로 구역을 고르면 이 줄이 ""주소 좌표: 국토교통부 브이월드""로 바뀐다(제안)"
+US-01,점검 후보 > 후보 목록,기본,1-5,지도,,2-2,안내 문구,주소 좌표: 국토교통부 브이월드,제안,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapPoints.js · src/user/features/candidates/components/mapUtils.js,구현,구역을 골랐고 그 칸에 민원 점이 있을 때 위 출처 줄 자리에 보인다 (정의서 수정안 261025)
 US-01,점검 후보 > 후보 목록,기본,1-5,지도,,3,도움말,%보행 문제 유형% %건수%건%근처 위치 표시%,,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapPoints.js · src/user/features/candidates/components/mapUtils.js,구현,
 US-01,점검 후보 > 후보 목록,기본,1-5,지도,,4,버튼,범례 ˅,,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapPoints.js · src/user/features/candidates/components/mapUtils.js,구현,
 US-01,점검 후보 > 후보 목록,기본,1-6,평가하지 못한 구역,성남시 (시 도로과),1,소제목,평가하지 못한 구역 (%평가하지 못한 구역 수%곳),제안,src/user/features/candidates/components/UnratedPanel.jsx,구현 (제안),
@@ -460,12 +462,12 @@ US-10,기준정보 > 승인 대기,기본,1-2,제안 비교와 승인,,7,오류 
 US-10,기준정보 > 승인 대기,기본,1-2,제안 비교와 승인,수정·중원·분당구 (구 도로관리팀),-,-,-,,src/user/features/reference/pages/ApprovalsPage.jsx,구현,
 US-11,기준정보 > 분류 검수,기본,0-1,화면 머리,성남시 (시 도로과),-,-,-,제안,src/user/features/reference/pages/ClassificationPage.jsx,구현 (제안),
 US-11,기준정보 > 분류 검수,기본,0-1,화면 머리,수정·중원·분당구 (구 도로관리팀),1,타이틀,분류 검수,,src/user/features/reference/pages/ClassificationPage.jsx,구현,
-US-11,기준정보 > 분류 검수,기본,0-1,화면 머리,,2,서브 타이틀,AI가 나눈 민원 분류 가운데 일부입니다. 맞는지 확인하고 틀리면 고쳐 주세요.,,src/user/features/reference/pages/ClassificationPage.jsx,구현,
+US-11,기준정보 > 분류 검수,기본,0-1,화면 머리,,2,서브 타이틀,AI가 나눈 민원 분류 가운데 일부입니다. 맞는지 확인해 주세요.,제안,src/user/features/reference/pages/ClassificationPage.jsx,구현,"정의서 v0.5.3은 ""…확인하고 틀리면 고쳐 주세요."" 사용자 결정(261025): 도로관리팀은 확인만 하고 고치기는 어드민 AD-05에서 한다 (제안)"
 US-11,기준정보 > 분류 검수,기본,1-1,분류 표본,성남시 (시 도로과),-,-,-,가정 (ISS-016),src/user/features/reference/pages/ClassificationPage.jsx,구현 (가정),
 US-11,기준정보 > 분류 검수,기본,1-1,분류 표본,수정·중원·분당구 (구 도로관리팀),1,표 열 머리,민원 요약 · 분류 · 판단 근거,,src/user/features/reference/pages/ClassificationPage.jsx,구현,
 US-11,기준정보 > 분류 검수,기본,1-1,분류 표본,,2,표 행,%본문 요약% · %분류 결과% · %판단 근거 낱말%,,src/user/features/reference/pages/ClassificationPage.jsx,구현,
 US-11,기준정보 > 분류 검수,기본,1-1,분류 표본,,3,버튼,분류 맞음,,src/user/features/reference/pages/ClassificationPage.jsx,구현,
-US-11,기준정보 > 분류 검수,기본,1-1,분류 표본,,4,버튼,분류 고치기,,src/user/features/reference/pages/ClassificationPage.jsx,구현,
+US-11,기준정보 > 분류 검수,기본,1-1,분류 표본,,4,버튼,분류 고치기,,src/user/features/reference/pages/ClassificationPage.jsx,제외 (제안),사용자 결정(261025): 사용자 화면 분류 검수는 확인만. 정의서 수정안 대기
 US-12,기준정보 > 데이터 목록,기본,0-1,화면 머리,성남시 (시 도로과),1,타이틀,데이터 목록,제안,src/user/features/reference/pages/DataListPage.jsx,구현 (제안),
 US-12,기준정보 > 데이터 목록,기본,0-1,화면 머리,,2,서브 타이틀,RADAR가 순위를 낼 때 쓰는 자료와 기준일입니다.,,src/user/features/reference/pages/DataListPage.jsx,구현,
 US-12,기준정보 > 데이터 목록,기본,0-1,화면 머리,수정·중원·분당구 (구 도로관리팀),1,타이틀,데이터 목록,,src/user/features/reference/pages/DataListPage.jsx,구현,
@@ -575,7 +577,7 @@ AD-03,데이터 > 업로드,기본,1-1,올리기 입력,,17,입력,%민원 접�
 AD-03,데이터 > 업로드,기본,1-1,올리기 입력,,18,버튼,파일 올리기,,src/admin/features/data/UploadPage.jsx,구현,가짜 검사 규칙: 파일 이름에 오류·error가 있으면 3건이 걸린다(개발 장치). 받은 곳은 파일/시 내부 자료 두 가지만 고르게 했다(API는 올리지 않는다).
 AD-03,데이터 > 업로드,기본,1-1,올리기 입력,,19,오류 문구,출처와 기준일을 적어야 올릴 수 있습니다.,,src/admin/features/data/UploadPage.jsx,구현,가짜 검사 규칙: 파일 이름에 오류·error가 있으면 3건이 걸린다(개발 장치). 받은 곳은 파일/시 내부 자료 두 가지만 고르게 했다(API는 올리지 않는다).
 AD-03,데이터 > 업로드,기본,1-1,올리기 입력,,20,오류 문구,올릴 수 없는 형식입니다. %올릴 수 있는 형식% 파일을 골라 주세요.,,src/admin/features/data/UploadPage.jsx,구현,가짜 검사 규칙: 파일 이름에 오류·error가 있으면 3건이 걸린다(개발 장치). 받은 곳은 파일/시 내부 자료 두 가지만 고르게 했다(API는 올리지 않는다).
-AD-03,데이터 > 업로드,기본,1-1,올리기 입력,,21,완료 문구,%데이터 이름% 파일을 올렸습니다. 검사 결과를 확인해 주세요.,,src/admin/features/data/UploadPage.jsx,구현,가짜 검사 규칙: 파일 이름에 오류·error가 있으면 3건이 걸린다(개발 장치). 받은 곳은 파일/시 내부 자료 두 가지만 고르게 했다(API는 올리지 않는다).
+AD-03,데이터 > 업로드,기본,1-1,올리기 입력,,21,완료 문구,%데이터 이름% 파일을 올렸습니다. 검사 결과를 확인해 주세요.,,src/admin/features/data/UploadPage.jsx,구현,"가짜 검사 규칙: 파일 이름에 오류·error가 있으면 3건이 걸린다(개발 장치). 받은 곳은 파일/시 내부 자료 두 가지만 고르게 했다(API는 올리지 않는다). 민원 파일은 ""민원 N건을 올렸습니다. 새로 N건, 이미 있던 N건, 값이 바뀐 N건입니다.""로 보인다. 올리는 동안 ""올리는 중입니다. 끝날 때까지 이 창을 닫지 마세요.""를 보이고 입력을 잠근다 (제안, R-05·R-07)"
 AD-03,데이터 > 업로드,기본,1-1,올리기 입력,,22,버튼,검사 결과 보기,,src/admin/features/data/UploadPage.jsx,구현,가짜 검사 규칙: 파일 이름에 오류·error가 있으면 3건이 걸린다(개발 장치). 받은 곳은 파일/시 내부 자료 두 가지만 고르게 했다(API는 올리지 않는다).
 AD-03,데이터 > 업로드,기본,2-1,올린 기록,RADAR 운영자,1,소제목,올린 기록,확정,src/admin/features/data/UploadPage.jsx,구현,
 AD-03,데이터 > 업로드,기본,2-1,올린 기록,,2,표 열 머리,올린 날 · 올린 운영자 · 데이터 · 기준일 · 출처 · 검사 결과,,src/admin/features/data/UploadPage.jsx,구현,
@@ -592,7 +594,7 @@ AD-04,데이터 > 검사 결과,기본,1-1,검사 결과 표,,6,표 행,%데이�
 AD-04,데이터 > 검사 결과,기본,1-1,검사 결과 표,,7,버튼,고쳐서 다시 올리기,,src/admin/features/data/ChecksPage.jsx,구현,
 AD-04,데이터 > 검사 결과,기본,1-1,검사 결과 표,,8,빈 화면 문구,검사에서 걸린 자료가 없습니다.,,src/admin/features/data/ChecksPage.jsx,구현,
 AD-04,데이터 > 검사 결과,위치 미확인,1-2,민원 위치 확인,RADAR 운영자,1,숫자,민원 위치 낮음 %위치 낮음 건수%건 · 상위 %비교 칸 수%칸 순위 변화 %바뀐 칸 수%칸,제안,src/admin/features/data/ChecksPage.jsx,구현 (제안),낮음 민원 목록의 열 이름은 명세에 없어 검사 결과 표와 같게 했다.
-AD-04,데이터 > 검사 결과,위치 미확인,1-2,민원 위치 확인,,2,안내 문구,위치가 낮음인 민원은 격자 민원 수에서 뺐습니다. 뺀 경우와 넣은 경우의 상위 순위를 비교한 결과입니다.,,src/admin/features/data/ChecksPage.jsx,구현,낮음 민원 목록의 열 이름은 명세에 없어 검사 결과 표와 같게 했다.
+AD-04,데이터 > 검사 결과,위치 미확인,1-2,민원 위치 확인,,2,안내 문구,위치가 낮음인 민원은 격자 민원 수에서 뺐습니다. 뺀 경우와 넣은 경우의 상위 순위를 비교한 결과입니다.,제안,src/admin/features/data/ChecksPage.jsx,구현,"정의서 행102 문구는 구버전(ISS-033 이전). 프론트는 행101·ISS-033에 맞춰 ""넣었습니다""로 고침 (정의서 수정 대기)"
 AD-05,데이터 > 분류 검수,기본,0-1,화면 머리,RADAR 운영자,1,타이틀,분류 검수,제안,src/admin/features/data/ClassifyPage.jsx,구현 (제안),
 AD-05,데이터 > 분류 검수,기본,0-1,화면 머리,,2,서브 타이틀,"AI가 나눈 민원 분류 가운데 일부를 확인하고, 틀리면 고칩니다.",,src/admin/features/data/ClassifyPage.jsx,구현,
 AD-05,데이터 > 분류 검수,기본,1-1,분류 표본,RADAR 운영자,1,표 열 머리,민원 요약 · 관련 여부 · 유형 · 판단 근거 · 신뢰도,가정 (ISS-016),src/admin/features/data/ClassifyPage.jsx,구현 (가정),"고치기 창의 버튼 이름 ""고친 분류 반영하기""는 명세에 없어 지었다. 원문 보기 링크는 확장 단계라 보이지 않는다."

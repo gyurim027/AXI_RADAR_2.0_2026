@@ -39,6 +39,9 @@ export const UPLOAD = {
   errorSourceBasis: '출처와 기준일을 적어야 올릴 수 있습니다.',
   errorFormat: (formats) => `올릴 수 없는 형식입니다. ${formats} 파일을 골라 주세요.`,
   done: (name) => `${name} 파일을 올렸습니다. 검사 결과를 확인해 주세요.`,
+  // 민원 파일은 적재 건수를 함께 보인다 (제안, 작업파일 261024 프론트_수정_보완_정리 R-05)
+  doneComplaint: (c) => `민원 ${c.rows.toLocaleString('ko-KR')}건을 올렸습니다. 새로 ${c.new.toLocaleString('ko-KR')}건, 이미 있던 ${c.existing.toLocaleString('ko-KR')}건, 값이 바뀐 ${c.updated.toLocaleString('ko-KR')}건입니다.`,
+  busy: '올리는 중입니다. 끝날 때까지 이 창을 닫지 마세요.', // 제안 (R-07)
   goChecks: '검사 결과 보기',
   recordsTitle: '올린 기록',
   recordsHead: ['올린 날', '올린 운영자', '데이터', '기준일', '출처', '검사 결과'],
@@ -57,7 +60,7 @@ export const CHECKS = {
   empty: '검사에서 걸린 자료가 없습니다.',
   lowBefore: '민원 위치 낮음 ',
   lowAfter: (cells, changed) => `건 · 상위 ${cells}칸 순위 변화 ${changed}칸`,
-  lowNote: '위치가 낮음인 민원은 격자 민원 수에서 뺐습니다. 뺀 경우와 넣은 경우의 상위 순위를 비교한 결과입니다.',
+  lowNote: '위치가 낮음인 민원도 격자 민원 수에 넣었습니다. 뺀 경우와 넣은 경우의 상위 순위를 비교한 결과입니다.', // 정의서 10_3 행101·ISS-033 기준 (행102 문구는 정의서 수정 대기)
   lowTitle: '위치 낮음 민원',
   lowClose: '위치 낮음 민원 창 닫기',
   failedArea: '검사 결과',

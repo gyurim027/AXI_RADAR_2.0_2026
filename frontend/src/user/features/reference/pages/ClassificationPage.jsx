@@ -7,11 +7,9 @@ import Button from '../../../components/Button.jsx';
 import DataTable from '../../../components/DataTable.jsx';
 import PageHeader from '../../../components/PageHeader.jsx';
 import Tag from '../../../components/Tag.jsx';
-import { SelectField } from '../../../components/FormControls.jsx';
 import { ErrorState, SkeletonRows } from '../../../components/States.jsx';
 import { COMMON } from '../../../../shared/copy/common.js';
 import { CLASSIFY } from '../copy.js';
-import { useState } from 'react';
 import styles from './Reference.module.css';
 
 /** US-11 분류 검수 (도로관리팀, 조건부). 원문은 보이지 않고 가린 요약만 보인다 (공통 규칙 15번). */
@@ -19,20 +17,18 @@ export default function ClassificationPage() {
   const { user } = useAuth();
   const { run } = useRun();
   const { data, failed, loading, showSkeleton, reload } = useAsync(() => listClassifySamples({ runId: run.id }), [run.id, user.id]);
-  const [fixingId, setFixingId] = useState(null);
-
   // 민원 자료가 없는 회차에는 이 화면을 쓰지 않는다 (메뉴도 숨긴다)
   if (data && !data.available) return <Navigate to="/candidates" replace />;
 
-  const save = async (id, result, label) => {
-    await markClassify({ id, result, label });
-    setFixingId(null);
+  // 도로관리팀은 분류가 맞는지 확인만 한다. 고치는 일은 RADAR 운영자(AD-05)가 한다.
+  const confirm = async (id) => {
+    await markClassify({ id, result: '맞음', label: null });
     reload();
   };
 
   const columns = [
     { key: 'summary', header: CLASSIFY.head[0], width: 340, render: (r) => r.summary },
-    { key: 'label', header: CLASSIFY.head[1], width: 200, render: (r) => (r.done?.label ? r.done.label : r.label) },
+    { key: 'label', header: CLASSIFY.head[1], width: 200, render: (r) => r.label },
     { key: 'kw', header: CLASSIFY.head[2], width: 160, render: (r) => r.keywords },
     {
       key: 'act',
@@ -40,28 +36,11 @@ export default function ClassificationPage() {
       align: 'right',
       render: (r) => {
         if (user.readOnly && !r.done) return null; // 보기 전용에서는 확인 버튼을 숨긴다
-        if (r.done) return <Tag tone={r.done.result === '맞음' ? 'low' : 'info'} small>{r.done.result === '맞음' ? CLASSIFY.doneOk : CLASSIFY.doneFix}</Tag>;
-        if (fixingId === r.id) {
-          return (
-            <SelectField
-              inline={false}
-              label={CLASSIFY.fixLabel}
-              id={`fix-${r.id}`}
-              value={r.label}
-              onChange={(v) => save(r.id, '고침', v)}
-              options={data.labels}
-            />
-          );
-        }
+        if (r.done) return <Tag tone="low" small>{CLASSIFY.doneOk}</Tag>;
         return (
-          <span className={styles.rowBtns}>
-            <Button variant="soft" onClick={() => save(r.id, '맞음', null)}>
-              {CLASSIFY.ok}
-            </Button>
-            <Button variant="soft" onClick={() => setFixingId(r.id)}>
-              {CLASSIFY.fix}
-            </Button>
-          </span>
+          <Button variant="soft" onClick={() => confirm(r.id)}>
+            {CLASSIFY.ok}
+          </Button>
         );
       },
     },

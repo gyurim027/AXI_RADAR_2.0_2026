@@ -741,6 +741,8 @@ export function listClassifySamples({ runId }) {
 export function markClassify({ id, result, label }) {
   const user = requireUser();
   if (user.readOnly || user.role !== ROLE.DISTRICT) throw new ApiError('forbidden', '할 수 없습니다.');
+  // 도로관리팀은 확인('맞음')만 한다. 고치는 일은 RADAR 운영자(AD-05)가 한다.
+  if (result !== '맞음') throw new ApiError('forbidden', '할 수 없습니다.');
   const s = getState();
   s.classify[id] = { result, label: label || null };
   saveState();

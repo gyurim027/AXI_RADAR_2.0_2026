@@ -22,13 +22,10 @@ export const APPROVAL = {
 export const CLASSIFY = {
   // US-11
   title: '분류 검수',
-  subtitle: 'AI가 나눈 민원 분류 가운데 일부입니다. 맞는지 확인하고 틀리면 고쳐 주세요.',
+  subtitle: 'AI가 나눈 민원 분류 가운데 일부입니다. 맞는지 확인해 주세요.', // 도로관리팀은 확인만 한다 (고치기는 어드민 AD-05, 제안)
   head: ['민원 요약', '분류', '판단 근거'],
   ok: '분류 맞음',
-  fix: '분류 고치기',
-  doneOk: '맞음', // 흐름 U-68 '맞음 / 고침'
-  doneFix: '고침',
-  fixLabel: '고칠 분류',
+  doneOk: '맞음',
 };
 
 export const DATA = {

@@ -86,3 +86,12 @@
   font-size: var(--a-fs-sm);
   color: var(--radar-admin-semantic-color-text-secondary);
 }
+
+/* 올리는 동안 입력을 잠그되 화면 배치는 그대로 둔다 (fieldset disabled) */
+.lock {
+  display: contents;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 import './CandidateMap.css';
 import Icon from '../../../components/Icon.jsx';
-import { COMMON, MAP_CREDIT } from '../../../../shared/copy/common.js';
+import { COMMON, MAP_COORD_CREDIT, MAP_CREDIT } from '../../../../shared/copy/common.js';
 import { LIST } from '../copy.js';
 import { addHatchPattern, mapColors, prefersReducedMotion, tierFill } from './mapUtils.js';
 import { CLUSTER_LIMIT, basisSummary, clusterIcon, clusterLabel, groupComplaintPoints, pointIcon, pointKind, pointLabel } from './mapPoints.js';
@@ -326,7 +326,7 @@ export default function CandidateMap({ items, unrated, boundaries, ownGu, select
           </button>
         )}
       </div>
-      <p className={styles.credit}>{MAP_CREDIT}</p>
+      <p className={styles.credit}>{selCell?.complaintPoints?.length ? MAP_COORD_CREDIT : MAP_CREDIT}</p>
     </div>
   );
 }

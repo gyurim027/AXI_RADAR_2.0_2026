@@ -13,7 +13,12 @@ export const getDashboard = mockCall('admin.getDashboard', (arg) => server.getDa
 export const listData = mockCall('admin.listData', (arg) => server.listData(arg));
 export const listUploadTargets = mockCall('admin.listUploadTargets', (arg) => server.listUploadTargets(arg));
 export const listUploads = mockCall('admin.listUploads', (arg) => server.listUploads(arg));
-export const uploadFile = mockCall('admin.uploadFile', (arg) => server.uploadFile(arg));
+const uploadCall = mockCall('admin.uploadFile', (arg) => server.uploadFile(arg));
+/** 민원 파일은 개인정보를 가리고 분류하느라 처리 시간이 길다 (목업에서도 조금 기다리게 한다) */
+export const uploadFile = async (arg) => {
+  if (arg?.dataId === 'DAT-07') await new Promise((resolve) => setTimeout(resolve, 1500));
+  return uploadCall(arg);
+};
 export const getChecks = mockCall('admin.getChecks', (arg) => server.getChecks(arg));
 export const listLowLocation = mockCall('admin.listLowLocation', (arg) => server.listLowLocation(arg));
 export const listClassify = mockCall('admin.listClassify', (arg) => server.listClassify(arg));
