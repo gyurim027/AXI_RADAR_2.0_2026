@@ -58,7 +58,7 @@ function columnsFor({ city, conditionMap }) {
         </span>
       ),
     },
-    { key: 'score', header: '점검 필요도', width: 112, sortable: true, align: 'right', render: (r) => <span className="num">{r.score}</span> },
+    { key: 'score', header: '점검 필요도', width: 112, sortable: true, align: 'right', render: (r) => <span className="num">{r.score}점</span> },
     {
       key: 'obstacle',
       header: '주요 보행 방해요소',
