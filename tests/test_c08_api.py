@@ -8,6 +8,7 @@ from app.api.c08_review_api import router
 from app.core import access_audit
 from app.core.auth import make_token
 from app.core.responses import CamelCaseMiddleware, install_error_handlers
+from app.services.c08.policy import PED_TYPES
 from app.services.c08.repository import get_repository
 
 
@@ -15,6 +16,7 @@ class FakeRepo:
     def __init__(self):
         self.reviews = []
         self.generated = []
+        self.scopes = []
 
     def run_scope(self, run_id):
         return {"run_id": run_id, "period_start": date(2026, 1, 1), "period_end": date(2026, 6, 30)} if run_id == 7 else None
@@ -23,12 +25,16 @@ class FakeRepo:
         return True
 
     def type_options(self):
-        return []
+        return list(PED_TYPES)
 
     def ensure_admin_samples(self, run_id):
         self.generated.append(run_id)
 
+    def ensure_district_samples(self, run_id):
+        self.generated.append(("구", run_id))
+
     def samples(self, run_id, scope, gu):
+        self.scopes.append(scope)
         return [{"sample_id": 11, "gu": "수정구", "sample_group": "AI 판단",
                  "masked_summary": "가린 민원 요약", "relevance": "보행안전 관련", "ped_type": None,
                  "class_reason": "보행 공간에 차가 있습니다.", "class_confidence": 0.8,
@@ -90,12 +96,13 @@ def test_old_upload_filter_is_rejected_instead_of_ignored():
 def test_district_scope_and_city_rejection():
     c, repo = client()
     own = c.get("/api/c08/samples?runId=7&gu=수정구", headers=header("district", "수정구"))
-    assert own.status_code == 200 and own.json()["items"] == []
-    assert own.json()["labels"] == []
+    assert own.status_code == 200 and len(own.json()["items"]) == 1
+    assert own.json()["labels"] == list(PED_TYPES) and own.json()["types"] is None
+    assert repo.scopes == ["유형"]
     assert c.get("/api/c08/samples?runId=7&gu=분당구", headers=header("district", "수정구")).status_code == 403
     assert c.get("/api/c08/samples?runId=7", headers=header("city")).status_code == 403
     assert c.get("/api/c08/accuracy?runId=7", headers=header("district", "수정구")).status_code == 403
-    assert repo.generated == [7]
+    assert repo.generated == [("구", 7)]               # 구 화면은 구 유형 표본(운영자 표본도 함께 고정)
 
 
 def test_review_rejects_district_relevance_and_accepts_operator_change():

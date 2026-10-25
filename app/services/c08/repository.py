@@ -6,10 +6,12 @@ from decimal import Decimal
 from app.core import db
 from app.core.auth import GU_LIST
 from app.core.responses import ApiError
-from app.services.c08.policy import LIMITS, choose_samples
+from app.services.c08.policy import LIMITS, PED_TYPES, TYPE_LIMITS, choose_samples, sample_group, type_group
 
 ADMIN = "전체 분류"
 DISTRICT = "유형"
+# 범위별: 77의 완료 시각 칸, 층별 표본 수, 층 정하는 규칙
+SCOPES = {ADMIN: ("admin_sampled_at", LIMITS, sample_group), DISTRICT: ("district_sampled_at", TYPE_LIMITS, type_group)}
 
 
 class C08Repository:
@@ -29,26 +31,34 @@ class C08Repository:
         return bool(db.read_only(sql + " LIMIT 1", args))
 
     def type_options(self) -> list[str]:
-        # ISS-016 미확정. 분류 결과의 기존 ped_type 값은 승인된 선택지 목록이 아니다.
-        return []
+        return list(PED_TYPES)
 
     def ensure_admin_samples(self, run_id: int) -> None:
+        self._ensure_samples(run_id, ADMIN)
+
+    def ensure_district_samples(self, run_id: int) -> None:
+        """구 유형 표본. 운영자 표본을 먼저 고정하고, 운영자 표본에 든 민원은 뽑지 않는다(한 민원을 두 화면에서 고치지 않게)."""
+        self._ensure_samples(run_id, ADMIN)
+        self._ensure_samples(run_id, DISTRICT)
+
+    def _ensure_samples(self, run_id: int, scope: str) -> None:
         """첫 조회 때 전체 구를 한 거래에서 뽑는다. 0건이어도 완료 시각을 남긴다."""
+        mark, limits, group_of = SCOPES[scope]
         with db.connect() as con:
             with con.cursor() as cur:
-                cur.execute("SELECT period_start, period_end, admin_sampled_at FROM priority_run "
+                cur.execute(f"SELECT period_start, period_end, {mark} FROM priority_run "
                             "WHERE run_id = %s FOR UPDATE", (run_id,))
                 run = cur.fetchone()
                 if not run or not run["period_start"] or not run["period_end"]:
                     raise ApiError(503, "run_scope_missing", "회차의 민원 자료 기간이 아직 정해지지 않았습니다")
-                if run["admin_sampled_at"] is not None:
+                if run[mark] is not None:
                     return
                 if run["period_start"] > run["period_end"]:
                     raise ApiError(503, "invalid_run_period", "회차의 민원 자료 기간이 잘못되었습니다")
                 marks = ", ".join(["%s"] * len(GU_LIST))
                 cur.execute(
                     "SELECT complaint_id, gu, received_date, masked_summary, relevance, ped_type, "
-                    "class_method, class_confidence, class_reason FROM src_complaint "
+                    "class_method, class_confidence, class_reason, report_type_raw FROM src_complaint "
                     "WHERE received_date BETWEEN %s AND %s AND gu IN (" + marks + ") "
                     "AND masked_summary IS NOT NULL AND TRIM(masked_summary) <> '' "
                     "AND relevance IN ('보행안전 관련', '비관련', '불명') "
@@ -58,9 +68,14 @@ class C08Repository:
                 buckets = {gu: [] for gu in GU_LIST}
                 for row in cur.fetchall():
                     buckets[row["gu"]].append(row)
+                skip = frozenset()
+                if scope == DISTRICT:
+                    cur.execute("SELECT complaint_id FROM complaint_review WHERE run_id = %s AND review_scope = %s",
+                                (run_id, ADMIN))
+                    skip = frozenset(r["complaint_id"] for r in cur.fetchall())
                 for gu in GU_LIST:
-                    picked, counts = choose_samples(buckets[gu], run_id)
-                    for group in LIMITS:
+                    picked, counts = choose_samples(buckets[gu], run_id, limits, group_of, skip)
+                    for group in limits:
                         for item in picked[group]:
                             cur.execute(
                                 "INSERT INTO complaint_review "
@@ -68,12 +83,12 @@ class C08Repository:
                                 "sample_received_date, sample_masked_summary, sample_relevance, sample_ped_type, "
                                 "sample_class_method, sample_class_confidence, sample_class_reason) "
                                 "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
-                                (run_id, item["complaint_id"], gu, ADMIN, group, counts[group],
+                                (run_id, item["complaint_id"], gu, scope, group, counts[group],
                                  item["received_date"], item["masked_summary"], item["relevance"],
                                  item["ped_type"], item["class_method"], item["class_confidence"],
                                  item["class_reason"]),
                             )
-                cur.execute("UPDATE priority_run SET admin_sampled_at = NOW() WHERE run_id = %s", (run_id,))
+                cur.execute(f"UPDATE priority_run SET {mark} = NOW() WHERE run_id = %s", (run_id,))
             con.commit()
 
     def samples(self, run_id: int, scope: str, gu: str | None) -> list[dict]:

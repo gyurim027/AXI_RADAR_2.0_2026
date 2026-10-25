@@ -42,3 +42,15 @@ def test_human_unknown_and_unattributed_rows_are_not_system_samples():
     chosen, counts = choose_samples(rows, 7)
     assert counts == {"AI 판단": 0, "불명": 1, "규칙 판단": 0}
     assert [r["complaint_id"] for r in chosen["불명"]] == ["C"]
+
+
+def test_ped_types_follow_iss016():
+    from app.services.c08.policy import PED_TYPES
+    from app.services.c08.repository import C08Repository
+    assert C08Repository().type_options() == list(PED_TYPES)
+    assert len(PED_TYPES) == 9
+    try:
+        from app.services.ai01.ptype import TYPES
+    except ImportError:          # AI-01 유형 단계가 아직 없는 브랜치
+        return
+    assert TYPES == PED_TYPES
