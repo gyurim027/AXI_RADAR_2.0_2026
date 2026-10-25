@@ -1,5 +1,6 @@
 import { Fragment } from 'react';
 import Icon from '../../user/components/Icon.jsx';
+import { useDensity } from '../utils/density.js';
 import styles from './DataTable.module.css';
 
 /**
@@ -7,7 +8,7 @@ import styles from './DataTable.module.css';
  * columns: { key, header, align('left'|'right'), width, render(row), first(첫 열: 500 굵기), nowrap }
  * expandedKey / renderExpanded: 행을 누르면 그 행 아래에 칸이 열린다.
  * maxHeight: 긴 표는 안에서 스크롤하고 머리 줄을 고정한다.
- * compact: 조밀(행 40px, 글자 14px)
+ * compact: 조밀(행 40px, 글자 14px). 정하지 않으면 화면 위의 '표 밀도' 선택을 따른다(촘촘히가 기본).
  */
 export default function DataTable({
   caption,
@@ -20,11 +21,13 @@ export default function DataTable({
   canExpand,
   rowLabel,
   maxHeight,
-  compact = false,
+  compact,
   emptyContent,
   footer,
   selectedKey,
 }) {
+  const density = useDensity();
+  const dense = compact ?? density === 'compact';
   const expandable = typeof renderExpanded === 'function';
   const clickable = !!onRowClick;
   // 열 폭이 모두 정해져 있으면 그 합보다 좁아지지 않게 하고, 모자라면 가로로 스크롤한다 (열을 숨기지 않는다)
@@ -32,7 +35,7 @@ export default function DataTable({
   return (
     <div className={styles.wrap}>
       <div className={styles.scroll} style={maxHeight ? { maxHeight } : undefined} tabIndex={0} role="region" aria-label={caption}>
-        <table className={`${styles.table} ${compact ? styles.compact : ''}`} style={total ? { minWidth: total } : undefined}>
+        <table className={`${styles.table} ${dense ? styles.compact : ''}`} style={total ? { minWidth: total } : undefined}>
           {caption ? <caption className="sr-only">{caption}</caption> : null}
           <thead>
             <tr>

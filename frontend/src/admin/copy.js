@@ -4,6 +4,8 @@ export const ADMIN_COPY = {
   skip: '본문 바로가기',
   mainMenuLabel: '주 메뉴',
   sectionMenuLabel: '화면 메뉴',
+  density: { label: '표 밀도', normal: '기본', compact: '촘촘히' },
+  runIndependent: '이 화면은 회차와 상관없이 같은 내용을 보여 줍니다.',
 
   // AD-00 0-1 메뉴 (10_1_메뉴구조의 1Depth)와 아래 화면들
   menu: [
@@ -77,7 +79,7 @@ export const ADMIN_COPY = {
   },
 
   // 저장·요청이 실패했을 때 (공통 규칙 12번 말투)
-  actionFailed: '처리하지 못했습니다. 잠시 뒤 다시 해 주세요. 계속 안 되면 개발 담당에게 알려 주세요.',
+  actionFailed: '처리하지 못했습니다. 잠시 후 다시 시도해 주세요. 계속 실패하면 개발 담당자에게 알려 주세요.', // K-24
 
   noValue: '-',
 };

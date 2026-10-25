@@ -90,3 +90,13 @@
   color: var(--radar-admin-semantic-color-text-link);
   text-underline-offset: 3px;
 }
+
+.statusCell {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--a-s2);
+}
+.stage {
+  font-size: var(--a-fs-sm);
+  color: var(--radar-admin-semantic-color-text-secondary);
+}

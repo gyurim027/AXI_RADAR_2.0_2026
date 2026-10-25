@@ -117,23 +117,27 @@ function UploadForm({ targets, preset, onUploaded }) {
         <FileInput key={done ? 'done' : 'form'} label={UPLOAD.file} fileName={file?.name} onChange={setFile} help={UPLOAD.fileHelp(FORMAT_TEXT)} error={errors.format ? UPLOAD.errorFormat(FORMAT_TEXT) : null} required />
         <TextInput label={UPLOAD.source} value={source} onChange={setSource} placeholder={UPLOAD.sourcePlaceholder} error={errors.sourceBasis && !source.trim() ? UPLOAD.errorSourceBasis : null} required />
         <TextInput label={UPLOAD.basis} type="date" value={basis} onChange={setBasis} help={UPLOAD.basisHelp} error={errors.sourceBasis && !basis.trim() ? UPLOAD.errorSourceBasis : null} required />
-        <SelectInput label={UPLOAD.received} value={received} onChange={setReceived} options={RECEIVED} />
-        <SelectInput label={UPLOAD.official} value={official} onChange={setOfficial} options={OFFICIAL} />
+        <SelectInput label={UPLOAD.received} value={received} onChange={setReceived} options={RECEIVED} help={UPLOAD.receivedHelp} />
+        <SelectInput label={UPLOAD.official} value={official} onChange={setOfficial} options={OFFICIAL} help={UPLOAD.officialHelp} />
         {item.complaint ? <TextInput label={UPLOAD.period} value={period} onChange={setPeriod} /> : null}
-        {busy ? (
-          <Banner tone="info" role="status">
-            {UPLOAD.busy}
-          </Banner>
+        {busy || done ? (
+          <div className={styles.full}>
+            {busy ? (
+              <Banner tone="info" role="status">
+                {UPLOAD.busy}
+              </Banner>
+            ) : null}
+            {done ? (
+              <Banner tone="success">
+                {done.counts ? UPLOAD.doneComplaint(done.counts) : UPLOAD.done(done.name)}{' '}
+                <Link to="/admin/data/checks" className={styles.link}>
+                  {UPLOAD.goChecks}
+                </Link>
+              </Banner>
+            ) : null}
+          </div>
         ) : null}
-        {done ? (
-          <Banner tone="success">
-            {done.counts ? UPLOAD.doneComplaint(done.counts) : UPLOAD.done(done.name)}{' '}
-            <Link to="/admin/data/checks" className={styles.link}>
-              {UPLOAD.goChecks}
-            </Link>
-          </Banner>
-        ) : null}
-        <div className={styles.formActions}>
+        <div className={`${styles.formActions} ${styles.full}`}>
           <Button type="submit" variant="primary" loading={busy}>
             {UPLOAD.submit}
           </Button>

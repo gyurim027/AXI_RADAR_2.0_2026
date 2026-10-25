@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 import './CandidateMap.css';
 import Icon from '../../../components/Icon.jsx';
+import { InfoHelp } from '../../../components/FormControls.jsx';
 import { COMMON, MAP_COORD_CREDIT, MAP_CREDIT } from '../../../../shared/copy/common.js';
 import { LIST } from '../copy.js';
 import { addHatchPattern, mapColors, prefersReducedMotion, tierFill } from './mapUtils.js';
@@ -315,7 +316,10 @@ export default function CandidateMap({ items, unrated, boundaries, ownGu, select
             {selCell ? (
               <div className={styles.legendBasis}>
                 <p>{LIST.legendBasis(basisSummary(selCell))}</p>
-                <p aria-label={LIST.legendShapesLabel}>{LIST.legendShapes}</p>
+                <p aria-label={LIST.legendShapesLabel}>
+                  {LIST.legendShapes}
+                  <InfoHelp label={LIST.evidenceHelpLabel}>{LIST.evidenceHelp}</InfoHelp>
+                </p>
                 {clustered ? <p>{LIST.legendCluster}</p> : null}
               </div>
             ) : null}

@@ -68,7 +68,7 @@ export function InfoHelp({ label = '도움말 보기', children, align = 'left' 
   const id = useId();
   return (
     <span className={styles.help}>
-      <button type="button" className={styles.helpBtn} aria-expanded={open} aria-controls={id} aria-label={label} onClick={() => setOpen((v) => !v)}>
+      <button type="button" className={styles.helpBtn} aria-expanded={open} aria-controls={id} aria-label={label} title={label} onClick={() => setOpen((v) => !v)}>
         <Icon name="info" size={18} />
       </button>
       {open ? (

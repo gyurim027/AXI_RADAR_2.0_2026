@@ -42,25 +42,26 @@ export default function ClassifyPage() {
             <DataTable
               caption={CLASSIFY.title}
               columns={[
-                { key: 'summary', header: CLASSIFY.head[0], first: true },
-                { key: 'relevance', header: CLASSIFY.head[1], nowrap: true },
-                { key: 'label', header: CLASSIFY.head[2], render: (r) => r.label || '-' },
-                { key: 'keywords', header: CLASSIFY.head[3] },
-                { key: 'confidence', header: CLASSIFY.head[4], align: 'right', render: (r) => CLASSIFY.confidence(r.confidence) },
+                { key: 'summary', header: CLASSIFY.head[0], first: true, width: 300 },
+                { key: 'relevance', header: CLASSIFY.head[1], nowrap: true, width: 110 },
+                { key: 'label', header: CLASSIFY.head[2], nowrap: true, width: 90, render: (r) => r.label || '-' },
+                { key: 'keywords', header: CLASSIFY.head[3], width: 320 },
+                { key: 'confidence', header: CLASSIFY.head[4], align: 'right', width: 110, render: (r) => CLASSIFY.confidence(r.confidence) },
                 {
                   key: 'action',
                   header: <span className="sr-only">동작</span>,
                   align: 'right',
+                  width: 180,
                   render: (r) =>
                     r.done ? (
                       <Badge tone={r.done === '맞음' ? 'success' : 'info'}>{r.done === '맞음' ? CLASSIFY.doneOk : CLASSIFY.doneFix}</Badge>
                     ) : (
                       <span className={styles.rowBtns}>
                         <Button compact variant="secondary" loading={busyId === r.id} onClick={() => markOk(r)} aria-label={`${CLASSIFY.ok}: ${r.summary}`}>
-                          {CLASSIFY.ok}
+                          {CLASSIFY.okShort}
                         </Button>
                         <Button compact variant="secondary" onClick={() => setFixing(r)} aria-label={`${CLASSIFY.fix}: ${r.summary}`}>
-                          {CLASSIFY.fix}
+                          {CLASSIFY.fixShort}
                         </Button>
                       </span>
                     ),

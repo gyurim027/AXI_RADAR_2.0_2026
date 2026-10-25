@@ -6,6 +6,7 @@ import { runYear } from '../../../shared/utils/format.js';
 export const LIST = {
   title: '점검 후보', // US-01 0-1
   // 와이어프레임(261019): 제목 위에 범위를 작은 파란 글씨로 쓴다. 구 이름이 위로 올라가서 문구에서는 빠진다.
+  dataBasis: (year) => `${year}년 자료 기준`, // W-9, D-10
   eyebrow: (scope) => `성남시 ${scope}`,
   subtitleCity: '3개 구 점검 후보를 함께 봅니다. 우선 점검 대상은 각 구가 정합니다.',
   subtitleDistrict: '점검 후보를 보고 우선 점검 대상을 정해 주세요.',
@@ -13,7 +14,6 @@ export const LIST = {
   // 첫 화면 한 줄 안내 (UX 고도화 5-1 ①, 5-2 ①). 마감일은 DB에 칸이 없어 화면 코드에 둔다.
   guideDistrict: (n, deadline) => `결정 전 ${n}곳 · ${deadline ? `${deadline}까지 ` : ''}확정해 주세요.`,
   guideCity: (done, total) => `확정 현황: ${done}/${total}개 구`,
-  guideCityLabel: '3개 구 확정 현황 보기',
   topMark: '왼쪽 빨간 막대: 점검 필요도 상위 10% 후보',
 
   // 1 KPI 카드 = 표의 결정 상태 필터 (사용자 결정: 단위 '곳', 이름은 명세 용어)
@@ -70,6 +70,8 @@ export const LIST = {
   legendBasis: (summary) => `이 칸의 근거: ${summary}`,
   legendShapes: '● 민원 (앱 위치) · ○ 민원 (근처 위치) · ■ 다른 근거 지점',
   legendShapesLabel: '채운 원은 민원 앱 위치, 빈 원은 민원 근처 위치, 네모는 다른 근거 지점',
+  evidenceHelp: '이 구역의 점검 순위를 높이는 데 영향을 준 주요 지점입니다.', // W-13
+  evidenceHelpLabel: '근거 지점 뜻 보기',
   legendCluster: '숫자 원: 가까운 민원 묶음 (숫자는 건수)',
   clusterNote: '이 칸에는 민원 점이 많아 가까운 점을 묶어 보입니다. 숫자는 민원 건수이고 지도를 확대하면 나뉩니다.',
   mapLabel: '점검 후보 지도',

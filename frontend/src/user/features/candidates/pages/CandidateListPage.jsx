@@ -5,7 +5,7 @@ import { useAsync } from '../../../../shared/hooks/useAsync.js';
 import { useAuth } from '../../../../app/providers/AuthProvider.jsx';
 import { useRun } from '../../../../app/providers/RunProvider.jsx';
 import { ALL_GU, CONFIRM_DEADLINES, PAGE_SIZE, ROLE, RUN_STATUS } from '../../../../shared/constants.js';
-import { runYear } from '../../../../shared/utils/format.js';
+import { dataYear, runYear } from '../../../../shared/utils/format.js';
 import { COMMON } from '../../../../shared/copy/common.js';
 import PageHeader from '../../../components/PageHeader.jsx';
 import PageFooterNote from '../../../components/PageFooterNote.jsx';
@@ -158,7 +158,7 @@ function CandidateListPage() {
     const sts = guStatus.data.guStatuses;
     guide = (
       <p className={styles.guide}>
-        <button type="button" className={styles.guideBtn} aria-label={LIST.guideCityLabel} onClick={() => setConfirmOpen(true)}>
+        <button type="button" className={styles.guideBtn} onClick={() => setConfirmOpen(true)}>
           {LIST.guideCity(sts.filter((x) => x.done).length, sts.length)}
         </button>
       </p>
@@ -172,7 +172,7 @@ function CandidateListPage() {
     <div className={styles.split}>
       <div className={styles.left} ref={scrollRef}>
         <div className={styles.leftInner}>
-          <PageHeader compact eyebrow={LIST.eyebrow(scope)} title={LIST.title} subtitle={city ? LIST.subtitleCity : LIST.subtitleDistrict}>
+          <PageHeader compact eyebrow={`${LIST.eyebrow(scope)} · ${LIST.dataBasis(dataYear(run.dataRange))}`} title={LIST.title} subtitle={city ? LIST.subtitleCity : LIST.subtitleDistrict}>
             {guide}
           </PageHeader>
 

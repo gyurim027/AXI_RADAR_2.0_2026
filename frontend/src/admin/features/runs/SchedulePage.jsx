@@ -3,6 +3,7 @@ import { useAsync } from '../../../shared/hooks/useAsync.js';
 import DataTable from '../../components/DataTable.jsx';
 import Loadable from '../../components/Loadable.jsx';
 import PageHeader from '../../components/PageHeader.jsx';
+import { Banner } from '../../components/Panel.jsx';
 import { SCHEDULE } from './copy.js';
 
 /** AD-08 실행 일정 (유형 B, 조회 전용): 연 1회 산정과 반기 수집 일정. 자동 실행은 확장 단계라 일정만 보여 준다. */
@@ -11,6 +12,9 @@ export default function SchedulePage() {
   return (
     <div>
       <PageHeader title={SCHEDULE.title} subtitle={SCHEDULE.subtitle} />
+      <div style={{ marginBottom: 16 }}>
+        <Banner tone="info">{SCHEDULE.notice}</Banner>
+      </div>
       <Loadable state={state} areaName={SCHEDULE.failedArea} rows={3}>
         {(rows) => (
           <DataTable

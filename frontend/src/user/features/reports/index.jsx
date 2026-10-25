@@ -8,7 +8,7 @@ import HalfYearPage from './pages/HalfYearPage.jsx';
 
 // 보고서 5개. 역할에 없는 화면은 주소로 들어와도 열리지 않는다.
 const only = (roles, el) => <RequireRole roles={roles}>{el}</RequireRole>;
-const page = (title) => ({ title });
+const page = (title) => ({ title, reading: true }); // reading: 보고서·참고 자료는 본문 폭을 하나로 맞춘다 (U-8)
 
 export const reportRoutes = [
   { path: 'reports/annual', element: only([ROLE.DISTRICT], <AnnualReportPage />), handle: page('관할 부서별 점검 요청서') },

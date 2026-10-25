@@ -24,3 +24,29 @@
   color: var(--radar-admin-component-nav-tab-active-text);
   border-bottom-color: var(--radar-admin-component-nav-tab-indicator);
 }
+
+.density {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--a-s1);
+  margin-left: auto;
+  font-size: var(--a-fs-sm);
+}
+.densityLabel {
+  color: var(--radar-admin-semantic-color-text-secondary);
+  margin-right: var(--a-s1);
+}
+.densityBtn {
+  min-height: 28px;
+  padding: 0 var(--a-s2);
+  border: 1px solid var(--radar-admin-component-nav-border);
+  border-radius: var(--a-radius-control);
+  background: none;
+  color: var(--radar-admin-component-nav-tab-inactive-text);
+  font-size: var(--a-fs-sm);
+}
+.densityOn {
+  background: var(--radar-admin-semantic-color-bg-hover);
+  color: var(--radar-admin-component-nav-tab-active-text);
+  font-weight: var(--a-fw-medium);
+}

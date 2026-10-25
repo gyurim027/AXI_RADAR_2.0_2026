@@ -42,7 +42,17 @@ export default function RunListPage() {
   const columns = [
     { key: 'name', header: RUNS.head[0], first: true, nowrap: true },
     { key: 'kindLabel', header: RUNS.head[1], nowrap: true },
-    { key: 'status', header: RUNS.head[2], nowrap: true, render: (r) => <Badge tone={RUN_TONE[r.status]}>{r.status}</Badge> },
+    {
+      key: 'status',
+      header: RUNS.head[2],
+      nowrap: true,
+      render: (r) => (
+        <span className={styles.statusCell}>
+          <Badge tone={RUN_TONE[r.status]}>{r.status}</Badge>
+          {r.status === '산정 중' ? <span className={styles.stage}>{r.calcDone ? RUNS.stage.ready : r.ran ? RUNS.stage.running : RUNS.stage.before}</span> : null}
+        </span>
+      ),
+    },
     {
       key: 'version',
       header: RUNS.head[3],
@@ -67,7 +77,7 @@ export default function RunListPage() {
         if (r.status !== '산정 중') return null;
         if (r.calcDone) {
           return (
-            <Button compact variant="secondary" onClick={() => setOpening(r)} aria-label={`${r.name} ${RUNS.openRun}`}>
+            <Button compact variant="primary" onClick={() => setOpening(r)} aria-label={`${r.name} ${RUNS.openRun}`}>
               {RUNS.openRun}
             </Button>
           );
@@ -79,7 +89,7 @@ export default function RunListPage() {
               <Button compact variant="secondary" onClick={() => setFixing(r)} aria-label={`${r.name} ${RUNS.fixPeriod}`}>
                 {RUNS.fixPeriod}
               </Button>
-              <Button compact variant="secondary" loading={busyId === r.id} onClick={() => start(r)} aria-label={`${r.name} ${RUNS.startCalc}`}>
+              <Button compact variant="primary" loading={busyId === r.id} onClick={() => start(r)} aria-label={`${r.name} ${RUNS.startCalc}`}>
                 {RUNS.startCalc}
               </Button>
             </span>

@@ -76,3 +76,7 @@
   min-height: var(--a-size-compact);
   font-size: var(--a-fs-sm);
 }
+
+.runDim {
+  opacity: 0.55;
+}

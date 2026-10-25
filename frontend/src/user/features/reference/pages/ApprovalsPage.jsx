@@ -47,7 +47,7 @@ export default function ApprovalsPage() {
 
   const columns = [
     { key: 'name', header: APPROVAL.head[0], render: (p) => APPROVAL.proposalName(p.kind, p.version) },
-    { key: 'summary', header: APPROVAL.head[1], render: (p) => <>{p.summary}{p.pendingApply ? <p>승인됨 · 반영 상태 확인 필요</p> : null}</> },
+    { key: 'summary', header: APPROVAL.head[1], render: (p) => <>{p.summary}{p.impact ? <p>{APPROVAL.impact(p.impact.top, p.impact.changed)}</p> : null}{p.pendingApply ? <p>승인됨 · 반영 상태 확인 필요</p> : null}</> },
     { key: 'date', header: APPROVAL.head[2], render: (p) => <span className="num">{p.date}</span> },
   ];
 

@@ -9,8 +9,8 @@ import ActionsPage from './pages/ActionsPage.jsx';
 const only = (roles, el) => <RequireRole roles={roles}>{el}</RequireRole>;
 
 export const referenceRoutes = [
-  { path: 'reference/approvals', element: only([ROLE.CITY], <ApprovalsPage />), handle: { title: '승인 대기' } },
-  { path: 'reference/data', element: <DataListPage />, handle: { title: '데이터 목록' } },
-  { path: 'reference/regulations', element: <RegulationsPage />, handle: { title: '법령 및 규정' } },
-  { path: 'reference/actions', element: <ActionsPage />, handle: { title: '조치 제안' } },
+  { path: 'reference/approvals', element: only([ROLE.CITY], <ApprovalsPage />), handle: { title: '승인 대기', reading: true } },
+  { path: 'reference/data', element: <DataListPage />, handle: { title: '데이터 목록', reading: true } },
+  { path: 'reference/regulations', element: <RegulationsPage />, handle: { title: '법령 및 규정', reading: true } },
+  { path: 'reference/actions', element: <ActionsPage />, handle: { title: '조치 제안', reading: true } },
 ];

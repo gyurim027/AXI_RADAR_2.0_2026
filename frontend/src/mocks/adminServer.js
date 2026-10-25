@@ -816,12 +816,13 @@ export function recordAdminDownload({ name }) {
 }
 
 // ------------------------------------------------------------------ 승인 이력 (AD-14)
-export function listApprovals({ period = '올해' } = {}) {
+export function listApprovals({ period } = {}) {
   requireOperator();
-  const year = mockNow().getFullYear();
+  // 기간은 '2026년'처럼 해로 받는다. 비우면 올해, '전체'는 모두.
+  const wanted = /^\d{4}/.test(String(period || '')) ? Number(String(period).slice(0, 4)) : mockNow().getFullYear();
   return approvalRows().filter((r) => {
     const y = Number(String(r.at).slice(0, 4));
-    return period === '전체' || (period === '올해' ? y === year : y === year - 1);
+    return period === '전체' || y === wanted;
   });
 }
 
