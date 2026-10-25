@@ -32,7 +32,10 @@ uv run python -m scripts.ai05_build_embeddings              # 조각 약 3,400�
 uv run python -m scripts.ai05_build_embeddings --compare    # 만든 파일로 비교만
 ```
 - 비교: 색인 자체 평가(1등 정답 · 5등 안 정답 · 관계없는 질문 걸러냄)와 W05-06 20문항을 '낱말 검색만' / '낱말 + 임베딩'으로 각각 돌림. 자세한 결과는 `out/ai05/embed_compare_<날짜>.json`
-- **임베딩 쪽이 더 나쁘면 쓰지 않는다**: `data/ai05/embeddings.npy`·`embeddings_meta.json`을 지우면 낱말 검색만으로 돌아간다.
+- **기능정의서대로 임베딩을 쓰는 것이 기본이다.** 비교에서 임베딩 쪽 점수가 낱말 검색만보다 낮으면 아래 순서로 고친다.
+  1. 다른 임베딩 모델로 바꿔 다시 비교한다 (규림님 `llm_tasks.toml` `[tasks.ai05_embed]`의 model만 바꾸고 `ai05_build_embeddings`를 다시 돌림)
+  2. 섞는 방법을 조정한다: 임베딩 순위의 무게(`rag.LawIndex.EMB_W`), 섞을 후보 수(`POOL`), '못 찾음' 기준(`embed.SIM_MARGIN`) (AI-05 담당 은경)
+  3. 그래도 낮으면 결과를 이 문서에 남기고 팀과 정한다. 잠깐 끄려면 `data/ai05/embeddings.npy`·`embeddings_meta.json`을 지우면 낱말 검색만으로 돌아간다 (비상용)
 - `embeddings.*`는 저장소에 올리지 않는다(.gitignore). 조각(`chunks.jsonl`)이 바뀌면 지문이 달라져 옛 파일은 쓰지 않으니 다시 만든다.
 - 지금 쓰는 방식은 `/api/ai05/health`의 '검색 방식' 칸: `낱말 + 임베딩 (모델)` / `낱말 검색만 (이유)`
 

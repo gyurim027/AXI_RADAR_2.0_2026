@@ -106,6 +106,8 @@ class LawIndex:
         if getattr(self, '_tt', None) is None:
             self._tt = [set(tokens(c.get('article_title') or c.get('section') or '')) for c in self.C]
         return self._tt
+    EMB_W = 1.0          # 임베딩 순위 무게 (낱말 순위 = 1). 비교 결과가 낮으면 조정 (docs/ai05/embedding.md)
+    POOL = 200           # 낱말·임베딩 각각 위에서 몇 개까지 섞을지
     MIN_COVER = 0.4      # 희귀도 가중 포함률 기준. 2026-10-18 평가: 0.4에서 5등 안 정답 83% · 관계없는 질문 10/10 걸러냄 (evaluate.py)
 
     def search(self, query, k=5, include_future=False, law=None, min_score=None, min_cover=None):
@@ -128,10 +130,10 @@ class LawIndex:
         sim = self._query_sim(query)
         if sim is not None:                                       # 낱말(BM25) 순위 + 임베딩 순위 섞기(RRF, 순위만 씀)
             if law: sim = [v if i in keep else -1 for i, v in enumerate(sim)]
-            eo = sorted(range(len(sim)), key=lambda i: -sim[i])[:200]
+            eo = sorted(range(len(sim)), key=lambda i: -sim[i])[:self.POOL]
             rrf = {}
-            for r, i in enumerate(order[:200]): rrf[i] = rrf.get(i, 0) + 1 / (60 + r)
-            for r, i in enumerate(eo): rrf[i] = rrf.get(i, 0) + 1 / (60 + r)
+            for r, i in enumerate(order[:self.POOL]): rrf[i] = rrf.get(i, 0) + 1 / (60 + r)
+            for r, i in enumerate(eo): rrf[i] = rrf.get(i, 0) + self.EMB_W / (60 + r)
             order = sorted(rrf, key=lambda i: -rrf[i])
         top = s[order[0]] if order else 0
         floor = min_score if min_score is not None else max(4.0, 1.2 * len(q))   # 너무 약하면 '못 찾음' (평가로 정한 값)
