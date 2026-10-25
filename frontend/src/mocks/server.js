@@ -94,9 +94,26 @@ export function login(loginId, password) {
   s.loginFails[loginId] = { count: 0, lockedUntil: 0 };
   s.session = account.id;
   s.viewAs = null;
+  s.pointGus = []; // 민원 점 접속 기록은 로그인 한 번에 구마다 한 줄이다
   logAccess(account, '로그인');
   saveState();
   return { ok: true, user: publicUser(account) };
+}
+
+/**
+ * 지도에서 구역을 눌러 그 구의 민원 점을 처음 볼 때 접속 기록을 남긴다 (I-04, POL-022, ISS-036).
+ * 로그인 한 번 동안 구마다 한 줄이다. 같은 구의 다른 구역을 눌러도 더 남기지 않는다. 업무 목적은 화면에 따라 자동으로 채운다.
+ */
+export function viewComplaintPoints({ gu, hasPoints }) {
+  const user = currentUser();
+  if (!user || user.readOnly || !hasPoints || !gu) return { logged: false };
+  const s = getState();
+  s.pointGus = s.pointGus || [];
+  if (s.pointGus.includes(gu)) return { logged: false };
+  s.pointGus.push(gu);
+  logAccess(user, '민원 점 위치 보기', `${gu} 민원 점`, '점검 후보 검토');
+  saveState();
+  return { logged: true };
 }
 
 export function logout() {
@@ -181,6 +198,8 @@ function mergedItems(run) {
       memo: ov ? ov.memo : it.memo,
       history: ov ? [...it.history, ...ov.history] : it.history,
       obstacles: obstaclesOf(run, base, it.complaint),
+      // 민원 자료가 없는 회차에는 민원 점도 없다
+      complaintPoints: run.hasComplaints ? base.complaintPoints || [] : [],
     };
   });
 }
@@ -220,6 +239,7 @@ function toRow(m, rank, scopeTotal, cityRank, cityTotal) {
     recur: it.complaint.recur > 0,
     bounds: base.bounds,
     points: base.points,
+    complaintPoints: m.complaintPoints || [],
     cityPercent: rated ? percentLabel(cityRank, cityTotal) : null,
   };
 }

@@ -40,4 +40,4 @@ export const COMMON = {
 };
 
 /** 지도 오른쪽 아래 지도 자료 줄 (US-01 1-5) */
-export const MAP_CREDIT = '지도 자료: 국토지리정보원 수치지형도 (1:5,000, 2025)';
+export const MAP_CREDIT = '지도 자료: 국토지리정보원 수치지형도 (1:5,000, 2025) · 주소 좌표: 국토교통부 브이월드';

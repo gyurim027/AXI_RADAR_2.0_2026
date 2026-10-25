@@ -51,16 +51,6 @@ export function addHatchPattern(renderer, colors) {
   svg.prepend(defs);
 }
 
-/** 근거 지점 점(지름 8px, 흰 테두리 1.5px). 종류는 색이 아니라 모양으로 나눈다. */
-export function pointIcon(shape) {
-  return L.divIcon({
-    className: 'rmap-point-wrap',
-    html: `<span class="rmap-point rmap-point--${shape}"></span>`,
-    iconSize: [12, 12],
-    iconAnchor: [6, 6],
-  });
-}
-
 export function tierFill(tier, c) {
   if (tier === 'top') return c.level3;
   if (tier === 'mid') return c.level2;

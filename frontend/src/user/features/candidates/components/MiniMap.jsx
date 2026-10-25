@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import './CandidateMap.css';
-import { addHatchPattern, mapColors, pointIcon } from './mapUtils.js';
+import { addHatchPattern, mapColors } from './mapUtils.js';
+import { pointIcon } from './mapPoints.js';
 import { COMMON } from '../../../../shared/copy/common.js';
 import styles from './MiniMap.module.css';
 
@@ -26,7 +27,7 @@ export default function MiniMap({ bounds, points, tier = 'rest' }) {
     const fill = tier === 'top' ? c.level3 : tier === 'mid' ? c.level2 : c.level1;
     L.rectangle(bounds, { renderer, color: c.halo, weight: 3.5, fill: false }).addTo(map);
     L.rectangle(bounds, { renderer, color: c.selected, weight: 3, fillColor: fill, fillOpacity: 1 }).addTo(map);
-    points.forEach((p) => L.marker([p.lat, p.lon], { icon: pointIcon(p.shape), interactive: false, keyboard: false }).addTo(map));
+    points.forEach((p) => L.marker([p.lat, p.lon], { icon: pointIcon('site'), interactive: false, keyboard: false }).addTo(map));
     map.fitBounds(bounds, { padding: [24, 24], animate: false });
     return () => map.remove();
   }, [bounds, points, tier]);

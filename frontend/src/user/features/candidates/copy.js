@@ -55,6 +55,12 @@ export const LIST = {
   legend: ['점검 필요도 상위 10%', '10~30%', '나머지', '평가하지 못함'],
   legendToggle: (open) => (open ? '범례 접기' : '범례 펼치기'),
   legendChip: '범례 ˅', // 접었을 때 글자 (US-01 1-5)
+  // 구역을 골랐을 때 범례 (US-01 1-5, ISS-036·ISS-038)
+  legendBasis: (summary) => `이 칸의 근거: ${summary}`,
+  legendShapes: '● 민원 (앱 위치) · ○ 민원 (근처 위치) · ■ 다른 근거 지점',
+  legendShapesLabel: '채운 원은 민원 앱 위치, 빈 원은 민원 근처 위치, 네모는 다른 근거 지점',
+  legendCluster: '숫자 원: 가까운 민원 묶음 (숫자는 건수)',
+  clusterNote: '이 칸에는 민원 점이 많아 가까운 점을 묶어 보입니다. 숫자는 민원 건수이고 지도를 확대하면 나뉩니다.',
   mapLabel: '점검 후보 지도',
 
   // 3-1 구별 비교
@@ -105,7 +111,7 @@ export const DRAWER = {
   // 1-2 민원 신호
   complaintTitle: '민원',
   complaintLine: (types) => types.map((t) => `${t.type} ${t.count}건${t.recur ? ` (재발 ${t.recur})` : ''}`).join(' · '),
-  complaintLowAccuracy: (n) => `위치가 정확하지 않은 민원 ${n}건은 세지 않았습니다.`,
+  complaintLowAccuracy: (n) => `위치가 정확하지 않은 민원 ${n}건이 들어 있습니다.`, // 낮음 민원도 격자 민원 수에 넣는다 (ISS-033, v0.5.3)
   complaintEmpty: '이번 회차에는 민원 자료가 없습니다. 다른 근거로만 순위를 냈습니다.',
 
   // 2-1 조문

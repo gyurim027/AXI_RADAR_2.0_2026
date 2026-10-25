@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { getCandidateDetail, getGuCompare, listCandidates } from '../../../../api/candidates.js';
+import { getCandidateDetail, getGuCompare, listCandidates, logComplaintPointView } from '../../../../api/candidates.js';
 import { useAsync } from '../../../../shared/hooks/useAsync.js';
 import { useAuth } from '../../../../app/providers/AuthProvider.jsx';
 import { useRun } from '../../../../app/providers/RunProvider.jsx';
@@ -98,6 +98,9 @@ function CandidateListPage() {
       const idx = sorted.findIndex((r) => r.gid === gid);
       if (idx >= 0) setPage(Math.floor(idx / PAGE_SIZE) + 1); // 지도에서 고르면 표의 그 행이 있는 쪽으로 간다
       setSearch({ sel: gid, detail: null, tab: null });
+      // 그 구의 민원 점을 처음 볼 때 접속 기록을 남긴다 (로그인 한 번에 구마다 한 줄, I-04)
+      const row = sorted[idx];
+      if (row) logComplaintPointView({ gu: row.gu, hasPoints: (row.complaintPoints?.length || 0) > 0 }).catch(() => {});
     },
     [sorted, setSearch],
   );

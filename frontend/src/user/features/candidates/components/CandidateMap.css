@@ -16,24 +16,6 @@
   background: var(--semantic-color-text);
   border: 1.5px solid var(--component-map-halo);
 }
-.rmap-point--circle {
-  border-radius: 50%;
-}
-.rmap-point--square {
-  border-radius: 1px;
-}
-.rmap-point--diamond {
-  transform: rotate(45deg);
-}
-.rmap-point--triangle {
-  width: 0;
-  height: 0;
-  background: none;
-  border: 5px solid transparent;
-  border-top: 0;
-  border-bottom: 9px solid var(--semantic-color-text);
-  filter: drop-shadow(0 0 1px var(--component-map-halo)) drop-shadow(0 0 1px var(--component-map-halo));
-}
 .rmap-range.leaflet-tooltip {
   padding: 4px 8px;
   border: 1px solid var(--semantic-color-border);
@@ -60,4 +42,48 @@
   outline: 2px solid var(--semantic-color-focus-ring);
   outline-offset: 2px;
   border-radius: 50%;
+}
+
+/* ● 민원 원본 좌표 · ○ 민원 근처 위치 · ■ 민원이 아닌 근거 지점 (ISS-036). 색은 한 가지, 모양으로만 나눈다. */
+.rmap-point--exact {
+  border-radius: 50%;
+}
+.rmap-point--near {
+  border-radius: 50%;
+  background: var(--component-map-halo);
+  border-color: var(--semantic-color-text);
+  width: 4px;
+  height: 4px;
+  margin: 2px;
+}
+.rmap-point--site {
+  border-radius: 1px;
+}
+.rmap-point-count {
+  position: absolute;
+  left: 13px;
+  top: -3px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--semantic-color-text);
+  text-shadow: -1px 0 var(--component-map-halo), 1px 0 var(--component-map-halo), 0 -1px var(--component-map-halo), 0 1px var(--component-map-halo);
+  pointer-events: none;
+}
+.rmap-cluster {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border: 2px solid var(--component-map-halo);
+  border-radius: 50%;
+  background: var(--semantic-color-text);
+  color: var(--semantic-color-bg-surface);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.rmap-point-wrap:focus-visible .rmap-cluster {
+  outline: 2px solid var(--semantic-color-focus-ring);
+  outline-offset: 2px;
 }
