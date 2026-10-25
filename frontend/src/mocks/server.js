@@ -31,7 +31,7 @@ import {
   regulations,
 } from './adminModel.js';
 import { ALL_GU, DECISION, DEPT_STATUS, GU_LIST, ROLE, RUN_STATUS } from '../shared/constants.js';
-import { formatDate, runNameWithoutRef } from '../shared/utils/format.js';
+import { formatDate, runTitle } from '../shared/utils/format.js';
 
 const MAX_FAILS = 5; // CM-01 2: 5번 틀리면 10분 동안 잠근다
 const LOCK_MINUTES = 10;
@@ -661,8 +661,8 @@ export function listNotifications() {
   const ref = runs.find((r) => r.status === RUN_STATUS.REF) || review;
   const ctx = {
     version: PROPOSALS[0].version,
-    runName: review.name,
-    refName: runNameWithoutRef(ref.name),
+    runTitle: runTitle(review),
+    refTitle: runTitle(ref, false),
     gu: user.gu,
   };
   // 어드민이 회차를 검토 중으로 열면 시 도로과와 구 도로관리팀에게 알림이 간다 (AD-06 2-1)
@@ -681,10 +681,10 @@ export function listNotifications() {
       kind: 'runOpen',
       text:
         n.kind === 'ref'
-          ? `${runNameWithoutRef(n.runName)} 참고 회차가 열렸습니다. 바뀐 순위를 확인해 보세요.`
+          ? `${runTitle({ name: n.runName, kind: 'ref' }, false)}이 열렸습니다. 바뀐 순위를 확인해 보세요.`
           : user.role === ROLE.CITY
-            ? `${n.runName} 회차가 열렸습니다. 3개 구 점검 후보를 확인해 보세요.`
-            : `${n.runName} 회차가 열렸습니다. ${user.gu} 점검 후보를 결정해 주세요.`,
+            ? `${runTitle({ name: n.runName, kind: 'annual' })}가 열렸습니다. 3개 구 점검 후보를 확인해 보세요.`
+            : `${runTitle({ name: n.runName, kind: 'annual' })}가 열렸습니다. ${user.gu} 점검 후보를 결정해 주세요.`,
       date: n.date,
       read: read.has(n.id),
       targetRunId: n.runId,
@@ -720,31 +720,6 @@ export function decideProposal({ id, approve, reason }) {
   };
   logAccess(user, '승인', `${id} ${approve ? '승인' : '돌려보내기'}`, approve ? '-' : String(reason).trim());
   s.changeLog.push({ at: new Date().toISOString(), actor: user.org, kind: approve ? '제안 승인' : '제안 반려', gid: id });
-  saveState();
-  return { ok: true };
-}
-
-export function listClassifySamples({ runId }) {
-  const user = requireUser();
-  if (user.role !== ROLE.DISTRICT) throw new ApiError('forbidden', '볼 수 없습니다.');
-  const run = getRun(runId);
-  const s = getState();
-  return {
-    run,
-    available: run.hasComplaints,
-    labels: OBSTACLES.map((o) => o.name).filter((n, i, arr) => arr.indexOf(n) === i),
-    items: run.hasComplaints
-      ? (CLASSIFY_SAMPLES[user.gu] || []).filter((x) => x.relevance === '관련').map((x) => ({ ...x, done: s.classify[x.id] || null })) // 도로관리팀은 자기 구의 관련 민원만 본다
-      : [],
-  };
-}
-export function markClassify({ id, result, label }) {
-  const user = requireUser();
-  if (user.readOnly || user.role !== ROLE.DISTRICT) throw new ApiError('forbidden', '할 수 없습니다.');
-  // 도로관리팀은 확인('맞음')만 한다. 고치는 일은 RADAR 운영자(AD-05)가 한다.
-  if (result !== '맞음') throw new ApiError('forbidden', '할 수 없습니다.');
-  const s = getState();
-  s.classify[id] = { result, label: label || null };
   saveState();
   return { ok: true };
 }

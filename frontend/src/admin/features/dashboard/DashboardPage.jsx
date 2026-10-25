@@ -20,6 +20,18 @@ function Metric({ before, value, after, to }) {
   );
 }
 
+/** 카드 하나: 오른쪽 위에 상태 배지, 아래에 '보러 가기' 링크 (A-1). 숫자만 있던 카드가 어디로 가는지 드러낸다. */
+function StatCard({ title, tone, state, to, more, children }) {
+  return (
+    <Panel title={title} className={styles.card} actions={<Badge tone={tone}>{state}</Badge>}>
+      {children}
+      <Link to={to} className={styles.more}>
+        {more}
+      </Link>
+    </Panel>
+  );
+}
+
 /** AD-01 대시보드 (유형 A): 맨 위 폭 전체 '다음 할 일' 카드 아래에 카드 격자. 기준일 지난 자료가 있으면 자료 카드를, 실패가 있으면 실행 카드를 맨 위로 올린다. */
 export default function DashboardPage() {
   const { run } = useAdmin();
@@ -42,30 +54,43 @@ export default function DashboardPage() {
 }
 
 function Body({ data }) {
+  const dataBad = data.data.stale > 0 || data.data.missing > 0;
+  const runCount = data.runs.success + data.runs.failure + data.runs.warning;
   const dataCard = (
-    <Panel key="data" title={DASH.dataTitle} className={styles.card}>
+    <StatCard key="data" title={DASH.dataTitle} tone={dataBad ? 'warning' : 'success'} state={dataBad ? DASH.state.check : DASH.state.ok} to="/admin/data/list" more={DASH.more.data}>
       <div className={styles.metrics}>
         <Metric before="기준일 지난 자료 " value={data.data.stale} after="종" to="/admin/data/list?freshness=갱신 예정일 지남" />
         <span aria-hidden="true">·</span>
         <Metric before="빠진 자료 " value={data.data.missing} after="종" to="/admin/data/list?freshness=빠짐" />
       </div>
-    </Panel>
+    </StatCard>
   );
   const runCard = (
-    <Panel key="runs" title={DASH.runsTitle} className={styles.card}>
-      <div className={styles.metrics}>
-        <span>{`최근 ${data.runs.days}일`}</span>
-        <span aria-hidden="true">·</span>
-        <Metric before="성공 " value={data.runs.success} after="" to="/admin/runs/log?status=성공" />
-        <span aria-hidden="true">·</span>
-        <Metric before="실패 " value={data.runs.failure} after="" to="/admin/runs/log?status=실패" />
-        <span aria-hidden="true">·</span>
-        <Metric before="경고 " value={data.runs.warning} after="" to="/admin/runs/log?status=경고" />
-      </div>
-    </Panel>
+    <StatCard
+      key="runs"
+      title={DASH.runsTitle}
+      tone={data.runs.failure > 0 ? 'danger' : data.runs.warning > 0 ? 'warning' : 'success'}
+      state={data.runs.failure > 0 ? DASH.state.fail : data.runs.warning > 0 ? DASH.state.check : DASH.state.ok}
+      to="/admin/runs/log"
+      more={DASH.more.runs}
+    >
+      {runCount === 0 ? (
+        <p className={styles.empty}>{DASH.runsEmpty}</p>
+      ) : (
+        <div className={styles.metrics}>
+          <span>{`최근 ${data.runs.days}일`}</span>
+          <span aria-hidden="true">·</span>
+          <Metric before="성공 " value={data.runs.success} after="" to="/admin/runs/log?status=성공" />
+          <span aria-hidden="true">·</span>
+          <Metric before="실패 " value={data.runs.failure} after="" to="/admin/runs/log?status=실패" />
+          <span aria-hidden="true">·</span>
+          <Metric before="경고 " value={data.runs.warning} after="" to="/admin/runs/log?status=경고" />
+        </div>
+      )}
+    </StatCard>
   );
   const approvalCard = (
-    <Panel key="approvals" title={DASH.approvalsTitle} className={styles.card}>
+    <StatCard key="approvals" title={DASH.approvalsTitle} tone={data.approvals.pending > 0 ? 'info' : 'neutral'} state={data.approvals.pending > 0 ? DASH.state.wait : DASH.state.none} to="/admin/standards/approvals" more={DASH.more.approvals}>
       <div className={styles.metrics}>
         <Metric before="승인 대기 " value={data.approvals.pending} after="" to="/admin/standards/approvals?result=승인 대기" />
         <span aria-hidden="true">·</span>
@@ -73,14 +98,22 @@ function Body({ data }) {
         <span aria-hidden="true">·</span>
         <Metric before="돌려받음 " value={data.approvals.returned} after="" to="/admin/standards/approvals?result=돌려받음" />
       </div>
-    </Panel>
+    </StatCard>
   );
   const regCard = (
-    <Panel key="reg" title={DASH.regTitle} className={styles.card}>
+    <StatCard key="reg" title={DASH.regTitle} tone={data.regulations > 0 ? 'warning' : 'success'} state={data.regulations > 0 ? DASH.state.check : DASH.state.ok} to="/admin/standards/regulations" more={DASH.more.regs}>
       <div className={styles.metrics}>
         <Metric before="확인할 규정 변경 " value={data.regulations} after="건" to="/admin/standards/regulations" />
       </div>
-    </Panel>
+    </StatCard>
+  );
+  const criteriaCard = (
+    <StatCard key="criteria" title={DASH.criteriaTitle} tone={data.criteria.pending > 0 ? 'info' : 'neutral'} state={data.criteria.pending > 0 ? DASH.state.wait : DASH.state.current} to="/admin/standards/criteria" more={DASH.more.criteria}>
+      <div className={styles.metrics}>
+        <Metric before="사용 버전 " value={data.criteria.version} after="" to={`/admin/standards/criteria/${data.criteria.version}`} />
+        {data.criteria.pending > 0 ? <Metric before="승인 대기 버전 " value={data.criteria.pending} after="개" to="/admin/standards/criteria" /> : null}
+      </div>
+    </StatCard>
   );
   // 기준일 지난 자료가 있으면 자료 카드를, 실패가 있으면 실행 카드를 맨 위로 올린다 (6-3 표시)
   const order = [
@@ -88,6 +121,7 @@ function Body({ data }) {
     ...(data.runs.failure > 0 ? [runCard] : []),
     ...(data.data.stale > 0 ? [] : [dataCard]),
     ...(data.runs.failure > 0 ? [] : [runCard]),
+    criteriaCard,
     approvalCard,
     regCard,
   ];

@@ -85,3 +85,8 @@
   display: inline-flex;
   gap: var(--space-8);
 }
+
+.verLink {
+  color: var(--radar-admin-semantic-color-text-link);
+  text-underline-offset: 3px;
+}

@@ -3,6 +3,7 @@ import Button from '../../../components/Button.jsx';
 import { recordDownload } from '../../../../api/reports.js';
 import { COMMON } from '../../../../shared/copy/common.js';
 import { useRun } from '../../../../app/providers/RunProvider.jsx';
+import { runTitle } from '../../../../shared/utils/format.js';
 import PageFooterNote from '../../../components/PageFooterNote.jsx';
 import { DOWNLOAD } from '../copy.js';
 import { makeFile } from '../download.js';
@@ -79,7 +80,7 @@ export function DownloadBar({ reportName, dl }) {
 
 /** 보고서 위쪽에 붙는 줄: 자료 기준일과 산정 기준 버전 (4-4 표시) */
 export function fileHeader(run, extra = []) {
-  return [`회차: ${run.name}`, `자료 기준일: ${run.dataRange}`, `산정 기준 버전: ${run.version}`, ...extra];
+  return [`점검 해: ${runTitle(run)}`, `자료 기준일: ${run.dataRange}`, `산정 기준 버전: ${run.version}`, ...extra];
 }
 
 /** 한 줄씩 쌓는 표 행 목록 (US-09) */

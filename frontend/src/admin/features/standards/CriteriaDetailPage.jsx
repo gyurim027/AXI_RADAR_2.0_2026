@@ -228,6 +228,14 @@ function Detail({ data, reload }) {
           ) : null}
         </div>
 
+        <Panel title={DETAIL.usedTitle} description={DETAIL.usedNote}>
+          <ul className={styles.usedList}>
+            {data.indicators.map((i) => (
+              <li key={i.id}>{DETAIL.usedRow(i.field, i.name)}</li>
+            ))}
+          </ul>
+        </Panel>
+
         <Panel title={DETAIL.previewTitle}>
           <div className={styles.previewLine}>
             <p className={styles.previewText}>{preview ? DETAIL.previewBody(preview.top, preview.changed) : ' '}</p>
@@ -244,7 +252,14 @@ function Detail({ data, reload }) {
             <TextArea label={DETAIL.reasonLabel} value={reason} onChange={(v) => { setReason(v); setReasonError(''); }} placeholder={DETAIL.reasonPlaceholder} error={reasonError} required />
           </Panel>
         ) : null}
-        {requested ? <Banner tone="success">{DETAIL.requested}</Banner> : null}
+        {requested ? (
+          <Banner tone="success">
+            {DETAIL.requested}{' '}
+            <Link to="/admin/standards/approvals" className={styles.jurLink}>
+              {DETAIL.toApprovals}
+            </Link>
+          </Banner>
+        ) : null}
       </div>
 
       {editable ? (

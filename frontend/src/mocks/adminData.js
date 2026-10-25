@@ -264,6 +264,7 @@ export const DEPT_DRAFTS = [
 export const ADMIN_REGULATIONS = [
   {
     id: 'g1',
+    detected: '2026.09.03',
     kind: '법령',
     name: '보도 설치 및 관리 지침',
     where: '3.2 유효 보도 폭',
@@ -275,6 +276,7 @@ export const ADMIN_REGULATIONS = [
   },
   {
     id: 'g2',
+    detected: '2026.05.22',
     kind: '법령',
     name: '성남시 사무위임 조례',
     where: '별표 1 도로유지관리',
@@ -286,6 +288,7 @@ export const ADMIN_REGULATIONS = [
   },
   {
     id: 'g3',
+    detected: '2026.03.06',
     kind: '업무분장',
     name: '수정구 업무분장',
     where: '건설과 도로관리팀',
@@ -297,6 +300,7 @@ export const ADMIN_REGULATIONS = [
   },
   {
     id: 'g4',
+    detected: '2026.10.28',
     kind: '법령',
     name: '도로교통법 시행규칙',
     where: '보행 신호 기준 조항',

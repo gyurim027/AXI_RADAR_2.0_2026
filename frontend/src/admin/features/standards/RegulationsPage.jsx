@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { listRegulationChanges, markRegulationSeen } from '../../../api/admin.js';
 import { useAsync } from '../../../shared/hooks/useAsync.js';
 import Badge from '../../components/Badge.jsx';
@@ -54,7 +54,7 @@ export default function RegulationsPage() {
               },
               { key: 'where', header: REGS.head[2] },
               { key: 'date', header: REGS.head[3], nowrap: true },
-              { key: 'juris', header: REGS.head[4], render: (r) => r.juris.join(', ') },
+              { key: 'juris', header: REGS.head[4], nowrap: true, render: (r) => REGS.jurCount(r.juris.length) },
             ]}
             rows={rows}
             getRowKey={(r) => r.id}
@@ -62,15 +62,47 @@ export default function RegulationsPage() {
             onRowClick={toggle}
             rowLabel={(r) => `${r.name} 바뀐 조문 ${openId === r.id ? '접기' : '펼치기'}`}
             renderExpanded={(r) => (
-              <div className={styles.cmp}>
-                <div className={styles.cmpBox}>
-                  <p className={styles.cmpTitle}>{REGS.beforeTitle}</p>
-                  {r.before}
+              <div>
+                <p className={styles.detected}>{REGS.detected(r.detected || '-')}</p>
+                <div className={styles.cmp}>
+                  <div className={styles.cmpBox}>
+                    <p className={styles.cmpTitle}>{REGS.beforeTitle}</p>
+                    {r.before}
+                  </div>
+                  <div className={styles.cmpBox}>
+                    <p className={styles.cmpTitle}>{REGS.afterTitle}</p>
+                    {r.after}
+                  </div>
                 </div>
-                <div className={styles.cmpBox}>
-                  <p className={styles.cmpTitle}>{REGS.afterTitle}</p>
-                  {r.after}
-                </div>
+                <table className={styles.jurTable}>
+                  <caption className="sr-only">{REGS.jurCount(r.juris.length)}</caption>
+                  <thead>
+                    <tr>
+                      {REGS.jurHead.map((h) => (
+                        <th key={h} scope="col">
+                          {h}
+                        </th>
+                      ))}
+                      <th scope="col">
+                        <span className="sr-only">이동</span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {r.jurRows.map((j) => (
+                      <tr key={j.id}>
+                        <td>{j.id}</td>
+                        <td>{j.problem}</td>
+                        <td>{j.dept}</td>
+                        <td>
+                          <Link to="/admin/standards/dept" className={styles.jurLink} aria-label={`${j.id} ${REGS.toDeptRow}`}>
+                            {REGS.toDeptRow}
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
             emptyContent={<EmptyState text={REGS.empty} />}

@@ -11,9 +11,9 @@ const only = (roles, el) => <RequireRole roles={roles}>{el}</RequireRole>;
 const page = (title) => ({ title });
 
 export const reportRoutes = [
-  { path: 'reports/annual', element: only([ROLE.DISTRICT], <AnnualReportPage />), handle: page('관할 부서별 연간 보고서') },
+  { path: 'reports/annual', element: only([ROLE.DISTRICT], <AnnualReportPage />), handle: page('관할 부서별 점검 요청서') },
   { path: 'reports/basis', element: <BasisPage />, handle: page('구별 우선 점검 근거표') },
-  { path: 'reports/conditions', element: <ConditionRecordPage />, handle: page('산정 조건 기록서') },
+  { path: 'reports/conditions', element: <ConditionRecordPage />, handle: page('우선순위 점수 근거') },
   { path: 'reports/protection-zone', element: only([ROLE.CITY], <ProtectionZonePage />), handle: page('보호구역 안팎 비교표') },
-  { path: 'reports/half-year', element: <HalfYearPage />, handle: page('반기 변경 요약') },
+  { path: 'reports/half-year', element: <HalfYearPage />, handle: page('반기 순위 변경 요약') },
 ];

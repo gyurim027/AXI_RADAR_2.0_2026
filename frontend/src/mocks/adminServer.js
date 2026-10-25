@@ -231,6 +231,7 @@ export function getDashboard({ runId }) {
       returned: approvals.filter((r) => r.result === '돌려받음').length,
     },
     regulations: regulations().filter((r) => !r.seen && !r.pending).length,
+    criteria: { version: run.version, pending: versionList().filter((v) => v.status === '승인 대기').length },
   };
 }
 
@@ -306,7 +307,10 @@ export function uploadFile({ dataId, fileName, source, basis, received, official
     ...(a.dataOverrides[dataId] || {}),
     source: received || item.source,
     official: official || item.official,
-    basis: `${year}년 기준`,
+    // 민원은 기준일이 마지막으로 올린 파일의 끝 달이다 (UX 고도화 메뉴 결정)
+    basis: dataId === 'DAT-07' && period && /(\d{4})\D+(\d{1,2})\D*$/.test(String(period))
+      ? String(period).replace(/^.*?(\d{4})\D+(\d{1,2})\D*$/, (_, y, m) => `${y}.${m.padStart(2, '0')} 기준`)
+      : `${year}년 기준`,
     collectedAt: dotDate(when),
     freshness: bad ? item.freshness : '최신',
     note: period ? `민원 접수 기간 ${period}` : undefined,
@@ -743,7 +747,17 @@ export function requestDeptApproval({ draftId, reason }) {
 // ------------------------------------------------------------------ 규정 변경 (AD-12)
 export function listRegulationChanges() {
   requireOperator();
-  return regulations().sort((x, y) => (x.date < y.date ? 1 : -1));
+  // 관할 코드마다 문제 유형(조건)과 담당 부서를 붙여 준다. 서버가 코드와 담당 부서 조회를 이미 따로 주므로 화면에서 잇기만 한다.
+  const jur = jurisdictionRows();
+  return regulations()
+    .sort((x, y) => (x.date < y.date ? 1 : -1))
+    .map((r) => ({
+      ...r,
+      jurRows: r.juris.map((id) => {
+        const j = jur.find((x) => x.id === id);
+        return { id, problem: j?.problem || '-', dept: j?.dept || '-' };
+      }),
+    }));
 }
 export function markRegulationSeen({ id }) {
   requireOperator();

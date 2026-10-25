@@ -32,14 +32,19 @@ export const DETAIL = {
   use: '사용',
   useOff: '사용 안 함',
 
+  usedTitle: '이 버전이 쓰는 지표',
+  usedNote: '읽기만 하는 목록입니다. 점수 구조가 정해지면 지표가 바뀔 수 있습니다.',
+  usedRow: (field, name) => `${field} · ${name}`,
+  toApprovals: '승인 이력에서 보기',
+
   previewTitle: '상위 후보 변화 미리 보기',
   previewBody: (top, changed) => `상위 ${top}곳 중 ${changed}곳이 바뀝니다.`,
   recalc: '변화 다시 계산하기',
   recalcedAt: (t) => `마지막 계산 ${t}`,
 
-  reasonLabel: '바꾸는 이유',
+  reasonLabel: '변경 사유',
   reasonPlaceholder: '예: 시 도로과 검토 의견 반영',
-  reasonError: '바꾸는 이유를 적어 주세요.',
+  reasonError: '변경 사유를 적어 주세요.',
   request: '승인 요청하기',
   requested: '승인을 요청했습니다. 시 도로과가 승인하면 다음 산정부터 사용할 수 있습니다.',
 };
@@ -69,10 +74,14 @@ export const REGS = {
   // AD-12
   title: '규정 변경',
   subtitle: '근거로 쓰는 법령과 업무분장이 바뀐 내역을 확인합니다.',
-  head: ['종류', '법령·업무분장', '바뀐 조문·팀·업무', '알게 된 날', '영향받는 관할'],
+  head: ['종류', '규정 제목', '변경 대상', '시행일', '영향받는 관할'],
   caption: '규정 변경 목록',
-  beforeTitle: '바뀌기 전',
-  afterTitle: '바뀐 뒤',
+  beforeTitle: '변경 전',
+  afterTitle: '변경 후',
+  detected: (date) => `변경 감지일 ${date}`, // RADAR가 변경을 찾은 날
+  jurCount: (n) => `관할 ${n}곳`,
+  jurHead: ['관할', '조건', '담당 부서'],
+  toDeptRow: '담당 부서 표에서 보기',
   pending: '시행 전',
   toDept: '담당 부서 표로 가기',
   empty: '바뀐 법령이나 업무분장이 없습니다.',

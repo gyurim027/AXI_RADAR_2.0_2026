@@ -183,3 +183,34 @@
   padding: var(--a-s4) var(--a-s6);
   border-bottom: 1px solid var(--radar-admin-semantic-color-border-subtle);
 }
+
+.detected {
+  margin-bottom: var(--a-s2);
+  font-size: var(--a-fs-sm);
+  color: var(--radar-admin-semantic-color-text-secondary);
+}
+.jurTable {
+  width: 100%;
+  margin-top: var(--a-s3);
+  border-collapse: collapse;
+  font-size: var(--a-fs-sm);
+}
+.jurTable th,
+.jurTable td {
+  padding: var(--a-s1) var(--a-s2);
+  text-align: left;
+  border-bottom: 1px solid var(--radar-admin-component-nav-border);
+}
+.jurLink {
+  color: var(--radar-admin-semantic-color-text-link);
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+.usedList {
+  margin: 0;
+  padding-left: var(--a-s4);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--a-s1) var(--a-s4);
+  font-size: var(--a-fs-md);
+}

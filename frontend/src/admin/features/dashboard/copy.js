@@ -11,5 +11,16 @@ export const DASH = {
   runsTitle: '최근 수집·산정 실행',
   approvalsTitle: '승인 현황',
   regTitle: '규정 변경',
+  criteriaTitle: '산정 기준',
+  // 카드 오른쪽 위 상태와 아래 '보러 가기' 링크 (UX 고도화 A-1)
+  state: { ok: '정상', check: '확인 필요', fail: '실패 있음', wait: '승인 대기 있음', none: '대기 없음', current: '사용 중' },
+  more: {
+    data: '자료 목록 보러 가기',
+    runs: '실행 기록 보러 가기',
+    approvals: '승인 이력 보러 가기',
+    regs: '규정 변경 보러 가기',
+    criteria: '산정 기준 보러 가기',
+  },
+  runsEmpty: '아직 실행한 기록이 없습니다. 회차 목록에서 산정을 시작해 주세요.', // E-4
   failed: '대시보드를 불러오지 못했습니다.',
 };

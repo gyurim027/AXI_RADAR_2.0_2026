@@ -120,3 +120,18 @@
   text-underline-offset: 3px;
   font-size: var(--fs-small);
 }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  margin-left: var(--space-4);
+  padding: 0 6px;
+  border-radius: 10px;
+  background: var(--semantic-color-primary-strong);
+  color: var(--semantic-color-bg-surface);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-bold);
+}

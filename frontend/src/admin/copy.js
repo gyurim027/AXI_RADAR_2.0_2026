@@ -15,7 +15,7 @@ export const ADMIN_COPY = {
         { to: '/admin/data/list', label: '데이터 목록' },
         { to: '/admin/data/upload', label: '업로드' },
         { to: '/admin/data/checks', label: '검사 결과' },
-        { to: '/admin/data/classify', label: '분류 검수' },
+        { to: '/admin/data/classify', label: '민원 분류 검수' },
       ],
     },
     {
@@ -25,13 +25,13 @@ export const ADMIN_COPY = {
         { to: '/admin/runs/list', label: '회차 목록' },
         { to: '/admin/runs/log', label: '실행 기록' },
         { to: '/admin/runs/schedule', label: '실행 일정' },
+        { to: '/admin/standards/criteria', label: '산정 기준' },
       ],
     },
     {
       key: 'standards',
-      label: '기준정보',
+      label: '규정·업무분장 관리',
       items: [
-        { to: '/admin/standards/criteria', label: '산정 기준' },
         { to: '/admin/standards/dept', label: '담당 부서 표' },
         { to: '/admin/standards/regulations', label: '규정 변경' },
         { to: '/admin/standards/actions', label: '조치 제안 표' },

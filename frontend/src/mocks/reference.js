@@ -80,7 +80,7 @@ export const ACTION_TABLE = OBSTACLES.filter((o, i, arr) => arr.findIndex((x) =>
 /** US-00 알림. role: 누가 받는지, kind: 눌렀을 때 가는 곳 */
 export const NOTIFICATIONS = [
   { id: 'n1', roles: [ROLE.CITY], kind: 'approval', date: '2026.11.03', text: (c) => `산정 기준 ${c.version} 승인 요청이 왔습니다.` },
-  { id: 'n2', roles: [ROLE.CITY], kind: 'runOpen', date: '2026.11.01', text: (c) => `${c.runName} 회차가 열렸습니다. 3개 구 점검 후보를 확인해 보세요.` },
-  { id: 'n3', roles: [ROLE.DISTRICT], kind: 'runOpen', date: '2026.11.01', text: (c) => `${c.runName} 회차가 열렸습니다. ${c.gu} 점검 후보를 결정해 주세요.` },
-  { id: 'n4', roles: [ROLE.CITY, ROLE.DISTRICT], kind: 'halfYear', date: '2026.07.15', text: (c) => `${c.refName} 참고 회차가 열렸습니다. 바뀐 순위를 확인해 보세요.` },
+  { id: 'n2', roles: [ROLE.CITY], kind: 'runOpen', date: '2026.11.01', text: (c) => `${c.runTitle}가 열렸습니다. 3개 구 점검 후보를 확인해 보세요.` },
+  { id: 'n3', roles: [ROLE.DISTRICT], kind: 'runOpen', date: '2026.11.01', text: (c) => `${c.runTitle}가 열렸습니다. ${c.gu} 점검 후보를 결정해 주세요.` },
+  { id: 'n4', roles: [ROLE.CITY, ROLE.DISTRICT], kind: 'halfYear', date: '2026.07.15', text: (c) => `${c.refTitle}이 열렸습니다. 바뀐 순위를 확인해 보세요.` },
 ];

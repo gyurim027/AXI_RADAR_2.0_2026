@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createRun, getNewRunDefaults, getOpenCheck, getPeriodGaps, listAdminRuns, openRun, setRunPeriod, startCalc } from '../../../api/admin.js';
 import { useAsync } from '../../../shared/hooks/useAsync.js';
 import { useAdmin } from '../../AdminProvider.jsx';
@@ -43,7 +43,19 @@ export default function RunListPage() {
     { key: 'name', header: RUNS.head[0], first: true, nowrap: true },
     { key: 'kindLabel', header: RUNS.head[1], nowrap: true },
     { key: 'status', header: RUNS.head[2], nowrap: true, render: (r) => <Badge tone={RUN_TONE[r.status]}>{r.status}</Badge> },
-    { key: 'version', header: RUNS.head[3], nowrap: true },
+    {
+      key: 'version',
+      header: RUNS.head[3],
+      nowrap: true,
+      render: (r) =>
+        r.version && r.version !== '-' ? (
+          <Link to={`/admin/standards/criteria/${r.version}`} className={styles.verLink}>
+            {r.version}
+          </Link>
+        ) : (
+          '-'
+        ),
+    },
     { key: 'period', header: RUNS.head[4], nowrap: true },
     { key: 'created', header: RUNS.head[5], nowrap: true },
     { key: 'review', header: RUNS.head[6], nowrap: true, render: (r) => r.review || '-' },

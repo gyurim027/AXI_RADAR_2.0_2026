@@ -22,7 +22,7 @@ export default function ConditionRecordPage() {
     table: [[line || '']],
     withComplaintSource: run.hasComplaints,
   });
-  const empty = user.role === ROLE.CITY ? CONDITION.emptyCity : CONDITION.emptyDistrict(run.name);
+  const empty = user.role === ROLE.CITY ? CONDITION.emptyCity : CONDITION.emptyDistrict;
 
   return (
     <ReportShell>
