@@ -41,21 +41,7 @@
   font-size: var(--fs-small);
   font-weight: var(--fw-bold);
 }
-.legendLine {
-  display: flex;
-  align-items: center;
-  gap: var(--space-8);
-  margin: 0 var(--space-16) var(--space-8);
-  font-size: var(--fs-small);
-  color: var(--semantic-color-text-muted);
-}
-.legendMark {
-  display: inline-block;
-  width: 4px;
-  height: 16px;
-  border-radius: 2px;
-  background: var(--semantic-color-risk-high-line);
-}
+
 .tableCard {
   display: flex;
   flex-direction: column;

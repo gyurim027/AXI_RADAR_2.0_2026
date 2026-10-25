@@ -107,11 +107,19 @@ function Body({ data }) {
       </div>
     </StatCard>
   );
+  // 링크는 승인 대기 버전 상세로, 없으면 지금 쓰는 버전 상세로 간다 (AD-01 6-1)
+  const criteriaTarget = data.criteria.pending || data.criteria.approved;
   const criteriaCard = (
-    <StatCard key="criteria" title={DASH.criteriaTitle} tone={data.criteria.pending > 0 ? 'info' : 'neutral'} state={data.criteria.pending > 0 ? DASH.state.wait : DASH.state.current} to="/admin/standards/criteria" more={DASH.more.criteria}>
+    <StatCard
+      key="criteria"
+      title={DASH.criteriaTitle}
+      tone={data.criteria.pending ? 'info' : 'neutral'}
+      state={data.criteria.pending ? DASH.state.wait : DASH.state.current}
+      to={criteriaTarget ? `/admin/standards/criteria/${criteriaTarget}` : '/admin/standards/criteria'}
+      more={DASH.more.criteria}
+    >
       <div className={styles.metrics}>
-        <Metric before="사용 버전 " value={data.criteria.version} after="" to={`/admin/standards/criteria/${data.criteria.version}`} />
-        {data.criteria.pending > 0 ? <Metric before="승인 대기 버전 " value={data.criteria.pending} after="개" to="/admin/standards/criteria" /> : null}
+        <span>{DASH.criteriaLine(data.criteria.approved, data.criteria.pending)}</span>
       </div>
     </StatCard>
   );

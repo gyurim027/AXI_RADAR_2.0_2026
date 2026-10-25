@@ -8,10 +8,11 @@ import { LIST } from '../copy.js';
  * 3 평가하지 못한 구역. 데이터 결측으로 평가 대상에서 제외된 곳이다(KPI 전체에 들어가지 않는다).
  * 펼치면 구역마다 수집한 데이터와 내용, 수집하지 못한 데이터와 이유를 보인다.
  */
-export default function UnratedPanel({ rows, open, onToggle, selectedId, onSelect }) {
+export default function UnratedPanel({ rows, city, open, onToggle, selectedId, onSelect }) {
   const id = useId();
   const H = LIST.unratedHead;
   const columns = [
+    ...(city ? [{ key: 'gu', header: LIST.unratedHeadCity, width: 80, render: (r) => r.gu }] : []),
     {
       key: 'name',
       header: H[0],

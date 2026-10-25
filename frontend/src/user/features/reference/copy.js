@@ -14,6 +14,7 @@ export const APPROVAL = {
   approve: '승인하기',
   approveLabel: (kind, version) => (kind === '산정 기준' ? `산정 기준 ${version} 제안 승인하기` : `${kind} 수정 제안 승인하기`),
   rejectReasonLabel: '돌려보내는 사유',
+  reasonTooLong: '검토 의견은 255자까지 적을 수 있습니다. 내용을 줄여 주세요.', // ERR-22
   rejectReasonError: '돌려보내는 사유를 적어 주세요. RADAR 운영팀이 사유를 보고 다시 고칩니다.',
   rejectSend: '돌려보내기', // 흐름 U-66의 선 이름 (K-19)
   closeLabel: '돌려보내는 사유 입력 닫기', // 명세에 없는 닫기 버튼 (확인 필요)

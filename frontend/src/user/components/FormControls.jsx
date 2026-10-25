@@ -1,4 +1,4 @@
-import { useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import Icon from './Icon.jsx';
 import styles from './FormControls.module.css';
 
@@ -62,18 +62,84 @@ export function TextField({ label, value, onChange, maxLength, placeholder, type
   );
 }
 
-/** ⓘ를 누르면 펼치는 도움말 (US-00 1-1, US-03 1-1) */
+/**
+ * ⓘ 도움말. 마우스를 올리거나 키보드 포커스가 오면 보이고, 터치 화면에서는 누르면 보인다.
+ * 터치로 열었을 때는 ×로 닫는다 (바깥을 누르거나 Esc로도 닫힌다).
+ */
 export function InfoHelp({ label = '도움말 보기', children, align = 'left' }) {
-  const [open, setOpen] = useState(false);
+  const [hover, setHover] = useState(false);
+  const [focus, setFocus] = useState(false);
+  const [pinned, setPinned] = useState(false); // 터치로 연 상태
   const id = useId();
+  const ref = useRef(null);
+  const lastPointer = useRef('mouse');
+  const open = hover || focus || pinned;
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const onDoc = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) {
+        setPinned(false);
+        setHover(false);
+      }
+    };
+    const onKey = (e) => {
+      if (e.key === 'Escape') {
+        setPinned(false);
+        setHover(false);
+        setFocus(false);
+      }
+    };
+    document.addEventListener('pointerdown', onDoc);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('pointerdown', onDoc);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  const close = () => {
+    setPinned(false);
+    setHover(false);
+    setFocus(false);
+  };
+
   return (
-    <span className={styles.help}>
-      <button type="button" className={styles.helpBtn} aria-expanded={open} aria-controls={id} aria-label={label} title={label} onClick={() => setOpen((v) => !v)}>
+    <span
+      ref={ref}
+      className={styles.help}
+      onPointerEnter={(e) => e.pointerType === 'mouse' && setHover(true)}
+      onPointerLeave={(e) => e.pointerType === 'mouse' && setHover(false)}
+      onFocusCapture={() => setFocus(true)}
+      onBlurCapture={(e) => {
+        if (!ref.current?.contains(e.relatedTarget)) setFocus(false);
+      }}
+    >
+      <button
+        type="button"
+        className={styles.helpBtn}
+        aria-expanded={open}
+        aria-describedby={open ? id : undefined}
+        aria-label={label}
+        title={label}
+        onPointerDown={(e) => {
+          lastPointer.current = e.pointerType;
+        }}
+        onClick={() => {
+          // 마우스는 올리면 열리므로 누름으로 고정하지 않는다. 터치와 펜은 누르면 열고 닫는다.
+          if (lastPointer.current !== 'mouse') setPinned((v) => !v);
+        }}
+      >
         <Icon name="info" size={18} />
       </button>
       {open ? (
         <span id={id} role="note" className={`${styles.helpBody} ${align === 'right' ? styles.right : ''}`}>
           {children}
+          {pinned ? (
+            <button type="button" className={styles.helpClose} aria-label="도움말 닫기" onClick={close}>
+              <Icon name="close" size={16} />
+            </button>
+          ) : null}
         </span>
       ) : null}
     </span>

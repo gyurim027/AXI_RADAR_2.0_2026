@@ -3,6 +3,7 @@ import Button from '../../../components/Button.jsx';
 import Modal from '../../../components/Modal.jsx';
 import { SelectField, TextField } from '../../../components/FormControls.jsx';
 import { saveDecision } from '../../../../api/candidates.js';
+import { COMMON } from '../../../../shared/copy/common.js';
 import { DRAWER } from '../copy.js';
 import styles from './tabs/Tabs.module.css';
 
@@ -35,7 +36,7 @@ export default function DecisionReasonModal({ runId, gid, decision, onClose, onS
       if (r.ok) onSaved();
       else setError(r.code === 'otherRequired' ? DRAWER.otherRequired : DRAWER.reasonRequired);
     } catch {
-      setError('결정을 저장하지 못했습니다. 잠시 뒤 다시 시도해 주세요.');
+      setError(COMMON.saveFailed);
     } finally {
       setBusy(false);
     }

@@ -17,6 +17,7 @@ import BottomBar from '../components/BottomBar.jsx';
 import CandidateMap from '../components/CandidateMap.jsx';
 import { prefersReducedMotion } from '../components/mapUtils.js';
 import ConfirmModal from '../components/ConfirmModal.jsx';
+import DecisionReasonModal from '../components/DecisionReasonModal.jsx';
 import DetailDrawer from '../components/DetailDrawer.jsx';
 import FilterBar from '../components/FilterBar.jsx';
 import GuCompare from '../components/GuCompare.jsx';
@@ -57,6 +58,7 @@ function CandidateListPage() {
   const [unratedOpen, setUnratedOpen] = useState(false);
   const [version, setVersion] = useState(0);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deciding, setDeciding] = useState(null); // { gid, decision } 표에서 결정을 바꾸는 중
   const scrollRef = useRef(null);
   const mapColRef = useRef(null);
 
@@ -135,6 +137,7 @@ function CandidateListPage() {
 
   const reviewing = run.status === RUN_STATUS.REVIEW;
   const myConfirm = data?.myConfirm;
+  const canDecide = !!data?.canDecide;
 
   // 4 바텀 바: 도로관리팀은 결정 완료 여부에 따라 두 글, 확정한 뒤에는 완료 문구, 시 도로과는 확정 현황. 확정·참고 회차에는 없다.
   let bar = null;
@@ -203,12 +206,6 @@ function CandidateListPage() {
                 onClear={() => changeFilters({ ...filters, priorityOnly: false })}
               />
             ) : null}
-            {!compare && data && sorted.some((r) => r.tier === 'top') ? (
-              <p className={styles.legendLine}>
-                <span className={styles.legendMark} aria-hidden="true" />
-                {LIST.topMark}
-              </p>
-            ) : null}
             <div className={styles.scroll}>
               {list.failed ? (
                 <ErrorState areaName="점검 후보 목록" onRetry={list.reload} />
@@ -226,6 +223,8 @@ function CandidateListPage() {
                 <RankTable
                   rows={pageRows}
                   city={city}
+                  canDecide={canDecide}
+                  onDecide={(r, d) => setDeciding({ gid: r.gid, decision: d })}
                   conditionMap={conditionMap}
                   selectedId={selectedId}
                   onSelect={select}
@@ -246,7 +245,7 @@ function CandidateListPage() {
           </section>
 
           {data && unrated.length > 0 ? (
-            <UnratedPanel rows={unrated} open={unratedOpen} onToggle={() => setUnratedOpen((o) => !o)} selectedId={selectedId} onSelect={select} />
+            <UnratedPanel rows={unrated} city={city} open={unratedOpen} onToggle={() => setUnratedOpen((o) => !o)} selectedId={selectedId} onSelect={select} />
           ) : null}
 
           <PageFooterNote />
@@ -297,6 +296,19 @@ function CandidateListPage() {
           />
         ) : null}
       </div>
+
+      {deciding ? (
+        <DecisionReasonModal
+          runId={run.id}
+          gid={deciding.gid}
+          decision={deciding.decision}
+          onClose={() => setDeciding(null)}
+          onSaved={() => {
+            setDeciding(null);
+            onChanged();
+          }}
+        />
+      ) : null}
 
       {confirmOpen ? (
         <ConfirmModal

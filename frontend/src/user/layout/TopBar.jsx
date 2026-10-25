@@ -53,14 +53,20 @@ export default function TopBar() {
       <div className={styles.tools}>
         <div className={styles.runBox}>
           <SelectField
-            label="점검 해"
+            label="점검 연도"
             id="run-select"
             value={run.id}
             onChange={setRunId}
             options={runs.map((r) => ({ value: r.id, label: runOptionLabel(r) }))}
           />
-          <InfoHelp label="점검 해 도움말 보기" align="right">
+          <InfoHelp label="점검 연도 뜻 보기" align="right">
+            1년치를 계산한 점검 순위입니다. 반기 계산 결과는 참고용으로만 사용해주세요.
+          </InfoHelp>
+          <InfoHelp label="자료 기준 보기" align="right">
             {`${dataYear(run.dataRange)}년 자료 기준 · 자료 기준일 ${run.dataRange} · 산정 기준 ${run.version} · 평가하지 못한 분야: ${run.unratedFields.join(', ')}`}
+            <InfoHelp label="평가하지 못한 분야 뜻 보기" align="right">
+              자료가 없어 평가하지 못한 분야입니다. 0점으로 처리하지 않았습니다.
+            </InfoHelp>
           </InfoHelp>
         </div>
 

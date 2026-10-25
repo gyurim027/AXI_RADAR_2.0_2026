@@ -27,7 +27,7 @@ export function createBackendClient({ baseUrl = '', getToken = () => null, fetch
         method, headers, ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
       });
     } catch {
-      throw new BackendError(0, 'network_error', '서버에 연결하지 못했습니다. 처리 상태를 다시 확인해 주세요.');
+      throw new BackendError(0, 'network_error', '서버에 연결하지 못했습니다. 잠시 뒤에 다시 시도해 주세요.');
     }
     if (response.status === 401) onUnauthorized();
     let data;

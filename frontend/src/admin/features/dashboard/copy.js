@@ -19,8 +19,9 @@ export const DASH = {
     runs: '실행 기록 보러 가기',
     approvals: '승인 이력 보러 가기',
     regs: '규정 변경 보러 가기',
-    criteria: '산정 기준 보러 가기',
+    criteria: '산정 기준으로 가기',
   },
+  criteriaLine: (approved, pending) => `지금 쓰는 버전 ${approved || '-'}${pending ? ` · 승인 대기 ${pending}` : ''}`,
   runsEmpty: '아직 실행한 기록이 없습니다. 회차 목록에서 산정을 시작해 주세요.', // E-4
   failed: '대시보드를 불러오지 못했습니다.',
 };

@@ -206,6 +206,18 @@ function nextTask(run) {
   return { key: 'open', text: '검토 중으로 열어 주세요.', to: '/admin/runs/list', toLabel: '회차 목록' };
 }
 
+/** 지표가 쓰는 자료와 값 상태 (AD-10 0-2). 지표 목록은 점수 구조(ISS-013) 결정 뒤 바뀐다. */
+const INDICATOR_SOURCE = {
+  보도: '국토지리정보원 수치지형도 (2025)',
+  횡단보도: '전국횡단보도표준데이터 (성남)',
+  조도: '성남시 도로 조도·휘도 (2022)',
+  사고: '보행자 교통사고 다발지역',
+  민원: '성남데이터넷 연도별 민원 현황',
+  주정차: '주정차 위반 단속 위치 현황',
+  보호구역: '어린이집·유치원, 노인의료복지시설',
+};
+const INDICATOR_STATE = { w4: '값 없음', w5: '일부만 조사' };
+
 export function getDashboard({ runId }) {
   requireOperator();
   settleExecutions();
@@ -231,7 +243,11 @@ export function getDashboard({ runId }) {
       returned: approvals.filter((r) => r.result === '돌려받음').length,
     },
     regulations: regulations().filter((r) => !r.seen && !r.pending).length,
-    criteria: { version: run.version, pending: versionList().filter((v) => v.status === '승인 대기').length },
+    // 지금 쓰는 버전은 시 도로과가 승인한 가장 최근 버전이다 (AD-01 6-1)
+    criteria: {
+      approved: versionList().filter((v) => v.status === '승인됨').slice(-1)[0]?.version || null,
+      pending: versionList().find((v) => v.status === '승인 대기')?.version || null,
+    },
   };
 }
 
@@ -604,7 +620,7 @@ export function getVersion({ version }) {
   const prev = meta.base ? versionValues(meta.base) : cur;
   return {
     meta: { ...meta, editable: meta.status === '작성 중' || meta.status === '돌려받음' },
-    indicators: INDICATORS.map((i) => ({ id: i.id, field: i.field, name: i.name, current: cur.weights[i.id], previous: prev.weights[i.id] })),
+    indicators: INDICATORS.map((i) => ({ id: i.id, field: i.field, name: i.name, source: INDICATOR_SOURCE[i.field] || '-', valueState: INDICATOR_STATE[i.id] || '값 있음', current: cur.weights[i.id], previous: prev.weights[i.id] })),
     thresholds: THRESHOLDS.map((t) => ({ id: t.id, name: t.name, unit: t.unit, current: cur.thresholds[t.id], previous: prev.thresholds[t.id] })),
     conditions: cur.conditions.map((c) => ({ ...c, previous: (prev.conditions.find((p) => p.id === c.id) || null) })),
   };

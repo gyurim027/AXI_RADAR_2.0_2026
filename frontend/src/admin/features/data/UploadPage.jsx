@@ -88,6 +88,8 @@ function UploadForm({ targets, preset, onUploaded }) {
 
   const submit = async (e) => {
     e.preventDefault();
+    if (file && file.size === 0) return setErrors({ file: UPLOAD.errorEmpty });
+    if (file && file.size > 100 * 1024 * 1024) return setErrors({ file: UPLOAD.errorTooLarge });
     setBusy(true);
     setDone(null);
     try {
@@ -114,7 +116,7 @@ function UploadForm({ targets, preset, onUploaded }) {
       <form className={styles.formGrid} onSubmit={submit} noValidate aria-busy={busy}>
         <fieldset className={styles.lock} disabled={busy}>
         <SelectInput label={UPLOAD.data} value={dataId} onChange={pick} options={options} required />
-        <FileInput key={done ? 'done' : 'form'} label={UPLOAD.file} fileName={file?.name} onChange={setFile} help={UPLOAD.fileHelp(FORMAT_TEXT)} error={errors.format ? UPLOAD.errorFormat(FORMAT_TEXT) : null} required />
+        <FileInput key={done ? 'done' : 'form'} label={UPLOAD.file} fileName={file?.name} onChange={setFile} help={UPLOAD.fileHelp(FORMAT_TEXT)} error={errors.file || (errors.format ? UPLOAD.errorFormat(FORMAT_TEXT) : null)} required />
         <TextInput label={UPLOAD.source} value={source} onChange={setSource} placeholder={UPLOAD.sourcePlaceholder} error={errors.sourceBasis && !source.trim() ? UPLOAD.errorSourceBasis : null} required />
         <TextInput label={UPLOAD.basis} type="date" value={basis} onChange={setBasis} help={UPLOAD.basisHelp} error={errors.sourceBasis && !basis.trim() ? UPLOAD.errorSourceBasis : null} required />
         <SelectInput label={UPLOAD.received} value={received} onChange={setReceived} options={RECEIVED} help={UPLOAD.receivedHelp} />

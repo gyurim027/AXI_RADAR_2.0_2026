@@ -32,8 +32,10 @@ export function ReportCard({ title, children, className = '' }) {
 export function useReportDownload({ reportName, guLabel, header, table, withComplaintSource }) {
   const { run } = useRun();
   const [busy, setBusy] = useState(null);
+  const [failed, setFailed] = useState(false); // ERR-56
   const go = async (format, { onlyDept, rows } = {}) => {
     setBusy(onlyDept ? `${format}:${onlyDept}` : format);
+    setFailed(false);
     try {
       await new Promise((r) => setTimeout(r, 900));
       await recordDownload({ runId: run.id, reportName, format });
@@ -46,11 +48,13 @@ export function useReportDownload({ reportName, guLabel, header, table, withComp
         table: rows || table,
         withComplaintSource,
       });
+    } catch {
+      setFailed(true);
     } finally {
       setBusy(null);
     }
   };
-  return { busy, go };
+  return { busy, go, failed };
 }
 
 /**
@@ -58,13 +62,18 @@ export function useReportDownload({ reportName, guLabel, header, table, withComp
  * 만드는 중에는 안내 문구를 보인다 (CM-00 13번).
  */
 export function DownloadBar({ reportName, dl }) {
-  const { busy, go } = dl;
+  const { busy, go, failed } = dl;
   return (
     <ReportCard title={DOWNLOAD.title}>
       <div className={styles.dl}>
         {busy ? (
           <p className={styles.making} role="status">
             {COMMON.makingFile(reportName)}
+          </p>
+        ) : null}
+        {failed ? (
+          <p className={styles.making} role="alert">
+            {COMMON.fileFailed}
           </p>
         ) : null}
         <Button variant="soft" loading={busy === 'pdf'} disabled={!!busy} aria-label={DOWNLOAD.pdfLabel(reportName)} onClick={() => go('pdf')}>
@@ -80,7 +89,7 @@ export function DownloadBar({ reportName, dl }) {
 
 /** 보고서 위쪽에 붙는 줄: 자료 기준일과 산정 기준 버전 (4-4 표시) */
 export function fileHeader(run, extra = []) {
-  return [`점검 해: ${runTitle(run)}`, `자료 기준일: ${run.dataRange}`, `산정 기준 버전: ${run.version}`, ...extra];
+  return [`점검 연도: ${runTitle(run)}`, `자료 기준일: ${run.dataRange}`, `산정 기준 버전: ${run.version}`, ...extra];
 }
 
 /** 한 줄씩 쌓는 표 행 목록 (US-09) */

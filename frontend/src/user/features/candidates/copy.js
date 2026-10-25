@@ -14,7 +14,6 @@ export const LIST = {
   // 첫 화면 한 줄 안내 (UX 고도화 5-1 ①, 5-2 ①). 마감일은 DB에 칸이 없어 화면 코드에 둔다.
   guideDistrict: (n, deadline) => `결정 전 ${n}곳 · ${deadline ? `${deadline}까지 ` : ''}확정해 주세요.`,
   guideCity: (done, total) => `확정 현황: ${done}/${total}개 구`,
-  topMark: '왼쪽 빨간 막대: 점검 필요도 상위 10% 후보',
 
   // 1 KPI 카드 = 표의 결정 상태 필터 (사용자 결정: 단위 '곳', 이름은 명세 용어)
   kpiLabel: '결정 현황',
@@ -42,6 +41,7 @@ export const LIST = {
   conditionHelp: '점검 우선순위를 높이는 조건입니다.', // W-7, K-3
   conditionHelpLabel: '우선 확인 조건 뜻 보기',
   // 꼬리표에는 이유만 쓴다. 반영 비율은 상세의 ⓘ에 둔다 (W-7)
+  decisionMenuLabel: '결정 상태 바꾸기', // 메뉴 버튼의 화면 읽기 이름 (US-01 1-4)
   conditionTag: (name) => `먼저 볼 이유: ${name}`,
   conditionRatioHelp: (name, ratio) => `${name}의 반영 비율은 ${ratio}%입니다.`,
 
@@ -54,6 +54,7 @@ export const LIST = {
   unratedTitle: (n) => `평가하지 못한 구역 (${n}곳)`,
   unratedDesc: '자료가 부족해 점검 순위를 매기지 못한 구역입니다.',
   unratedHead: ['구역', '확보한 자료', '조사 안 한 자료'],
+  unratedHeadCity: '구', // 시 도로과 표에는 구 열이 앞에 더 있다 (US-01 1-6)
 
   // 4 바텀 바
   barUndecided: (n) => `아직 결정하지 않은 후보가 ${n}곳 있습니다. 모두 결정한 뒤 확정해 주세요.`,
@@ -81,6 +82,8 @@ export const LIST = {
   compareTitle: '구별 비교',
   compareBody: '구마다 상위 후보 비율과 실제 사고 비율을 나란히 봅니다. 한 구에 후보가 몰렸는지 확인할 때 사용할 수 있습니다.',
   compareHead: ['구', '상위 후보 비율', '보행자 사고 비율', '보정 전 상위 후보 비율'],
+  compareBeforeHelp: '구별 보정을 하기 전에 계산한 상위 후보 비율입니다.', // US-01 3-1 (풀이는 보정 방법 확정 뒤 바뀔 수 있다)
+  compareBeforeHelpLabel: '보정 전 상위 후보 비율 뜻 보기',
   compareBack: '순위 표로 돌아가기',
 };
 
@@ -131,7 +134,7 @@ export const DRAWER = {
   complaintTitle: '민원',
   complaintLine: (types) => types.map((t) => `${t.type} ${t.count}건${t.recur ? ` (재발 ${t.recur})` : ''}`).join(' · '),
   complaintLowAccuracy: (n) => `위치 정확도가 낮은 민원 ${n}건도 포함해 계산했습니다.`, // 낮음 민원도 격자 민원 수에 넣는다 (ISS-033, K-1)
-  complaintEmpty: '이번 점검 순위 계산에는 민원 자료를 사용하지 않았습니다.', // K-6
+  complaintEmpty: '이번 점검 순위 계산에는 민원 자료를 사용하지 않았습니다. 다른 근거만으로 순위를 계산했습니다.', // K-6, US-03 1-2
 
   // 2-1 조문
   articleTitle: '조문',
@@ -153,7 +156,7 @@ export const DRAWER = {
   lastSub: '작년에 이 구역을 어떻게 결정했는지 봅니다.',
   lastNotice: (runName, decision) => `결정: ${decision} (${runYear(runName)}년 점검 후보)`, // K-4
   lastReason: (reason, memo) => `사유: ${reason || '-'} · 메모: ${memo || '-'}`,
-  lastEmpty: '작년에 결정한 기록이 없습니다.',
+  lastEmpty: '지난 점검 후보에서 결정한 기록이 없습니다.',
 
   // 5-1~5-3 결정 기록
   decisionTitle: '결정 기록',
@@ -184,7 +187,9 @@ export const DRAWER = {
   modalClose: '사유 입력 닫기', // 명세에 없는 닫기 버튼 (확인 필요)
 
   // 6-1 요청안
-  requestTitle: '점검 요청',
+  requestTitle: '점검 요청 내용',
+  requestHelp: '담당 부서에 전달할 점검 요청 내용입니다. 보내기 전에 수정할 수 있습니다.',
+  requestHelpLabel: '점검 요청 내용 뜻 보기',
   requestSub: '담당 부서에 전달할 점검 요청 내용과 조치 제안입니다.',
   requestCopy: '요청 내용 복사하기',
   requestCopied: '요청 내용을 복사했습니다.', // 명세에 없는 완료 문구 (확인 필요)

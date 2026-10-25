@@ -34,8 +34,7 @@ export const DETAIL = {
   useOff: '사용 안 함',
 
   usedTitle: '이 버전이 쓰는 지표',
-  usedNote: '읽기만 하는 목록입니다. 점수 구조가 정해지면 지표가 바뀔 수 있습니다.',
-  usedRow: (field, name) => `${field} · ${name}`,
+  usedHead: ['분야', '지표', '자료', '값 상태'],
   toApprovals: '승인 이력에서 보기',
 
   previewTitle: '상위 후보 변화 미리 보기',

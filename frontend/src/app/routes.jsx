@@ -7,6 +7,7 @@ import RequireOperator from '../admin/layout/RequireOperator.jsx';
 import { adminRoutes } from '../admin/routes.jsx';
 import { candidateRoutes } from '../user/features/candidates/index.jsx';
 import { reportRoutes } from '../user/features/reports/index.jsx';
+import NoticePage from '../user/components/NoticePage.jsx';
 import { referenceRoutes } from '../user/features/reference/index.jsx';
 
 // handle.fullHeight: 화면 전체 높이를 쓰는 목록+지도 화면 (디자인 시스템 9-1)
@@ -18,7 +19,7 @@ export const router = createBrowserRouter([
     children: [
       {
         element: <AdminLayout />,
-        children: [...adminRoutes, { path: '*', element: <Navigate to="/admin" replace /> }],
+        children: [...adminRoutes, { path: '*', element: <NoticePage kind="notFound" home="/admin" /> }],
       },
     ],
   },
@@ -32,7 +33,7 @@ export const router = createBrowserRouter([
           ...candidateRoutes,
           ...reportRoutes,
           ...referenceRoutes,
-          { path: '*', element: <Navigate to="/candidates" replace /> },
+          { path: '*', element: <NoticePage kind="notFound" /> },
         ],
       },
     ],

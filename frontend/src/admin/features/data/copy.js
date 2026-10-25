@@ -42,6 +42,8 @@ export const UPLOAD = {
   submit: '파일 올리기',
   errorSourceBasis: '출처와 기준일을 적어야 올릴 수 있습니다.',
   errorFormat: (formats) => `올릴 수 없는 형식입니다. ${formats} 파일을 골라 주세요.`,
+  errorTooLarge: '파일이 너무 큽니다. 100MB 이하로 나눠서 다시 올려 주세요.', // ERR-34
+  errorEmpty: '파일에 내용이 없습니다. 파일을 확인한 뒤 다시 올려 주세요.', // ERR-35
   done: (name) => `${name} 파일을 올렸습니다. 검사 결과를 확인해 주세요.`,
   // 민원 파일은 적재 건수를 함께 보인다 (제안, 작업파일 261024 프론트_수정_보완_정리 R-05)
   doneComplaint: (c) => `민원 ${c.rows.toLocaleString('ko-KR')}건을 올렸습니다. 새로 ${c.new.toLocaleString('ko-KR')}건, 이미 있던 ${c.existing.toLocaleString('ko-KR')}건, 값이 바뀐 ${c.updated.toLocaleString('ko-KR')}건입니다.`,
@@ -87,6 +89,8 @@ export const CLASSIFY = {
   fixRelevance: '관련 여부',
   fixType: '유형',
   fixTypeHelp: '비관련·불명으로 고치면 유형은 비워집니다.',
+  errorUnchanged: '고친 분류를 골라 주세요. 분류가 맞다면 분류 맞음을 눌러 주세요.', // ERR-31
+  emptyNoPeriod: '이 회차는 민원 접수 기간이 없어 민원 없이 산정했습니다. 확인할 표본이 없습니다.', // ERR-51
   fixApply: '고친 분류 반영하기',
   confidence: (n) => `${n}%`,
   failedArea: '분류 표본',

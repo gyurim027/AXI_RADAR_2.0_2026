@@ -231,3 +231,8 @@
     overflow-x: auto;
   }
 }
+.usedTitle {
+  margin-bottom: var(--a-s2);
+  font-size: var(--a-fs-md);
+  font-weight: var(--a-fw-semibold);
+}

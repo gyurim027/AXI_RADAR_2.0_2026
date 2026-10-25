@@ -53,9 +53,9 @@ export function runTitle(run, withNote = true) {
   return `${year}년 점검 후보`;
 }
 
-/** 연도 선택 칸의 선택지. 연간은 상태를 붙인다. 예: '2027년 점검 후보 (검토 중)' */
+/** 점검 연도 선택 칸의 선택지. 연간은 상태를 붙인다. 예: '2027년 점검 후보 · 검토 중' */
 export function runOptionLabel(run) {
-  return run.kind === 'ref' ? runTitle(run) : `${runTitle(run)} (${run.status})`;
+  return run.kind === 'ref' ? runTitle(run) : `${runTitle(run)} · ${run.status}`;
 }
 
 /** 이 회차가 쓴 자료의 해. 자료 기준일 끝 해를 쓴다. 예: '2022.12 ~ 2026.06' → '2026' */

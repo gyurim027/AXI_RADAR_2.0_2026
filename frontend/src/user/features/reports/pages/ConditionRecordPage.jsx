@@ -4,6 +4,7 @@ import { useAuth } from '../../../../app/providers/AuthProvider.jsx';
 import { useRun } from '../../../../app/providers/RunProvider.jsx';
 import { ROLE } from '../../../../shared/constants.js';
 import { runYear } from '../../../../shared/utils/format.js';
+import { InfoHelp } from '../../../components/FormControls.jsx';
 import PageHeader from '../../../components/PageHeader.jsx';
 import { ErrorState, SkeletonRows } from '../../../components/States.jsx';
 import { CONDITION } from '../copy.js';
@@ -33,7 +34,10 @@ export default function ConditionRecordPage() {
         ) : loading && !data ? (
           showSkeleton ? <SkeletonRows rows={2} /> : null
         ) : data.ready ? (
-          <p>{line}</p>
+          <p>
+            {line}
+            <InfoHelp label="평가하지 못한 분야 뜻 보기">자료가 없어 평가하지 못한 분야입니다. 0점으로 처리하지 않았습니다.</InfoHelp>
+          </p>
         ) : (
           <p style={{ color: 'var(--semantic-color-text-muted)' }}>{empty}</p>
         )}

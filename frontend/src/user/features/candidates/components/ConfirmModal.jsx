@@ -7,6 +7,7 @@ import { ErrorState, SkeletonBlock } from '../../../components/States.jsx';
 import { confirmGu, getConfirmSummary } from '../../../../api/candidates.js';
 import { useAsync } from '../../../../shared/hooks/useAsync.js';
 import { ROLE } from '../../../../shared/constants.js';
+import { COMMON } from '../../../../shared/copy/common.js';
 import { CONFIRM } from '../copy.js';
 import styles from './ConfirmModal.module.css';
 
@@ -31,7 +32,7 @@ export default function ConfirmModal({ runId, role, onClose, onConfirmed }) {
       setStage('done');
       onConfirmed();
     } catch {
-      setErr('점검 대상을 확정하지 못했습니다. 잠시 뒤 다시 시도해 주세요.');
+      setErr(COMMON.saveFailed);
     } finally {
       setBusy(false);
     }

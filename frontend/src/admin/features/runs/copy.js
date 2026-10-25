@@ -37,7 +37,7 @@ export const RUNS = {
   fixPeriod: '민원 기간 고치기',
   fixPeriodTitle: '민원 접수 기간 고치기',
   fixPeriodClose: '민원 기간 고치기 창 닫기',
-  periodLocked: '산정을 시작해서 민원 접수 기간을 고칠 수 없습니다.',
+  periodLocked: '산정을 시작한 회차는 민원 접수 기간을 고칠 수 없습니다. 기간을 바꾸려면 새 회차를 만들어 주세요.', // ERR-50
   suggest: (year, kind) => (kind === '연간' ? `${year} 연간` : `${year} 상반기 참고`),
 
   // 2-1 회차 열기 확인 창
@@ -77,7 +77,7 @@ export const LOG = {
 export const SCHEDULE = {
   // AD-08
   title: '실행 일정',
-  subtitle: '정기 수집과 산정 일정을 봅니다.',
+  subtitle: '정기 수집과 산정 일정을 봅니다. 자동 실행은 아직 지원하지 않아 일정만 보여 줍니다.',
   // M-9: 지금은 일정만 보이고 실행은 사람이 한다. 자동 실행은 확장이다.
   notice: '자동 실행은 확장 기능입니다. 지금은 일정만 보이고, 실행은 회차 목록에서 직접 시작합니다.',
   head: ['작업', '주기', '다음 예정일', '마지막 실행'],

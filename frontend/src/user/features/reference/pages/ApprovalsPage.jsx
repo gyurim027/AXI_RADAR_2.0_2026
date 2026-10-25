@@ -111,7 +111,7 @@ function RejectModal({ onClose, onSend }) {
   return (
     <Modal title={APPROVAL.reject} titleId="reject-title" onClose={() => { if (!busy) onClose(); }} closeLabel={APPROVAL.closeLabel}>
       <div className={styles.modalBody}>
-        <TextField label={APPROVAL.rejectReasonLabel} value={reason} maxLength={255} onChange={(v) => { setReason(v); setError(''); }} error={error} />
+        <TextField label={APPROVAL.rejectReasonLabel} value={reason} maxLength={255} onChange={(v) => { setReason(v); setError(''); }} error={error || (reason.length >= 255 ? APPROVAL.reasonTooLong : '')} />
         <div className={styles.btns}><Button onClick={send} loading={busy}>{APPROVAL.rejectSend}</Button></div>
       </div>
     </Modal>
