@@ -2,7 +2,8 @@ import { createContext, useCallback, useContext, useMemo, useState } from 'react
 import { listRuns } from '../../api/session.js';
 import { useAsync } from '../../shared/hooks/useAsync.js';
 import { ALL_GU, ROLE, RUN_STATUS } from '../../shared/constants.js';
-import { ErrorState } from '../../user/components/States.jsx';
+import { COMMON } from '../../shared/copy/common.js';
+import { EmptyState, ErrorState } from '../../user/components/States.jsx';
 import { useAuth } from './AuthProvider.jsx';
 
 const RunContext = createContext(null);
@@ -59,7 +60,8 @@ export function RunProvider({ children }) {
   );
 
   if (failed) return <ErrorState areaName="회차 목록" onRetry={reload} />;
-  if (!run) return null;
+  // E-1 열 수 있는 점검 해가 아직 없다. 빈 화면 대신 이유와 다음 일을 알린다.
+  if (!run) return <EmptyState text={COMMON.noCandidates} hint={COMMON.noCandidatesHint} />;
   return <RunContext.Provider value={value}>{children}</RunContext.Provider>;
 }
 

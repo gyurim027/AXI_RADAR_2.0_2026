@@ -54,7 +54,7 @@ export default function DecisionReasonModal({ runId, gid, decision, onClose, onS
             setError('');
           }}
           placeholder={DRAWER.reasonPlaceholder}
-          options={DRAWER.reasonOptions}
+          options={DRAWER.reasonOptionsByDecision[decision] || []}
         />
         {isOther ? (
           <TextField label={DRAWER.otherLabel} value={other} onChange={setOther} maxLength={100} placeholder={DRAWER.otherPlaceholder} />

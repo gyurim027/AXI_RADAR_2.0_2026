@@ -7,6 +7,11 @@ export const COMMON = {
 
   // 11 빈 목록
   emptyList: '조건에 맞는 점검 후보가 없습니다.',
+  // E-1 점검 후보 자체가 없을 때(회차가 없거나 후보 목록이 비어 있음)
+  noCandidates: '아직 검토할 점검 후보가 없습니다.',
+  noCandidatesHint: 'RADAR 운영팀이 점검 순위 계산을 마치면 이곳에 표시됩니다.',
+  // E-2 후보 상세에 근거 자료가 없을 때
+  noEvidence: '이 구역에는 표시할 근거 자료가 없습니다. 평가하지 못한 분야를 확인해 주세요.',
   emptyListHint: '필터를 줄여 보세요.',
   emptyListClear: '필터 모두 지우기',
 
@@ -29,7 +34,8 @@ export const COMMON = {
     `민원 ${total}건 (${typeText}) · 재발 ${recur}건`,
 
   // 9 평가하지 못한 분야·조사 안 한 곳
-  unratedTag: (n) => `평가하지 못한 분야 ${n}개`,
+  // 무엇이 빠졌는지 바로 붙인다. 예: '평가하지 못한 분야 1개 (보도 폭)' (UX 고도화 W-8)
+  unratedTag: (n, names = []) => `평가하지 못한 분야 ${n}개${names.length ? ` (${names.join(', ')})` : ''}`,
   notSurveyedTag: (fields) => `조사 안 함: ${fields}`,
 
   // 4 후보 범위 표시

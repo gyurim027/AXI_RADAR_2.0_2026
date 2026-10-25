@@ -17,17 +17,50 @@
 .leftInner {
   display: flex;
   flex-direction: column;
-  gap: var(--space-16);
-  padding: var(--space-24) var(--semantic-layout-page-margin) var(--space-24);
+  gap: var(--space-12);
+  padding: var(--space-16) var(--semantic-layout-page-margin) var(--space-24);
 }
 .filterRow {
   margin-bottom: calc(-1 * var(--space-4));
+}
+.guide {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-bold);
+  color: var(--semantic-color-text-strong);
+}
+.guideBtn {
+  min-height: var(--control-h-sm);
+  padding: 0 var(--space-12);
+  border: 1px solid var(--semantic-color-border-card);
+  border-radius: var(--radius-md);
+  background: var(--semantic-color-bg-surface);
+  color: var(--semantic-color-primary-strong);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-bold);
+}
+.legendLine {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  margin: 0 var(--space-16) var(--space-8);
+  font-size: var(--fs-small);
+  color: var(--semantic-color-text-muted);
+}
+.legendMark {
+  display: inline-block;
+  width: 4px;
+  height: 16px;
+  border-radius: 2px;
+  background: var(--semantic-color-risk-high-line);
 }
 .tableCard {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  height: clamp(360px, 52vh, 600px);
+  height: clamp(420px, calc(100vh - 290px), 820px); /* 목록이 화면의 절반 이상을 쓴다 (U-1) */
   overflow: hidden;
   border: 1px solid var(--component-card-border);
   border-radius: var(--component-card-radius);

@@ -60,7 +60,7 @@ export const CHECKS = {
   empty: '검사에서 걸린 자료가 없습니다.',
   lowBefore: '민원 위치 낮음 ',
   lowAfter: (cells, changed) => `건 · 상위 ${cells}칸 순위 변화 ${changed}칸`,
-  lowNote: '위치가 낮음인 민원도 격자 민원 수에 넣었습니다. 뺀 경우와 넣은 경우의 상위 순위를 비교한 결과입니다.', // 정의서 10_3 행101·ISS-033 기준 (행102 문구는 정의서 수정 대기)
+  lowNote: '위치 정확도가 낮은 민원도 격자 민원 수에 포함했습니다. 아래는 뺀 경우와 넣은 경우의 상위 순위를 비교한 결과입니다.', // K-2, ISS-033
   lowTitle: '위치 낮음 민원',
   lowClose: '위치 낮음 민원 창 닫기',
   failedArea: '검사 결과',

@@ -44,8 +44,8 @@
   vertical-align: middle;
   overflow-wrap: anywhere;
 }
-.tr.high .td {
-  background: var(--component-table-row-high-bg);
+.tr.high .td:first-child {
+  box-shadow: inset 4px 0 0 var(--semantic-color-risk-high-line); /* 왼쪽 막대로 알린다. 뜻은 표 위 한 줄에 있다 (U-5) */
 }
 .tr.selected .td {
   background: var(--semantic-color-primary-soft);

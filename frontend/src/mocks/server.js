@@ -229,6 +229,7 @@ function toRow(m, rank, scopeTotal, cityRank, cityTotal) {
     reliability: base.reliability,
     unratedCount: base.unrated.length,
     unratedAll: base.unratedAll,
+    unratedNames: base.unrated.map((u) => u.name),
     notSurveyed: notSurveyed.map((u) => u.name),
     collected: base.collected,
     missing: base.missing,
@@ -332,7 +333,7 @@ export function getCandidateDetail({ runId, gid }) {
     const d = deptResolved(runId, base, k);
     let sentence = o.sentence;
     if (o.deptKind === 'parking') {
-      sentence = `이번 회차 자료에 인도·횡단보도 불법 주정차 민원이 ${it.complaint.total}건 있고, ${it.complaint.recur}건은 다시 들어왔습니다. 지금도 주정차가 반복되는지 확인하고 단속을 요청해 주세요.`;
+      sentence = `이번 점검 순위에 쓴 자료에 인도·횡단보도 불법 주정차 민원이 ${it.complaint.total}건 있고, ${it.complaint.recur}건은 다시 들어왔습니다. 지금도 주정차가 반복되는지 확인하고 단속을 요청해 주세요.`;
     }
     problems.push({
       key: k,
@@ -370,6 +371,8 @@ export function getCandidateDetail({ runId, gid }) {
     axes,
     reliability: base.reliability,
     reliabilityReason: base.reliabilityReason,
+    // 우선 확인 조건: 꼬리표에는 이유만, 반영 비율은 ⓘ에 쓴다 (W-7)
+    conditions: (it.conditions || []).map((id) => PRIORITY_CONDITIONS.find((c) => c.id === id)).filter(Boolean),
     unrated: base.unrated,
     obstacles: m.obstacles.map((k) => OB[k].name),
     complaint: {

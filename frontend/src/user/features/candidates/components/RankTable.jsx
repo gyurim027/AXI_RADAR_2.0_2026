@@ -2,10 +2,10 @@ import DataTable from '../../../components/DataTable.jsx';
 import Tag, { Badge } from '../../../components/Tag.jsx';
 import { COMMON } from '../../../../shared/copy/common.js';
 import { LIST } from '../copy.js';
-import DecisionMenu from './DecisionMenu.jsx';
 import styles from './RankTable.module.css';
 
 const RELI_TONE = { 높음: 'low', 보통: 'neutral', 낮음: 'mid' };
+const DECISION_TONE = { '결정 전': 'neutral', '우선 점검 대상': 'info', 제외: 'gray', 보류: 'mid' };
 
 /** 평가하지 못한 분야가 있는 후보에 회색 꼬리표를 붙인다. 조사 안 한 곳은 0으로 보이지 않는다 (CM-00 9번). */
 export function UnratedTags({ row }) {
@@ -13,7 +13,7 @@ export function UnratedTags({ row }) {
   return (
     <span className={styles.tags}>
       <Tag tone="gray" small>
-        {COMMON.unratedTag(row.unratedCount)}
+        {COMMON.unratedTag(row.unratedCount, row.unratedNames)}
       </Tag>
       {row.notSurveyed.length ? (
         <Tag tone="gray" small>
@@ -25,7 +25,7 @@ export function UnratedTags({ row }) {
 }
 
 // 열 폭(px). 머리는 한 줄이라 이름이 긴 열은 폭을 넓힌다 (와이어프레임 2-3). 남는 폭은 후보 열이 받는다.
-function columnsFor({ city, canDecide, conditionMap, onDecide }) {
+function columnsFor({ city, conditionMap }) {
   const cols = [
     { key: 'rank', header: '순위', width: 64, sticky: true, sortable: true, align: 'right', render: (r) => <span className="num">{r.rank}</span> },
   ];
@@ -42,14 +42,14 @@ function columnsFor({ city, canDecide, conditionMap, onDecide }) {
         <span className={styles.cand}>
           <span className={styles.addr}>{r.address}</span>
           <span className={styles.landmark}>{r.landmark}</span>
-          {/* 우선 확인 조건에 맞은 후보는 맞은 조건과 반영 비율을 꼬리표로 보인다 */}
+          {/* 우선 확인 조건에 맞은 후보는 먼저 볼 이유를 꼬리표로 보인다. 반영 비율은 상세에 있다 (W-7) */}
           {r.conditions.filter((id) => conditionMap[id]).length > 0 ? (
             <span className={styles.tags}>
               {r.conditions
                 .filter((id) => conditionMap[id])
                 .map((id) => (
                   <Tag key={id} tone="info" small>
-                    {LIST.conditionTag(conditionMap[id].name, conditionMap[id].ratio)}
+                    {LIST.conditionTag(conditionMap[id].name)}
                   </Tag>
                 ))}
             </span>
@@ -68,7 +68,7 @@ function columnsFor({ city, canDecide, conditionMap, onDecide }) {
     },
     {
       key: 'reliability',
-      header: '신뢰도',
+      header: '자료 신뢰도',
       width: 96,
       sortable: true,
       align: 'center',
@@ -91,19 +91,19 @@ function columnsFor({ city, canDecide, conditionMap, onDecide }) {
       stickyRight: true, // 가로 스크롤돼도 결정 상태 칸은 늘 보인다
       sortable: true,
       align: 'center',
-      // 도로관리팀 · 검토 중 · 구 확정 전에만 버튼이다. 그 밖에는 글자만 보인다 (CM-00 10번).
-      render: (r) => (canDecide && r.gu ? <DecisionMenu value={r.decision} label={LIST.decisionMenuLabel(r.address)} onSelect={(d) => onDecide(r, d)} /> : r.decision),
+      // 목록에는 상태만 보인다. 결정은 상세의 결정 기록 탭 한 곳에서 한다 (W-14).
+      render: (r) => <Badge tone={DECISION_TONE[r.decision] || 'neutral'}>{r.decision}</Badge>,
     },
   );
   return cols;
 }
 
 /** 2-3 순위 표. 한 쪽 50행. 행을 누르면 요약 팝업이 열리고 지도가 그 구역으로 옮겨 간다. */
-export default function RankTable({ rows, city, canDecide, conditionMap, onDecide, selectedId, onSelect, sort, onSort, emptyContent }) {
+export default function RankTable({ rows, city, conditionMap, selectedId, onSelect, sort, onSort, emptyContent }) {
   return (
     <DataTable
       caption={LIST.tableCaption}
-      columns={columnsFor({ city, canDecide, conditionMap, onDecide })}
+      columns={columnsFor({ city, conditionMap })}
       rows={rows}
       getRowKey={(r) => r.gid}
       selectedKey={selectedId}
