@@ -18,6 +18,12 @@ import importlib
 
 # 붙일 기능 목록 (기능 이름, 라우터 모듈). 그 브랜치에 아직 없는 기능은 건너뛴다 → 금요일에 하나씩 합쳐도 main.py를 고치지 않음
 ROUTER_MODULES = [
+    ("RADAR-B11-HALFYEAR", "app.api.priority_halfyear_api"),
+    ("RADAR-B11-ROLLUP", "app.api.priority_rollup_api"),
+    ("C08 ROW DECISION", "app.api.c08_decision_api"),
+    ("PRIORITY-I02-WORKFLOW", "app.api.priority_setting_workflow_api"),
+    ("RADAR-PRIORITY-EXT", "app.api.priority_extensions_api"),
+    ("C08 TYPE PREREVIEW", "app.api.c08_type_prereview_api"),
     ("AUTH", "app.api.auth_api"),             # /api/auth  로그인·권한 (은경, I-01)
     ("ACCOUNTS", "app.api.accounts_api"),     # /api/admin 계정 관리·접속 기록 조회 (은경, I-01·I-04)
     ("OPS", "app.api.ops_api"),               # /api/ops   운영: 대시보드·실행 기록·실패 알림 (은경, I-03·05·06)

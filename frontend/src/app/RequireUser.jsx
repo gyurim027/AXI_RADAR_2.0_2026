@@ -1,5 +1,5 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { i07BackendEnabled } from '../api/backend.js';
+import { i07BackendEnabled, priorityBackendEnabled } from '../api/backend.js';
 import { ROLE } from '../shared/constants.js';
 import { useAuth } from './providers/AuthProvider.jsx';
 import { RunProvider } from './providers/RunProvider.jsx';
@@ -13,6 +13,7 @@ export default function RequireUser() {
   if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   if (user.role === ROLE.OPERATOR) return <Navigate to="/admin" replace />;
   if (i07BackendEnabled && location.pathname.replace(/\/$/, '') === '/reference/approvals') return <Outlet />;
+  if (priorityBackendEnabled) return <Outlet />;
   return (
     <RunProvider>
       <Outlet />

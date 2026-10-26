@@ -34,7 +34,7 @@ def serialize(row):
     return result
 
 
-def stored_explanation(row):
+def stored_explanation(row, *, details=None):
     if row['score'] is None or row['rank_no'] is None:
         return None
     # 점수·순위는 계산하지 않는다. 저장값이 이상하면 해석하지 않고 보류한다.
@@ -49,6 +49,11 @@ def stored_explanation(row):
         text += '규칙 버전은 미제공입니다. '
     else:
         text += f"규칙 버전은 {row['rule_version']}입니다. "
+    if details and details.get('stored'):
+        return text + ('상세근거 5종은 함께 제공된 저장 자료를 확인해 주세요. '
+            '민원 건수만으로 점수 기여를 추정하지 않았습니다. '
+            '미평가 사유와 신뢰도는 위험 점수와 구분해야 합니다. '
+            '공식 승인 여부와 산식 타당성은 이 저장값 설명으로 확인할 수 없습니다.')
     return text + (
         '항목별 점수 기여·지표별 출처·기준일과 민원의 점수 반영 여부는 이번 조회에 제공되지 않았습니다. '
         '따라서 순위의 원인이나 민원 0건 여부를 추정하지 않았습니다. '

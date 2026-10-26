@@ -55,6 +55,15 @@ def run_official_pipeline(inputs: OfficialInputs, *, explicit_db_write_approval:
         raise InputBlocked('SETTING_NOT_FOUND')
     setting = rows[0]
     policy = load_approved_policy(setting, inputs.policy_evidence_dir)
+    # Simulated 62 approval cannot authorize a real official 77/78 run.
+    if inputs.setting_version_id == 1:
+        from app.services.scoring.b02_policy_contract import validate_policy_document, read_immutable_document
+        scoped = read_only('SELECT review_comment FROM setting_version WHERE setting_version_id=%s',(inputs.setting_version_id,))
+        if not scoped: raise InputBlocked('SETTING_REVIEW_SCOPE_MISSING')
+        scoped_setting={**setting, **scoped[0]}
+        document, _ = read_immutable_document(inputs.policy_evidence_dir,scoped_setting)
+        validate_policy_document(document,start=inputs.start,end=inputs.end,setting=scoped_setting,require_simulated_origin=True)
+        if explicit_db_write_approval: raise InputBlocked('INTERNAL_DEMO_SIMULATION_CANNOT_WRITE_OFFICIAL_77_78')
 
     # C-07 output is generated only from explicitly human-confirmed input, not AI candidates.
     counts = aggregate_reviewed_complaints(list(inputs.reviewed_complaints),

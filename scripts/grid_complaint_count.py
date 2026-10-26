@@ -4,8 +4,8 @@
   - 좌표 정확도 '낮음' 민원도 격자 민원 수에 넣는다 → complaint_cnt
   - 뺀 값도 함께 저장한다                           → complaint_cnt_excl_low
 설정으로 바꿀 수 있는 것 (기능정의서 C-07 확인 후 정하기)
-  --dedupe        dup_flag(같은 행 N건)인 완전히 같은 민원은 한 번만 센다
-  --relevance     AI-01이 채운 relevance가 '관련'·'불명'인 것만 센다 (지금은 전부 빈칸이라 적용 안 됨)
+  --dedupe        중복 플래그가 있는 동일 민원을 한 번만 센다 (확정 정책 필요)
+  --relevance     AI-01의 '보행안전 관련'만 센다. 미분류 전건은 오류로 중단; '불명' 제외
   --ai03 <폴더>   AI-03 민원 좌표(ai03_v2_update_79_complaint.csv)를 넣고 센다
 
 사용법 (저장소 루트에서, uv run python -m scripts.<이 파일 이름>)
@@ -37,16 +37,39 @@ def load(ai03_dir: Path | None) -> pd.DataFrame:
 
 
 def count(c: pd.DataFrame, dedupe=False, relevance=False) -> pd.DataFrame:
+    """Count complaints for C-07; strict relevance mode never falls back to all rows.
+
+    C-07's historical unfiltered count remains a descriptive inventory only.
+    A score-consuming caller MUST use relevance=True and separately verify the
+    approved classification/period/location/dedup provenance; these counts
+    alone do not establish official eligibility.
+    """
+    required = {"complaint_id", "gid", "coord_accuracy", "dup_flag", "relevance"}
+    if not required.issubset(c.columns):
+        raise ValueError("C07_MISSING_COLUMNS:" + ",".join(sorted(required-set(c.columns))))
+    if c["complaint_id"].isna().any() or c["complaint_id"].duplicated().any():
+        raise ValueError("C07_INVALID_COMPLAINT_ID")
     d = c[c["gid"].notna()].copy()
-    if relevance and d["relevance"].notna().any():
-        d = d[d["relevance"].isin(["관련", "불명"])]
-    elif relevance:
-        print("relevance가 전부 빈칸 → 관련 여부 거르기는 건너뜀 (AI-01 결과 후 다시)")
+    if relevance:
+        # AI-01 actual values are '보행안전 관련', '비관련', '불명'.
+        # Unknown/unclassified records are never counted as eligible.
+        labels = d["relevance"].dropna().astype(str).str.strip()
+        unexpected = set(labels.unique()) - {"보행안전 관련", "비관련", "불명"}
+        if unexpected:
+            raise ValueError("C07_UNKNOWN_RELEVANCE_VOCABULARY")
+        if c["relevance"].isna().all():
+            raise ValueError("C07_CLASSIFICATION_UNAVAILABLE")
+        d = d[d["relevance"].eq("보행안전 관련")]
     if dedupe:
         key = ["gid", "location_text", "report_type_raw", "received_date", "occurred_at", "source_type"]
+        missing = sorted(set(key)-set(d.columns))
+        if missing:
+            raise ValueError("C07_DEDUPE_KEYS_MISSING:" + ",".join(missing))
         dup = d[d["dup_flag"].notna()].drop_duplicates(subset=key)
         d = pd.concat([d[d["dup_flag"].isna()], dup])
     grid = S.read("grid_cell", usecols=["gid"])
+    if grid["gid"].isna().any() or grid["gid"].duplicated().any():
+        raise ValueError("C07_INVALID_GRID_KEYS")
     out = grid.assign(
         complaint_cnt=grid["gid"].map(d.groupby("gid").size()).fillna(0).astype(int),
         complaint_cnt_excl_low=grid["gid"].map(d[d["coord_accuracy"] != "낮음"].groupby("gid").size()).fillna(0).astype(int))

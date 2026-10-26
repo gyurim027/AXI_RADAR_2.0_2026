@@ -1,3 +1,5 @@
+import { priorityBackendEnabled } from '../../../../api/backend.js';
+import StoredPriorityPage from './StoredPriorityPage.jsx';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getCandidateDetail, getConfirmSummary, getGuCompare, listCandidates, logComplaintPointView } from '../../../../api/candidates.js';
@@ -32,6 +34,10 @@ import styles from './CandidateListPage.module.css';
 
 /** 회차를 바꾸면 화면 상태(선택, 필터, 쪽)를 새로 시작한다 */
 export default function CandidateListRoute() {
+  return priorityBackendEnabled ? <StoredPriorityPage /> : <MockCandidateRoute />;
+}
+
+function MockCandidateRoute() {
   const { run } = useRun();
   return <CandidateListPage key={run.id} />;
 }

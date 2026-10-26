@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Link, Outlet, useLocation, useMatches, useNavigate } from 'react-router-dom';
-import { i07BackendEnabled } from '../../api/backend.js';
+import { i07BackendEnabled, priorityBackendEnabled } from '../../api/backend.js';
 import { RUN_STATUS } from '../../shared/constants.js';
 import { useAuth } from '../../app/providers/AuthProvider.jsx';
 import { useRun } from '../../app/providers/RunProvider.jsx';
@@ -15,6 +15,7 @@ import bar from './TopBar.module.css';
 export default function UserLayout() {
   const { pathname } = useLocation();
   if (i07BackendEnabled && pathname.replace(/\/$/, '') === '/reference/approvals') return <ApprovalOnlyLayout />;
+  if (priorityBackendEnabled) return <StoredPriorityLayout />;
   return <RunUserLayout />;
 }
 
@@ -66,4 +67,15 @@ function RunUserLayout() {
       </main>
     </div>
   );
+}
+
+function StoredPriorityLayout() {
+  const { pathname } = useLocation();
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
+  const allowed = pathname.replace(/\/$/, '') === '/candidates';
+  return <main style={{ padding: 24 }}>
+    <nav><Link to="/candidates">저장된 점검 우선순위</Link> · <button onClick={async () => { await signOut(); navigate('/login', { replace: true }); }}>로그아웃</button></nav>
+    {allowed ? <Outlet /> : <p>현재는 저장된 산정 결과 조회를 제공합니다. <Link to="/candidates">결과 조회로 이동</Link></p>}
+  </main>;
 }

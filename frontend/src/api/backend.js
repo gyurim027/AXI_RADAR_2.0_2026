@@ -1,11 +1,12 @@
 // I-07 실제 연결은 명시적으로 켠 경우에만 사용한다. 실패 시 목업으로 대체하지 않는다.
 export const i07BackendEnabled = import.meta.env?.VITE_I07_API === 'true';
 export const settingsBackendEnabled = import.meta.env?.VITE_SETTINGS_API === 'true';
-// 계정 관리·접속 기록·알림 설정(I-01·I-03·I-04) 실제 연결. 켜면 RADAR 운영자 로그인과 그 세 화면만 서버를 쓴다.
+// ?? ????? ????? ??(I-01?I-03?I-04) ?? ??.
 export const opsBackendEnabled = import.meta.env?.VITE_OPS_API === 'true';
-export const backendAuthEnabled = i07BackendEnabled || settingsBackendEnabled || opsBackendEnabled;
+export const priorityBackendEnabled = import.meta.env?.VITE_PRIORITY_API === 'true';
+export const backendAuthEnabled = i07BackendEnabled || settingsBackendEnabled || opsBackendEnabled || priorityBackendEnabled;
 
-/** 서버 연결 모드에서 로그인 뒤 처음 여는 화면 */
+/** ?? ?? ???? ??? ? ?? ?? ?? */
 export function backendHome(role) {
   if (role === 'operator') return settingsBackendEnabled ? '/admin/standards/criteria' : '/admin/settings/accounts';
   return '/reference/approvals';
@@ -26,7 +27,7 @@ export class BackendError extends Error {
 }
 
 export function createBackendClient({ baseUrl = '', getToken = () => null, fetchImpl = (...args) => fetch(...args), onUnauthorized = () => {} } = {}) {
-  return async function request(path, { method = 'GET', body } = {}) {
+  return async function request(path, { method = 'GET', body, signal } = {}) {
     const token = getToken();
     const headers = { Accept: 'application/json' };
     if (token) headers.Authorization = `Bearer ${token}`;
@@ -34,10 +35,11 @@ export function createBackendClient({ baseUrl = '', getToken = () => null, fetch
     let response;
     try {
       response = await fetchImpl(`${baseUrl.replace(/\/$/, '')}${path}`, {
-        method, headers, ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+        method, headers, signal, ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
       });
-    } catch {
-      throw new BackendError(0, 'network_error', '서버에 연결하지 못했습니다. 잠시 뒤에 다시 시도해 주세요.');
+    } catch (error) {
+      if (error?.name === 'AbortError') throw error;
+      throw new BackendError(0, 'network_error', '??? ???? ?????. ?? ??? ?? ??? ???.');
     }
     let data;
     try {

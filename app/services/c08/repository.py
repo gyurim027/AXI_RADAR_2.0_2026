@@ -15,7 +15,36 @@ SCOPES = {ADMIN: ("admin_sampled_at", LIMITS, sample_group), DISTRICT: ("distric
 
 
 class C08Repository:
+    def require_schema_ready(self) -> None:
+        """Check schema read-only before attempting review or sample writes."""
+        required = {
+            'priority_run': {'run_id', 'period_start', 'period_end', 'admin_sampled_at', 'district_sampled_at'},
+            'src_complaint': {'complaint_id', 'gu', 'received_date', 'masked_summary', 'relevance',
+                              'ped_type', 'class_method', 'class_confidence', 'class_reason'},
+            'complaint_review': {'sample_id', 'run_id', 'complaint_id', 'gu', 'review_scope',
+                                 'sample_group', 'population_count', 'sample_received_date',
+                                 'sample_masked_summary', 'sample_relevance', 'sample_ped_type',
+                                 'sample_class_method', 'sample_class_confidence', 'sample_class_reason',
+                                 'result', 'after_relevance', 'after_ped_type', 'reviewed_by', 'reviewed_at'},
+        }
+        rows = db.read_only(
+            'SELECT TABLE_NAME AS table_name, COLUMN_NAME AS column_name '
+            'FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() '
+            "AND TABLE_NAME IN ('priority_run', 'src_complaint', 'complaint_review')"
+        )
+        found = {name: set() for name in required}
+        for row in rows:
+            if row['table_name'] in found:
+                found[row['table_name']].add(row['column_name'])
+        missing = {name: sorted(cols - found[name]) for name, cols in required.items()
+                   if cols - found[name]}
+        if missing:
+            raise ApiError(503, 'c08_schema_not_ready',
+                           '분류 검수에 필요한 DB 구조가 아직 준비되지 않았습니다',
+                           extra={'missing_columns_by_table': missing})
+
     def run_scope(self, run_id: int) -> dict | None:
+        self.require_schema_ready()
         rows = db.read_only(
             "SELECT run_id, period_start, period_end, admin_sampled_at, district_sampled_at "
             "FROM priority_run WHERE run_id = %s", (run_id,))
@@ -44,6 +73,7 @@ class C08Repository:
     def _ensure_samples(self, run_id: int, scope: str) -> None:
         """첫 조회 때 전체 구를 한 거래에서 뽑는다. 0건이어도 완료 시각을 남긴다."""
         mark, limits, group_of = SCOPES[scope]
+        self.require_schema_ready()
         with db.connect() as con:
             with con.cursor() as cur:
                 cur.execute(f"SELECT period_start, period_end, {mark} FROM priority_run "

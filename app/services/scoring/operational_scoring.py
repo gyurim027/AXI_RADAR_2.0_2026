@@ -14,6 +14,7 @@ import numpy as np
 from app.services.scoring.approved_inputs import InputBlocked, aggregate_reviewed_complaints, load_approved_policy
 from app.services.scoring.calculation import Policy, FEATURES, DOMAINS, calculate, normalize, rank_scores
 from app.services.scoring.official_pipeline import OfficialInputs, run_official_pipeline
+from app.services.scoring.b02_policy_contract import validate_policy_document
 
 
 def assemble_official_score(*, grid_rows: list[dict], reviewed_rows: list[dict],
@@ -25,6 +26,7 @@ def assemble_official_score(*, grid_rows: list[dict], reviewed_rows: list[dict],
     """
     if not isinstance(policy_document, dict):
         raise InputBlocked('POLICY_DOCUMENT_REQUIRED')
+    validate_policy_document(policy_document, start=start, end=end)
     score_config = policy_document.get('policy', policy_document)
     policy = Policy(**{k:score_config[k] for k in
                       ('label','normalization','observation','domain_weights','accident_reduce','missing')})
@@ -119,10 +121,12 @@ def run_from_live_rows(*, setting_version_id:int, evidence_dir:str, build_id:str
                        'FROM setting_version WHERE setting_version_id=%s',(setting_version_id,))
     if len(settings)!=1:raise InputBlocked('SETTING_NOT_FOUND')
     row=settings[0]
+    # B02 binds the exact team-approved values, immutable bytes and fixed period.
+    from app.services.scoring.b02_policy_contract import read_immutable_document
+    document, _b02_contract = read_immutable_document(evidence_dir, row)
+    validate_policy_document(document, start=start, end=end, setting=row, require_simulated_origin=True)
     policy=load_approved_policy(row,evidence_dir)
     digest=row['content_ref'][7:]
-    from pathlib import Path
-    document=json.loads((Path(evidence_dir)/'policies'/(digest+'.json')).read_text(encoding='utf-8'))
     candidates,evidence=assemble_official_score(grid_rows=grid_rows,reviewed_rows=reviewed_rows,
         start=start,end=end,policy_document=document)
     result=run_official_pipeline(OfficialInputs(setting_version_id=setting_version_id,

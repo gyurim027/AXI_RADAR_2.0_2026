@@ -1,8 +1,11 @@
 import { mockCall } from './client.js';
 import * as server from '../mocks/server.js';
-import { BackendError, backendRequest, i07BackendEnabled, opsBackendEnabled, settingsBackendEnabled, backendAuthEnabled, readBackendSession, saveBackendSession, clearBackendSession } from './backend.js';
+import { BackendError, backendRequest, priorityBackendEnabled, i07BackendEnabled, opsBackendEnabled, settingsBackendEnabled, backendAuthEnabled, readBackendSession, saveBackendSession, clearBackendSession } from './backend.js';
 
-const allowedBackendRole=role=>(role==='city'&&i07BackendEnabled)||(role==='operator'&&(settingsBackendEnabled||opsBackendEnabled));
+const allowedBackendRole = role =>
+  (priorityBackendEnabled && ['city', 'district'].includes(role)) ||
+  (role === 'city' && i07BackendEnabled) ||
+  (role === 'operator' && (settingsBackendEnabled || opsBackendEnabled));
 
 export const getCurrentUser = () => {
   if (backendAuthEnabled) { const session = readBackendSession(); return session?.token&&allowedBackendRole(session.user?.role) ? session.user : null; }

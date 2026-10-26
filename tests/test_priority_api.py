@@ -105,3 +105,25 @@ class PriorityApiTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def test_stored_evidence_same_identity_in_explanation_context():
+    class DetailedRepo(MemoryRepo):
+        def get_candidate(self, run_id, gid):
+            row=super().get_candidate(run_id,gid)
+            if row:
+                row['details']={'stored':True,'domain_scores':{'hazard':35},
+                    'indicator_contributions':{'obstacle':10},'unevaluated_reasons':[],
+                    'confidence_grade':None,'score_excluding_accidents':None}
+            return row
+    pr.set_repository(DetailedRepo())
+    try:
+        client=TestClient(app)
+        out=client.get('/api/priority/runs/1/candidates/다사01',headers=_h('city')).json()
+        assert out['run']['runId']==out['explanationContext']['runId']==out['runId']==1
+        assert out['explanationContext']['details']==out['details']
+        assert out['explanationContext']['officialPolicyVerified'] is False
+        assert '상세근거 5종' in out['explanationContext']['summary']
+        assert out['details']['confidenceGrade'] is None
+    finally:
+        pr.set_repository(pr.PriorityRepository())
