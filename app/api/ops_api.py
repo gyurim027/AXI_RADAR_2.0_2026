@@ -46,9 +46,12 @@ def _run_row(r: dict) -> dict:
 APPROVAL_KEYS = {"제안": "pending", "승인": "approved", "돌려보냄": "returned"}     # 62 approval_status → 목업 칸 이름
 
 
-def _next_task(run: dict | None, calc: dict | None) -> dict | None:
+def _next_task(run: dict | None, calc: dict | None, data: dict | None = None) -> dict | None:
     """'다음에 할 일' (AD-01 1-1 순서: 빠진 자료 → 검사 오류 → 산정 실행 → 실행 실패 → 검토 중으로 열기).
-    빠진 자료·검사 오류·회차 상태는 아직 DB에서 알 수 없어서, 산정 실행 기록으로 알 수 있는 것만 알려 준다."""
+    빠진 자료는 56·84(SQL v2.3)로, 산정은 85 실행 기록으로 본다. 검사 오류(92 data_issue)·회차 상태(77)는 아직 연결 전."""
+    if data and data.get("missing"):
+        return {"key": "missing", "text": f"빠진 자료 {data['missing']}종을 올려 주세요.",
+                "to": "/admin/data/list?freshness=빠짐", "toLabel": "데이터 목록"}
     if calc and calc["status"] == "실행 중":
         return {"key": "running", "text": "산정이 끝나기를 기다려 주세요.", "to": "/admin/runs/log", "toLabel": "실행 기록"}
     if calc and calc["status"] == "실패":
@@ -76,14 +79,14 @@ def dashboard(days: int = Query(30, ge=1, le=366), _u: dict = Depends(operator),
     calc = _safe(repo.latest_calc, None, notes, "85 job_run 산정 기록을 읽지 못함")
     ap = _safe(lambda: repo.approval_counts(datetime.now().year), None, notes, "62 setting_version을 읽지 못함")
     reg = _safe(repo.regulation_unseen, None, notes, "89 standard_change를 읽지 못함")
+    data = _safe(repo.data_freshness, None, notes, "자료 최신 여부: 56 갱신 칸·84 source_id를 읽지 못함 (SQL v2.3 전 DB)")
     notes.append("회차 상태(산정 중·검토 중·확정)는 DB에 칸이 없어 비움 (D-10)")
-    notes.append("자료 최신 여부(갱신 예정일 지남·빠짐)는 DB에 갱신 주기·예정일 칸이 없어 비움 (A-01)")
     return {
         "run": ({"id": run["run_id"], "name": None, "status": None, "createdAt": _fmt(run.get("created_at")),
                  "periodStart": _fmt(run.get("period_start"), False), "periodEnd": _fmt(run.get("period_end"), False),
                  "adminSampledAt": _fmt(run.get("admin_sampled_at"))} if run else None),
-        "next": _next_task(run, calc),
-        "data": {"stale": None, "missing": None},
+        "next": _next_task(run, calc, data),
+        "data": data or {"stale": None, "missing": None, "unscheduled": None, "total": None},
         "runs": {"days": days, "success": c.get("성공", 0), "failure": c.get("실패", 0), "warning": c.get("경고", 0),
                  "running": c.get("실행 중", 0), "skipped": c.get("건너뜀", 0)},
         "approvals": ({k: (ap or {}).get(st, 0) for st, k in APPROVAL_KEYS.items()} if ap is not None else None),

@@ -94,6 +94,11 @@ class MemoryOpsRepo(ops_repo.OpsRepository):
     def regulation_unseen(self):
         return self.unseen
 
+    freshness = {"stale": 0, "missing": 0, "unscheduled": 54, "total": 54}
+
+    def data_freshness(self):
+        return self.freshness
+
     def running_same(self, run):
         return any(r["status"] == "실행 중" and r["module"] == run.get("module") and r["job_name"] == run.get("job_name")
                    and r["ref_id"] == run.get("ref_id") for r in self.s.runs.values())
@@ -192,7 +197,7 @@ class OpsApiTests(unittest.TestCase):
         self.assertEqual((j["runs"]["success"], j["runs"]["failure"], j["alerts"]["unread"]), (1, 1, 1))
         self.assertEqual(j["uploads"]["count"], 7)
         self.assertEqual(j["next"]["key"], "failed")                       # 가장 최근 산정이 실패 → 다시 실행 안내
-        self.assertEqual((j["run"], j["data"]["stale"], j["regulations"]), (None, None, 0))
+        self.assertEqual((j["run"], j["data"]["stale"], j["regulations"]), (None, 0, 0))
         self.assertEqual(j["approvals"], {"pending": 0, "approved": 0, "returned": 0})
 
     def test_dashboard_approvals_regulations_run(self):
@@ -206,6 +211,21 @@ class OpsApiTests(unittest.TestCase):
         self.assertEqual(j["regulations"], 4)
         self.assertEqual((j["run"]["id"], j["run"]["periodStart"], j["run"]["status"]), (3, "2026.01.01", None))
         self.assertTrue(any("회차 상태" in n for n in j["notes"]))
+
+    def test_dashboard_data_freshness(self):
+        repo = ops_repo.get_repository()
+        j = self.c.get("/api/ops/dashboard", headers=_bearer("operator")).json()
+        self.assertEqual(j["data"], {"stale": 0, "missing": 0, "unscheduled": 54, "total": 54})   # 주기 없는 자료는 '빠짐'이 아님
+        repo.freshness = {"stale": 1, "missing": 3, "unscheduled": 50, "total": 54}
+        j = self.c.get("/api/ops/dashboard", headers=_bearer("operator")).json()
+        self.assertEqual((j["next"]["key"], j["next"]["text"]), ("missing", "빠진 자료 3종을 올려 주세요."))   # 빠진 자료가 먼저
+
+        def old_db():
+            raise RuntimeError("Unknown column refresh_cycle")
+        repo.data_freshness = old_db
+        j = self.c.get("/api/ops/dashboard", headers=_bearer("operator")).json()
+        self.assertIsNone(j["data"]["missing"])
+        self.assertTrue(any("SQL v2.3" in n for n in j["notes"]))
 
     def test_dashboard_survives_missing_table(self):
         repo = ops_repo.get_repository()
