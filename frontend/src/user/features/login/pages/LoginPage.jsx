@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../../app/providers/AuthProvider.jsx';
-import { backendAuthEnabled } from '../../../../api/backend.js';
+import { backendAuthEnabled, backendHome } from '../../../../api/backend.js';
 import { ROLE } from '../../../../shared/constants.js';
 import { ACCOUNTS, MOCK_PASSWORD } from '../../../../mocks/accounts.js';
 import Button from '../../../components/Button.jsx';
@@ -40,7 +40,7 @@ export default function LoginPage() {
   const [busy, setBusy] = useState(false);
 
   if (checking) return <p role="status">로그인을 확인하고 있습니다.</p>;
-  if (user) return <Navigate to={backendAuthEnabled ? user.role === ROLE.OPERATOR ? '/admin/standards/criteria' : '/reference/approvals' : user.role === ROLE.OPERATOR ? '/admin' : '/candidates'} replace />;
+  if (user) return <Navigate to={backendAuthEnabled ? backendHome(user.role) : user.role === ROLE.OPERATOR ? '/admin' : '/candidates'} replace />;
 
   const canSubmit = loginId.trim() !== '' && password !== '';
 
@@ -53,7 +53,7 @@ export default function LoginPage() {
       const r = await signIn(loginId.trim(), password);
       if (r.ok) {
         const from = location.state?.from;
-        navigate(backendAuthEnabled ? r.user.role === ROLE.OPERATOR ? '/admin/standards/criteria' : '/reference/approvals' : r.user.role === ROLE.OPERATOR ? '/admin' : from && from !== '/login' ? from : '/candidates', { replace: true });
+        navigate(backendAuthEnabled ? backendHome(r.user.role) : r.user.role === ROLE.OPERATOR ? '/admin' : from && from !== '/login' ? from : '/candidates', { replace: true });
       } else if (r.reason === 'locked') {
         setError(C.locked(MAX_FAILS, r.lockMinutes));
       } else {

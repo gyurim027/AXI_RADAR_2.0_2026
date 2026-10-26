@@ -2,6 +2,10 @@
 import { mockCall } from './client.js';
 import * as server from '../mocks/adminServer.js';
 import { COMPLAINT_DATA_ID } from '../mocks/adminData.js';
+import { backendRequest, opsBackendEnabled } from './backend.js';
+import { createOpsApi } from './ops.js';
+
+const ops = createOpsApi(backendRequest);
 
 export const getViewAsLabel = () => server.viewAsLabel();
 export const listAdminRuns = mockCall('admin.listAdminRuns', (arg) => server.listAdminRuns(arg));
@@ -53,12 +57,12 @@ export const getDraftArticle = mockCall('admin.getDraftArticle', (arg) => server
 export const saveActionDraft = mockCall('admin.saveActionDraft', (arg) => server.saveActionDraft(arg));
 export const recordAdminDownload = mockCall('admin.recordAdminDownload', (arg) => server.recordAdminDownload(arg));
 export const listApprovals = mockCall('admin.listApprovals', (arg) => server.listApprovals(arg));
-export const listAccounts = mockCall('admin.listAccounts', (arg) => server.listAccounts(arg));
-export const createAccount = mockCall('admin.createAccount', (arg) => server.createAccount(arg));
-export const setAccountStatus = mockCall('admin.setAccountStatus', (arg) => server.setAccountStatus(arg));
-export const listAccess = mockCall('admin.listAccess', (arg) => server.listAccess(arg));
-export const getAlertEmail = mockCall('admin.getAlertEmail', (arg) => server.getAlertEmail(arg));
-export const saveAlertEmail = mockCall('admin.saveAlertEmail', (arg) => server.saveAlertEmail(arg));
+export const listAccounts = opsBackendEnabled ? ops.listAccounts : mockCall('admin.listAccounts', (arg) => server.listAccounts(arg));
+export const createAccount = opsBackendEnabled ? ops.createAccount : mockCall('admin.createAccount', (arg) => server.createAccount(arg));
+export const setAccountStatus = opsBackendEnabled ? ops.setAccountStatus : mockCall('admin.setAccountStatus', (arg) => server.setAccountStatus(arg));
+export const listAccess = opsBackendEnabled ? ops.listAccess : mockCall('admin.listAccess', (arg) => server.listAccess(arg));
+export const getAlertEmail = opsBackendEnabled ? ops.getAlertEmail : mockCall('admin.getAlertEmail', (arg) => server.getAlertEmail(arg));
+export const saveAlertEmail = opsBackendEnabled ? ops.saveAlertEmail : mockCall('admin.saveAlertEmail', (arg) => server.saveAlertEmail(arg));
 export const getNewRunDefaults = mockCall('admin.getNewRunDefaults', (arg) => server.getNewRunDefaults(arg));
 export const getPeriodGaps = mockCall('admin.periodGaps', (arg) => server.getPeriodGaps(arg));
 export const setRunPeriod = mockCall('admin.setRunPeriod', (arg) => server.setRunPeriod(arg));

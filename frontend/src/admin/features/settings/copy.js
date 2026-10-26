@@ -27,6 +27,11 @@ export const ACCOUNTS = {
   errorDuplicate: '이미 있는 아이디입니다. 다른 아이디를 적어 주세요.',
   done: '계정을 만들었습니다. 첫 로그인 때 비밀번호를 바꾸도록 안내해 주세요.',
 
+  // 서버가 임시 비밀번호를 한 번만 준다 (docs/api/admin_accounts.md). 제안 문구.
+  tempTitle: '임시 비밀번호',
+  tempNote: (id) => `${id} 계정의 임시 비밀번호입니다. 지금 한 번만 보입니다. 창을 닫으면 다시 볼 수 없으니 받는 분께 직접 전해 주세요.`,
+  tempClose: '임시 비밀번호 창 닫기',
+  tempDone: '닫기',
   logTitle: '권한 변경 기록',
   logRow: (date, name, from, to, by) => `${date} · ${name} · ${from} → ${to} · ${by}`,
 };

@@ -883,7 +883,9 @@ export function createAccount({ role, gu, team, name, loginId }) {
   a.roleLog.unshift({ id: `rl-${Date.now()}`, at: nowDate().replaceAll('.', '-'), name: String(name).trim(), from: '-', to: role, by: OPERATOR_LABEL });
   logAccess(user, '설정 변경', `계정 만들기 ${String(loginId).trim()}`);
   stamp();
-  return { ok: true };
+  // 서버처럼 임시 비밀번호를 이때 한 번만 돌려준다 (가짜 값)
+  const tempPassword = Array.from({ length: 12 }, () => 'abcdefghjkmnpqrstuvwxyz23456789'[Math.floor(Math.random() * 31)]).join('');
+  return { ok: true, id: String(loginId).trim(), tempPassword, notice: '임시 비밀번호는 지금 한 번만 보입니다. 받는 분께 직접 전해 주세요.' };
 }
 export function setAccountStatus({ id, status }) {
   const user = requireOperator();

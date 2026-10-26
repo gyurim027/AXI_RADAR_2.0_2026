@@ -14,7 +14,14 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     if (!backendAuthEnabled) return undefined;
     let alive = true;
-    const expired = () => { if (alive) { setUser(null); setSessionError(null); setLoginNotice(LOGIN_COPY.expired); } };
+    // 멈춘 계정·바뀐 역할은 이유를 알려 준다 (ERR-03, 서버 401 account_inactive·role_changed). 그 밖의 401은 로그인 시간이 지난 것이다 (ERR-05).
+    const expired = (e) => {
+      if (!alive) return;
+      const code = e?.detail?.code;
+      setUser(null);
+      setSessionError(null);
+      setLoginNotice(code === 'account_inactive' ? LOGIN_COPY.inactive : code === 'role_changed' ? LOGIN_COPY.roleChanged : LOGIN_COPY.expired);
+    };
     window.addEventListener('radar:session-expired', expired);
     validateBackendSession().then((u) => { if (alive && u) setUser(u); })
       .catch((e) => { if (alive && e.status !== 401) setSessionError(e.message); })
