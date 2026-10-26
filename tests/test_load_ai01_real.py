@@ -7,7 +7,7 @@ from unittest import mock
 
 try:
     from app.core.llm import LlmResult
-    from app.services.ai01 import classify as cls, masking, refine, summarize as summ
+    from app.services.ai01 import classify as cls, masking, ptype, refine, summarize as summ
     HAVE_AI01 = True
 except ImportError:
     HAVE_AI01 = False
@@ -59,14 +59,17 @@ class RealAi01Tests(unittest.TestCase):
     def test_default_backend_is_the_real_function(self):
         self.assertEqual(port.resolve_backend().kind, "ai01")
 
-    def test_ok_results_fill_the_five_columns(self):
+    def test_ok_results_fill_the_class_columns(self):
         res = self.load([spp(1), general(2, body=LONG)])
         self.assertEqual((res.ai.backend, res.ai.ok, res.ai.error), ("ai01", 2, 0))
         rows = list(self.store.complaints.values())
         for c in rows:
             self.assertTrue(c["masked_summary"] and c["relevance"] and c["class_reason"], c["raw_position"])
             self.assertIsNotNone(c["class_confidence"])
-            self.assertIsNone(c["ped_type"])                                    # 유형은 유형 목록이 정해진 뒤
+            if c["relevance"] == "보행안전 관련":
+                self.assertIn(c["ped_type"], ptype.TYPES + (None,))           # 관련이면 유형 9개 중 하나(정하지 못하면 None)
+            else:
+                self.assertIsNone(c["ped_type"])                                # 관련이 아니면 유형을 비운다
             self.assertLessEqual(len(c["relevance"]), 10)                       # 79 relevance VARCHAR(10)
         self.assertFalse(any("AI-01" in w for w in res.warnings))
 
