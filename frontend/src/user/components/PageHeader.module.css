@@ -25,3 +25,23 @@
   gap: var(--space-16);
   flex-shrink: 0;
 }
+
+/* 점검 후보처럼 목록이 화면을 많이 써야 하는 화면: 범위를 제목 옆에 두고 간격을 줄인다 (U-1) */
+.compact {
+  margin-bottom: var(--space-8);
+}
+.compact .title {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-12);
+  font-size: var(--fs-h2);
+}
+.scope {
+  font-size: var(--fs-small);
+  font-weight: var(--fw-bold);
+  color: var(--semantic-color-primary-strong);
+}
+.compact .subtitle {
+  margin-top: var(--space-4);
+  font-size: var(--fs-small);
+}

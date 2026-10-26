@@ -40,6 +40,30 @@ export function runNameWithoutRef(runName) {
   return String(runName).replace(/\s*참고$/, '');
 }
 
+/**
+ * 사용자 화면에서 회차를 부르는 이름 (UX 고도화 W-9). '회차' 대신 점검하는 해로 쓴다.
+ * 연간: '2027년 점검 후보', 반기 참고: '2026년 하반기 계산 (참고용)'
+ */
+export function runTitle(run, withNote = true) {
+  const year = runYear(run.name);
+  if (run.kind === 'ref') {
+    const rest = runNameWithoutRef(run.name).replace(/^\d{4}\s*/, '');
+    return `${year}년 ${rest} 계산${withNote ? ' (참고용)' : ''}`.replace('  ', ' ');
+  }
+  return `${year}년 점검 후보`;
+}
+
+/** 점검 연도 선택 칸의 선택지. 연간은 상태를 붙인다. 예: '2027년 점검 후보 · 검토 중' */
+export function runOptionLabel(run) {
+  return run.kind === 'ref' ? runTitle(run) : `${runTitle(run)} · ${run.status}`;
+}
+
+/** 이 회차가 쓴 자료의 해. 자료 기준일 끝 해를 쓴다. 예: '2022.12 ~ 2026.06' → '2026' */
+export function dataYear(dataRange) {
+  const m = String(dataRange || '').match(/(\d{4})\.\d{2}\s*$/);
+  return m ? m[1] : '';
+}
+
 /** 마지막 글자의 받침에 따라 '을' 또는 '를'을 붙인다 (예: 점검 후보 목록을, 점검 후보 지도를) */
 export function withEulReul(word) {
   const last = String(word).trim().slice(-1);

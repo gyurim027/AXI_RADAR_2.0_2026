@@ -3,8 +3,6 @@
   flex-direction: column;
   gap: var(--space-32);
   width: 100%;
-  max-width: var(--primitive-size-report-max);
-  margin: 0 auto;
 }
 .card {
   padding: var(--component-card-padding);

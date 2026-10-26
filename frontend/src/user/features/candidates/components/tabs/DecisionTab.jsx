@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Button from '../../../../components/Button.jsx';
+import { InfoHelp } from '../../../../components/FormControls.jsx';
 import DecisionReasonModal from '../DecisionReasonModal.jsx';
 import { DECISION } from '../../../../../shared/constants.js';
 import { DRAWER } from '../../copy.js';
@@ -26,9 +27,12 @@ export default function DecisionTab({ detail, onChanged, onGoTab, onClose }) {
           <p className={styles.sub}>{DRAWER.decisionSub}</p>
           <div className={styles.choices} role="group" aria-label={DRAWER.decisionTitle}>
             {DRAWER.decisionChoices.map((c) => (
-              <Button key={c} variant={c === d.decision ? 'primary' : 'soft'} aria-pressed={c === d.decision} onClick={() => setChoice(c)}>
-                {c}
-              </Button>
+              <span key={c} className={styles.choice}>
+                <Button variant={c === d.decision ? 'primary' : 'soft'} aria-pressed={c === d.decision} onClick={() => setChoice(c)}>
+                  {c}
+                </Button>
+                <InfoHelp label={DRAWER.decisionHelpLabel(c)}>{DRAWER.decisionHelp[c]}</InfoHelp>
+              </span>
             ))}
           </div>
         </div>

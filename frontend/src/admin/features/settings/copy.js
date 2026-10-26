@@ -5,7 +5,7 @@ export const ACCOUNTS = {
   title: '계정',
   subtitle: '계정을 만들고 역할과 소속을 부여합니다.',
   create: '계정 만들기',
-  head: ['이름', '아이디', '역할', '소속 구', '소속 팀', '상태', '마지막 접속'],
+  head: ['이름', '아이디', '역할', '소속 구', '소속 팀', '상태', '최근 접속일'],
   caption: '계정 목록',
   stop: '계정 사용 멈추기',
   resume: '계정 다시 쓰기',
@@ -27,6 +27,11 @@ export const ACCOUNTS = {
   errorDuplicate: '이미 있는 아이디입니다. 다른 아이디를 적어 주세요.',
   done: '계정을 만들었습니다. 첫 로그인 때 비밀번호를 바꾸도록 안내해 주세요.',
 
+  // 서버가 임시 비밀번호를 한 번만 준다 (docs/api/admin_accounts.md). 제안 문구.
+  tempTitle: '임시 비밀번호',
+  tempNote: (id) => `${id} 계정의 임시 비밀번호입니다. 지금 한 번만 보입니다. 창을 닫으면 다시 볼 수 없으니 받는 분께 직접 전해 주세요.`,
+  tempClose: '임시 비밀번호 창 닫기',
+  tempDone: '닫기',
   logTitle: '권한 변경 기록',
   logRow: (date, name, from, to, by) => `${date} · ${name} · ${from} → ${to} · ${by}`,
 };
@@ -42,8 +47,10 @@ export const ACCESS = {
     { value: '90', label: '최근 90일' },
   ],
   account: '계정',
-  action: '한 일',
-  head: ['시각', '계정', '접속 IP', '한 일', '대상', '사유'],
+  action: '수행 작업',
+  // 서버가 남기는 값은 그대로 두고 화면에 보이는 이름만 풀어 쓴다. 정의서 AD-16 선택지 이름도 같이 바꾼다.
+  actionLabel: { '민원 점 위치': '민원 위치 열람' },
+  head: ['시각', '계정', '접속 IP', '수행 작업', '대상', '사유'],
   caption: '접속 기록',
   empty: '조건에 맞는 기록이 없습니다.',
   failedArea: '접속 기록',

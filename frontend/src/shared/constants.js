@@ -34,3 +34,6 @@ export const DEPT_STATUS = {
 };
 
 export const PAGE_SIZE = 50;
+
+// 구 도로관리팀의 확정 마감일. DB 회차 표에 마감일 칸이 없어 화면 코드에 둔다 (UX 고도화 5-1 ①, D-7). 점검하는 해 → 마감일
+export const CONFIRM_DEADLINES = { 2027: '2027.02.26' };

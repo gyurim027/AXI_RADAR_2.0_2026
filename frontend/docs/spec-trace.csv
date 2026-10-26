@@ -49,7 +49,7 @@ CM-00,공통 규칙,출처 표시,14,지도·파일 출처 줄,수정·중원·�
 CM-00,공통 규칙,출처 표시,14,지도·파일 출처 줄,,2,안내 문구,민원 출처: 성남데이터넷 연도별 민원 현황(공공누리 제1유형). 주소로 찾은 좌표: 국토교통부 브이월드.,,src/shared/copy/common.js · src/shared/utils/format.js · src/user/components/States.jsx,구현,
 CM-00,공통 규칙,개인정보,15,민원 내용 표시,성남시 (시 도로과),1,본문,민원 %민원 건수%건 (%유형별 민원 건수%) · 재발 %재발 건수%건,확정,src/shared/copy/common.js · src/shared/utils/format.js · src/user/components/States.jsx,구현,
 CM-00,공통 규칙,개인정보,15,민원 내용 표시,수정·중원·분당구 (구 도로관리팀),1,본문,민원 %민원 건수%건 (%유형별 민원 건수%) · 재발 %재발 건수%건,,src/shared/copy/common.js · src/shared/utils/format.js · src/user/components/States.jsx,구현,
-CM-01,로그인,기본,1,로그인 머리,성남시 (시 도로과),1,타이틀,RADAR 보도 점검 우선순위,제안,src/user/features/login/pages/LoginPage.jsx,구현 (제안),
+CM-01,로그인,기본,1,로그인 머리,성남시 (시 도로과),1,타이틀,RADAR 보도 점검 우선순위,제안,src/user/features/login/pages/LoginPage.jsx,구현 (제안),"UX 고도화(261025) 코드 반영: 로그인 오류 문구 2-7~2-13(잠김·사용 중지·권한 없음·연결 실패·그 밖·저장 불가·로그인 만료)과 K-18 소개 문구, 서버 lock_minutes 이름 맞춤 (K-25~K-32)"
 CM-01,로그인,기본,1,로그인 머리,,2,서브 타이틀,성남시 보도 정기 점검 대상을 고르는 도구입니다. 받은 계정으로 로그인해 주세요.,,src/user/features/login/pages/LoginPage.jsx,구현,
 CM-01,로그인,기본,1,로그인 머리,수정·중원·분당구 (구 도로관리팀),1,타이틀,RADAR 보도 점검 우선순위,,src/user/features/login/pages/LoginPage.jsx,구현,
 CM-01,로그인,기본,1,로그인 머리,,2,서브 타이틀,성남시 보도 정기 점검 대상을 고르는 도구입니다. 받은 계정으로 로그인해 주세요.,,src/user/features/login/pages/LoginPage.jsx,구현,
@@ -67,7 +67,7 @@ CM-01,로그인,기본,2,로그인 입력,,5,버튼,로그인,,src/user/features
 CM-01,로그인,기본,2,로그인 입력,,6,오류 문구,아이디 또는 비밀번호가 맞지 않습니다. %남은 횟수%번 더 틀리면 %잠금 시간% 동안 로그인할 수 없습니다.,,src/user/features/login/pages/LoginPage.jsx,구현,
 CM-01,로그인,기본,3,계정 도움,성남시 (시 도로과),1,도움말,계정이 필요하거나 비밀번호를 잊었다면 RADAR 운영팀에 연락해 주세요. %연락처%,제안,src/user/features/login/pages/LoginPage.jsx,구현 (제안),
 CM-01,로그인,기본,3,계정 도움,수정·중원·분당구 (구 도로관리팀),1,도움말,계정이 필요하거나 비밀번호를 잊었다면 RADAR 운영팀에 연락해 주세요. %연락처%,,src/user/features/login/pages/LoginPage.jsx,구현,
-US-00,공통 상단,기본,0-1,메뉴,성남시 (시 도로과),1,탭,점검 후보,확정,src/user/layout/*,구현,
+US-00,공통 상단,기본,0-1,메뉴,성남시 (시 도로과),1,탭,점검 후보,확정,src/user/layout/*,구현,"UX 고도화(261025) 코드 반영: 메뉴 점검 후보·보고서·승인 대기·참고 자료와 하위 탭 줄, 승인 대기 건수 배지, 점검 해 선택 칸(회차 대신 2027년 점검 후보 등) (M-1·M-2·W-9) / 261026 결정: 라벨 '점검 연도', ⓘ는 마우스를 올릴 때(터치는 누르면, ×로 닫기)만 보인다"
 US-00,공통 상단,기본,0-1,메뉴,,2,탭,보고서,,src/user/layout/*,구현,
 US-00,공통 상단,기본,0-1,메뉴,,3,탭,기준정보,,src/user/layout/*,구현,
 US-00,공통 상단,기본,0-1,메뉴,수정·중원·분당구 (구 도로관리팀),1,탭,점검 후보,,src/user/layout/*,구현,
@@ -102,7 +102,7 @@ US-00,공통 상단,알림,4-1,알림,,2,소제목,알림,,src/user/layout/*,구
 US-00,공통 상단,알림,4-1,알림,,3,알림,%회차 이름% 회차가 열렸습니다. %구 이름% 점검 후보를 결정해 주세요. · %알림 날짜%,,src/user/layout/*,구현,
 US-00,공통 상단,알림,4-1,알림,,4,알림,%회차 이름% 참고 회차가 열렸습니다. 바뀐 순위를 확인해 보세요. · %알림 날짜%,,src/user/layout/*,구현,
 US-00,공통 상단,알림,4-1,알림,,5,빈 화면 문구,새 알림이 없습니다.,,src/user/layout/*,구현,
-US-01,점검 후보 > 후보 목록,기본,0-1,화면 머리,성남시 (시 도로과),1,타이틀,점검 후보,제안,src/user/features/candidates/pages/CandidateListPage.jsx · src/user/components/PageHeader.jsx,구현 (제안),
+US-01,점검 후보 > 후보 목록,기본,0-1,화면 머리,성남시 (시 도로과),1,타이틀,점검 후보,제안,src/user/features/candidates/pages/CandidateListPage.jsx · src/user/components/PageHeader.jsx,구현 (제안),"UX 고도화(261025) 코드 반영: 첫 화면 안내 줄(결정 전 건수·마감일 / 확정 현황), 위쪽 영역 낮춤, 목록 결정 칸은 상태만, 상위 후보 왼쪽 막대와 범례 한 줄, 자료 신뢰도·민원이 몰린 곳 ⓘ, 근거 지점 ⓘ (U-1·U-3·U-5·W-7·W-13·W-14·W-16) / 261026 결정: 목록 결정 상태 칸은 메뉴 버튼(도로관리팀·검토 중·확정 전), 상위 후보는 옅은 붉은 행 배경, 평가하지 못한 구역 표에 구 열(시 도로과)"
 US-01,점검 후보 > 후보 목록,기본,0-1,화면 머리,,2,서브 타이틀,3개 구 점검 후보를 함께 봅니다. 우선 점검 대상은 각 구가 정합니다.,,src/user/features/candidates/pages/CandidateListPage.jsx · src/user/components/PageHeader.jsx,구현,
 US-01,점검 후보 > 후보 목록,기본,0-1,화면 머리,,3,안내 문구,RADAR 점검 우선순위는 먼저 점검할 곳을 고르는 참고 순위입니다. 공사·예산 순위가 아닙니다.,,src/user/features/candidates/pages/CandidateListPage.jsx · src/user/components/PageHeader.jsx,삭제 (명세에서 뺌),
 US-01,점검 후보 > 후보 목록,기본,0-1,화면 머리,,4,라벨,성남시,,src/user/features/candidates/pages/CandidateListPage.jsx · src/user/components/PageHeader.jsx,구현,
@@ -167,14 +167,26 @@ US-01,점검 후보 > 후보 목록,기본,1-4,순위 표,,3,꼬리표,현장 �
 US-01,점검 후보 > 후보 목록,기본,1-4,순위 표,,4,꼬리표,%우선 확인 조건 이름% · 반영 비율 %조건 반영 비율%,,src/user/features/candidates/components/RankTable.jsx · src/user/features/candidates/components/DecisionMenu.jsx · src/user/features/candidates/components/DecisionReasonModal.jsx,구현,
 US-01,점검 후보 > 후보 목록,기본,1-4,순위 표,,5,선택,%결정 상태% ˅,,src/user/features/candidates/components/RankTable.jsx · src/user/features/candidates/components/DecisionMenu.jsx · src/user/features/candidates/components/DecisionReasonModal.jsx,구현,
 US-01,점검 후보 > 후보 목록,기본,1-4,순위 표,,6,선택지,우선 점검 대상 / 제외 / 보류,,src/user/features/candidates/components/RankTable.jsx · src/user/features/candidates/components/DecisionMenu.jsx · src/user/features/candidates/components/DecisionReasonModal.jsx,구현,
-US-01,점검 후보 > 후보 목록,기본,1-5,지도,성남시 (시 도로과),1,지도 범례,점검 필요도 상위 %상위 구간 기준% · %중간 구간 기준% · 나머지 · 평가하지 못함,가정 (ISS-016) · 점수 구조(ISS-013) 결정 후 변동 예정,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapUtils.js,구현 (가정),
-US-01,점검 후보 > 후보 목록,기본,1-5,지도,,2,안내 문구,"지도 자료: 국토지리정보원 수치지형도 (1:5,000, 2025)",,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapUtils.js,구현,
-US-01,점검 후보 > 후보 목록,기본,1-5,지도,,3,도움말,%보행 문제 유형% %건수%건,,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapUtils.js,구현,
-US-01,점검 후보 > 후보 목록,기본,1-5,지도,,4,버튼,범례 ˅,,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapUtils.js,구현,
-US-01,점검 후보 > 후보 목록,기본,1-5,지도,수정·중원·분당구 (구 도로관리팀),1,지도 범례,점검 필요도 상위 %상위 구간 기준% · %중간 구간 기준% · 나머지 · 평가하지 못함,,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapUtils.js,구현,
-US-01,점검 후보 > 후보 목록,기본,1-5,지도,,2,안내 문구,"지도 자료: 국토지리정보원 수치지형도 (1:5,000, 2025)",,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapUtils.js,구현,
-US-01,점검 후보 > 후보 목록,기본,1-5,지도,,3,도움말,%보행 문제 유형% %건수%건,,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapUtils.js,구현,
-US-01,점검 후보 > 후보 목록,기본,1-5,지도,,4,버튼,범례 ˅,,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapUtils.js,구현,
+US-01,점검 후보 > 후보 목록,기본,1-5,지도,성남시 (시 도로과),1,지도 범례,점검 필요도 상위 %상위 구간 기준% · %중간 구간 기준% · 나머지 · 평가하지 못함,가정 (ISS-016) · 점수 구조(ISS-013) 결정 후 변동 예정,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapPoints.js · src/user/features/candidates/components/mapUtils.js,구현 (가정),
+US-01,점검 후보 > 후보 목록,기본,1-5,지도,,1-1,지도 범례,이 칸의 근거: %보행 문제 유형% %건수% · …,확정,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapPoints.js · src/user/features/candidates/components/mapUtils.js,구현,정의서 v0.5.3 (ISS-036). 구역을 골랐을 때만 보인다
+US-01,점검 후보 > 후보 목록,기본,1-5,지도,,1-2,지도 범례,● 민원 (앱 위치) · ○ 민원 (근처 위치) · ■ 다른 근거 지점,확정,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapPoints.js · src/user/features/candidates/components/mapUtils.js,구현,정의서 v0.5.3 (ISS-036). 구역을 골랐을 때만 보인다
+US-01,점검 후보 > 후보 목록,기본,1-5,지도,,1-3,지도 범례,숫자 원: 가까운 민원 묶음 (숫자는 건수),제안,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapPoints.js · src/user/features/candidates/components/mapUtils.js,구현,"정의서 수정안 (작업파일/261025 지도_민원점_수정안, ISS-038). 묶음이 있을 때만 보인다"
+US-01,점검 후보 > 후보 목록,기본,1-5,지도,,1-4,안내 문구,이 칸에는 민원 점이 많아 가까운 점을 묶어 보입니다. 숫자는 민원 건수이고 지도를 확대하면 나뉩니다.,제안,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapPoints.js · src/user/features/candidates/components/mapUtils.js,구현,정의서 수정안 (ISS-038). 민원 점이 300개를 넘을 때 (가정값)
+US-01,점검 후보 > 후보 목록,기본,1-5,지도,,1-5,도움말,민원 %묶음 건수%건 · 원본 좌표 %원본 건수%건 · 근처 위치 %근처 건수%건,제안,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapPoints.js · src/user/features/candidates/components/mapUtils.js,구현,정의서 수정안 (ISS-038). 묶음에 마우스를 올리거나 포커스가 올 때
+US-01,점검 후보 > 후보 목록,기본,1-5,지도,,2,안내 문구,"지도 자료: 국토지리정보원 수치지형도 (1:5,000, 2025)",제안,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapPoints.js · src/user/features/candidates/components/mapUtils.js,구현,"정의서 v0.5.3 문구는 ""· 주소 좌표: 국토교통부 브이월드""까지 한 줄. 사용자 결정(261025)으로 구역을 고르면 이 줄이 ""주소 좌표: 국토교통부 브이월드""로 바뀐다(제안)"
+US-01,점검 후보 > 후보 목록,기본,1-5,지도,,2-2,안내 문구,주소 좌표: 국토교통부 브이월드,제안,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapPoints.js · src/user/features/candidates/components/mapUtils.js,구현,구역을 골랐고 그 칸에 민원 점이 있을 때 위 출처 줄 자리에 보인다 (정의서 수정안 261025)
+US-01,점검 후보 > 후보 목록,기본,1-5,지도,,3,도움말,%보행 문제 유형% %건수%건%근처 위치 표시%,,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapPoints.js · src/user/features/candidates/components/mapUtils.js,구현,
+US-01,점검 후보 > 후보 목록,기본,1-5,지도,,4,버튼,범례 ˅,,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapPoints.js · src/user/features/candidates/components/mapUtils.js,구현,
+US-01,점검 후보 > 후보 목록,기본,1-5,지도,수정·중원·분당구 (구 도로관리팀),1,지도 범례,점검 필요도 상위 %상위 구간 기준% · %중간 구간 기준% · 나머지 · 평가하지 못함,,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapPoints.js · src/user/features/candidates/components/mapUtils.js,구현,
+US-01,점검 후보 > 후보 목록,기본,1-5,지도,,1-1,지도 범례,이 칸의 근거: %보행 문제 유형% %건수% · …,확정,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapPoints.js · src/user/features/candidates/components/mapUtils.js,구현,정의서 v0.5.3 (ISS-036). 구역을 골랐을 때만 보인다
+US-01,점검 후보 > 후보 목록,기본,1-5,지도,,1-2,지도 범례,● 민원 (앱 위치) · ○ 민원 (근처 위치) · ■ 다른 근거 지점,확정,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapPoints.js · src/user/features/candidates/components/mapUtils.js,구현,정의서 v0.5.3 (ISS-036). 구역을 골랐을 때만 보인다
+US-01,점검 후보 > 후보 목록,기본,1-5,지도,,1-3,지도 범례,숫자 원: 가까운 민원 묶음 (숫자는 건수),제안,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapPoints.js · src/user/features/candidates/components/mapUtils.js,구현,"정의서 수정안 (작업파일/261025 지도_민원점_수정안, ISS-038). 묶음이 있을 때만 보인다"
+US-01,점검 후보 > 후보 목록,기본,1-5,지도,,1-4,안내 문구,이 칸에는 민원 점이 많아 가까운 점을 묶어 보입니다. 숫자는 민원 건수이고 지도를 확대하면 나뉩니다.,제안,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapPoints.js · src/user/features/candidates/components/mapUtils.js,구현,정의서 수정안 (ISS-038). 민원 점이 300개를 넘을 때 (가정값)
+US-01,점검 후보 > 후보 목록,기본,1-5,지도,,1-5,도움말,민원 %묶음 건수%건 · 원본 좌표 %원본 건수%건 · 근처 위치 %근처 건수%건,제안,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapPoints.js · src/user/features/candidates/components/mapUtils.js,구현,정의서 수정안 (ISS-038). 묶음에 마우스를 올리거나 포커스가 올 때
+US-01,점검 후보 > 후보 목록,기본,1-5,지도,,2,안내 문구,"지도 자료: 국토지리정보원 수치지형도 (1:5,000, 2025)",제안,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapPoints.js · src/user/features/candidates/components/mapUtils.js,구현,"정의서 v0.5.3 문구는 ""· 주소 좌표: 국토교통부 브이월드""까지 한 줄. 사용자 결정(261025)으로 구역을 고르면 이 줄이 ""주소 좌표: 국토교통부 브이월드""로 바뀐다(제안)"
+US-01,점검 후보 > 후보 목록,기본,1-5,지도,,2-2,안내 문구,주소 좌표: 국토교통부 브이월드,제안,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapPoints.js · src/user/features/candidates/components/mapUtils.js,구현,구역을 골랐고 그 칸에 민원 점이 있을 때 위 출처 줄 자리에 보인다 (정의서 수정안 261025)
+US-01,점검 후보 > 후보 목록,기본,1-5,지도,,3,도움말,%보행 문제 유형% %건수%건%근처 위치 표시%,,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapPoints.js · src/user/features/candidates/components/mapUtils.js,구현,
+US-01,점검 후보 > 후보 목록,기본,1-5,지도,,4,버튼,범례 ˅,,src/user/features/candidates/components/CandidateMap.jsx · src/user/features/candidates/components/mapPoints.js · src/user/features/candidates/components/mapUtils.js,구현,
 US-01,점검 후보 > 후보 목록,기본,1-6,평가하지 못한 구역,성남시 (시 도로과),1,소제목,평가하지 못한 구역 (%평가하지 못한 구역 수%곳),제안,src/user/features/candidates/components/UnratedPanel.jsx,구현 (제안),
 US-01,점검 후보 > 후보 목록,기본,1-6,평가하지 못한 구역,,2,안내 문구,데이터 결측으로 순위를 매기지 못한 항목입니다.,,src/user/features/candidates/components/UnratedPanel.jsx,구현,
 US-01,점검 후보 > 후보 목록,기본,1-6,평가하지 못한 구역,,3,표 열 머리,구 · 구역 · 수집한 데이터 · 수집하지 못한 데이터,,src/user/features/candidates/components/UnratedPanel.jsx,구현,
@@ -211,7 +223,7 @@ US-01,점검 후보 > 후보 목록,구별 비교 보기,3-1,구별 비교,,4,�
 US-01,점검 후보 > 후보 목록,구별 비교 보기,3-1,구별 비교,,5,표 행,%구 이름% · %상위 후보 비율% · %보행자 사고 비율% · %보정 전 상위 후보 비율%,,src/user/features/candidates/components/GuCompare.jsx,구현,
 US-01,점검 후보 > 후보 목록,구별 비교 보기,3-1,구별 비교,,6,버튼,순위 표로 돌아가기,,src/user/features/candidates/components/GuCompare.jsx,구현,
 US-01,점검 후보 > 후보 목록,구별 비교 보기,3-1,구별 비교,수정·중원·분당구 (구 도로관리팀),-,-,-,,src/user/features/candidates/components/GuCompare.jsx,구현,
-US-02,점검 후보 > 요약 패널,기본,1,요약 패널,성남시 (시 도로과),1,꼬리표,%결정 상태%,가정 (ISS-016) · 점수 구조(ISS-013) 결정 후 변동 예정,src/user/features/candidates/components/SummaryPanel.jsx,구현 (가정),
+US-02,점검 후보 > 요약 패널,기본,1,요약 패널,성남시 (시 도로과),1,꼬리표,%결정 상태%,가정 (ISS-016) · 점수 구조(ISS-013) 결정 후 변동 예정,src/user/features/candidates/components/SummaryPanel.jsx,구현 (가정),UX 고도화(261025) 코드 반영: 요약 패널 근거 문구는 점검 순위 용어로 통일 (D-13)
 US-02,점검 후보 > 요약 패널,기본,1,요약 패널,,2,숫자,%순위%위,,src/user/features/candidates/components/SummaryPanel.jsx,구현,
 US-02,점검 후보 > 요약 패널,기본,1,요약 패널,,3,타이틀,%주소% · %대표 지점%,,src/user/features/candidates/components/SummaryPanel.jsx,구현,
 US-02,점검 후보 > 요약 패널,기본,1,요약 패널,,4,본문,%설명문%,,src/user/features/candidates/components/SummaryPanel.jsx,구현,
@@ -231,7 +243,7 @@ US-02,점검 후보 > 요약 패널,기본,1,요약 패널,,7,소제목,담당 �
 US-02,점검 후보 > 요약 패널,기본,1,요약 패널,,8,본문,%부서 이름% · %담당 확인 상태%,,src/user/features/candidates/components/SummaryPanel.jsx,구현,
 US-02,점검 후보 > 요약 패널,기본,1,요약 패널,,9,버튼,근거 자세히 보기,,src/user/features/candidates/components/SummaryPanel.jsx,구현,
 US-02,점검 후보 > 요약 패널,기본,1,요약 패널,,10,오류 문구,설명문을 만들지 못했습니다. 아래 근거를 직접 확인해 주세요.,,src/user/features/candidates/components/SummaryPanel.jsx,구현,
-US-03,점검 후보 > 후보 상세,기본,0-1,상세 머리,성남시 (시 도로과),1,타이틀,%순위%위 · %주소% · %대표 지점%,확정,src/user/features/candidates/components/DetailDrawer.jsx · src/user/features/candidates/components/tabs/*,구현,
+US-03,점검 후보 > 후보 상세,기본,0-1,상세 머리,성남시 (시 도로과),1,타이틀,%순위%위 · %주소% · %대표 지점%,확정,src/user/features/candidates/components/DetailDrawer.jsx · src/user/features/candidates/components/tabs/*,구현,"UX 고도화(261025) 코드 반영: 점수 87점·성남시 내 상위, 먼저 볼 이유 꼬리표와 반영 비율 ⓘ, 핵심 근거 3개, 결정 선택지 ⓘ와 제외·보류 사유 목록 분리, 탭 ⑥ 점검 요청, 작년 결정 문구 (W-6~W-12·K-1·K-4~K-6·K-10~K-13·K-15·K-16·U-6) / 261026: 민원 유형 이름은 9개 유형(R-25), 다른 구·없는 후보 주소는 안내 문구(ERR-14·42)"
 US-03,점검 후보 > 후보 상세,기본,0-1,상세 머리,,2,꼬리표,%결정 상태%,,src/user/features/candidates/components/DetailDrawer.jsx · src/user/features/candidates/components/tabs/*,구현,
 US-03,점검 후보 > 후보 상세,기본,0-1,상세 머리,,3,버튼,◀ 이전 후보,,src/user/features/candidates/components/DetailDrawer.jsx · src/user/features/candidates/components/tabs/*,구현,
 US-03,점검 후보 > 후보 상세,기본,0-1,상세 머리,,4,버튼,다음 후보 ▶,,src/user/features/candidates/components/DetailDrawer.jsx · src/user/features/candidates/components/tabs/*,구현,
@@ -338,7 +350,7 @@ US-03,점검 후보 > 후보 상세,⑥ 요청안,6-1,요청안,,5,소제목,조
 US-03,점검 후보 > 후보 상세,⑥ 요청안,6-1,요청안,,6,본문,%조치 제안 문장% → %받는 부서% · 근거: %근거 조문%,,src/user/features/candidates/components/DetailDrawer.jsx · src/user/features/candidates/components/tabs/*,구현,
 US-03,점검 후보 > 후보 상세,⑥ 요청안,6-1,요청안,,7,오류 문구,요청안을 만들려면 담당 부서를 먼저 정해 주세요.,,src/user/features/candidates/components/DetailDrawer.jsx · src/user/features/candidates/components/tabs/*,구현,
 US-03,점검 후보 > 후보 상세,⑥ 요청안,6-1,요청안,,8,버튼,담당 부서 정하기,,src/user/features/candidates/components/DetailDrawer.jsx · src/user/features/candidates/components/tabs/*,구현,
-US-04,점검 후보 > 우선 점검 대상 확정,확정 확인 창,1,확정 확인 창,성남시 (시 도로과),1,타이틀,3개 구 우선 점검 대상 확정 현황,확정,src/user/features/candidates/components/ConfirmModal.jsx,구현,
+US-04,점검 후보 > 우선 점검 대상 확정,확정 확인 창,1,확정 확인 창,성남시 (시 도로과),1,타이틀,3개 구 우선 점검 대상 확정 현황,확정,src/user/features/candidates/components/ConfirmModal.jsx,구현,"UX 고도화(261025) 코드 반영: 확정 완료 창 문구와 버튼 관할 부서별 점검 요청서 (K-14, 5-1 ⑤)"
 US-04,점검 후보 > 우선 점검 대상 확정,확정 확인 창,1,확정 확인 창,,2,본문,수정구 %수정구 확정 상태% · 중원구 %중원구 확정 상태% · 분당구 %분당구 확정 상태%,,src/user/features/candidates/components/ConfirmModal.jsx,구현,
 US-04,점검 후보 > 우선 점검 대상 확정,확정 확인 창,1,확정 확인 창,,3,버튼,닫기,,src/user/features/candidates/components/ConfirmModal.jsx,구현,
 US-04,점검 후보 > 우선 점검 대상 확정,확정 확인 창,1,확정 확인 창,수정·중원·분당구 (구 도로관리팀),1,타이틀,%구 이름% 우선 점검 대상을 확정할까요?,,src/user/features/candidates/components/ConfirmModal.jsx,구현,
@@ -351,7 +363,7 @@ US-04,점검 후보 > 우선 점검 대상 확정,확정 확인 창,2,확정 완
 US-04,점검 후보 > 우선 점검 대상 확정,확정 확인 창,2,확정 완료,수정·중원·분당구 (구 도로관리팀),1,완료 문구,%구 이름% 우선 점검 대상을 확정했습니다.,,src/user/features/candidates/components/ConfirmModal.jsx,구현,
 US-04,점검 후보 > 우선 점검 대상 확정,확정 확인 창,2,확정 완료,,2,안내 문구,이제 관할 부서별 보고서를 만들 수 있습니다.,,src/user/features/candidates/components/ConfirmModal.jsx,구현,
 US-04,점검 후보 > 우선 점검 대상 확정,확정 확인 창,2,확정 완료,,3,버튼,관할 부서별 보고서 만들기,,src/user/features/candidates/components/ConfirmModal.jsx,구현,
-US-05,보고서 > 관할 부서별 연간 보고서,기본,0-1,화면 머리,성남시 (시 도로과),-,-,-,제안,src/user/features/reports/pages/AnnualReportPage.jsx,구현 (제안),
+US-05,보고서 > 관할 부서별 연간 보고서,기본,0-1,화면 머리,성남시 (시 도로과),-,-,-,제안,src/user/features/reports/pages/AnnualReportPage.jsx,구현 (제안),"UX 고도화(261025) 코드 반영: 보고서 이름 관할 부서별 점검 요청서, 탭 이름 점검 요청서, 연도 표기 (W-2)"
 US-05,보고서 > 관할 부서별 연간 보고서,기본,0-1,화면 머리,수정·중원·분당구 (구 도로관리팀),1,타이틀,%회차 연도% 관할 부서별 연간 보고서,,src/user/features/reports/pages/AnnualReportPage.jsx,구현,
 US-05,보고서 > 관할 부서별 연간 보고서,기본,0-1,화면 머리,,2,서브 타이틀,확정한 우선 점검 대상을 관할 부서별로 묶은 파일입니다. 부서마다 따로 받을 수도 있습니다.,,src/user/features/reports/pages/AnnualReportPage.jsx,구현,
 US-05,보고서 > 관할 부서별 연간 보고서,기본,1-1,부서별 묶음,성남시 (시 도로과),-,-,-,확정,src/user/features/reports/pages/AnnualReportPage.jsx,구현,
@@ -364,7 +376,7 @@ US-05,보고서 > 관할 부서별 연간 보고서,기본,9-1,내려받기,성�
 US-05,보고서 > 관할 부서별 연간 보고서,기본,9-1,내려받기,수정·중원·분당구 (구 도로관리팀),1,소제목,파일로 내려받기,,src/user/features/reports/pages/AnnualReportPage.jsx,구현,
 US-05,보고서 > 관할 부서별 연간 보고서,기본,9-1,내려받기,,2,버튼,PDF로 내려받기,,src/user/features/reports/pages/AnnualReportPage.jsx,구현,
 US-05,보고서 > 관할 부서별 연간 보고서,기본,9-1,내려받기,,3,버튼,엑셀로 내려받기,,src/user/features/reports/pages/AnnualReportPage.jsx,구현,
-US-06,보고서 > 구별 우선 점검 근거표,기본,0-1,화면 머리,성남시 (시 도로과),1,타이틀,%회차 연도% 구별 우선 점검 근거표,제안,src/user/features/reports/pages/BasisPage.jsx,구현 (제안),
+US-06,보고서 > 구별 우선 점검 근거표,기본,0-1,화면 머리,성남시 (시 도로과),1,타이틀,%회차 연도% 구별 우선 점검 근거표,제안,src/user/features/reports/pages/BasisPage.jsx,구현 (제안),"UX 고도화(261025) 코드 반영: 탭 이름 구별 근거표, 보고서 초안 빈 화면 문구 (W-3·K-6)"
 US-06,보고서 > 구별 우선 점검 근거표,기본,0-1,화면 머리,,2,서브 타이틀,구별로 점검 후보와 우선 점검 대상을 왜 골랐는지 정리한 표입니다.,,src/user/features/reports/pages/BasisPage.jsx,구현,
 US-06,보고서 > 구별 우선 점검 근거표,기본,0-1,화면 머리,수정·중원·분당구 (구 도로관리팀),1,타이틀,%회차 연도% 구별 우선 점검 근거표,,src/user/features/reports/pages/BasisPage.jsx,구현,
 US-06,보고서 > 구별 우선 점검 근거표,기본,0-1,화면 머리,,2,서브 타이틀,구별로 점검 후보와 우선 점검 대상을 왜 골랐는지 정리한 표입니다.,,src/user/features/reports/pages/BasisPage.jsx,구현,
@@ -384,7 +396,7 @@ US-06,보고서 > 구별 우선 점검 근거표,기본,9-1,내려받기,,3,버�
 US-06,보고서 > 구별 우선 점검 근거표,기본,9-1,내려받기,수정·중원·분당구 (구 도로관리팀),1,소제목,파일로 내려받기,,src/user/features/reports/pages/BasisPage.jsx,구현,
 US-06,보고서 > 구별 우선 점검 근거표,기본,9-1,내려받기,,2,버튼,PDF로 내려받기,,src/user/features/reports/pages/BasisPage.jsx,구현,
 US-06,보고서 > 구별 우선 점검 근거표,기본,9-1,내려받기,,3,버튼,엑셀로 내려받기,,src/user/features/reports/pages/BasisPage.jsx,구현,
-US-07,보고서 > 산정 조건 기록서,기본,0-1,화면 머리,성남시 (시 도로과),1,타이틀,%회차 연도% 산정 조건 기록서,제안,src/user/features/reports/pages/ConditionRecordPage.jsx,구현 (제안),
+US-07,보고서 > 산정 조건 기록서,기본,0-1,화면 머리,성남시 (시 도로과),1,타이틀,%회차 연도% 산정 조건 기록서,제안,src/user/features/reports/pages/ConditionRecordPage.jsx,구현 (제안),"UX 고도화(261025) 코드 반영: 보고서 이름 우선순위 점수 근거, 탭 이름 점수 근거, 소개·빈 화면 문구 (W-1·K-6)"
 US-07,보고서 > 산정 조건 기록서,기본,0-1,화면 머리,,2,서브 타이틀,이번 회차에 어떤 자료와 기준으로 순위를 냈는지 남긴 문서입니다.,,src/user/features/reports/pages/ConditionRecordPage.jsx,구현,
 US-07,보고서 > 산정 조건 기록서,기본,0-1,화면 머리,수정·중원·분당구 (구 도로관리팀),1,타이틀,%회차 연도% 산정 조건 기록서,,src/user/features/reports/pages/ConditionRecordPage.jsx,구현,
 US-07,보고서 > 산정 조건 기록서,기본,0-1,화면 머리,,2,서브 타이틀,이번 회차에 어떤 자료와 기준으로 순위를 냈는지 남긴 문서입니다.,,src/user/features/reports/pages/ConditionRecordPage.jsx,구현,
@@ -398,7 +410,7 @@ US-07,보고서 > 산정 조건 기록서,기본,9-1,내려받기,,3,버튼,엑�
 US-07,보고서 > 산정 조건 기록서,기본,9-1,내려받기,수정·중원·분당구 (구 도로관리팀),1,소제목,파일로 내려받기,,src/user/features/reports/pages/ConditionRecordPage.jsx,구현,
 US-07,보고서 > 산정 조건 기록서,기본,9-1,내려받기,,2,버튼,PDF로 내려받기,,src/user/features/reports/pages/ConditionRecordPage.jsx,구현,
 US-07,보고서 > 산정 조건 기록서,기본,9-1,내려받기,,3,버튼,엑셀로 내려받기,,src/user/features/reports/pages/ConditionRecordPage.jsx,구현,
-US-08,보고서 > 보호구역 안팎 비교표,기본,0-1,화면 머리,성남시 (시 도로과),1,타이틀,%회차 연도% 보호구역 안팎 비교표,제안,src/user/features/reports/pages/ProtectionZonePage.jsx,구현 (제안),
+US-08,보고서 > 보호구역 안팎 비교표,기본,0-1,화면 머리,성남시 (시 도로과),1,타이틀,%회차 연도% 보호구역 안팎 비교표,제안,src/user/features/reports/pages/ProtectionZonePage.jsx,구현 (제안),UX 고도화(261025) 코드 반영: 탭 이름 보호구역 비교 (W-5)
 US-08,보고서 > 보호구역 안팎 비교표,기본,0-1,화면 머리,,2,서브 타이틀,보호구역 안과 밖의 상위 후보를 비교한 표입니다. 교통시설팀에 보낼 때 사용할 수 있습니다.,,src/user/features/reports/pages/ProtectionZonePage.jsx,구현,
 US-08,보고서 > 보호구역 안팎 비교표,기본,0-1,화면 머리,수정·중원·분당구 (구 도로관리팀),-,-,-,,src/user/features/reports/pages/ProtectionZonePage.jsx,구현,
 US-08,보고서 > 보호구역 안팎 비교표,기본,1-1,비교표 미리 보기,성남시 (시 도로과),1,표 열 머리,구분 · 상위 후보,가정 (ISS-016) · 점수 구조(ISS-013) 결정 후 변동 예정,src/user/features/reports/pages/ProtectionZonePage.jsx,구현 (가정),
@@ -409,7 +421,7 @@ US-08,보고서 > 보호구역 안팎 비교표,기본,9-1,내려받기,성남�
 US-08,보고서 > 보호구역 안팎 비교표,기본,9-1,내려받기,,2,버튼,PDF로 내려받기,,src/user/features/reports/pages/ProtectionZonePage.jsx,구현,
 US-08,보고서 > 보호구역 안팎 비교표,기본,9-1,내려받기,,3,버튼,엑셀로 내려받기,,src/user/features/reports/pages/ProtectionZonePage.jsx,구현,
 US-08,보고서 > 보호구역 안팎 비교표,기본,9-1,내려받기,수정·중원·분당구 (구 도로관리팀),-,-,-,,src/user/features/reports/pages/ProtectionZonePage.jsx,구현,
-US-09,보고서 > 반기 변경 요약,기본,0-1,화면 머리,성남시 (시 도로과),1,타이틀,%회차 연도% 반기 변경 요약,제안,src/user/features/reports/pages/HalfYearPage.jsx,구현 (제안),
+US-09,보고서 > 반기 변경 요약,기본,0-1,화면 머리,성남시 (시 도로과),1,타이틀,%회차 연도% 반기 변경 요약,제안,src/user/features/reports/pages/HalfYearPage.jsx,구현 (제안),"UX 고도화(261025) 코드 반영: 보고서 이름 반기 순위 변경 요약, 탭 이름 반기 순위 변경, 빈 화면 문구 (W-4·K-20)"
 US-09,보고서 > 반기 변경 요약,기본,0-1,화면 머리,,2,서브 타이틀,반기에 바뀐 자료와 그에 따른 순위 변화를 정리했습니다. 확정한 대상은 바뀌지 않습니다.,,src/user/features/reports/pages/HalfYearPage.jsx,구현,
 US-09,보고서 > 반기 변경 요약,기본,0-1,화면 머리,수정·중원·분당구 (구 도로관리팀),1,타이틀,%회차 연도% 반기 변경 요약,,src/user/features/reports/pages/HalfYearPage.jsx,구현,
 US-09,보고서 > 반기 변경 요약,기본,0-1,화면 머리,,2,서브 타이틀,반기에 바뀐 자료와 그에 따른 순위 변화를 정리했습니다. 확정한 대상은 바뀌지 않습니다.,,src/user/features/reports/pages/HalfYearPage.jsx,구현,
@@ -433,7 +445,7 @@ US-09,보고서 > 반기 변경 요약,기본,9-1,내려받기,,3,버튼,엑셀�
 US-09,보고서 > 반기 변경 요약,기본,9-1,내려받기,수정·중원·분당구 (구 도로관리팀),1,소제목,파일로 내려받기,,src/user/features/reports/pages/HalfYearPage.jsx,구현,
 US-09,보고서 > 반기 변경 요약,기본,9-1,내려받기,,2,버튼,PDF로 내려받기,,src/user/features/reports/pages/HalfYearPage.jsx,구현,
 US-09,보고서 > 반기 변경 요약,기본,9-1,내려받기,,3,버튼,엑셀로 내려받기,,src/user/features/reports/pages/HalfYearPage.jsx,구현,
-US-10,기준정보 > 승인 대기,기본,0-1,화면 머리,성남시 (시 도로과),1,타이틀,승인 대기,제안,src/user/features/reference/pages/ApprovalsPage.jsx,구현 (제안),
+US-10,기준정보 > 승인 대기,기본,0-1,화면 머리,성남시 (시 도로과),1,타이틀,승인 대기,제안,src/user/features/reference/pages/ApprovalsPage.jsx,구현 (제안),"UX 고도화(261025) 코드 반영: 메뉴가 최상위 승인 대기로 이동, 목록에 변화 미리 보기, 버튼 돌려보내기 (M-2·5-2 ③·K-19)"
 US-10,기준정보 > 승인 대기,기본,0-1,화면 머리,,2,서브 타이틀,RADAR 운영팀이 올린 산정 기준·담당 부서 표 변경 제안입니다. 승인한 설정은 다음 산정부터 사용할 수 있습니다.,,src/user/features/reference/pages/ApprovalsPage.jsx,구현,
 US-10,기준정보 > 승인 대기,기본,0-1,화면 머리,수정·중원·분당구 (구 도로관리팀),-,-,-,,src/user/features/reference/pages/ApprovalsPage.jsx,구현,
 US-10,기준정보 > 승인 대기,기본,1-1,제안 목록,성남시 (시 도로과),1,표 열 머리,제안 · 내용 · 제안일,확정,src/user/features/reference/pages/ApprovalsPage.jsx,구현,
@@ -448,15 +460,15 @@ US-10,기준정보 > 승인 대기,기본,1-2,제안 비교와 승인,,5,버튼,
 US-10,기준정보 > 승인 대기,기본,1-2,제안 비교와 승인,,6,라벨,돌려보내는 사유,,src/user/features/reference/pages/ApprovalsPage.jsx,구현,
 US-10,기준정보 > 승인 대기,기본,1-2,제안 비교와 승인,,7,오류 문구,돌려보내는 사유를 적어 주세요. RADAR 운영팀이 사유를 보고 다시 고칩니다.,,src/user/features/reference/pages/ApprovalsPage.jsx,구현,
 US-10,기준정보 > 승인 대기,기본,1-2,제안 비교와 승인,수정·중원·분당구 (구 도로관리팀),-,-,-,,src/user/features/reference/pages/ApprovalsPage.jsx,구현,
-US-11,기준정보 > 분류 검수,기본,0-1,화면 머리,성남시 (시 도로과),-,-,-,제안,src/user/features/reference/pages/ClassificationPage.jsx,구현 (제안),
-US-11,기준정보 > 분류 검수,기본,0-1,화면 머리,수정·중원·분당구 (구 도로관리팀),1,타이틀,분류 검수,,src/user/features/reference/pages/ClassificationPage.jsx,구현,
-US-11,기준정보 > 분류 검수,기본,0-1,화면 머리,,2,서브 타이틀,AI가 나눈 민원 분류 가운데 일부입니다. 맞는지 확인하고 틀리면 고쳐 주세요.,,src/user/features/reference/pages/ClassificationPage.jsx,구현,
-US-11,기준정보 > 분류 검수,기본,1-1,분류 표본,성남시 (시 도로과),-,-,-,가정 (ISS-016),src/user/features/reference/pages/ClassificationPage.jsx,구현 (가정),
-US-11,기준정보 > 분류 검수,기본,1-1,분류 표본,수정·중원·분당구 (구 도로관리팀),1,표 열 머리,민원 요약 · 분류 · 판단 근거,,src/user/features/reference/pages/ClassificationPage.jsx,구현,
-US-11,기준정보 > 분류 검수,기본,1-1,분류 표본,,2,표 행,%본문 요약% · %분류 결과% · %판단 근거 낱말%,,src/user/features/reference/pages/ClassificationPage.jsx,구현,
-US-11,기준정보 > 분류 검수,기본,1-1,분류 표본,,3,버튼,분류 맞음,,src/user/features/reference/pages/ClassificationPage.jsx,구현,
-US-11,기준정보 > 분류 검수,기본,1-1,분류 표본,,4,버튼,분류 고치기,,src/user/features/reference/pages/ClassificationPage.jsx,구현,
-US-12,기준정보 > 데이터 목록,기본,0-1,화면 머리,성남시 (시 도로과),1,타이틀,데이터 목록,제안,src/user/features/reference/pages/DataListPage.jsx,구현 (제안),
+US-11,기준정보 > 분류 검수,기본,0-1,화면 머리,성남시 (시 도로과),-,-,-,제안,-,제외 (확장),261025 메뉴 결정: 분류 검수는 어드민 한 곳(AD-05)에서 RADAR 운영자가 한다. 사용자 화면은 메뉴·경로·코드를 지웠다
+US-11,기준정보 > 분류 검수,기본,0-1,화면 머리,수정·중원·분당구 (구 도로관리팀),1,타이틀,분류 검수,,-,제외 (확장),261025 메뉴 결정: 분류 검수는 어드민 한 곳(AD-05)에서 RADAR 운영자가 한다. 사용자 화면은 메뉴·경로·코드를 지웠다
+US-11,기준정보 > 분류 검수,기본,0-1,화면 머리,,2,서브 타이틀,AI가 나눈 민원 분류 가운데 일부입니다. 맞는지 확인해 주세요.,제안,-,제외 (확장),"정의서 v0.5.3은 ""…확인하고 틀리면 고쳐 주세요."" 사용자 결정(261025): 도로관리팀은 확인만 하고 고치기는 어드민 AD-05에서 한다 (제안) / 261025 메뉴 결정: 분류 검수는 어드민 한 곳(AD-05)에서 RADAR 운영자가 한다. 사용자 화면은 메뉴·경로·코드를 지웠다"
+US-11,기준정보 > 분류 검수,기본,1-1,분류 표본,성남시 (시 도로과),-,-,-,가정 (ISS-016),-,제외 (확장),261025 메뉴 결정: 분류 검수는 어드민 한 곳(AD-05)에서 RADAR 운영자가 한다. 사용자 화면은 메뉴·경로·코드를 지웠다
+US-11,기준정보 > 분류 검수,기본,1-1,분류 표본,수정·중원·분당구 (구 도로관리팀),1,표 열 머리,민원 요약 · 분류 · 판단 근거,,-,제외 (확장),261025 메뉴 결정: 분류 검수는 어드민 한 곳(AD-05)에서 RADAR 운영자가 한다. 사용자 화면은 메뉴·경로·코드를 지웠다
+US-11,기준정보 > 분류 검수,기본,1-1,분류 표본,,2,표 행,%본문 요약% · %분류 결과% · %판단 근거 낱말%,,-,제외 (확장),261025 메뉴 결정: 분류 검수는 어드민 한 곳(AD-05)에서 RADAR 운영자가 한다. 사용자 화면은 메뉴·경로·코드를 지웠다
+US-11,기준정보 > 분류 검수,기본,1-1,분류 표본,,3,버튼,분류 맞음,,-,제외 (확장),261025 메뉴 결정: 분류 검수는 어드민 한 곳(AD-05)에서 RADAR 운영자가 한다. 사용자 화면은 메뉴·경로·코드를 지웠다
+US-11,기준정보 > 분류 검수,기본,1-1,분류 표본,,4,버튼,분류 고치기,,-,제외 (확장),사용자 결정(261025): 사용자 화면 분류 검수는 확인만. 정의서 수정안 대기 / 261025 메뉴 결정: 분류 검수는 어드민 한 곳(AD-05)에서 RADAR 운영자가 한다. 사용자 화면은 메뉴·경로·코드를 지웠다
+US-12,기준정보 > 데이터 목록,기본,0-1,화면 머리,성남시 (시 도로과),1,타이틀,데이터 목록,제안,src/user/features/reference/pages/DataListPage.jsx,구현 (제안),"UX 고도화(261025) 코드 반영: 메뉴 참고 자료 아래, 열 머리 자료 (D-13)"
 US-12,기준정보 > 데이터 목록,기본,0-1,화면 머리,,2,서브 타이틀,RADAR가 순위를 낼 때 쓰는 자료와 기준일입니다.,,src/user/features/reference/pages/DataListPage.jsx,구현,
 US-12,기준정보 > 데이터 목록,기본,0-1,화면 머리,수정·중원·분당구 (구 도로관리팀),1,타이틀,데이터 목록,,src/user/features/reference/pages/DataListPage.jsx,구현,
 US-12,기준정보 > 데이터 목록,기본,0-1,화면 머리,,2,서브 타이틀,RADAR가 순위를 낼 때 쓰는 자료와 기준일입니다.,,src/user/features/reference/pages/DataListPage.jsx,구현,
@@ -464,7 +476,7 @@ US-12,기준정보 > 데이터 목록,기본,1-1,데이터 목록 표,성남시 
 US-12,기준정보 > 데이터 목록,기본,1-1,데이터 목록 표,,2,표 행,%데이터 이름% · %제공기관% · %기준일% · %최신 여부% · %공유 조건%,,src/user/features/reference/pages/DataListPage.jsx,구현,
 US-12,기준정보 > 데이터 목록,기본,1-1,데이터 목록 표,수정·중원·분당구 (구 도로관리팀),1,표 열 머리,데이터 · 제공기관 · 기준일 · 최신 여부 · 공유 조건,,src/user/features/reference/pages/DataListPage.jsx,구현,
 US-12,기준정보 > 데이터 목록,기본,1-1,데이터 목록 표,,2,표 행,%데이터 이름% · %제공기관% · %기준일% · %최신 여부% · %공유 조건%,,src/user/features/reference/pages/DataListPage.jsx,구현,
-US-13,기준정보 > 규정 변경,기본,0-1,화면 머리,성남시 (시 도로과),1,타이틀,규정 변경,제안,src/user/features/reference/pages/RegulationsPage.jsx,구현 (제안),
+US-13,기준정보 > 규정 변경,기본,0-1,화면 머리,성남시 (시 도로과),1,타이틀,규정 변경,제안,src/user/features/reference/pages/RegulationsPage.jsx,구현 (제안),"UX 고도화(261025) 코드 반영: 화면 이름 법령 및 규정, 열 규정 제목·변경 대상·시행일 (M-4·K-21)"
 US-13,기준정보 > 규정 변경,기본,0-1,화면 머리,,2,서브 타이틀,근거로 쓰는 법령과 업무분장이 바뀐 내역입니다.,,src/user/features/reference/pages/RegulationsPage.jsx,구현,
 US-13,기준정보 > 규정 변경,기본,0-1,화면 머리,수정·중원·분당구 (구 도로관리팀),1,타이틀,규정 변경,,src/user/features/reference/pages/RegulationsPage.jsx,구현,
 US-13,기준정보 > 규정 변경,기본,0-1,화면 머리,,2,서브 타이틀,근거로 쓰는 법령과 업무분장이 바뀐 내역입니다.,,src/user/features/reference/pages/RegulationsPage.jsx,구현,
@@ -474,7 +486,7 @@ US-13,기준정보 > 규정 변경,기본,1-1,규정 변경 목록,,3,빈 화면
 US-13,기준정보 > 규정 변경,기본,1-1,규정 변경 목록,수정·중원·분당구 (구 도로관리팀),1,표 열 머리,법령·업무분장 · 바뀐 곳 · 바뀐 날,,src/user/features/reference/pages/RegulationsPage.jsx,구현,
 US-13,기준정보 > 규정 변경,기본,1-1,규정 변경 목록,,2,표 행,%규정 이름% · %바뀐 곳% · %바뀐 날%,,src/user/features/reference/pages/RegulationsPage.jsx,구현,
 US-13,기준정보 > 규정 변경,기본,1-1,규정 변경 목록,,3,빈 화면 문구,바뀐 법령이나 업무분장이 없습니다.,,src/user/features/reference/pages/RegulationsPage.jsx,구현,
-US-14,기준정보 > 조치 제안 표,기본,0-1,화면 머리,성남시 (시 도로과),1,타이틀,조치 제안 표,제안,src/user/features/reference/pages/ActionsPage.jsx,구현 (제안),
+US-14,기준정보 > 조치 제안 표,기본,0-1,화면 머리,성남시 (시 도로과),1,타이틀,조치 제안 표,제안,src/user/features/reference/pages/ActionsPage.jsx,구현 (제안),"UX 고도화(261025) 코드 반영: 화면 이름 조치 제안, 근거 조문 확인 전 (M-5·K-16)"
 US-14,기준정보 > 조치 제안 표,기본,0-1,화면 머리,,2,서브 타이틀,"데이터로 찾은 문제마다 현장에서 확인할 것, 요청할 조치, 받는 부서를 정리한 표입니다.",,src/user/features/reference/pages/ActionsPage.jsx,구현,
 US-14,기준정보 > 조치 제안 표,기본,0-1,화면 머리,수정·중원·분당구 (구 도로관리팀),1,타이틀,조치 제안 표,,src/user/features/reference/pages/ActionsPage.jsx,구현,
 US-14,기준정보 > 조치 제안 표,기본,0-1,화면 머리,,2,서브 타이틀,"데이터로 찾은 문제마다 현장에서 확인할 것, 요청할 조치, 받는 부서를 정리한 표입니다.",,src/user/features/reference/pages/ActionsPage.jsx,구현,
@@ -489,7 +501,7 @@ CM-02,어드민 공통 규칙,권한,4,결정하지 않고 제안만,RADAR 운�
 CM-02,어드민 공통 규칙,개인정보,5,민원 원문 열람,RADAR 운영자,-,-,-,확장,src/admin/copy.js · src/admin/components/*,확장 (구현 안 함),
 CM-02,어드민 공통 규칙,문구 표기,6,정해지지 않은 값의 예시,RADAR 운영자,-,-,-,확정,src/admin/copy.js · src/admin/components/*,구현,
 CM-02,어드민 공통 규칙,문구 표기,7,구현 상태·수정 일자,RADAR 운영자,-,-,-,확정,src/admin/copy.js · src/admin/components/*,구현,
-AD-00,공통 상단,기본,0-1,메뉴,RADAR 운영자,1,탭,대시보드,확정,src/admin/layout/*,구현,
+AD-00,공통 상단,기본,0-1,메뉴,RADAR 운영자,1,탭,대시보드,확정,src/admin/layout/*,구현,"UX 고도화(261025) 코드 반영: 메뉴 데이터·산정(산정 기준 포함)·규정·업무분장 관리, 표 밀도 두 가지(촘촘히 기본), 회차와 상관없는 화면의 회차 선택 흐림 (M-7·M-8·A-3·A-4)"
 AD-00,공통 상단,기본,0-1,메뉴,,2,탭,데이터,,src/admin/layout/*,구현,
 AD-00,공통 상단,기본,0-1,메뉴,,3,탭,산정,,src/admin/layout/*,구현,
 AD-00,공통 상단,기본,0-1,메뉴,,4,탭,기준정보,,src/admin/layout/*,구현,
@@ -518,7 +530,7 @@ AD-00,공통 상단,사용자 화면 보기,4-1,사용자 화면 보기,,8,선�
 AD-00,공통 상단,사용자 화면 보기,4-1,사용자 화면 보기,,9,버튼,보기 전용으로 열기,,src/admin/layout/*,구현,"사용자 화면 보기: 창은 ×(읽는 이름 ""사용자 화면 보기 창 닫기"")와 Esc로 닫는다. 공통 규칙 6번이 ""취소"" 같은 말을 막아 취소 버튼을 두지 않았다. 보기 전용은 서버가 쓰기를 막고(readOnly) 결정·확정·승인 버튼은 숨긴다."
 AD-00,공통 상단,사용자 화면 보기,4-1,사용자 화면 보기,,10,안내 문구,%볼 계정% 화면을 보기 전용으로 보는 중입니다.,,src/admin/layout/*,구현,"사용자 화면 보기: 창은 ×(읽는 이름 ""사용자 화면 보기 창 닫기"")와 Esc로 닫는다. 공통 규칙 6번이 ""취소"" 같은 말을 막아 취소 버튼을 두지 않았다. 보기 전용은 서버가 쓰기를 막고(readOnly) 결정·확정·승인 버튼은 숨긴다."
 AD-00,공통 상단,사용자 화면 보기,4-1,사용자 화면 보기,,11,텍스트 링크,어드민으로 돌아가기,,src/admin/layout/*,구현,"사용자 화면 보기: 창은 ×(읽는 이름 ""사용자 화면 보기 창 닫기"")와 Esc로 닫는다. 공통 규칙 6번이 ""취소"" 같은 말을 막아 취소 버튼을 두지 않았다. 보기 전용은 서버가 쓰기를 막고(readOnly) 결정·확정·승인 버튼은 숨긴다."
-AD-01,대시보드,기본,0-1,화면 머리,RADAR 운영자,1,타이틀,대시보드,제안,src/admin/features/dashboard/DashboardPage.jsx,구현 (제안),
+AD-01,대시보드,기본,0-1,화면 머리,RADAR 운영자,1,타이틀,대시보드,제안,src/admin/features/dashboard/DashboardPage.jsx,구현 (제안),"UX 고도화(261025) 코드 반영: 카드마다 상태 배지와 보러 가기 링크, 산정 기준 카드, 실행 기록 빈 문구 (A-1·E-4)"
 AD-01,대시보드,기본,0-1,화면 머리,,2,서브 타이틀,지금 회차가 어디까지 왔는지와 다음에 할 일을 봅니다.,,src/admin/features/dashboard/DashboardPage.jsx,구현,
 AD-01,대시보드,회차 준비 상태,1-1,회차 준비 상태,RADAR 운영자,1,소제목,%회차 이름% 회차,확정,src/admin/features/dashboard/DashboardPage.jsx,구현,"확정·참고 회차에는 ""다음에 할 일"" 줄을 보이지 않는다(명세에 없음)."
 AD-01,대시보드,회차 준비 상태,1-1,회차 준비 상태,,2,꼬리표,%회차 상태%,,src/admin/features/dashboard/DashboardPage.jsx,구현,"확정·참고 회차에는 ""다음에 할 일"" 줄을 보이지 않는다(명세에 없음)."
@@ -532,7 +544,7 @@ AD-01,대시보드,승인 현황,4-1,승인 현황,RADAR 운영자,1,소제목,�
 AD-01,대시보드,승인 현황,4-1,승인 현황,,2,숫자,승인 대기 %승인 대기 수% · 승인 %승인 수% · 돌려받음 %돌려받음 수%,,src/admin/features/dashboard/DashboardPage.jsx,구현,"숫자는 줄로 쌓아 보이고 ""·""는 화면에 그리지 않는다."
 AD-01,대시보드,규정 변경,5-1,규정 변경,RADAR 운영자,1,소제목,규정 변경,확정,src/admin/features/dashboard/DashboardPage.jsx,구현,
 AD-01,대시보드,규정 변경,5-1,규정 변경,,2,숫자,확인할 규정 변경 %규정 변경 수%건,,src/admin/features/dashboard/DashboardPage.jsx,구현,
-AD-02,데이터 > 데이터 목록,기본,0-1,화면 머리,RADAR 운영자,1,타이틀,데이터 목록,제안,src/admin/features/data/DataListPage.jsx,구현 (제안),
+AD-02,데이터 > 데이터 목록,기본,0-1,화면 머리,RADAR 운영자,1,타이틀,데이터 목록,제안,src/admin/features/data/DataListPage.jsx,구현 (제안),UX 고도화(261025) 코드 반영: 열 머리 수집 경로·결과물 포함·외부 AI 전송·업로드일·업로드 담당자와 도움말 한 줄 (K-22·A-2)
 AD-02,데이터 > 데이터 목록,기본,0-1,화면 머리,,2,서브 타이틀,산정에 쓰는 데이터와 기준일을 한 표로 관리합니다.,,src/admin/features/data/DataListPage.jsx,구현,
 AD-02,데이터 > 데이터 목록,기본,1-1,필터와 올리기,RADAR 운영자,1,라벨,최신 여부,확정,src/admin/features/data/DataListPage.jsx,구현,
 AD-02,데이터 > 데이터 목록,기본,1-1,필터와 올리기,,2,선택,%최신 여부%,,src/admin/features/data/DataListPage.jsx,구현,
@@ -543,7 +555,7 @@ AD-02,데이터 > 데이터 목록,기본,1-2,데이터 표,RADAR 운영자,1,�
 AD-02,데이터 > 데이터 목록,기본,1-2,데이터 표,,2,표 행,%데이터 ID% · %데이터 이름% · %제공기관% · %받은 곳% · %갱신 주기% · %기준일% · %수집일% · %공식 원본 여부% · %최신 여부% · %결과물에 넣기% · %외부 AI로 보내기%,,src/admin/features/data/DataListPage.jsx,구현,"펼친 목록의 열 이름과 API 자료의 수집일 표는 명세에 없어 지었다. 원본이 없는 자료(빠짐)는 펼치지 않는다. 빈 표 문구도 명세에 없어 공통 규칙 11번을 따랐다. ""공식 원본 여부"" 예시 값(확인)이 선택지(공식 원본/가공본/미확인)와 달라 선택지를 따랐다."
 AD-02,데이터 > 데이터 목록,기본,1-2,데이터 표,,3,꼬리표,과거 기록,,src/admin/features/data/DataListPage.jsx,구현,"펼친 목록의 열 이름과 API 자료의 수집일 표는 명세에 없어 지었다. 원본이 없는 자료(빠짐)는 펼치지 않는다. 빈 표 문구도 명세에 없어 공통 규칙 11번을 따랐다. ""공식 원본 여부"" 예시 값(확인)이 선택지(공식 원본/가공본/미확인)와 달라 선택지를 따랐다."
 AD-02,데이터 > 데이터 목록,기본,1-2,데이터 표,,4,꼬리표,기준일 미확인,,src/admin/features/data/DataListPage.jsx,구현,"펼친 목록의 열 이름과 API 자료의 수집일 표는 명세에 없어 지었다. 원본이 없는 자료(빠짐)는 펼치지 않는다. 빈 표 문구도 명세에 없어 공통 규칙 11번을 따랐다. ""공식 원본 여부"" 예시 값(확인)이 선택지(공식 원본/가공본/미확인)와 달라 선택지를 따랐다."
-AD-03,데이터 > 업로드,기본,0-1,화면 머리,RADAR 운영자,1,타이틀,자료 올리기,제안,src/admin/features/data/UploadPage.jsx,구현 (제안),
+AD-03,데이터 > 업로드,기본,0-1,화면 머리,RADAR 운영자,1,타이틀,자료 올리기,제안,src/admin/features/data/UploadPage.jsx,구현 (제안),"UX 고도화(261025) 코드 반영: 입력 2열 배치, 수집 경로·공식 원본 여부 도움말, 열 머리 (A-2·K-22) / 261026 결정: 민원 파일은 한 번에 한 달치만 올린다. 입력 칸 '민원 접수 기간'을 필수 '대상 월'(월 선택)로 바꾸고 완료 문구에 월을 보인다(R-02). 정의서 AD-03 1-1 줄16·17은 문서 수정 대기 / 261026 수정안 4: 같은 자료를 같은 기준일로 다시 올리면 막지 않고 안내만 보이고, 올리면 새 기록으로 쌓인다(ISS-049). 공공 자료는 기간 칸이 없다"
 AD-03,데이터 > 업로드,기본,0-1,화면 머리,,2,서브 타이틀,API로 받지 못하는 자료와 민원 파일을 올립니다. 출처와 기준일이 없으면 올릴 수 없습니다.,,src/admin/features/data/UploadPage.jsx,구현,
 AD-03,데이터 > 업로드,기본,1-1,올리기 입력,RADAR 운영자,1,라벨,자료 이름,제안,src/admin/features/data/UploadPage.jsx,구현 (제안),가짜 검사 규칙: 파일 이름에 오류·error가 있으면 3건이 걸린다(개발 장치). 받은 곳은 파일/시 내부 자료 두 가지만 고르게 했다(API는 올리지 않는다).
 AD-03,데이터 > 업로드,기본,1-1,올리기 입력,,2,선택,%데이터 이름%,,src/admin/features/data/UploadPage.jsx,구현,가짜 검사 규칙: 파일 이름에 오류·error가 있으면 3건이 걸린다(개발 장치). 받은 곳은 파일/시 내부 자료 두 가지만 고르게 했다(API는 올리지 않는다).
@@ -565,13 +577,13 @@ AD-03,데이터 > 업로드,기본,1-1,올리기 입력,,17,입력,%민원 접�
 AD-03,데이터 > 업로드,기본,1-1,올리기 입력,,18,버튼,파일 올리기,,src/admin/features/data/UploadPage.jsx,구현,가짜 검사 규칙: 파일 이름에 오류·error가 있으면 3건이 걸린다(개발 장치). 받은 곳은 파일/시 내부 자료 두 가지만 고르게 했다(API는 올리지 않는다).
 AD-03,데이터 > 업로드,기본,1-1,올리기 입력,,19,오류 문구,출처와 기준일을 적어야 올릴 수 있습니다.,,src/admin/features/data/UploadPage.jsx,구현,가짜 검사 규칙: 파일 이름에 오류·error가 있으면 3건이 걸린다(개발 장치). 받은 곳은 파일/시 내부 자료 두 가지만 고르게 했다(API는 올리지 않는다).
 AD-03,데이터 > 업로드,기본,1-1,올리기 입력,,20,오류 문구,올릴 수 없는 형식입니다. %올릴 수 있는 형식% 파일을 골라 주세요.,,src/admin/features/data/UploadPage.jsx,구현,가짜 검사 규칙: 파일 이름에 오류·error가 있으면 3건이 걸린다(개발 장치). 받은 곳은 파일/시 내부 자료 두 가지만 고르게 했다(API는 올리지 않는다).
-AD-03,데이터 > 업로드,기본,1-1,올리기 입력,,21,완료 문구,%데이터 이름% 파일을 올렸습니다. 검사 결과를 확인해 주세요.,,src/admin/features/data/UploadPage.jsx,구현,가짜 검사 규칙: 파일 이름에 오류·error가 있으면 3건이 걸린다(개발 장치). 받은 곳은 파일/시 내부 자료 두 가지만 고르게 했다(API는 올리지 않는다).
+AD-03,데이터 > 업로드,기본,1-1,올리기 입력,,21,완료 문구,%데이터 이름% 파일을 올렸습니다. 검사 결과를 확인해 주세요.,,src/admin/features/data/UploadPage.jsx,구현,"가짜 검사 규칙: 파일 이름에 오류·error가 있으면 3건이 걸린다(개발 장치). 받은 곳은 파일/시 내부 자료 두 가지만 고르게 했다(API는 올리지 않는다). 민원 파일은 ""민원 N건을 올렸습니다. 새로 N건, 이미 있던 N건, 값이 바뀐 N건입니다.""로 보인다. 올리는 동안 ""올리는 중입니다. 끝날 때까지 이 창을 닫지 마세요.""를 보이고 입력을 잠근다 (제안, R-05·R-07)"
 AD-03,데이터 > 업로드,기본,1-1,올리기 입력,,22,버튼,검사 결과 보기,,src/admin/features/data/UploadPage.jsx,구현,가짜 검사 규칙: 파일 이름에 오류·error가 있으면 3건이 걸린다(개발 장치). 받은 곳은 파일/시 내부 자료 두 가지만 고르게 했다(API는 올리지 않는다).
 AD-03,데이터 > 업로드,기본,2-1,올린 기록,RADAR 운영자,1,소제목,올린 기록,확정,src/admin/features/data/UploadPage.jsx,구현,
 AD-03,데이터 > 업로드,기본,2-1,올린 기록,,2,표 열 머리,올린 날 · 올린 운영자 · 데이터 · 기준일 · 출처 · 검사 결과,,src/admin/features/data/UploadPage.jsx,구현,
 AD-03,데이터 > 업로드,기본,2-1,올린 기록,,3,표 행,%올린 날% · %올린 운영자% · %데이터 이름% · %기준일% · %출처% · %검사 결과%,,src/admin/features/data/UploadPage.jsx,구현,
 AD-03,데이터 > 업로드,기본,2-1,올린 기록,,4,안내 문구,API로 받는 자료는 정해진 주기에 자동으로 받습니다. 여기에는 파일로 올린 기록만 보입니다.,,src/admin/features/data/UploadPage.jsx,구현,
-AD-04,데이터 > 검사 결과,기본,0-1,화면 머리,RADAR 운영자,1,타이틀,검사 결과,제안,src/admin/features/data/ChecksPage.jsx,구현 (제안),
+AD-04,데이터 > 검사 결과,기본,0-1,화면 머리,RADAR 운영자,1,타이틀,검사 결과,제안,src/admin/features/data/ChecksPage.jsx,구현 (제안),"UX 고도화(261025) 코드 반영: 위치 낮음 민원 창 문구, 탭 이름 시설 묶음 실패 (K-2·K-22)"
 AD-04,데이터 > 검사 결과,기본,0-1,화면 머리,,2,서브 타이틀,검사에서 걸린 자료를 보고 고쳐서 다시 올립니다. 자동으로 고치거나 지우지 않습니다.,,src/admin/features/data/ChecksPage.jsx,구현,
 AD-04,데이터 > 검사 결과,기본,1-1,검사 결과 표,RADAR 운영자,1,탭,형식 오류,확정,src/admin/features/data/ChecksPage.jsx,구현,
 AD-04,데이터 > 검사 결과,기본,1-1,검사 결과 표,,2,탭,확인이 필요한 값,,src/admin/features/data/ChecksPage.jsx,구현,
@@ -582,8 +594,8 @@ AD-04,데이터 > 검사 결과,기본,1-1,검사 결과 표,,6,표 행,%데이�
 AD-04,데이터 > 검사 결과,기본,1-1,검사 결과 표,,7,버튼,고쳐서 다시 올리기,,src/admin/features/data/ChecksPage.jsx,구현,
 AD-04,데이터 > 검사 결과,기본,1-1,검사 결과 표,,8,빈 화면 문구,검사에서 걸린 자료가 없습니다.,,src/admin/features/data/ChecksPage.jsx,구현,
 AD-04,데이터 > 검사 결과,위치 미확인,1-2,민원 위치 확인,RADAR 운영자,1,숫자,민원 위치 낮음 %위치 낮음 건수%건 · 상위 %비교 칸 수%칸 순위 변화 %바뀐 칸 수%칸,제안,src/admin/features/data/ChecksPage.jsx,구현 (제안),낮음 민원 목록의 열 이름은 명세에 없어 검사 결과 표와 같게 했다.
-AD-04,데이터 > 검사 결과,위치 미확인,1-2,민원 위치 확인,,2,안내 문구,위치가 낮음인 민원은 격자 민원 수에서 뺐습니다. 뺀 경우와 넣은 경우의 상위 순위를 비교한 결과입니다.,,src/admin/features/data/ChecksPage.jsx,구현,낮음 민원 목록의 열 이름은 명세에 없어 검사 결과 표와 같게 했다.
-AD-05,데이터 > 분류 검수,기본,0-1,화면 머리,RADAR 운영자,1,타이틀,분류 검수,제안,src/admin/features/data/ClassifyPage.jsx,구현 (제안),
+AD-04,데이터 > 검사 결과,위치 미확인,1-2,민원 위치 확인,,2,안내 문구,위치가 낮음인 민원은 격자 민원 수에서 뺐습니다. 뺀 경우와 넣은 경우의 상위 순위를 비교한 결과입니다.,제안,src/admin/features/data/ChecksPage.jsx,구현,"정의서 행102 문구는 구버전(ISS-033 이전). 프론트는 행101·ISS-033에 맞춰 ""넣었습니다""로 고침 (정의서 수정 대기)"
+AD-05,데이터 > 분류 검수,기본,0-1,화면 머리,RADAR 운영자,1,타이틀,분류 검수,제안,src/admin/features/data/ClassifyPage.jsx,구현 (제안),"UX 고도화(261025) 코드 반영: 화면 이름 민원 분류 검수, 열 너비·정렬, 짧은 버튼 맞음·고치기, 열 분류 신뢰도, 빈 표본 문구 (M-7·U-7·E-6)"
 AD-05,데이터 > 분류 검수,기본,0-1,화면 머리,,2,서브 타이틀,"AI가 나눈 민원 분류 가운데 일부를 확인하고, 틀리면 고칩니다.",,src/admin/features/data/ClassifyPage.jsx,구현,
 AD-05,데이터 > 분류 검수,기본,1-1,분류 표본,RADAR 운영자,1,표 열 머리,민원 요약 · 관련 여부 · 유형 · 판단 근거 · 신뢰도,가정 (ISS-016),src/admin/features/data/ClassifyPage.jsx,구현 (가정),"고치기 창의 버튼 이름 ""고친 분류 반영하기""는 명세에 없어 지었다. 원문 보기 링크는 확장 단계라 보이지 않는다."
 AD-05,데이터 > 분류 검수,기본,1-1,분류 표본,,2,표 행,%본문 요약% · %관련 여부% · %분류 결과% · %판단 근거 낱말% · %분류 신뢰도%,,src/admin/features/data/ClassifyPage.jsx,구현,"고치기 창의 버튼 이름 ""고친 분류 반영하기""는 명세에 없어 지었다. 원문 보기 링크는 확장 단계라 보이지 않는다."
@@ -599,11 +611,11 @@ AD-05,데이터 > 분류 검수,원문 열람 창,2-1,원문 열람 창,,5,자�
 AD-05,데이터 > 분류 검수,원문 열람 창,2-1,원문 열람 창,,6,버튼,원문 열기,,src/admin/features/data/ClassifyPage.jsx,구현,확장 단계(원문 보관 뒤). MVP에서는 구현하지 않는다.
 AD-05,데이터 > 분류 검수,원문 열람 창,2-1,원문 열람 창,,7,오류 문구,열람 사유를 적어 주세요.,,src/admin/features/data/ClassifyPage.jsx,구현,확장 단계(원문 보관 뒤). MVP에서는 구현하지 않는다.
 AD-05,데이터 > 분류 검수,원문 열람 창,2-1,원문 열람 창,,8,본문,%민원 원문%,,src/admin/features/data/ClassifyPage.jsx,구현,확장 단계(원문 보관 뒤). MVP에서는 구현하지 않는다.
-AD-06,산정 > 회차 목록,기본,0-1,화면 머리,RADAR 운영자,1,타이틀,회차 목록,제안,src/admin/features/runs/RunListPage.jsx,구현 (제안),
+AD-06,산정 > 회차 목록,기본,0-1,화면 머리,RADAR 운영자,1,타이틀,회차 목록,제안,src/admin/features/runs/RunListPage.jsx,구현 (제안),"UX 고도화(261025) 코드 반영: 열 생성일, 단계 꼬리표와 다음 버튼 강조, 산정 기준 버전 링크 (5-3 ③·K-22)"
 AD-06,산정 > 회차 목록,기본,0-1,화면 머리,,2,서브 타이틀,회차를 만들고 산정을 실행한 뒤 검토 중으로 엽니다.,,src/admin/features/runs/RunListPage.jsx,구현,
 AD-06,산정 > 회차 목록,기본,1-1,회차 표,RADAR 운영자,1,버튼,회차 만들기,확정,src/admin/features/runs/RunListPage.jsx,구현,
-AD-06,산정 > 회차 목록,기본,1-1,회차 표,,2,표 열 머리,회차 · 종류 · 상태 · 산정 기준 버전 · 만든 날 · 검토 시작일,,src/admin/features/runs/RunListPage.jsx,구현,
-AD-06,산정 > 회차 목록,기본,1-1,회차 표,,3,표 행,%회차 이름% · %회차 종류% · %회차 상태% · %버전% · %만든 날% · %검토 시작일%,,src/admin/features/runs/RunListPage.jsx,구현,
+AD-06,산정 > 회차 목록,기본,1-1,회차 표,,2,표 열 머리,회차 · 종류 · 상태 · 산정 기준 버전 · 민원 접수 기간 · 만든 날 · 검토 시작일,,src/admin/features/runs/RunListPage.jsx,구현,정의서 v0.5.4 (ISS-037)
+AD-06,산정 > 회차 목록,기본,1-1,회차 표,,3,표 행,%회차 이름% · %회차 종류% · %회차 상태% · %버전% · %민원 접수 기간% · %만든 날% · %검토 시작일%,,src/admin/features/runs/RunListPage.jsx,구현,정의서 v0.5.4 (ISS-037)
 AD-06,산정 > 회차 목록,기본,1-1,회차 표,,4,버튼,산정 시작하기,,src/admin/features/runs/RunListPage.jsx,구현,
 AD-06,산정 > 회차 목록,기본,1-1,회차 표,,5,버튼,검토 중으로 열기,,src/admin/features/runs/RunListPage.jsx,구현,
 AD-06,산정 > 회차 목록,기본,1-1,회차 표,,6,빈 화면 문구,아직 만든 회차가 없습니다. 회차를 만들어 주세요.,,src/admin/features/runs/RunListPage.jsx,구현,
@@ -626,7 +638,13 @@ AD-06,산정 > 회차 목록,회차 열기 확인 창,2-1,회차 열기 확인 �
 AD-06,산정 > 회차 목록,회차 열기 확인 창,2-1,회차 열기 확인 창,,8,버튼,빠진 자료 올리러 가기,,src/admin/features/runs/RunListPage.jsx,구현,"""빠진 자료 올리러 가기""는 빠진 자료가 있을 때만 보인다(명세는 조건이 없다)."
 AD-06,산정 > 회차 목록,회차 열기 확인 창,2-1,회차 열기 확인 창,,9,버튼,검토 중으로 열기,,src/admin/features/runs/RunListPage.jsx,구현,"""빠진 자료 올리러 가기""는 빠진 자료가 있을 때만 보인다(명세는 조건이 없다)."
 AD-06,산정 > 회차 목록,회차 열기 확인 창,2-1,회차 열기 확인 창,,10,오류 문구,산정이 끝나지 않아 열 수 없습니다.,,src/admin/features/runs/RunListPage.jsx,구현,"""빠진 자료 올리러 가기""는 빠진 자료가 있을 때만 보인다(명세는 조건이 없다)."
-AD-07,산정 > 실행 기록,기본,0-1,화면 머리,RADAR 운영자,1,타이틀,실행 기록,제안,src/admin/features/runs/LogPage.jsx,구현 (제안),
+AD-06,산정 > 회차 목록,기본,1-2,새 회차 창,,1,라벨,민원 접수 기간,확정,src/admin/features/runs/RunListPage.jsx · src/admin/features/runs/copy.js · src/mocks/adminServer.js,구현,정의서 v0.5.4 (ISS-037). 제안 행
+AD-06,산정 > 회차 목록,기본,1-2,새 회차 창,,2,입력,%시작일% · %끝일%,확정,src/admin/features/runs/RunListPage.jsx · src/admin/features/runs/copy.js · src/mocks/adminServer.js,구현,"종류를 고르면 올린 민원 파일 기간(가장 이른 시작일~가장 늦은 끝일)으로 채운다. 고칠 수 있고, 두 칸을 모두 비우면 민원 없이 산정"
+AD-06,산정 > 회차 목록,기본,1-2,새 회차 창,,3,안내 문구,이 기간에 민원 파일이 없는 달이 있습니다: %빠진 달%. 이대로 만들 수 있습니다.,확정,src/admin/features/runs/RunListPage.jsx · src/admin/features/runs/copy.js · src/mocks/adminServer.js,구현,기간 안에 올린 민원 파일이 없는 달이 있을 때
+AD-06,산정 > 회차 목록,기본,1-2,새 회차 창,,4,오류 문구,시작일과 끝일을 둘 다 적어 주세요. / 끝일은 시작일보다 빠를 수 없습니다. / 끝일은 오늘 이후로 정할 수 없습니다.,확정,src/admin/features/runs/RunListPage.jsx · src/admin/features/runs/copy.js · src/mocks/adminServer.js,구현,
+AD-06,산정 > 회차 목록,기본,1-1,회차 표,,5,버튼,민원 기간 고치기,확정,src/admin/features/runs/RunListPage.jsx · src/admin/features/runs/copy.js · src/mocks/adminServer.js,구현,상태가 산정 중이고 산정을 아직 돌리지 않았을 때. 이름·종류는 고칠 수 없고 기간만 고친다
+AD-06,산정 > 회차 목록,회차 열기 확인 창,2-1,회차 열기 확인 창,,6,표 행,성남데이터넷 민원 %빠진 달%분 (파일 없음),확정,src/admin/features/runs/RunListPage.jsx · src/admin/features/runs/copy.js · src/mocks/adminServer.js,구현,빠진 자료 목록에 같이 보인다
+AD-07,산정 > 실행 기록,기본,0-1,화면 머리,RADAR 운영자,1,타이틀,실행 기록,제안,src/admin/features/runs/LogPage.jsx,구현 (제안),UX 고도화(261025) 코드 반영: 열 시작 시각·소요 시간 (K-22)
 AD-07,산정 > 실행 기록,기본,0-1,화면 머리,,2,서브 타이틀,수집과 산정을 돌린 결과와 로그를 봅니다.,,src/admin/features/runs/LogPage.jsx,구현,
 AD-07,산정 > 실행 기록,기본,1-1,실행 표,RADAR 운영자,1,라벨,기간,확정,src/admin/features/runs/LogPage.jsx,구현,기간 선택지(최근 7·30·90일)는 명세에 없어 지었다. 실행 중인 기록이 있으면 1.5초마다 다시 본다.
 AD-07,산정 > 실행 기록,기본,1-1,실행 표,,2,선택,%조회 기간%,,src/admin/features/runs/LogPage.jsx,구현,기간 선택지(최근 7·30·90일)는 명세에 없어 지었다. 실행 중인 기록이 있으면 1.5초마다 다시 본다.
@@ -640,18 +658,18 @@ AD-07,산정 > 실행 기록,기본,1-2,로그와 다시 실행,,2,본문,%로�
 AD-07,산정 > 실행 기록,기본,1-2,로그와 다시 실행,,3,오류 문구,실패 원인: %실패 원인%,,src/admin/features/runs/LogPage.jsx,구현,
 AD-07,산정 > 실행 기록,기본,1-2,로그와 다시 실행,,4,버튼,처음부터 다시 실행하기,,src/admin/features/runs/LogPage.jsx,구현,
 AD-07,산정 > 실행 기록,기본,1-2,로그와 다시 실행,,5,도움말,실패한 단계만이 아니라 처음부터 다시 계산합니다.,,src/admin/features/runs/LogPage.jsx,구현,
-AD-08,산정 > 실행 일정,기본,0-1,화면 머리,RADAR 운영자,1,타이틀,실행 일정,제안,src/admin/features/runs/SchedulePage.jsx,구현 (제안),
+AD-08,산정 > 실행 일정,기본,0-1,화면 머리,RADAR 운영자,1,타이틀,실행 일정,제안,src/admin/features/runs/SchedulePage.jsx,구현 (제안),UX 고도화(261025) 코드 반영: 자동 실행은 확장이라는 안내 한 줄 (M-9)
 AD-08,산정 > 실행 일정,기본,0-1,화면 머리,,2,서브 타이틀,정기 수집과 산정 일정을 봅니다. 자동 실행은 아직 지원하지 않아 일정만 보여 줍니다.,,src/admin/features/runs/SchedulePage.jsx,구현,
 AD-08,산정 > 실행 일정,기본,1-1,일정 표,RADAR 운영자,1,표 열 머리,작업 · 주기 · 다음 예정일 · 마지막 실행,확정,src/admin/features/runs/SchedulePage.jsx,구현,
 AD-08,산정 > 실행 일정,기본,1-1,일정 표,,2,표 행,%작업 이름% · %주기% · %다음 예정일% · %마지막 실행일%,,src/admin/features/runs/SchedulePage.jsx,구현,
-AD-09,기준정보 > 산정 기준,기본,0-1,화면 머리,RADAR 운영자,1,타이틀,산정 기준,제안,src/admin/features/standards/CriteriaListPage.jsx,구현 (제안),
+AD-09,기준정보 > 산정 기준,기본,0-1,화면 머리,RADAR 운영자,1,타이틀,산정 기준,제안,src/admin/features/standards/CriteriaListPage.jsx,구현 (제안),"UX 고도화(261025) 코드 반영: 산정 메뉴로 이동, 열 사용 지표 수, 빈 목록 문구 (5-3 ④·E-5)"
 AD-09,기준정보 > 산정 기준,기본,0-1,화면 머리,,2,서브 타이틀,가중치·기준값·우선 확인 조건의 버전을 관리합니다. 시 도로과가 승인한 버전만 산정에 사용할 수 있습니다.,,src/admin/features/standards/CriteriaListPage.jsx,구현,
 AD-09,기준정보 > 산정 기준,기본,1-1,버전 표,RADAR 운영자,1,라벨,상태,확정,src/admin/features/standards/CriteriaListPage.jsx,구현,
 AD-09,기준정보 > 산정 기준,기본,1-1,버전 표,,2,선택,%버전 상태%,,src/admin/features/standards/CriteriaListPage.jsx,구현,
 AD-09,기준정보 > 산정 기준,기본,1-1,버전 표,,3,버튼,새 버전 만들기,,src/admin/features/standards/CriteriaListPage.jsx,구현,
 AD-09,기준정보 > 산정 기준,기본,1-1,버전 표,,4,표 열 머리,버전 · 버전 이름 · 적용 회차 · 상태 · 수정일 · 지표 수,,src/admin/features/standards/CriteriaListPage.jsx,구현,
 AD-09,기준정보 > 산정 기준,기본,1-1,버전 표,,5,표 행,%버전% · %버전 이름% · %적용 회차% · %버전 상태% · %수정일% · %지표 수%,,src/admin/features/standards/CriteriaListPage.jsx,구현,
-AD-10,기준정보 > 산정 기준 상세,기본,0-1,화면 머리,RADAR 운영자,1,타이틀,산정 기준 %버전%,확정,src/admin/features/standards/CriteriaDetailPage.jsx,구현,
+AD-10,기준정보 > 산정 기준 상세,기본,0-1,화면 머리,RADAR 운영자,1,타이틀,산정 기준 %버전%,확정,src/admin/features/standards/CriteriaDetailPage.jsx,구현,"UX 고도화(261025) 코드 반영: 이 버전이 쓰는 지표 읽기 칸, 변경 사유, 승인 이력에서 보기 링크 (5-3 ⑤)"
 AD-10,기준정보 > 산정 기준 상세,기본,0-1,화면 머리,,2,꼬리표,%버전 상태%,,src/admin/features/standards/CriteriaDetailPage.jsx,구현,
 AD-10,기준정보 > 산정 기준 상세,기본,0-1,화면 머리,,3,본문,적용 회차: %적용 회차%,,src/admin/features/standards/CriteriaDetailPage.jsx,구현,
 AD-10,기준정보 > 산정 기준 상세,기본,0-1,화면 머리,,4,서브 타이틀,값을 고치고 이유를 적어 시 도로과에 승인을 요청합니다. 승인되면 다음 산정부터 사용할 수 있습니다.,,src/admin/features/standards/CriteriaDetailPage.jsx,구현,
@@ -693,7 +711,7 @@ AD-11,기준정보 > 담당 부서 표,기본,1-2,수정안,,5,입력,%제안 �
 AD-11,기준정보 > 담당 부서 표,기본,1-2,수정안,,6,버튼,수정안 승인 요청하기,,src/admin/features/standards/DeptPage.jsx,구현,원문을 열어 보고 제안 이유를 적어야 요청 버튼이 켜진다. 요청 뒤 문구는 명세에 없어 AD-10 완료 문구를 썼다.
 AD-11,기준정보 > 담당 부서 표,기본,1-2,수정안,,7,안내 문구,승인 전에는 현재 표를 그대로 사용합니다.,,src/admin/features/standards/DeptPage.jsx,구현,원문을 열어 보고 제안 이유를 적어야 요청 버튼이 켜진다. 요청 뒤 문구는 명세에 없어 AD-10 완료 문구를 썼다.
 AD-11,기준정보 > 담당 부서 표,기본,1-2,수정안,,8,빈 화면 문구,새 수정안이 없습니다.,,src/admin/features/standards/DeptPage.jsx,구현,원문을 열어 보고 제안 이유를 적어야 요청 버튼이 켜진다. 요청 뒤 문구는 명세에 없어 AD-10 완료 문구를 썼다.
-AD-12,기준정보 > 규정 변경,기본,0-1,화면 머리,RADAR 운영자,1,타이틀,규정 변경,제안,src/admin/features/standards/RegulationsPage.jsx,구현 (제안),
+AD-12,기준정보 > 규정 변경,기본,0-1,화면 머리,RADAR 운영자,1,타이틀,규정 변경,제안,src/admin/features/standards/RegulationsPage.jsx,구현 (제안),"UX 고도화(261025) 코드 반영: 열 시행일·규정 제목·변경 대상, 관할 N곳과 펼친 영역의 담당 부서 줄·링크, 변경 감지일 (R-1~R-3)"
 AD-12,기준정보 > 규정 변경,기본,0-1,화면 머리,,2,서브 타이틀,근거로 쓰는 법령과 업무분장이 바뀐 내역을 확인합니다.,,src/admin/features/standards/RegulationsPage.jsx,구현,
 AD-12,기준정보 > 규정 변경,기본,1-1,변경 표,RADAR 운영자,1,표 열 머리,종류 · 법령·업무분장 · 바뀐 조문·팀·업무 · 알게 된 날 · 영향받는 관할,확정,src/admin/features/standards/RegulationsPage.jsx,구현,"펼쳐 본 변경을 ""확인한 것""으로 센다(대시보드 ""확인할 규정 변경"")."
 AD-12,기준정보 > 규정 변경,기본,1-1,변경 표,,2,표 행,%변경 종류% · %규정 이름% · %바뀐 곳% · %알게 된 날% · %영향받는 관할 ID%,,src/admin/features/standards/RegulationsPage.jsx,구현,"펼쳐 본 변경을 ""확인한 것""으로 센다(대시보드 ""확인할 규정 변경"")."
@@ -713,14 +731,14 @@ AD-13,기준정보 > 조치 제안 표,기본,1-2,문장 틀 초안,,3,텍스트
 AD-13,기준정보 > 조치 제안 표,기본,1-2,문장 틀 초안,,4,버튼,문장 틀 저장하기,,src/admin/features/standards/ActionsPage.jsx,구현,
 AD-13,기준정보 > 조치 제안 표,기본,1-2,문장 틀 초안,,5,안내 문구,저장하기 전에는 현재 문장 틀을 그대로 사용합니다.,,src/admin/features/standards/ActionsPage.jsx,구현,
 AD-13,기준정보 > 조치 제안 표,기본,1-2,문장 틀 초안,,6,빈 화면 문구,새 문장 틀 초안이 없습니다.,,src/admin/features/standards/ActionsPage.jsx,구현,
-AD-14,기준정보 > 승인 이력,기본,0-1,화면 머리,RADAR 운영자,1,타이틀,승인 이력,제안,src/admin/features/standards/ApprovalsPage.jsx,구현 (제안),
+AD-14,기준정보 > 승인 이력,기본,0-1,화면 머리,RADAR 운영자,1,타이틀,승인 이력,제안,src/admin/features/standards/ApprovalsPage.jsx,구현 (제안),UX 고도화(261025) 코드 반영: 기간 필터 2026년·2025년·전체 (K-23)
 AD-14,기준정보 > 승인 이력,기본,0-1,화면 머리,,2,서브 타이틀,누가 언제 무엇을 왜 바꿨는지 봅니다.,,src/admin/features/standards/ApprovalsPage.jsx,구현,
 AD-14,기준정보 > 승인 이력,기본,1-1,이력 표,RADAR 운영자,1,라벨,기간,확정,src/admin/features/standards/ApprovalsPage.jsx,구현,"대시보드 숫자로 들어오면 ""결과"" 칩으로 거른다(명세에 없는 칩). 기간 선택지(올해·작년·전체)는 지었다."
 AD-14,기준정보 > 승인 이력,기본,1-1,이력 표,,2,선택,%조회 기간%,,src/admin/features/standards/ApprovalsPage.jsx,구현,"대시보드 숫자로 들어오면 ""결과"" 칩으로 거른다(명세에 없는 칩). 기간 선택지(올해·작년·전체)는 지었다."
 AD-14,기준정보 > 승인 이력,기본,1-1,이력 표,,3,표 열 머리,대상 · 버전 · 제안자 · 제안일 · 승인자 · 결과 · 사유,,src/admin/features/standards/ApprovalsPage.jsx,구현,"대시보드 숫자로 들어오면 ""결과"" 칩으로 거른다(명세에 없는 칩). 기간 선택지(올해·작년·전체)는 지었다."
 AD-14,기준정보 > 승인 이력,기본,1-1,이력 표,,4,표 행,%제안 대상% · %버전% · %제안자 이름% (%제안자 소속%) · %제안일% · %승인자 이름% (%승인자 소속%) · %승인 결과% · %사유%,,src/admin/features/standards/ApprovalsPage.jsx,구현,"대시보드 숫자로 들어오면 ""결과"" 칩으로 거른다(명세에 없는 칩). 기간 선택지(올해·작년·전체)는 지었다."
 AD-14,기준정보 > 승인 이력,기본,1-1,이력 표,,5,텍스트 링크,돌려받은 제안 고치기,,src/admin/features/standards/ApprovalsPage.jsx,구현,"대시보드 숫자로 들어오면 ""결과"" 칩으로 거른다(명세에 없는 칩). 기간 선택지(올해·작년·전체)는 지었다."
-AD-15,설정 > 계정,기본,0-1,화면 머리,RADAR 운영자,1,타이틀,계정,제안,src/admin/features/settings/AccountsPage.jsx,구현 (제안),
+AD-15,설정 > 계정,기본,0-1,화면 머리,RADAR 운영자,1,타이틀,계정,제안,src/admin/features/settings/AccountsPage.jsx,구현 (제안),UX 고도화(261025) 코드 반영: 열 최근 접속일 (K-22)
 AD-15,설정 > 계정,기본,0-1,화면 머리,,2,서브 타이틀,계정을 만들고 역할과 소속을 부여합니다.,,src/admin/features/settings/AccountsPage.jsx,구현,
 AD-15,설정 > 계정,기본,1-1,계정 표,RADAR 운영자,1,버튼,계정 만들기,제안,src/admin/features/settings/AccountsPage.jsx,구현 (제안),멈춘 계정은 로그인이 막힌다(실패 안내는 틀린 비밀번호와 같다).
 AD-15,설정 > 계정,기본,1-1,계정 표,,2,표 열 머리,이름 · 아이디 · 역할 · 소속 구 · 소속 팀 · 상태 · 마지막 접속,,src/admin/features/settings/AccountsPage.jsx,구현,멈춘 계정은 로그인이 막힌다(실패 안내는 틀린 비밀번호와 같다).
@@ -746,7 +764,7 @@ AD-15,설정 > 계정,기본,1-2,계정 만들기 창,,16,오류 문구,구 도�
 AD-15,설정 > 계정,기본,1-2,계정 만들기 창,,17,완료 문구,계정을 만들었습니다. 첫 로그인 때 비밀번호를 바꾸도록 안내해 주세요.,,src/admin/features/settings/AccountsPage.jsx,구현,같은 아이디가 있을 때의 오류 문구는 명세에 없어 지었다. 새 계정 비밀번호는 개발용 공통값이다.
 AD-15,설정 > 계정,기본,1-3,권한 변경 기록,RADAR 운영자,1,소제목,권한 변경 기록,확정,src/admin/features/settings/AccountsPage.jsx,구현,
 AD-15,설정 > 계정,기본,1-3,권한 변경 기록,,2,표 행,%바꾼 날% · %이름% · %이전 역할% → %새 역할% · %바꾼 사람 이름% (%바꾼 사람 소속%),,src/admin/features/settings/AccountsPage.jsx,구현,
-AD-16,설정 > 접속 기록,기본,0-1,화면 머리,RADAR 운영자,1,타이틀,접속 기록,제안,src/admin/features/settings/AccessPage.jsx,구현 (제안),
+AD-16,설정 > 접속 기록,기본,0-1,화면 머리,RADAR 운영자,1,타이틀,접속 기록,제안,src/admin/features/settings/AccessPage.jsx,구현 (제안),UX 고도화(261025) 코드 반영: 열 머리와 필터 수행 작업 (K-22)
 AD-16,설정 > 접속 기록,기본,0-1,화면 머리,,2,서브 타이틀,누가 언제 무엇을 보고 처리했는지 점검합니다. 기록은 고치거나 지울 수 없습니다.,,src/admin/features/settings/AccessPage.jsx,구현,
 AD-16,설정 > 접속 기록,기본,1-1,기록 표,RADAR 운영자,1,라벨,기간,확정,src/admin/features/settings/AccessPage.jsx,구현,"""민원 원문 열람(확장 단계)""은 한 일 선택지에 넣지 않았다."
 AD-16,설정 > 접속 기록,기본,1-1,기록 표,,2,선택,%조회 기간%,,src/admin/features/settings/AccessPage.jsx,구현,"""민원 원문 열람(확장 단계)""은 한 일 선택지에 넣지 않았다."

@@ -60,3 +60,12 @@
 .dev ul {
   margin-top: var(--space-4);
 }
+
+@media (max-width: 1099px) {
+  .page {
+    padding: var(--space-16);
+  }
+  .card {
+    width: min(var(--component-login-card-width), 100%);
+  }
+}

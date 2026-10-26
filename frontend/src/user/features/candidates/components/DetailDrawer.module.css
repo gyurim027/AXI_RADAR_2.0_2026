@@ -91,3 +91,11 @@
   overflow: auto;
   padding: var(--space-24);
 }
+
+@media (max-width: 1099px) {
+  .drawer {
+    min-width: 0;
+    max-width: none;
+    border-radius: 0;
+  }
+}

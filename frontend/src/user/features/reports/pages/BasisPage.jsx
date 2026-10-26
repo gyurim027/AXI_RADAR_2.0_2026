@@ -26,7 +26,7 @@ export default function BasisPage() {
     { key: 'target', header: BASIS.head[2], align: 'right', render: (r) => <span className="num">{BASIS.count(r.targets)}</span> },
     { key: 'basis', header: BASIS.head[3], render: (r) => r.basis },
   ];
-  const draftEmpty = user.role === ROLE.CITY ? BASIS.draftEmptyCity : BASIS.draftEmptyDistrict(run.name);
+  const draftEmpty = user.role === ROLE.CITY ? BASIS.draftEmptyCity : BASIS.draftEmptyDistrict;
 
   return (
     <ReportShell>

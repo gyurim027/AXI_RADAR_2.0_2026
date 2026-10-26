@@ -1,20 +1,27 @@
-import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { listProposals } from '../../api/reference.js';
 import { useAuth } from '../../app/providers/AuthProvider.jsx';
 import { useRun } from '../../app/providers/RunProvider.jsx';
 import { ALL_GU, GU_LIST, ROLE } from '../../shared/constants.js';
-import { buildMenu } from '../../shared/auth/permissions.js';
+import { useAsync } from '../../shared/hooks/useAsync.js';
+import { activeGroup, buildMenu } from '../../shared/auth/permissions.js';
+import { dataYear, runOptionLabel } from '../../shared/utils/format.js';
 import { InfoHelp, SelectField } from '../components/FormControls.jsx';
 import Notifications from './Notifications.jsx';
 import styles from './TopBar.module.css';
 
-/** US-00 공통 상단: 메뉴, 회차 선택, 구 선택, 알림, 계정 (디자인 시스템 7-1) */
+/** US-00 공통 상단: 메뉴, 점검 해 선택, 구 선택, 알림, 계정 (디자인 시스템 7-1). 하위 탭은 SubNav가 아래 줄에 보인다. */
 export default function TopBar() {
   const { user, signOut } = useAuth();
   const { runs, run, setRunId, gu, setGu } = useRun();
   const navigate = useNavigate();
-  const menu = buildMenu(user, run);
+  const { pathname } = useLocation();
+  const menu = buildMenu(user);
+  const group = activeGroup(menu, pathname);
   const city = user.role === ROLE.CITY;
+  // 승인 대기 건수 배지 (M-2). 시 도로과만 승인 대기를 본다.
+  const pending = useAsync(() => (city ? listProposals() : Promise.resolve([])), [user.id, pathname]);
+  const pendingCount = Array.isArray(pending.data) ? pending.data.length : 0;
 
   const onLogout = async () => {
     await signOut();
@@ -24,23 +31,42 @@ export default function TopBar() {
   return (
     <header className={styles.bar}>
       <Link to="/candidates" className={styles.brand}>
-        RADAR 보도 점검 우선순위
+        RADAR<span className={styles.brandRest}> 보도 점검 우선순위</span>
       </Link>
       <nav aria-label="주 메뉴" className={styles.nav}>
-        {menu.map((m) => (m.items ? <MenuGroup key={m.key} group={m} /> : <NavItem key={m.key} to={m.to} label={m.label} />))}
+        {menu.map((m) => {
+          const to = m.to || m.items[0].to;
+          const active = m.items ? group?.key === m.key : pathname.startsWith(m.to);
+          return (
+            <NavLink key={m.key} to={to} className={`${styles.navItem} ${active ? styles.active : ''}`} aria-current={active ? 'page' : undefined}>
+              {m.label}
+              {m.badge === 'approvals' && pendingCount > 0 ? (
+                <span className={styles.badge} aria-label={`${pendingCount}건`}>
+                  {pendingCount}
+                </span>
+              ) : null}
+            </NavLink>
+          );
+        })}
       </nav>
 
       <div className={styles.tools}>
         <div className={styles.runBox}>
           <SelectField
-            label="회차"
+            label="점검 연도"
             id="run-select"
             value={run.id}
             onChange={setRunId}
-            options={runs.map((r) => ({ value: r.id, label: `${r.name} · ${r.status}` }))}
+            options={runs.map((r) => ({ value: r.id, label: runOptionLabel(r) }))}
           />
-          <InfoHelp label="회차 도움말 보기" align="right">
-            {`자료 기준일 ${run.dataRange} · 산정 기준 ${run.version} · 평가하지 못한 분야: ${run.unratedFields.join(', ')}`}
+          <InfoHelp label="점검 연도 뜻 보기" align="right">
+            1년치를 계산한 점검 순위입니다. 반기 계산 결과는 참고용으로만 사용해주세요.
+          </InfoHelp>
+          <InfoHelp label="자료 기준 보기" align="right">
+            {`${dataYear(run.dataRange)}년 자료 기준 · 자료 기준일 ${run.dataRange} · 산정 기준 ${run.version} · 평가하지 못한 분야: ${run.unratedFields.join(', ')}`}
+            <InfoHelp label="평가하지 못한 분야 뜻 보기" align="right">
+              자료가 없어 평가하지 못한 분야입니다. 0점으로 처리하지 않았습니다.
+            </InfoHelp>
           </InfoHelp>
         </div>
 
@@ -63,57 +89,5 @@ export default function TopBar() {
         </div>
       </div>
     </header>
-  );
-}
-
-function NavItem({ to, label }) {
-  return (
-    <NavLink to={to} className={({ isActive }) => `${styles.navItem} ${isActive ? styles.active : ''}`}>
-      {label}
-    </NavLink>
-  );
-}
-
-/** 보고서·기준정보처럼 아래 화면이 여럿인 메뉴. 누르면 목록이 열린다. */
-function MenuGroup({ group }) {
-  // 화면을 옮기면 목록이 저절로 닫히도록, 연 때의 주소를 기억한다
-  const { pathname } = useLocation();
-  const [openAt, setOpenAt] = useState(null);
-  const open = openAt === pathname;
-  const setOpen = (v) => setOpenAt((prev) => ((typeof v === 'function' ? v(prev === pathname) : v) ? pathname : null));
-  const ref = useRef(null);
-  const active = group.items.some((i) => pathname.startsWith(i.to));
-
-  useEffect(() => {
-    if (!open) return undefined;
-    const onDoc = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setOpenAt(null);
-    };
-    const onKey = (e) => e.key === 'Escape' && setOpenAt(null);
-    document.addEventListener('mousedown', onDoc);
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.removeEventListener('mousedown', onDoc);
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [open]);
-
-  return (
-    <div className={styles.group} ref={ref}>
-      <button type="button" className={`${styles.navItem} ${active ? styles.active : ''}`} aria-expanded={open} aria-haspopup="true" onClick={() => setOpen((v) => !v)}>
-        {group.label}
-      </button>
-      {open ? (
-        <ul className={styles.dropdown}>
-          {group.items.map((i) => (
-            <li key={i.to}>
-              <NavLink to={i.to} className={({ isActive }) => `${styles.dropItem} ${isActive ? styles.dropActive : ''}`}>
-                {i.label}
-              </NavLink>
-            </li>
-          ))}
-        </ul>
-      ) : null}
-    </div>
   );
 }

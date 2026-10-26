@@ -13,7 +13,7 @@ export function UnratedTags({ row }) {
   return (
     <span className={styles.tags}>
       <Tag tone="gray" small>
-        {COMMON.unratedTag(row.unratedCount)}
+        {COMMON.unratedTag(row.unratedCount, row.unratedNames)}
       </Tag>
       {row.notSurveyed.length ? (
         <Tag tone="gray" small>
@@ -42,14 +42,14 @@ function columnsFor({ city, canDecide, conditionMap, onDecide }) {
         <span className={styles.cand}>
           <span className={styles.addr}>{r.address}</span>
           <span className={styles.landmark}>{r.landmark}</span>
-          {/* 우선 확인 조건에 맞은 후보는 맞은 조건과 반영 비율을 꼬리표로 보인다 */}
+          {/* 우선 확인 조건에 맞은 후보는 먼저 볼 이유를 꼬리표로 보인다. 반영 비율은 상세에 있다 (W-7) */}
           {r.conditions.filter((id) => conditionMap[id]).length > 0 ? (
             <span className={styles.tags}>
               {r.conditions
                 .filter((id) => conditionMap[id])
                 .map((id) => (
                   <Tag key={id} tone="info" small>
-                    {LIST.conditionTag(conditionMap[id].name, conditionMap[id].ratio)}
+                    {LIST.conditionTag(conditionMap[id].name)}
                   </Tag>
                 ))}
             </span>
@@ -58,7 +58,7 @@ function columnsFor({ city, canDecide, conditionMap, onDecide }) {
         </span>
       ),
     },
-    { key: 'score', header: '점검 필요도', width: 112, sortable: true, align: 'right', render: (r) => <span className="num">{r.score}</span> },
+    { key: 'score', header: '점검 필요도', width: 112, sortable: true, align: 'right', render: (r) => <span className="num">{r.score}점</span> },
     {
       key: 'obstacle',
       header: '주요 보행 방해요소',
@@ -68,7 +68,7 @@ function columnsFor({ city, canDecide, conditionMap, onDecide }) {
     },
     {
       key: 'reliability',
-      header: '신뢰도',
+      header: '자료 신뢰도',
       width: 96,
       sortable: true,
       align: 'center',
@@ -91,8 +91,8 @@ function columnsFor({ city, canDecide, conditionMap, onDecide }) {
       stickyRight: true, // 가로 스크롤돼도 결정 상태 칸은 늘 보인다
       sortable: true,
       align: 'center',
-      // 도로관리팀 · 검토 중 · 구 확정 전에만 버튼이다. 그 밖에는 글자만 보인다 (CM-00 10번).
-      render: (r) => (canDecide && r.gu ? <DecisionMenu value={r.decision} label={LIST.decisionMenuLabel(r.address)} onSelect={(d) => onDecide(r, d)} /> : r.decision),
+      // 도로관리팀 · 검토 중 · 구 확정 전에만 메뉴 버튼이다. 그 밖에는 글자만 보인다 (정의서 US-01 1-4, CM-00 10번).
+      render: (r) => (canDecide && r.gu ? <DecisionMenu value={r.decision} label={LIST.decisionMenuLabel} onSelect={(d) => onDecide(r, d)} /> : r.decision),
     },
   );
   return cols;

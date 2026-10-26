@@ -133,3 +133,22 @@
   color: var(--semantic-color-risk-high);
   font-size: var(--fs-small);
 }
+
+.choice {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+.keyList {
+  list-style: disc;
+  margin: 0;
+  padding-left: var(--space-20, 20px);
+  display: grid;
+  gap: var(--space-4);
+}
+.keyTitle {
+  margin-top: var(--space-8);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-bold);
+  color: var(--semantic-color-text-muted);
+}

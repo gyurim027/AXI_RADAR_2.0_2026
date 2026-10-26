@@ -24,6 +24,7 @@ export const DECISION_REASONS = [
   '다른 부서 소관',
   '예산·공정 사정',
   '기타',
+  '추가 확인 필요',
 ];
 
 /** 보행 방해요소 DB (가안). 조치 제안 표(US-14)의 행도 이 목록에서 나온다. */
@@ -89,7 +90,7 @@ export const OBSTACLES = [
     requestContent: '주정차 반복 여부 확인과 단속',
     deptKind: 'parking',
     sentence:
-      '이번 회차 자료에 인도·횡단보도 불법 주정차 민원이 6건 있고, 2건은 다시 들어왔습니다. 지금도 주정차가 반복되는지 확인하고 단속을 요청해 주세요.',
+      '이번 점검 순위에 쓴 자료에 인도·횡단보도 불법 주정차 민원이 6건 있고, 2건은 다시 들어왔습니다. 지금도 주정차가 반복되는지 확인하고 단속을 요청해 주세요.',
     tableDept: '구 주차관리팀',
     article: '도로교통법 제32조',
   },
@@ -102,7 +103,7 @@ export const OBSTACLES = [
     requestContent: '주정차 반복 여부 확인과 단속',
     deptKind: 'parking',
     sentence:
-      '이번 회차 자료에 인도·횡단보도 불법 주정차 민원이 6건 있고, 2건은 다시 들어왔습니다. 지금도 주정차가 반복되는지 확인하고 단속을 요청해 주세요.',
+      '이번 점검 순위에 쓴 자료에 인도·횡단보도 불법 주정차 민원이 6건 있고, 2건은 다시 들어왔습니다. 지금도 주정차가 반복되는지 확인하고 단속을 요청해 주세요.',
     tableDept: '구 주차관리팀',
     article: '도로교통법 제32조',
   },
@@ -165,12 +166,51 @@ const FACILITIES = [
   '근린공원 입구',
   '복지관 앞 횡단보도',
 ];
+// 민원이 아닌 근거 지점(■). 모양은 하나뿐이고 종류는 말풍선 글자로 나눈다 (US-01 1-5, ISS-036)
 const POINT_TYPES = [
-  { key: 'accident', label: '보행자 사고 다발지', shape: 'diamond' },
-  { key: 'crosswalk', label: '횡단보도', shape: 'circle' },
-  { key: 'busstop', label: '버스정류장', shape: 'square' },
-  { key: 'light', label: '보안등', shape: 'triangle' },
+  { key: 'accident', label: '보행자 사고 다발지' },
+  { key: 'crosswalk', label: '횡단보도' },
+  { key: 'busstop', label: '버스정류장' },
+  { key: 'light', label: '보안등' },
 ];
+
+// 민원 점(● 원본 좌표, ○ 근처 위치)에 붙는 보행 문제 유형 (가짜)
+const COMPLAINT_TYPES = ['인도 불법 주정차', '횡단보도 불법 주정차', '보도 폭 부족', '조도 부족'];
+const strHash = (s) => [...s].reduce((h, ch) => (Math.imul(h, 31) + ch.charCodeAt(0)) | 0, 7);
+
+/**
+ * 한 구역의 민원 점 (가짜). 기본 데이터의 난수와 따로 만들어 다른 값이 바뀌지 않게 한다.
+ * - 같은 좌표의 민원은 한 점으로 묶고 count에 건수를 둔다 (예: 51)
+ * - 몇 칸은 점이 300개를 넘게 만들어 묶음 표시(ISS-038)를 볼 수 있게 한다
+ */
+function buildComplaintPoints(c, isTop, order) {
+  const r = mulberry32(strHash(c.gid) + 4242);
+  const big = !isTop && order % 41 === 7;
+  const mid = !isTop && !big && r() < 0.1;
+  const n = isTop ? 24 : big ? 340 + Math.floor(r() * 260) : mid ? 60 + Math.floor(r() * 120) : 2 + Math.floor(r() * 18);
+  const hot = Array.from({ length: 3 }, () => [(r() - 0.5) * 0.6, (r() - 0.5) * 0.6]);
+  const spread = () => (r() + r() + r() - 1.5) * 0.18;
+  return Array.from({ length: n }, (_, i) => {
+    const uniform = r() < 0.3;
+    const h = hot[Math.floor(r() * hot.length)];
+    const dy = uniform ? r() - 0.5 : Math.max(-0.48, Math.min(0.48, h[0] + spread()));
+    const dx = uniform ? r() - 0.5 : Math.max(-0.48, Math.min(0.48, h[1] + spread()));
+    const near = r() < 0.06;
+    let count = 1;
+    if (near) count = 2 + Math.floor(r() * r() * 50); // 장소 이름으로 찾은 민원은 한 좌표에 겹친다
+    else if (r() < 0.08) count = 2 + Math.floor(r() * 8);
+    if (isTop && i === 0) count = 51;
+    return {
+      id: `${c.gid}-c${i}`,
+      kind: 'complaint',
+      near: isTop && i === 0 ? true : near,
+      count,
+      type: COMPLAINT_TYPES[Math.floor(r() * COMPLAINT_TYPES.length)],
+      lat: c.lat + dy * D_LAT,
+      lon: c.lon + dx * D_LON,
+    };
+  });
+}
 const POINT_ISSUES = {
   accident: ['보행자 사고 다발지 (N년 연속)', '보행자 사고 N건'],
   crosswalk: ['횡단보도 불법 주정차 민원 N건', '중간 대피 공간 없음', '보행 신호시간 판단 불가'],
@@ -226,7 +266,7 @@ function buildBase() {
   const topCell = cells.find((c) => c.gu === '수정구' && c.dong.startsWith('신흥') && !unratedSet.has(c.gid));
   unratedSet.delete(topCell.gid);
 
-  const items = cells.map((c) => {
+  const items = cells.map((c, cellIndex) => {
     const isTop = c.gid === topCell.gid;
     const dongL = legalDong(c.dong);
     const jibun = isTop ? 2591 : 100 + Math.floor(r() * 4900);
@@ -241,7 +281,7 @@ function buildBase() {
         id: `${c.gid}-p${i}`,
         type: t.key,
         label: t.label,
-        shape: t.shape,
+        kind: 'site',
         // 지점에 마우스를 올리면 보이는 보행 문제 유형 (가짜 문구)
         issue: issues[Math.floor(r() * issues.length)].replace('N', String(1 + Math.floor(r() * 5))),
         lat: c.lat + (r() - 0.5) * D_LAT * 0.8,
@@ -308,6 +348,7 @@ function buildBase() {
         [c.lat + D_LAT / 2, c.lon + D_LON / 2],
       ],
       points,
+      complaintPoints: unratedAll ? [] : buildComplaintPoints(c, isTop, cellIndex),
       obstacles: obKeys,
       reliability,
       reliabilityReason:
@@ -494,8 +535,9 @@ function complaintFor(base, r) {
   const recur1 = Math.min(t1, Math.floor(r() * 3));
   const recur2 = Math.min(t2, Math.floor(r() * 2));
   const types = [];
-  if (t1) types.push({ type: '인도 불법 주정차', count: t1, recur: recur1 });
-  if (t2) types.push({ type: '횡단보도 불법 주정차', count: t2, recur: recur2 });
+  // 민원 유형은 보행을 막거나 위험하게 하는 대상 9개(주정차·점유·공사·노면·보행로·시설·신호·조명·기타)로 센다 (ISS-016). 장소는 유형이 아니다.
+  if (t1) types.push({ type: '주정차', count: t1, recur: recur1 });
+  if (t2) types.push({ type: '보행로', count: t2, recur: recur2 });
   return {
     total: t1 + t2,
     recur: recur1 + recur2,

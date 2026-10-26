@@ -90,6 +90,7 @@ ol {
   font-variant-numeric: tabular-nums;
 }
 
+/* 반응형 기준 (태블릿까지): 1360px 미만 = 좁은 노트북, 1100px 미만 = 태블릿. CSS 변수는 미디어 쿼리에 쓸 수 없어 각 CSS에 같은 숫자를 쓴다. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

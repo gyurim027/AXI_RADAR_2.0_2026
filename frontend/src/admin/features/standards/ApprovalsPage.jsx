@@ -21,13 +21,15 @@ function target(r) {
 /** AD-14 승인 이력 (유형 B): 최신 순. 기록은 고치거나 지울 수 없다. 대시보드에서 오면 결과로 거른다. */
 export default function ApprovalsPage() {
   const [params, setParams] = useSearchParams();
-  const period = params.get('period') || '올해';
+  const thisYear = new Date().getFullYear();
+  const defaultPeriod = `${thisYear}년`;
+  const period = params.get('period') || defaultPeriod;
   const result = params.get('result');
   const state = useAsync(() => listApprovals({ period }), [period]);
 
   const setPeriod = (v) => {
     const next = new URLSearchParams(params);
-    if (v === '올해') next.delete('period');
+    if (v === defaultPeriod) next.delete('period');
     else next.set('period', v);
     setParams(next, { replace: true });
   };
@@ -41,7 +43,7 @@ export default function ApprovalsPage() {
     <div>
       <PageHeader title={APPROVALS.title} subtitle={APPROVALS.subtitle} />
       <Toolbar>
-        <SelectInput label={APPROVALS.period} value={period} onChange={setPeriod} options={APPROVALS.periods} />
+        <SelectInput label={APPROVALS.period} value={period} onChange={setPeriod} options={APPROVALS.periods(thisYear)} />
       </Toolbar>
       {result ? (
         <div className={styles.chips}>

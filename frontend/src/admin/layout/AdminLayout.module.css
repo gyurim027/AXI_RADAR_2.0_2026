@@ -40,3 +40,10 @@
 .skip:focus {
   top: var(--a-s2);
 }
+
+@media (max-width: 1359px) {
+  .main {
+    padding-left: clamp(16px, 2vw, 32px);
+    padding-right: clamp(16px, 2vw, 32px);
+  }
+}

@@ -19,6 +19,9 @@ import {
   STALE_DUE,
   THRESHOLDS,
   UPLOAD_FORMATS,
+  COMPLAINT_FILE_MONTHS,
+  COMPLAINT_DATA_ID,
+  PED_TYPES,
 } from './adminData.js';
 import {
   ACTION_IDS,
@@ -69,7 +72,7 @@ function settleExecutions() {
   let changed = false;
   a.executions.forEach((ex) => {
     if (ex.status !== '실행 중' || Date.now() - ex.startedMs < RUN_MS) return;
-    const missing = dataItems().some((d) => d.freshness === '빠짐' && d.id === 'DAT-13');
+    const missing = dataItems().some((d) => d.freshness === '빠짐' && d.id === 'DAT-66');
     if (ex.kind === '산정' && missing) {
       ex.status = '실패';
       ex.minutes = 18;
@@ -105,6 +108,8 @@ export function listAdminRuns() {
         version: r.version,
         created: r.created,
         review: r.review,
+        period: periodLabel(r.complaintPeriod),
+        complaintPeriod: r.complaintPeriod,
         calcDone: isCalcDone(r.id),
         ran: ex.length > 0,
         running: ex.some((e) => e.status === '실행 중'),
@@ -165,12 +170,11 @@ export function listViewAsOptions() {
   return VIEW_AS_OPTIONS;
 }
 export function startViewAs({ accountId }) {
-  const user = requireOperator();
+  requireOperator();
   const opt = VIEW_AS_OPTIONS.find((o) => o.value === accountId);
   if (!opt) throw new ApiError('invalid', '고를 수 없는 계정입니다.');
   const s = getState();
   s.viewAs = accountId;
-  logAccess(user, '사용자 화면 보기', opt.label);
   saveState();
   return { ok: true, label: opt.label };
 }
@@ -202,6 +206,18 @@ function nextTask(run) {
   return { key: 'open', text: '검토 중으로 열어 주세요.', to: '/admin/runs/list', toLabel: '회차 목록' };
 }
 
+/** 지표가 쓰는 자료와 값 상태 (AD-10 0-2). 지표 목록은 점수 구조(ISS-013) 결정 뒤 바뀐다. */
+const INDICATOR_SOURCE = {
+  보도: '국토지리정보원 수치지형도 (2025)',
+  횡단보도: '전국횡단보도표준데이터 (성남)',
+  조도: '성남시 도로 조도·휘도 (2022)',
+  사고: '보행자 교통사고 다발지역',
+  민원: '성남데이터넷 연도별 민원 현황',
+  주정차: '주정차 위반 단속 위치 현황',
+  보호구역: '어린이집·유치원, 노인의료복지시설',
+};
+const INDICATOR_STATE = { w4: '값 없음', w5: '일부만 조사' };
+
 export function getDashboard({ runId }) {
   requireOperator();
   settleExecutions();
@@ -227,6 +243,11 @@ export function getDashboard({ runId }) {
       returned: approvals.filter((r) => r.result === '돌려받음').length,
     },
     regulations: regulations().filter((r) => !r.seen && !r.pending).length,
+    // 지금 쓰는 버전은 시 도로과가 승인한 가장 최근 버전이다 (AD-01 6-1)
+    criteria: {
+      approved: versionList().filter((v) => v.status === '승인됨').slice(-1)[0]?.version || null,
+      pending: versionList().find((v) => v.status === '승인 대기')?.version || null,
+    },
   };
 }
 
@@ -252,22 +273,24 @@ export function listUploadTargets() {
   // API로 받는 자료는 올리지 않는다 (AD-03 서브 타이틀)
   return dataItems()
     .filter((d) => d.source !== '공공데이터포털 API')
-    .map((d) => ({ id: d.id, name: d.name, source: d.source, official: d.official, complaint: d.id === 'DAT-07' }));
+    .map((d) => ({ id: d.id, name: d.name, source: d.source, official: d.official, complaint: d.id === COMPLAINT_DATA_ID }));
 }
 export function listUploads() {
   requireOperator();
   return allUploads().map((u) => ({ ...u, atLabel: dotDate(u.at) }));
 }
 
-export function uploadFile({ dataId, fileName, source, basis, received, official, period }) {
+export function uploadFile({ dataId, fileName, source, basis, received, official, month }) {
   const user = requireOperator();
   const item = dataItems().find((d) => d.id === dataId);
   if (!item) throw new ApiError('invalid', '자료를 찾을 수 없습니다.');
   const errors = {};
   if (!String(source || '').trim() || !String(basis || '').trim()) errors.sourceBasis = true;
+  // 민원 파일은 한 번에 한 달치만 올린다. 대상 월(YYYY-MM)이 필요하다 (R-02)
+  if (dataId === COMPLAINT_DATA_ID && !/^\d{4}-\d{2}$/.test(String(month || ''))) errors.month = true;
   const ext = String(fileName || '').split('.').pop().toUpperCase();
   if (!fileName || !UPLOAD_FORMATS.includes(ext)) errors.format = true;
-  if (errors.sourceBasis || errors.format) return { ok: false, errors };
+  if (errors.sourceBasis || errors.format || errors.month) return { ok: false, errors };
 
   const a = adminState();
   const when = mockNow();
@@ -280,7 +303,7 @@ export function uploadFile({ dataId, fileName, source, basis, received, official
     by: user.org === 'RADAR 운영팀' ? OPERATOR_LABEL : `${peopleOf(user.id).name} (${user.org})`,
     dataId,
     dataName: item.name,
-    basis: `${year}년 기준`,
+    basis: dataId === COMPLAINT_DATA_ID && month ? `${String(month).replace('-', '.')} 기준` : `${year}년 기준`,
     source: String(source).trim(),
     file: fileName,
     errors: bad ? 3 : 0,
@@ -302,14 +325,25 @@ export function uploadFile({ dataId, fileName, source, basis, received, official
     ...(a.dataOverrides[dataId] || {}),
     source: received || item.source,
     official: official || item.official,
-    basis: `${year}년 기준`,
+    // 민원은 기준일이 마지막으로 올린 파일의 끝 달이다 (UX 고도화 메뉴 결정)
+    // 민원은 기준일이 마지막으로 올린 파일의 대상 월이다
+    basis: dataId === COMPLAINT_DATA_ID ? `${String(month).replace('-', '.')} 기준` : `${year}년 기준`,
     collectedAt: dotDate(when),
     freshness: bad ? item.freshness : '최신',
-    note: period ? `민원 접수 기간 ${period}` : undefined,
+    note: dataId === COMPLAINT_DATA_ID ? `민원 대상 월 ${String(month).replace('-', '.')}` : undefined,
   };
+  if (dataId === COMPLAINT_DATA_ID) a.complaintMonths = [...new Set([...(a.complaintMonths || []), month])];
   logAccess(user, '설정 변경', `${item.name} 파일 올리기`);
   stamp();
-  return { ok: true, upload: { ...upload, atLabel: dotDate(upload.at) } };
+  // 민원 파일은 적재 건수를 돌려준다 (신규 + 기존 + 갱신 = 전체). 가짜 값은 파일 이름 길이로 정한다.
+  let counts = null;
+  if (dataId === COMPLAINT_DATA_ID) {
+    const rows = 8000 + ((String(fileName).length * 137) % 6000);
+    const existing = Math.round(rows * 0.04);
+    const updated = Math.round(rows * 0.005);
+    counts = { rows, new: rows - existing - updated, existing, updated };
+  }
+  return { ok: true, upload: { ...upload, atLabel: dotDate(upload.at) }, counts, month: dataId === COMPLAINT_DATA_ID ? month : null };
 }
 
 function checkRows() {
@@ -347,11 +381,12 @@ export function listClassify({ runId }) {
   return {
     run: run ? { id: run.id, name: run.name } : null,
     relevance: RELEVANCE,
-    types: [...new Set(Object.values(CLASSIFY_SAMPLES).flat().map((x) => x.label))],
+    types: PED_TYPES, // 민원 유형 9개 (ISS-016)
     items: items.map((x, i) => ({
       ...x,
-      relevance: s.classify[x.id]?.relevance || (x.label.includes('판단 불가') ? '불명' : '관련'),
-      label: s.classify[x.id]?.label || x.label,
+      relevance: s.classify[x.id]?.relevance || x.relevance,
+      // 관련 여부를 비관련·불명으로 고치면 유형은 비워진다 (AD-05 1-1)
+      label: s.classify[x.id]?.result === '고침' ? s.classify[x.id].label : x.label,
       confidence: 68 + ((i * 7) % 28),
       done: s.classify[x.id] ? s.classify[x.id].result : null,
     })),
@@ -360,18 +395,69 @@ export function listClassify({ runId }) {
 export function markClassifyAdmin({ id, result, relevance, label }) {
   const user = requireOperator();
   const s = getState();
-  s.classify[id] = { result, label: label || null, relevance: relevance || null };
+  const rel = relevance || null;
+  s.classify[id] = { result, label: rel && rel !== '관련' ? null : label || null, relevance: rel };
   logAccess(user, '설정 변경', `민원 분류 ${result}`);
   saveState();
   return { ok: true };
 }
 
 // ------------------------------------------------------------------ 산정 (AD-06, AD-07, AD-08)
-export function createRun({ kind, name }) {
+// ---- 회차의 민원 접수 기간 (AD-06 1-2, ISS-037)
+const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const ym = (s) => String(s).slice(0, 7);
+const lastDay = (monthStr) => {
+  const [y, m] = monthStr.split('-').map(Number);
+  return `${monthStr}-${String(new Date(y, m, 0).getDate()).padStart(2, '0')}`;
+};
+function periodLabel(p) {
+  return p ? `${ym(p.start).replace('-', '.')} ~ ${ym(p.end).replace('-', '.')}` : '-';
+}
+/** 올린 민원 파일이 있는 달: 기본 기록 + 이번에 올린 달 */
+function fileMonths() {
+  return [...new Set([...COMPLAINT_FILE_MONTHS, ...(adminState().complaintMonths || [])])].sort();
+}
+/** 올린 민원 파일 중 가장 이른 시작일부터 가장 늦은 끝일까지 (기본값) */
+function defaultPeriod() {
+  const months = fileMonths();
+  return { start: `${months[0]}-01`, end: lastDay(months[months.length - 1]) };
+}
+/** 기간 안에 올린 민원 파일이 없는 달 */
+function gapMonths(start, end) {
+  if (!start || !end || end < start) return [];
+  const have = new Set(fileMonths());
+  const out = [];
+  let [y, m] = ym(start).split('-').map(Number);
+  const [ey, em] = ym(end).split('-').map(Number);
+  while (y < ey || (y === ey && m <= em)) {
+    const key = `${y}-${String(m).padStart(2, '0')}`;
+    if (!have.has(key)) out.push(key);
+    m += 1;
+    if (m > 12) {
+      m = 1;
+      y += 1;
+    }
+  }
+  return out;
+}
+/** 시작일·끝일 검사. 두 칸을 모두 비우면 민원 없이 산정하는 회차다. */
+function checkPeriod(periodStart, periodEnd) {
+  const start = String(periodStart || '').trim();
+  const end = String(periodEnd || '').trim();
+  if (!start && !end) return { ok: true, period: null };
+  if (!start || !end) return { ok: false, code: 'periodBoth' };
+  if (end < start) return { ok: false, code: 'periodOrder' };
+  if (end > ymd(mockNow())) return { ok: false, code: 'periodFuture' };
+  return { ok: true, period: { start, end } };
+}
+
+export function createRun({ kind, name, periodStart, periodEnd }) {
   const user = requireOperator();
   const clean = String(name || '').trim();
   if (!clean) return { ok: false, code: 'nameRequired' };
   if (allRuns().some((r) => r.name === clean)) return { ok: false, code: 'duplicate' };
+  const chk = checkPeriod(periodStart, periodEnd);
+  if (!chk.ok) return chk;
   const a = adminState();
   const s = getState();
   const approved = versionList().filter((v) => v.status === '승인됨').slice(-1)[0];
@@ -385,7 +471,8 @@ export function createRun({ kind, name }) {
     dataRange: '2023.12 ~ 2027.06',
     version: approved ? approved.version : 'v1.2',
     unratedFields: ['연결성'],
-    hasComplaints: true,
+    hasComplaints: !!chk.period,
+    complaintPeriod: chk.period,
     conditionCount: 2,
     dataCount: 31,
     created: nowDate(),
@@ -397,18 +484,43 @@ export function createRun({ kind, name }) {
   stamp();
   return { ok: true, id };
 }
-/** 새 회차 창의 예시 연도: 다음 회차의 연도 (AD-06 1-2 도움말) */
+/** 산정을 시작하기 전까지만 민원 접수 기간을 고칠 수 있다 (AD-06 1-1 '민원 기간 고치기') */
+export function setRunPeriod({ runId, periodStart, periodEnd }) {
+  const user = requireOperator();
+  settleExecutions();
+  const run = allRuns().find((r) => r.id === runId);
+  if (!run) throw new ApiError('notFound', '회차를 찾을 수 없습니다.');
+  if (run.status !== RUN_STATUS.DRAFT || executionsOf(run.name).length > 0 || isCalcDone(runId)) return { ok: false, code: 'locked' };
+  const chk = checkPeriod(periodStart, periodEnd);
+  if (!chk.ok) return chk;
+  const a = adminState();
+  a.periodEdits = { ...(a.periodEdits || {}), [runId]: chk.period };
+  logAccess(user, '설정 변경', `${run.name} 민원 접수 기간 고치기`);
+  stamp();
+  return { ok: true };
+}
+/** 새 회차 창의 예시 연도와 민원 접수 기간 기본값 (AD-06 1-2) */
 export function getNewRunDefaults() {
   requireOperator();
-  return { year: mockNow().getFullYear() + 1 };
+  return { year: mockNow().getFullYear() + 1, period: defaultPeriod() };
+}
+/** 기간 안에 올린 민원 파일이 없는 달 (AD-06 1-2 안내 문구) */
+export function getPeriodGaps({ periodStart, periodEnd }) {
+  requireOperator();
+  return { gaps: gapMonths(periodStart, periodEnd).map((k) => k.replace('-', '.')) };
 }
 export function getOpenCheck({ runId }) {
   requireOperator();
   const run = allRuns().find((r) => r.id === runId);
   if (!run) throw new ApiError('notFound', '회차를 찾을 수 없습니다.');
+  const gaps = run.complaintPeriod ? gapMonths(run.complaintPeriod.start, run.complaintPeriod.end) : [];
   return {
     run: { id: run.id, name: run.name, kind: run.kind },
-    missing: dataItems().filter((d) => d.freshness === '빠짐').map((d) => d.name),
+    missing: [
+      ...dataItems().filter((d) => d.freshness === '빠짐').map((d) => d.name),
+      // 회차의 민원 접수 기간 안에 올린 민원 파일이 없는 달 (AD-06 2-1)
+      ...gaps.map((k) => `성남데이터넷 민원 ${k.slice(0, 4)}년 ${Number(k.slice(5))}월분 (파일 없음)`),
+    ],
     unrated: run.unratedFields.map((f) => (f === '연결성' ? `${f} (공개 자료 없음)` : f)),
   };
 }
@@ -514,7 +626,7 @@ export function getVersion({ version }) {
   const prev = meta.base ? versionValues(meta.base) : cur;
   return {
     meta: { ...meta, editable: meta.status === '작성 중' || meta.status === '돌려받음' },
-    indicators: INDICATORS.map((i) => ({ id: i.id, field: i.field, name: i.name, current: cur.weights[i.id], previous: prev.weights[i.id] })),
+    indicators: INDICATORS.map((i) => ({ id: i.id, field: i.field, name: i.name, source: INDICATOR_SOURCE[i.field] || '-', valueState: INDICATOR_STATE[i.id] || '값 있음', current: cur.weights[i.id], previous: prev.weights[i.id] })),
     thresholds: THRESHOLDS.map((t) => ({ id: t.id, name: t.name, unit: t.unit, current: cur.thresholds[t.id], previous: prev.thresholds[t.id] })),
     conditions: cur.conditions.map((c) => ({ ...c, previous: (prev.conditions.find((p) => p.id === c.id) || null) })),
   };
@@ -657,7 +769,17 @@ export function requestDeptApproval({ draftId, reason }) {
 // ------------------------------------------------------------------ 규정 변경 (AD-12)
 export function listRegulationChanges() {
   requireOperator();
-  return regulations().sort((x, y) => (x.date < y.date ? 1 : -1));
+  // 관할 코드마다 문제 유형(조건)과 담당 부서를 붙여 준다. 서버가 코드와 담당 부서 조회를 이미 따로 주므로 화면에서 잇기만 한다.
+  const jur = jurisdictionRows();
+  return regulations()
+    .sort((x, y) => (x.date < y.date ? 1 : -1))
+    .map((r) => ({
+      ...r,
+      jurRows: r.juris.map((id) => {
+        const j = jur.find((x) => x.id === id);
+        return { id, problem: j?.problem || '-', dept: j?.dept || '-' };
+      }),
+    }));
 }
 export function markRegulationSeen({ id }) {
   requireOperator();
@@ -716,12 +838,13 @@ export function recordAdminDownload({ name }) {
 }
 
 // ------------------------------------------------------------------ 승인 이력 (AD-14)
-export function listApprovals({ period = '올해' } = {}) {
+export function listApprovals({ period } = {}) {
   requireOperator();
-  const year = mockNow().getFullYear();
+  // 기간은 '2026년'처럼 해로 받는다. 비우면 올해, '전체'는 모두.
+  const wanted = /^\d{4}/.test(String(period || '')) ? Number(String(period).slice(0, 4)) : mockNow().getFullYear();
   return approvalRows().filter((r) => {
     const y = Number(String(r.at).slice(0, 4));
-    return period === '전체' || (period === '올해' ? y === year : y === year - 1);
+    return period === '전체' || y === wanted;
   });
 }
 
@@ -759,7 +882,9 @@ export function createAccount({ role, gu, team, name, loginId }) {
   a.roleLog.unshift({ id: `rl-${Date.now()}`, at: nowDate().replaceAll('.', '-'), name: String(name).trim(), from: '-', to: role, by: OPERATOR_LABEL });
   logAccess(user, '설정 변경', `계정 만들기 ${String(loginId).trim()}`);
   stamp();
-  return { ok: true };
+  // 서버처럼 임시 비밀번호를 이때 한 번만 돌려준다 (가짜 값)
+  const tempPassword = Array.from({ length: 12 }, () => 'abcdefghjkmnpqrstuvwxyz23456789'[Math.floor(Math.random() * 31)]).join('');
+  return { ok: true, id: String(loginId).trim(), tempPassword, notice: '임시 비밀번호는 지금 한 번만 보입니다. 받는 분께 직접 전해 주세요.' };
 }
 export function setAccountStatus({ id, status }) {
   const user = requireOperator();

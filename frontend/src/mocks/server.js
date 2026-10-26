@@ -31,7 +31,7 @@ import {
   regulations,
 } from './adminModel.js';
 import { ALL_GU, DECISION, DEPT_STATUS, GU_LIST, ROLE, RUN_STATUS } from '../shared/constants.js';
-import { formatDate, runNameWithoutRef } from '../shared/utils/format.js';
+import { formatDate, runTitle } from '../shared/utils/format.js';
 
 const MAX_FAILS = 5; // CM-01 2: 5번 틀리면 10분 동안 잠근다
 const LOCK_MINUTES = 10;
@@ -94,9 +94,26 @@ export function login(loginId, password) {
   s.loginFails[loginId] = { count: 0, lockedUntil: 0 };
   s.session = account.id;
   s.viewAs = null;
+  s.pointGus = []; // 민원 점 접속 기록은 로그인 한 번에 구마다 한 줄이다
   logAccess(account, '로그인');
   saveState();
   return { ok: true, user: publicUser(account) };
+}
+
+/**
+ * 지도에서 구역을 눌러 그 구의 민원 점을 처음 볼 때 접속 기록을 남긴다 (I-04, POL-022, ISS-036).
+ * 로그인 한 번 동안 구마다 한 줄이다. 같은 구의 다른 구역을 눌러도 더 남기지 않는다. 업무 목적은 화면에 따라 자동으로 채운다.
+ */
+export function viewComplaintPoints({ gu, hasPoints }) {
+  const user = currentUser();
+  if (!user || user.readOnly || !hasPoints || !gu) return { logged: false };
+  const s = getState();
+  s.pointGus = s.pointGus || [];
+  if (s.pointGus.includes(gu)) return { logged: false };
+  s.pointGus.push(gu);
+  logAccess(user, '민원 점 위치', `${gu} 민원 위치`, '점검 후보 검토');
+  saveState();
+  return { logged: true };
 }
 
 export function logout() {
@@ -181,6 +198,8 @@ function mergedItems(run) {
       memo: ov ? ov.memo : it.memo,
       history: ov ? [...it.history, ...ov.history] : it.history,
       obstacles: obstaclesOf(run, base, it.complaint),
+      // 민원 자료가 없는 회차에는 민원 점도 없다
+      complaintPoints: run.hasComplaints ? base.complaintPoints || [] : [],
     };
   });
 }
@@ -210,6 +229,7 @@ function toRow(m, rank, scopeTotal, cityRank, cityTotal) {
     reliability: base.reliability,
     unratedCount: base.unrated.length,
     unratedAll: base.unratedAll,
+    unratedNames: base.unrated.map((u) => u.name),
     notSurveyed: notSurveyed.map((u) => u.name),
     collected: base.collected,
     missing: base.missing,
@@ -220,6 +240,7 @@ function toRow(m, rank, scopeTotal, cityRank, cityTotal) {
     recur: it.complaint.recur > 0,
     bounds: base.bounds,
     points: base.points,
+    complaintPoints: m.complaintPoints || [],
     cityPercent: rated ? percentLabel(cityRank, cityTotal) : null,
   };
 }
@@ -312,7 +333,7 @@ export function getCandidateDetail({ runId, gid }) {
     const d = deptResolved(runId, base, k);
     let sentence = o.sentence;
     if (o.deptKind === 'parking') {
-      sentence = `이번 회차 자료에 인도·횡단보도 불법 주정차 민원이 ${it.complaint.total}건 있고, ${it.complaint.recur}건은 다시 들어왔습니다. 지금도 주정차가 반복되는지 확인하고 단속을 요청해 주세요.`;
+      sentence = `이번 점검 순위에 쓴 자료에 인도·횡단보도 불법 주정차 민원이 ${it.complaint.total}건 있고, ${it.complaint.recur}건은 다시 들어왔습니다. 지금도 주정차가 반복되는지 확인하고 단속을 요청해 주세요.`;
     }
     problems.push({
       key: k,
@@ -350,6 +371,8 @@ export function getCandidateDetail({ runId, gid }) {
     axes,
     reliability: base.reliability,
     reliabilityReason: base.reliabilityReason,
+    // 우선 확인 조건: 꼬리표에는 이유만, 반영 비율은 ⓘ에 쓴다 (W-7)
+    conditions: (it.conditions || []).map((id) => PRIORITY_CONDITIONS.find((c) => c.id === id)).filter(Boolean),
     unrated: base.unrated,
     obstacles: m.obstacles.map((k) => OB[k].name),
     complaint: {
@@ -641,8 +664,8 @@ export function listNotifications() {
   const ref = runs.find((r) => r.status === RUN_STATUS.REF) || review;
   const ctx = {
     version: PROPOSALS[0].version,
-    runName: review.name,
-    refName: runNameWithoutRef(ref.name),
+    runTitle: runTitle(review),
+    refTitle: runTitle(ref, false),
     gu: user.gu,
   };
   // 어드민이 회차를 검토 중으로 열면 시 도로과와 구 도로관리팀에게 알림이 간다 (AD-06 2-1)
@@ -661,10 +684,10 @@ export function listNotifications() {
       kind: 'runOpen',
       text:
         n.kind === 'ref'
-          ? `${runNameWithoutRef(n.runName)} 참고 회차가 열렸습니다. 바뀐 순위를 확인해 보세요.`
+          ? `${runTitle({ name: n.runName, kind: 'ref' }, false)}이 열렸습니다. 바뀐 순위를 확인해 보세요.`
           : user.role === ROLE.CITY
-            ? `${n.runName} 회차가 열렸습니다. 3개 구 점검 후보를 확인해 보세요.`
-            : `${n.runName} 회차가 열렸습니다. ${user.gu} 점검 후보를 결정해 주세요.`,
+            ? `${runTitle({ name: n.runName, kind: 'annual' })}가 열렸습니다. 3개 구 점검 후보를 확인해 보세요.`
+            : `${runTitle({ name: n.runName, kind: 'annual' })}가 열렸습니다. ${user.gu} 점검 후보를 결정해 주세요.`,
       date: n.date,
       read: read.has(n.id),
       targetRunId: n.runId,
@@ -700,29 +723,6 @@ export function decideProposal({ id, approve, reason }) {
   };
   logAccess(user, '승인', `${id} ${approve ? '승인' : '돌려보내기'}`, approve ? '-' : String(reason).trim());
   s.changeLog.push({ at: new Date().toISOString(), actor: user.org, kind: approve ? '제안 승인' : '제안 반려', gid: id });
-  saveState();
-  return { ok: true };
-}
-
-export function listClassifySamples({ runId }) {
-  const user = requireUser();
-  if (user.role !== ROLE.DISTRICT) throw new ApiError('forbidden', '볼 수 없습니다.');
-  const run = getRun(runId);
-  const s = getState();
-  return {
-    run,
-    available: run.hasComplaints,
-    labels: OBSTACLES.map((o) => o.name).filter((n, i, arr) => arr.indexOf(n) === i),
-    items: run.hasComplaints
-      ? (CLASSIFY_SAMPLES[user.gu] || []).map((x) => ({ ...x, done: s.classify[x.id] || null }))
-      : [],
-  };
-}
-export function markClassify({ id, result, label }) {
-  const user = requireUser();
-  if (user.readOnly || user.role !== ROLE.DISTRICT) throw new ApiError('forbidden', '할 수 없습니다.');
-  const s = getState();
-  s.classify[id] = { result, label: label || null };
   saveState();
   return { ok: true };
 }

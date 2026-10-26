@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Button from '../../../../components/Button.jsx';
 import Icon from '../../../../components/Icon.jsx';
 import Tag from '../../../../components/Tag.jsx';
+import { InfoHelp } from '../../../../components/FormControls.jsx';
 import { DRAWER } from '../../copy.js';
 import styles from './Tabs.module.css';
 
@@ -13,7 +14,10 @@ export default function RequestTab({ detail, onGoTab }) {
   if (!d.dept) {
     return (
       <section>
-        <h3 className={styles.h}>{DRAWER.requestTitle}</h3>
+        <h3 className={styles.h}>
+          {DRAWER.requestTitle}
+          <InfoHelp label={DRAWER.requestHelpLabel}>{DRAWER.requestHelp}</InfoHelp>
+        </h3>
         <div className={styles.content}>
           <p className={styles.err} role="alert">
             {DRAWER.needDept}
@@ -41,7 +45,10 @@ export default function RequestTab({ detail, onGoTab }) {
 
   return (
     <section>
-      <h3 className={styles.h}>{DRAWER.requestTitle}</h3>
+      <h3 className={styles.h}>
+          {DRAWER.requestTitle}
+          <InfoHelp label={DRAWER.requestHelpLabel}>{DRAWER.requestHelp}</InfoHelp>
+        </h3>
       <p className={styles.sub}>{DRAWER.requestSub}</p>
       <div className={styles.content}>
         <p className={styles.reqText}>

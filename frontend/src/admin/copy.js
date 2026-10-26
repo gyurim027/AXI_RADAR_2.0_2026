@@ -4,6 +4,8 @@ export const ADMIN_COPY = {
   skip: '본문 바로가기',
   mainMenuLabel: '주 메뉴',
   sectionMenuLabel: '화면 메뉴',
+  density: { label: '표 밀도', normal: '기본', compact: '촘촘히' },
+  runIndependent: '이 화면은 회차와 상관없이 같은 내용을 보여 줍니다.',
 
   // AD-00 0-1 메뉴 (10_1_메뉴구조의 1Depth)와 아래 화면들
   menu: [
@@ -15,7 +17,7 @@ export const ADMIN_COPY = {
         { to: '/admin/data/list', label: '데이터 목록' },
         { to: '/admin/data/upload', label: '업로드' },
         { to: '/admin/data/checks', label: '검사 결과' },
-        { to: '/admin/data/classify', label: '분류 검수' },
+        { to: '/admin/data/classify', label: '민원 분류 검수' },
       ],
     },
     {
@@ -25,13 +27,13 @@ export const ADMIN_COPY = {
         { to: '/admin/runs/list', label: '회차 목록' },
         { to: '/admin/runs/log', label: '실행 기록' },
         { to: '/admin/runs/schedule', label: '실행 일정' },
+        { to: '/admin/standards/criteria', label: '산정 기준' },
       ],
     },
     {
       key: 'standards',
-      label: '기준정보',
+      label: '규정·업무분장 관리',
       items: [
-        { to: '/admin/standards/criteria', label: '산정 기준' },
         { to: '/admin/standards/dept', label: '담당 부서 표' },
         { to: '/admin/standards/regulations', label: '규정 변경' },
         { to: '/admin/standards/actions', label: '조치 제안 표' },
@@ -77,7 +79,7 @@ export const ADMIN_COPY = {
   },
 
   // 저장·요청이 실패했을 때 (공통 규칙 12번 말투)
-  actionFailed: '처리하지 못했습니다. 잠시 뒤 다시 해 주세요. 계속 안 되면 개발 담당에게 알려 주세요.',
+  actionFailed: '처리하지 못했습니다. 잠시 후 다시 시도해 주세요. 계속 실패하면 개발 담당자에게 알려 주세요.', // K-24
 
   noValue: '-',
 };

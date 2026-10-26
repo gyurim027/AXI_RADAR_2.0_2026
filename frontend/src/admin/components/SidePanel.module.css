@@ -1,6 +1,6 @@
 .panel {
   flex: none;
-  width: var(--radar-admin-component-side-panel-width);
+  width: min(var(--radar-admin-component-side-panel-width), 90vw);
   align-self: flex-start;
   position: sticky;
   top: calc(var(--radar-admin-component-shell-topbar-height) + var(--radar-admin-component-shell-section-nav-height) + var(--a-s6));
@@ -43,4 +43,12 @@
   font-size: var(--a-fs-md);
   line-height: var(--a-lh-body);
   white-space: pre-wrap;
+}
+
+@media (max-width: 1099px) {
+  .panel {
+    position: static;
+    width: 100%;
+    align-self: stretch;
+  }
 }

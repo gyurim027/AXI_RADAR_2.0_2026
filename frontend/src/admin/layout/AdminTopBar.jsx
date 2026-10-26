@@ -10,12 +10,16 @@ import ViewAsDialog from './ViewAsDialog.jsx';
 import styles from './AdminTopBar.module.css';
 
 /** AD-00 상단 바 (56px): 서비스 이름, 1단계 메뉴, 관리 지자체, 회차, 알림, 사용자 화면 보기, 소속 (디자인 시스템 6-1) */
+// 회차와 상관없이 같은 내용을 보이는 화면. 여기서는 회차 선택을 흐리게 하고 이유를 알린다 (A-3)
+const RUN_INDEPENDENT = ['/admin/data/list', '/admin/data/upload', '/admin/standards', '/admin/settings', '/admin/runs/schedule'];
+
 export default function AdminTopBar() {
   const { user, signOut } = useAuth();
   const { runs, run, setRunId } = useAdmin();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [viewAsOpen, setViewAsOpen] = useState(false);
+  const independent = RUN_INDEPENDENT.some((p) => pathname.startsWith(p));
 
   const onLogout = async () => {
     await signOut();
@@ -25,7 +29,8 @@ export default function AdminTopBar() {
   return (
     <header className={styles.bar}>
       <Link to="/admin" className={styles.brand}>
-        {ADMIN_COPY.serviceName}
+        <span>RADAR</span>
+        <span className={styles.brandRest}>{ADMIN_COPY.serviceName.replace(/^RADAR/, '')}</span>
       </Link>
       <nav aria-label={ADMIN_COPY.mainMenuLabel} className={styles.nav}>
         {ADMIN_COPY.menu.map((m) => {
@@ -44,6 +49,7 @@ export default function AdminTopBar() {
           <span className="sr-only">{ADMIN_COPY.municipalityLabel}</span>
           {ADMIN_COPY.municipality}
         </span>
+        <span className={independent ? styles.runDim : undefined} title={independent ? ADMIN_COPY.runIndependent : undefined}>
         <SelectInput
           inline
           label={ADMIN_COPY.runLabel}
@@ -51,6 +57,8 @@ export default function AdminTopBar() {
           onChange={setRunId}
           options={runs.map((r) => ({ value: r.id, label: ADMIN_COPY.runOption(r.name, r.status) }))}
         />
+        </span>
+        {independent ? <span className="sr-only">{ADMIN_COPY.runIndependent}</span> : null}
         <AdminNotifications />
         <Button variant="soft" compact onClick={() => setViewAsOpen(true)}>
           {ADMIN_COPY.viewAs.button}

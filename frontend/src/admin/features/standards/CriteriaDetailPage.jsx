@@ -205,6 +205,21 @@ function Detail({ data, reload }) {
       ) : null}
 
       <div className={styles.stack} style={{ marginTop: 24 }}>
+        <section aria-label={DETAIL.usedTitle}>
+          <h2 className={styles.usedTitle}>{DETAIL.usedTitle}</h2>
+          <DataTable
+            caption={DETAIL.usedTitle}
+            compact
+            columns={[
+              { key: 'field', header: DETAIL.usedHead[0], first: true, nowrap: true },
+              { key: 'name', header: DETAIL.usedHead[1] },
+              { key: 'source', header: DETAIL.usedHead[2] },
+              { key: 'valueState', header: DETAIL.usedHead[3], nowrap: true },
+            ]}
+            rows={data.indicators}
+            getRowKey={(i) => i.id}
+          />
+        </section>
         <Tabs label={DETAIL.title(meta.version)} idPrefix="detail" value={tab} onChange={setTab} tabs={TAB_KEYS.map((k) => ({ key: k, label: DETAIL.tabs[k] }))} />
         <div id="detail-panel" role="tabpanel" aria-labelledby={`detail-${tab}`}>
           {tab === 'weights' ? (
@@ -244,7 +259,14 @@ function Detail({ data, reload }) {
             <TextArea label={DETAIL.reasonLabel} value={reason} onChange={(v) => { setReason(v); setReasonError(''); }} placeholder={DETAIL.reasonPlaceholder} error={reasonError} required />
           </Panel>
         ) : null}
-        {requested ? <Banner tone="success">{DETAIL.requested}</Banner> : null}
+        {requested ? (
+          <Banner tone="success">
+            {DETAIL.requested}{' '}
+            <Link to="/admin/standards/approvals" className={styles.jurLink}>
+              {DETAIL.toApprovals}
+            </Link>
+          </Banner>
+        ) : null}
       </div>
 
       {editable ? (

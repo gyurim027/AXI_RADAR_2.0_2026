@@ -17,17 +17,36 @@
 .leftInner {
   display: flex;
   flex-direction: column;
-  gap: var(--space-16);
-  padding: var(--space-24) var(--semantic-layout-page-margin) var(--space-24);
+  gap: var(--space-12);
+  padding: var(--space-16) var(--semantic-layout-page-margin) var(--space-24);
 }
 .filterRow {
   margin-bottom: calc(-1 * var(--space-4));
 }
+.guide {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-bold);
+  color: var(--semantic-color-text-strong);
+}
+.guideBtn {
+  min-height: var(--control-h-sm);
+  padding: 0 var(--space-12);
+  border: 1px solid var(--semantic-color-border-card);
+  border-radius: var(--radius-md);
+  background: var(--semantic-color-bg-surface);
+  color: var(--semantic-color-primary-strong);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-bold);
+}
+
 .tableCard {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  height: clamp(360px, 52vh, 600px);
+  height: clamp(420px, calc(100vh - 290px), 820px); /* 목록이 화면의 절반 이상을 쓴다 (U-1) */
   overflow: hidden;
   border: 1px solid var(--component-card-border);
   border-radius: var(--component-card-radius);
@@ -51,4 +70,31 @@
   align-items: center;
   justify-content: center;
   background: var(--component-map-bg);
+}
+
+/* 1360px 미만: 표와 지도를 5:5로, 최소 폭을 줄인다 */
+@media (max-width: 1359px) {
+  .split {
+    grid-template-columns: minmax(480px, 5fr) minmax(320px, 5fr);
+  }
+}
+/* 1100px 미만(태블릿): 표 위, 지도 아래로 쌓는다. 한 쪽이 스크롤한다. */
+@media (max-width: 1099px) {
+  .split {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  .left {
+    flex: none;
+    overflow: visible;
+  }
+  .mapCol {
+    flex: none;
+    height: min(60vh, 560px);
+    min-height: 420px;
+  }
+  .tableCard {
+    height: clamp(360px, 60vh, 640px);
+  }
 }

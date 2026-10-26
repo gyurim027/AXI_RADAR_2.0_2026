@@ -110,6 +110,7 @@
   background: repeating-linear-gradient(45deg, var(--component-map-bg) 0 3px, var(--component-map-unrated-line) 3px 5px);
 }
 .credit {
+  max-width: 52%;
   position: absolute;
   left: 0;
   bottom: 0;
@@ -120,4 +121,29 @@
   background: rgb(255 255 255 / 0.85);
   font-size: var(--fs-caption);
   color: var(--semantic-color-text-muted);
+}
+.legendBasis {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 320px;
+  padding: var(--space-8) var(--space-12);
+  border: 1px solid var(--semantic-color-border);
+  border-radius: var(--radius-sm);
+  background: var(--semantic-color-bg-surface);
+  font-size: var(--fs-caption);
+  line-height: 1.5;
+}
+.legendBasis p {
+  margin: 0;
+}
+.clusterNote {
+  max-width: 300px;
+  margin: 0;
+  padding: var(--space-4) var(--space-8);
+  border: 1px solid var(--semantic-color-border);
+  border-radius: var(--radius-sm);
+  background: var(--semantic-color-bg-surface);
+  font-size: var(--fs-caption);
+  line-height: 1.5;
 }

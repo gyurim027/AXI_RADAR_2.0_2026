@@ -1,10 +1,11 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { getCandidateDetail, getGuCompare, listCandidates } from '../../../../api/candidates.js';
+import { getCandidateDetail, getConfirmSummary, getGuCompare, listCandidates, logComplaintPointView } from '../../../../api/candidates.js';
 import { useAsync } from '../../../../shared/hooks/useAsync.js';
 import { useAuth } from '../../../../app/providers/AuthProvider.jsx';
 import { useRun } from '../../../../app/providers/RunProvider.jsx';
-import { ALL_GU, PAGE_SIZE, ROLE, RUN_STATUS } from '../../../../shared/constants.js';
+import { ALL_GU, CONFIRM_DEADLINES, PAGE_SIZE, ROLE, RUN_STATUS } from '../../../../shared/constants.js';
+import { dataYear, runYear } from '../../../../shared/utils/format.js';
 import { COMMON } from '../../../../shared/copy/common.js';
 import PageHeader from '../../../components/PageHeader.jsx';
 import PageFooterNote from '../../../components/PageFooterNote.jsx';
@@ -14,6 +15,7 @@ import { LIST } from '../copy.js';
 import { EMPTY_FILTERS, activeTags, applyFilters, isPriority, sortRows } from '../filters.js';
 import BottomBar from '../components/BottomBar.jsx';
 import CandidateMap from '../components/CandidateMap.jsx';
+import { prefersReducedMotion } from '../components/mapUtils.js';
 import ConfirmModal from '../components/ConfirmModal.jsx';
 import DecisionReasonModal from '../components/DecisionReasonModal.jsx';
 import DetailDrawer from '../components/DetailDrawer.jsx';
@@ -24,6 +26,8 @@ import PriorityAlert from '../components/PriorityAlert.jsx';
 import RankTable from '../components/RankTable.jsx';
 import SummaryPanel from '../components/SummaryPanel.jsx';
 import UnratedPanel from '../components/UnratedPanel.jsx';
+import Button from '../../../components/Button.jsx';
+import drawerStyles from '../components/DetailDrawer.module.css';
 import styles from './CandidateListPage.module.css';
 
 /** 회차를 바꾸면 화면 상태(선택, 필터, 쪽)를 새로 시작한다 */
@@ -58,12 +62,15 @@ function CandidateListPage() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deciding, setDeciding] = useState(null); // { gid, decision } 표에서 결정을 바꾸는 중
   const scrollRef = useRef(null);
+  const mapColRef = useRef(null);
 
   const list = useAsync(() => listCandidates({ runId: run.id, gu }), [run.id, gu, user.id, version]);
   const detail = useAsync(
     () => (selectedId ? getCandidateDetail({ runId: run.id, gid: selectedId }) : Promise.resolve(null)),
     [run.id, selectedId, user.id, version],
   );
+  // 시 도로과 첫 화면의 '확정 현황: 2/3개 구' 줄 (5-2 ①)
+  const guStatus = useAsync(() => (city ? getConfirmSummary({ runId: run.id }) : Promise.resolve(null)), [city, run.id, version]);
   const cmp = useAsync(() => (compare && city ? getGuCompare({ runId: run.id }) : Promise.resolve(null)), [compare, city, run.id, version]);
 
   const data = list.data;
@@ -98,6 +105,11 @@ function CandidateListPage() {
       const idx = sorted.findIndex((r) => r.gid === gid);
       if (idx >= 0) setPage(Math.floor(idx / PAGE_SIZE) + 1); // 지도에서 고르면 표의 그 행이 있는 쪽으로 간다
       setSearch({ sel: gid, detail: null, tab: null });
+      // 태블릿 폭에서는 지도가 표 아래에 있어, 구역을 고르면 지도로 내려가 보여 준다
+      if (window.innerWidth < 1100) mapColRef.current?.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' });
+      // 그 구의 민원 점을 처음 볼 때 접속 기록을 남긴다 (로그인 한 번에 구마다 한 줄, I-04)
+      const row = sorted[idx];
+      if (row) logComplaintPointView({ gu: row.gu, hasPoints: (row.complaintPoints?.length || 0) > 0 }).catch(() => {});
     },
     [sorted, setSearch],
   );
@@ -146,6 +158,22 @@ function CandidateListPage() {
     }
   }
 
+  // 첫 화면 한 줄 안내 (5-1 ①, 5-2 ①). 도로관리팀은 결정 전 건수와 마감일, 시 도로과는 구 확정 현황이다.
+  const deadline = CONFIRM_DEADLINES[runYear(run.name)];
+  let guide = null;
+  if (data && !user.readOnly && district && reviewing && myConfirm && !myConfirm.done) {
+    guide = <p className={styles.guide}>{LIST.guideDistrict(data.counts.none, deadline)}</p>;
+  } else if (data && city && (reviewing || run.status === RUN_STATUS.FINAL) && guStatus.data) {
+    const sts = guStatus.data.guStatuses;
+    guide = (
+      <p className={styles.guide}>
+        <button type="button" className={styles.guideBtn} onClick={() => setConfirmOpen(true)}>
+          {LIST.guideCity(sts.filter((x) => x.done).length, sts.length)}
+        </button>
+      </p>
+    );
+  }
+
   const scope = city ? (gu === ALL_GU ? '3개 구 전체' : gu) : user.gu;
   const clearAll = () => changeFilters(EMPTY_FILTERS);
 
@@ -153,7 +181,9 @@ function CandidateListPage() {
     <div className={styles.split}>
       <div className={styles.left} ref={scrollRef}>
         <div className={styles.leftInner}>
-          <PageHeader eyebrow={LIST.eyebrow(scope)} title={LIST.title} subtitle={city ? LIST.subtitleCity : LIST.subtitleDistrict} />
+          <PageHeader compact eyebrow={`${LIST.eyebrow(scope)} · ${LIST.dataBasis(dataYear(run.dataRange))}`} title={LIST.title} subtitle={city ? LIST.subtitleCity : LIST.subtitleDistrict}>
+            {guide}
+          </PageHeader>
 
           {data ? <KpiCards counts={data.counts} active={filters.decision} onPick={(d) => changeFilters({ ...filters, decision: d })} /> : null}
 
@@ -196,17 +226,17 @@ function CandidateListPage() {
                   rows={pageRows}
                   city={city}
                   canDecide={canDecide}
-                  conditionMap={conditionMap}
                   onDecide={(r, d) => setDeciding({ gid: r.gid, decision: d })}
+                  conditionMap={conditionMap}
                   selectedId={selectedId}
                   onSelect={select}
                   sort={sort}
                   onSort={onSort}
                   emptyContent={
                     <EmptyState
-                      text={COMMON.emptyList}
-                      hint={filters.decision || filters.priorityOnly || tags.length ? COMMON.emptyListHint : undefined}
-                      actionLabel={filters.decision || filters.priorityOnly || tags.length ? COMMON.emptyListClear : undefined}
+                      text={rows.length === 0 ? COMMON.noCandidates : COMMON.emptyList}
+                      hint={rows.length === 0 ? COMMON.noCandidatesHint : filters.decision || filters.priorityOnly || tags.length ? COMMON.emptyListHint : undefined}
+                      actionLabel={rows.length > 0 && (filters.decision || filters.priorityOnly || tags.length) ? COMMON.emptyListClear : undefined}
                       onAction={clearAll}
                     />
                   }
@@ -217,7 +247,7 @@ function CandidateListPage() {
           </section>
 
           {data && unrated.length > 0 ? (
-            <UnratedPanel rows={unrated} open={unratedOpen} onToggle={() => setUnratedOpen((o) => !o)} selectedId={selectedId} onSelect={select} />
+            <UnratedPanel rows={unrated} city={city} open={unratedOpen} onToggle={() => setUnratedOpen((o) => !o)} selectedId={selectedId} onSelect={select} />
           ) : null}
 
           <PageFooterNote />
@@ -228,7 +258,7 @@ function CandidateListPage() {
         ) : null}
       </div>
 
-      <div className={styles.mapCol}>
+      <div className={styles.mapCol} ref={mapColRef}>
         <CandidateMap
           items={filtered}
           unrated={unrated}
@@ -251,12 +281,23 @@ function CandidateListPage() {
             <SummaryPanel row={selectedRow} detail={detail.data} loading={detail.loading} onClose={closeSummary} onDetail={openDetail} />
           ) : null}
         </CandidateMap>
+        {drawerOpen && !selectedRow && detail.failed && ['forbidden', 'notFound'].includes(detail.error?.code) ? (
+          // 다른 구 자료이거나 없는 후보 주소를 직접 열었을 때 (ERR-14·42)
+          <aside className={drawerStyles.drawer} aria-label="후보 상세">
+            <EmptyState text={detail.error.code === 'forbidden' ? COMMON.forbiddenGu : COMMON.notFoundCandidate}>
+              <Button variant="soft" onClick={closeSummary}>
+                {COMMON.backToList}
+              </Button>
+            </EmptyState>
+          </aside>
+        ) : null}
         {drawerOpen && selectedRow ? (
           <DetailDrawer
             row={selectedRow}
             detail={detail.data}
             loading={detail.loading}
             failed={detail.failed}
+            errorCode={detail.error?.code}
             onRetry={detail.reload}
             tab={tab}
             setTab={setTab}
@@ -275,6 +316,7 @@ function CandidateListPage() {
           gid={deciding.gid}
           decision={deciding.decision}
           onClose={() => setDeciding(null)}
+          onFailed={onChanged}
           onSaved={() => {
             setDeciding(null);
             onChanged();
@@ -287,6 +329,7 @@ function CandidateListPage() {
           runId={run.id}
           role={user.role}
           onClose={() => setConfirmOpen(false)}
+          onFailed={onChanged}
           onConfirmed={() => {
             onChanged();
             reloadRuns();

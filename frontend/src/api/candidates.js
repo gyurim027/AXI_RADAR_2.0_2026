@@ -8,3 +8,4 @@ export const setDept = mockCall('setDept', (arg) => server.setDept(arg));
 export const getConfirmSummary = mockCall('confirmSummary', (arg) => server.getConfirmSummary(arg));
 export const confirmGu = mockCall('confirmGu', (arg) => server.confirmGu(arg));
 export const getGuCompare = mockCall('guCompare', (arg) => server.getGuCompare(arg));
+export const logComplaintPointView = mockCall('pointView', (arg) => server.viewComplaintPoints(arg));

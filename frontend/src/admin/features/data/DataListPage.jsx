@@ -75,6 +75,7 @@ export default function DataListPage() {
         <SelectInput label={LIST.freshnessLabel} value={freshness} onChange={(v) => setFilter('freshness', v)} options={LIST.freshnessOptions} />
         <SelectInput label={LIST.sourceLabel} value={source} onChange={(v) => setFilter('source', v)} options={LIST.sourceOptions} />
       </Toolbar>
+      <p className={styles.helpLine}>{LIST.help}</p>
       <Loadable state={state} areaName={LIST.failedArea} rows={8}>
         {(rows) => (
           <DataTable
