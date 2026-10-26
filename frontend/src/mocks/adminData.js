@@ -345,12 +345,12 @@ export const SEED_ROLE_LOG = [
 ];
 
 // ------------------------------------------------------------------ 접속 기록 (AD-16)
-export const ACCESS_ACTIONS = ['로그인', '화면 열람', '파일 내려받기', '결정', '승인', '설정 변경', '사용자 화면 보기', '민원 점 위치 보기'];
+// 서버가 실제로 남기는 6가지와 같다 (docs/api/admin_accounts.md). '화면 열람'·'사용자 화면 보기'는 정의서에서 뺐다(2026-10-26).
+export const ACCESS_ACTIONS = ['로그인', '민원 점 위치', '파일 내려받기', '결정', '승인', '설정 변경'];
 export const SEED_ACCESS = [
   { at: '2026-11-20T10:14:00', actor: 'RADAR 운영팀', accountId: 'operator', ip: '10.12.3.45', action: '파일 내려받기', target: '2027 수정구 관할 부서별 보고서', reason: '-' },
   { at: '2026-11-19T17:02:00', actor: '수정구 건설과 도로관리팀', accountId: 'suj', ip: '10.12.8.21', action: '결정', target: '수정구 점검 후보 결정 12건', reason: '-' },
   { at: '2026-11-19T09:11:00', actor: '성남시 도로과 도로관리팀', accountId: 'city', ip: '10.12.1.9', action: '로그인', target: '-', reason: '-' },
-  { at: '2026-11-12T11:40:00', actor: '성남시 도로과 도로관리팀', accountId: 'city', ip: '10.12.1.9', action: '화면 열람', target: '구별 우선 점검 근거표', reason: '-' },
   { at: '2026-11-03T15:20:00', actor: 'RADAR 운영팀', accountId: 'operator', ip: '10.12.3.45', action: '설정 변경', target: '산정 기준 v1.3 승인 요청', reason: '-' },
   { at: '2026-10-28T13:05:00', actor: '분당구 건설과 보도관리팀', accountId: 'bundang-sidewalk', ip: '10.12.9.14', action: '로그인', target: '-', reason: '-' },
 ];

@@ -170,12 +170,11 @@ export function listViewAsOptions() {
   return VIEW_AS_OPTIONS;
 }
 export function startViewAs({ accountId }) {
-  const user = requireOperator();
+  requireOperator();
   const opt = VIEW_AS_OPTIONS.find((o) => o.value === accountId);
   if (!opt) throw new ApiError('invalid', '고를 수 없는 계정입니다.');
   const s = getState();
   s.viewAs = accountId;
-  logAccess(user, '사용자 화면 보기', opt.label);
   saveState();
   return { ok: true, label: opt.label };
 }

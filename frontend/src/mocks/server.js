@@ -111,7 +111,7 @@ export function viewComplaintPoints({ gu, hasPoints }) {
   s.pointGus = s.pointGus || [];
   if (s.pointGus.includes(gu)) return { logged: false };
   s.pointGus.push(gu);
-  logAccess(user, '민원 점 위치 보기', `${gu} 민원 점`, '점검 후보 검토');
+  logAccess(user, '민원 점 위치', `${gu} 민원 위치`, '점검 후보 검토');
   saveState();
   return { logged: true };
 }
