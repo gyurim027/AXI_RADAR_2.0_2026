@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "run_id": 920002,
+  "build_id": "bundle-6af10e9-scoring-integration",
+  "setting_version_id": 920002,
+  "policy": {
+    "label": "EXP_scope_positive_upper",
+    "normalization": "positive_upper",
+    "observation": "scope_aware",
+    "domain_weights": {
+      "accident": 0.25,
+      "hazard": 0.25,
+      "exposure": 0.25,
+      "vulnerability": 0.25
+    },
+    "accident_reduce": "mean",
+    "missing": "renormalize"
+  },
+  "complaint_mode": "inside_hazard",
+  "coefficient_points": 5,
+  "fit_population": "all_input_positive_counts",
+  "comparison_population": "hazard_observed",
+  "input_status": "EXPLORATORY_PROXY",
+  "period_note": "Existing mixed-period snapshot; NOT a half-year comparison"
+}

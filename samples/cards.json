@@ -1,0 +1,169 @@
+[
+  {
+    "case": "정상 자료",
+    "card": {
+      "schema_version": "ai07.e02.synthetic.v0.1",
+      "data_kind": "synthetic",
+      "run_id": "SYNTHETIC-RUN-A",
+      "gid": "SYNTHETIC-GRID-A",
+      "place": "가상 장소 A",
+      "calculation_year": 2026,
+      "score": "65.0000",
+      "rank": 2,
+      "total": 100,
+      "rank_scope": "가상시 전체",
+      "formula_version": "SYNTHETIC-FORMULA-A",
+      "calculation_status": "test_not_approved",
+      "evidence": [
+        {
+          "evidence_id": "SYNTHETIC-EVIDENCE-A",
+          "run_id": "SYNTHETIC-RUN-A",
+          "gid": "SYNTHETIC-GRID-A",
+          "label": "가상 항목 A",
+          "value": "2",
+          "unit": "건",
+          "basis_year": 2025,
+          "source": "가상 출처 A",
+          "status": "observed",
+          "reason": null,
+          "contribution_points": "20.0000"
+        },
+        {
+          "evidence_id": "SYNTHETIC-EVIDENCE-B",
+          "run_id": "SYNTHETIC-RUN-A",
+          "gid": "SYNTHETIC-GRID-A",
+          "label": "가상 항목 B",
+          "value": "1",
+          "unit": "곳",
+          "basis_year": 2024,
+          "source": "가상 출처 B",
+          "status": "observed",
+          "reason": null,
+          "contribution_points": "15.0000"
+        }
+      ]
+    }
+  },
+  {
+    "case": "0인 자료",
+    "card": {
+      "schema_version": "ai07.e02.synthetic.v0.1",
+      "data_kind": "synthetic",
+      "run_id": "SYNTHETIC-RUN-A",
+      "gid": "SYNTHETIC-GRID-A",
+      "place": "가상 장소 A",
+      "calculation_year": 2026,
+      "score": "0.0000",
+      "rank": 100,
+      "total": 100,
+      "rank_scope": "가상시 전체",
+      "formula_version": "SYNTHETIC-FORMULA-A",
+      "calculation_status": "test_not_approved",
+      "evidence": [
+        {
+          "evidence_id": "SYNTHETIC-EVIDENCE-ZERO",
+          "run_id": "SYNTHETIC-RUN-A",
+          "gid": "SYNTHETIC-GRID-A",
+          "label": "가상 민원 기록",
+          "value": "0",
+          "unit": "건",
+          "basis_year": 2025,
+          "source": "가상 출처 A",
+          "status": "observed",
+          "reason": null,
+          "contribution_points": "0.0000"
+        }
+      ]
+    }
+  },
+  {
+    "case": "결측과 미평가",
+    "card": {
+      "schema_version": "ai07.e02.synthetic.v0.1",
+      "data_kind": "synthetic",
+      "run_id": "SYNTHETIC-RUN-A",
+      "gid": "SYNTHETIC-GRID-A",
+      "place": "가상 장소 A",
+      "calculation_year": 2026,
+      "score": null,
+      "rank": null,
+      "total": 100,
+      "rank_scope": "가상시 전체",
+      "formula_version": "SYNTHETIC-FORMULA-A",
+      "calculation_status": "test_not_approved",
+      "evidence": [
+        {
+          "evidence_id": "SYNTHETIC-EVIDENCE-MISSING",
+          "run_id": "SYNTHETIC-RUN-A",
+          "gid": "SYNTHETIC-GRID-A",
+          "label": "가상 보도 조사",
+          "value": null,
+          "unit": "곳",
+          "basis_year": null,
+          "source": null,
+          "status": "missing",
+          "reason": "조사 자료 미제공",
+          "contribution_points": null
+        },
+        {
+          "evidence_id": "SYNTHETIC-EVIDENCE-UNASSESSED",
+          "run_id": "SYNTHETIC-RUN-A",
+          "gid": "SYNTHETIC-GRID-A",
+          "label": "가상 분야 평가",
+          "value": null,
+          "unit": "점",
+          "basis_year": 2025,
+          "source": "가상 출처 C",
+          "status": "unassessed",
+          "reason": "입력에 미평가로 표시",
+          "contribution_points": null
+        }
+      ]
+    }
+  },
+  {
+    "case": "다른 회차가 섞인 자료",
+    "card": {
+      "schema_version": "ai07.e02.synthetic.v0.1",
+      "data_kind": "synthetic",
+      "run_id": "SYNTHETIC-RUN-A",
+      "gid": "SYNTHETIC-GRID-A",
+      "place": "가상 장소 A",
+      "calculation_year": 2026,
+      "score": "65.0000",
+      "rank": 2,
+      "total": 100,
+      "rank_scope": "가상시 전체",
+      "formula_version": "SYNTHETIC-FORMULA-A",
+      "calculation_status": "test_not_approved",
+      "evidence": [
+        {
+          "evidence_id": "SYNTHETIC-EVIDENCE-A",
+          "run_id": "SYNTHETIC-OTHER-RUN",
+          "gid": "SYNTHETIC-GRID-A",
+          "label": "가상 항목 A",
+          "value": "2",
+          "unit": "건",
+          "basis_year": 2025,
+          "source": "가상 출처 A",
+          "status": "observed",
+          "reason": null,
+          "contribution_points": "20.0000"
+        },
+        {
+          "evidence_id": "SYNTHETIC-EVIDENCE-B",
+          "run_id": "SYNTHETIC-RUN-A",
+          "gid": "SYNTHETIC-GRID-A",
+          "label": "가상 항목 B",
+          "value": "1",
+          "unit": "곳",
+          "basis_year": 2024,
+          "source": "가상 출처 B",
+          "status": "observed",
+          "reason": null,
+          "contribution_points": "15.0000"
+        }
+      ]
+    }
+  }
+]

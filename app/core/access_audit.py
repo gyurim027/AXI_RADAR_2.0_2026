@@ -51,6 +51,13 @@ class AuditStore:
                             "VALUES (%s, %s, %s, %s, %s)", (actor_ref, kind, key, ip, reason))
             con.commit()
 
+    def insert_in_transaction(self, con, actor_ref: int, kind: str, key: str | None,
+                              ip: str | None, reason: str | None) -> None:
+        """호출자의 거래에 기록한다. commit/rollback/close는 호출자 책임이다."""
+        with con.cursor() as cur:
+            cur.execute("INSERT INTO access_audit (actor_ref, resource_kind, resource_key, client_ip, access_reason) "
+                        "VALUES (%s, %s, %s, %s, %s)", (actor_ref, kind, key, ip, reason))
+
     def exists_since(self, actor_ref: int, kind: str, key: str | None, reason: str | None, since_epoch: int) -> bool:
         from app.core import db
         rows = db.read_only(
@@ -73,11 +80,18 @@ def get_store() -> AuditStore:
     return _store
 
 
-def record(request: Request, user: dict, kind: str, key: str | None = None, reason: str | None = None) -> None:
-    """할 때마다 한 줄. 기록에 실패하면 그 요청도 실패시킨다(기록 없는 열람을 막기 위해)."""
+def record(request: Request, user: dict, kind: str, key: str | None = None, reason: str | None = None, *, connection=None) -> None:
+    """할 때마다 한 줄. 실패는 호출자에게 전달한다.
+
+    connection이 있으면 그 거래에 기록하고 commit하지 않는다.
+    없으면 기존처럼 독립 연결로 저장한다. 기존 호출의 동작은 유지한다.
+    """
     if kind not in KINDS:
         raise ValueError(f"모르는 resource_kind: {kind}")
-    _store.insert(user["user_id"], kind, key, client_ip(request), reason)
+    if connection is None:
+        _store.insert(user["user_id"], kind, key, client_ip(request), reason)
+    else:
+        _store.insert_in_transaction(connection, user["user_id"], kind, key, client_ip(request), reason)
 
 
 def complaint_points(request: Request, user: dict, gu: str, reason: str) -> bool:

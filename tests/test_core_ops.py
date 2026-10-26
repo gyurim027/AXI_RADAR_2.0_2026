@@ -2,7 +2,7 @@
 실행: uv run python -m pytest tests/test_core_ops.py
 """
 import unittest
-from datetime import datetime
+from datetime import date, datetime
 
 from fastapi.testclient import TestClient
 
@@ -75,6 +75,28 @@ class MemoryOpsRepo(ops_repo.OpsRepository):
 
     def access_today(self):
         return 3
+
+    # 대시보드 (I-05 AD-01)
+    run = None
+    approvals = {}
+    unseen = 0
+
+    def latest_run(self):
+        return self.run
+
+    def latest_calc(self):
+        rows = [r for r in self.s.runs.values() if r["job_kind"] == "산정"]
+        return max(rows, key=lambda r: r["job_run_id"]) if rows else None
+
+    def approval_counts(self, year):
+        return self.approvals
+
+    def regulation_unseen(self):
+        return self.unseen
+
+    def running_same(self, run):
+        return any(r["status"] == "실행 중" and r["module"] == run.get("module") and r["job_name"] == run.get("job_name")
+                   and r["ref_id"] == run.get("ref_id") for r in self.s.runs.values())
 
 
 def _bearer(role):
@@ -169,6 +191,31 @@ class OpsApiTests(unittest.TestCase):
         j = self.c.get("/api/ops/dashboard", headers=_bearer("operator")).json()
         self.assertEqual((j["runs"]["success"], j["runs"]["failure"], j["alerts"]["unread"]), (1, 1, 1))
         self.assertEqual(j["uploads"]["count"], 7)
+        self.assertEqual(j["next"]["key"], "failed")                       # 가장 최근 산정이 실패 → 다시 실행 안내
+        self.assertEqual((j["run"], j["data"]["stale"], j["regulations"]), (None, None, 0))
+        self.assertEqual(j["approvals"], {"pending": 0, "approved": 0, "returned": 0})
+
+    def test_dashboard_approvals_regulations_run(self):
+        repo = ops_repo.get_repository()
+        repo.run = {"run_id": 3, "created_at": datetime(2027, 1, 5, 9, 0), "period_start": date(2026, 1, 1),
+                    "period_end": date(2026, 12, 31), "admin_sampled_at": None}
+        repo.approvals = {"제안": 2, "승인": 5, "돌려보냄": 1}
+        repo.unseen = 4
+        j = self.c.get("/api/ops/dashboard", headers=_bearer("operator")).json()
+        self.assertEqual(j["approvals"], {"pending": 2, "approved": 5, "returned": 1})
+        self.assertEqual(j["regulations"], 4)
+        self.assertEqual((j["run"]["id"], j["run"]["periodStart"], j["run"]["status"]), (3, "2026.01.01", None))
+        self.assertTrue(any("회차 상태" in n for n in j["notes"]))
+
+    def test_dashboard_survives_missing_table(self):
+        repo = ops_repo.get_repository()
+
+        def boom(*a):
+            raise RuntimeError("no table")
+        repo.regulation_unseen = boom
+        j = self.c.get("/api/ops/dashboard", headers=_bearer("operator")).json()
+        self.assertIsNone(j["regulations"])
+        self.assertIn("89 standard_change를 읽지 못함", j["notes"])
 
     def test_runs_filter_and_detail(self):
         h = _bearer("operator")
@@ -187,6 +234,83 @@ class OpsApiTests(unittest.TestCase):
         self.assertEqual(self.c.post(f"/api/ops/notifications/{n[0]['id']}/read", headers=h).status_code, 200)
         self.assertEqual(self.c.get("/api/ops/notifications?unread=true", headers=h).json()["notifications"], [])
         self.assertEqual(self.c.post("/api/ops/notifications/999/read", headers=h).status_code, 404)
+
+
+class RerunApiTests(unittest.TestCase):
+    """I-06 다시 실행 (AD-07 1-2): 실패한 실행만, 등록한 기능만, 처음부터, 누른 사람·원래 번호를 남김"""
+
+    def setUp(self):
+        from app.core import rerun
+        self.rerun = rerun
+        rerun.ASYNC = False
+        self.store = MemoryJobStore()
+        job_run.set_store(self.store)
+        ops_repo.set_repository(MemoryOpsRepo(self.store))
+        self.c = TestClient(app, base_url="http://127.0.0.1:8000")
+        self.calls = []
+        self.fail_again = False
+
+        def again(ref_table, ref_id, user_id):              # 시험용 기능: 같은 일을 처음부터 (안에서 track)
+            self.calls.append((ref_table, ref_id, user_id))
+            with track("산정", "2028 연간 산정", module="TEST-ENGINE", ref_table=ref_table, ref_id=ref_id) as job:
+                if self.fail_again:
+                    raise JobFailed("missing_column", "보도 면적 열이 비어 있음")
+                job.rows(10)
+        rerun.register_rerun("TEST-ENGINE", again)
+        for module in ("TEST-ENGINE", "AI-03"):               # AI-03은 등록 안 한 기능
+            try:
+                with track("산정" if module == "TEST-ENGINE" else "좌표", "2028 연간 산정" if module == "TEST-ENGINE" else "AI-03 좌표",
+                           module=module, ref_table="priority_run", ref_id=7):
+                    raise JobFailed("missing_column", "보도 면적 열이 비어 있음")
+            except JobFailed:
+                pass
+        with track("업로드", "민원 파일 올리기", module="C-09"):
+            pass
+
+    def tearDown(self):
+        self.rerun.ASYNC = True
+        self.rerun._REG.pop("TEST-ENGINE", None)
+        job_run.set_store(job_run.JobStore())
+        ops_repo.set_repository(ops_repo.OpsRepository())
+
+    def _id(self, module):
+        return next(r["job_run_id"] for r in self.store.runs.values() if r["module"] == module)
+
+    def test_can_rerun_flag(self):
+        rows = {r["module"]: r["canRerun"] for r in self.c.get("/api/ops/runs", headers=_bearer("operator")).json()["runs"]}
+        self.assertEqual(rows, {"TEST-ENGINE": True, "AI-03": False, "C-09": False})
+
+    def test_rerun_from_start(self):
+        old = self._id("TEST-ENGINE")
+        r = self.c.post(f"/api/ops/runs/{old}/rerun", headers=_bearer("operator"))
+        self.assertEqual((r.status_code, r.json()["rerunOf"]), (202, old))
+        self.assertEqual(self.calls, [("priority_run", "7", 9)])
+        new = max(self.store.runs.values(), key=lambda x: x["job_run_id"])
+        self.assertEqual((new["status"], new["triggered_by"], new["row_cnt"]), ("성공", 9, 10))
+        first = [l["message"] for l in self.store.logs if l["job_run_id"] == new["job_run_id"]][0]
+        self.assertEqual(first, f"실행 #{old}(실패)을 처음부터 다시 실행")
+        self.assertEqual(self.store.runs[old]["status"], "실패")                # 원래 기록은 그대로
+
+    def test_rerun_fails_again_is_recorded(self):
+        self.fail_again = True
+        before = len(self.store.alerts)
+        self.assertEqual(self.c.post(f"/api/ops/runs/{self._id('TEST-ENGINE')}/rerun", headers=_bearer("operator")).status_code, 202)
+        new = max(self.store.runs.values(), key=lambda x: x["job_run_id"])
+        self.assertEqual(new["status"], "실패")
+        self.assertEqual(len(self.store.alerts), before + 1)                    # 다시 실패하면 알림도 다시
+
+    def test_refusals(self):
+        h = _bearer("operator")
+        ok_id = self._id("C-09")
+        self.assertEqual(self.c.post(f"/api/ops/runs/{ok_id}/rerun", headers=h).json()["error"]["code"], "not_failed")
+        self.assertEqual(self.c.post(f"/api/ops/runs/{self._id('AI-03')}/rerun", headers=h).json()["error"]["code"],
+                         "rerun_not_supported")
+        self.assertEqual(self.c.post("/api/ops/runs/999/rerun", headers=h).status_code, 404)
+        self.assertEqual(self.c.post(f"/api/ops/runs/{self._id('TEST-ENGINE')}/rerun", headers=_bearer("city")).status_code, 403)
+        self.store.start("산정", "2028 연간 산정", "TEST-ENGINE", "priority_run", "7", None, None)   # 같은 것이 실행 중
+        r = self.c.post(f"/api/ops/runs/{self._id('TEST-ENGINE')}/rerun", headers=h)
+        self.assertEqual((r.status_code, r.json()["error"]["code"]), (409, "already_running"))
+        self.assertEqual(self.calls, [])
 
 
 if __name__ == "__main__":

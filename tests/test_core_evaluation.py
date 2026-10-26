@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from app.services.evaluation.harness import Case, check_rule, evaluate, judge, load_cases
+from app.services.evaluation.harness import Case, check_rule, evaluate, judge, load_cases, summary_text
 
 
 def C(rule, exp=(), inp="x"):
@@ -58,6 +58,25 @@ class HarnessTests(unittest.TestCase):
         rep = evaluate("demo", cases, lambda s: answers[s])
         self.assertEqual((rep.total, rep.passed, rep.rate), (3, 2, 66.7))
         self.assertEqual(rep.failed[0]["case_id"], "03")
+
+    def test_header_variants_and_note_shown(self):
+        csv = "Case_ID,입력,기대 답*,맞음기준,메모 (선택)\n01,a,A,같음,주정차 단속\n02,b,B,같음,\n"
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / "cases.csv"
+            p.write_text(csv, encoding="utf-8-sig")
+            cases = load_cases(p)
+        self.assertEqual([(c.case_id, c.expected, c.note) for c in cases], [("01", ["A"], "주정차 단속"), ("02", ["B"], "")])
+        rep = evaluate("demo", cases, lambda s: "틀림")
+        self.assertEqual([f["note"] for f in rep.failed], ["주정차 단속", ""])
+        text = summary_text(rep)
+        self.assertIn("— 메모: 주정차 단속", text)
+        self.assertEqual(text.count("메모:"), 1)                                   # 빈 메모는 안 보임
+
+    def test_note_column_optional(self):
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / "cases.csv"
+            p.write_text("입력,기대 답,맞음 기준\na,A,같음\n", encoding="utf-8-sig")
+            self.assertEqual(load_cases(p)[0].note, "")
 
     def test_adapter_error_counted(self):
         def boom(_):

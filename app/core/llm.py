@@ -18,6 +18,12 @@
     else:
         handle(result.error_code)                        # 예외를 던지지 않고 실패 코드를 돌려준다
 
+임베딩(글 → 숫자 묶음)은 call_embed() 하나로 부른다. 내부 모델(Ollama /api/embed)만 쓰고 외부로는 보내지 않는다.
+
+    result = call_embed("ai05_embed", ["보도의 너비", "인도 폭"], request_id=None)
+    if result.ok:
+        vectors = result.data                            # 글과 같은 순서·같은 개수의 숫자 목록 (모델 이름은 result.model)
+
 규칙
 - 작업별 모델·경로는 app/core/llm_tasks.toml 한 곳에 둔다 (모델 미정, ISS-017).
 - 기본은 내부 모델(Ollama). 외부(Gemini)는 작업 설정이 external이고 아래 조건이 모두 맞을 때만 보낸다.
@@ -25,6 +31,8 @@
   · data_ids가 비어 있지 않고, 모두 llm_tasks.toml [external_allowed]에 있다 (POL-021). 목록에 없거나 미확인이면 막는다.
 - 막히면 외부로 보내지 않고 실패(external_not_allowed)로 돌려준다. 내부 모델로 몰래 바꾸지 않는다.
 - Ollama가 꺼져 있으면 외부로 넘기지 않고 실패(internal_unavailable)로 돌려준다.
+- 임베딩 작업은 내부 경로(internal)만 쓴다. 외부 경로 작업이면 보내지 않고 config_error로 돌려준다.
+  공용 PC가 한 번에 하나씩 처리하므로 한 번에 32개 안팎으로 나눠 부른다.
 - 로그(radar.llm)에는 작업·경로·모델·성공 여부·실패 코드·시도 횟수·걸린 시간·토큰 수·request_id만 남긴다.
   프롬프트·답·오류 본문은 남기지 않는다 (ISS-032, W05 공통 구조 7장).
 - 환경변수: OLLAMA_BASE_URL, LLM_DEFAULT_ROUTE, GEMINI_API_KEY, GEMINI_MODEL (.env.example)
@@ -87,6 +95,8 @@ class TaskConfig:
     timeout_s: float
     max_retries: int
     json_retries: int
+    keep_alive: str = ""
+    think: bool | None = None           # 생각하기 모델(qwen3 등)만. None이면 보내지 않음
 
 
 class LlmError(Exception):
@@ -127,6 +137,8 @@ def task_config(task: str) -> TaskConfig | None:
         timeout_s=float(raw.get("timeout_s", d.get("timeout_s", 60))),
         max_retries=int(raw.get("max_retries", d.get("max_retries", 2))),
         json_retries=int(raw.get("json_retries", d.get("json_retries", 1))),
+        keep_alive=str(raw.get("keep_alive", d.get("keep_alive", ""))),
+        think=raw.get("think", d.get("think")),
     )
 
 
@@ -141,16 +153,13 @@ def external_allowed(data_ids: Iterable[str], contains_raw: bool | None) -> bool
 
 # ── 제공자 ───────────────────────────────────────────
 
-def _call_ollama(cfg: TaskConfig, messages: list[dict], want_json: bool) -> tuple[str, int | None, int | None]:
+def _post_ollama(path: str, body: dict, timeout_s: float) -> dict:
+    """Ollama에 JSON을 보내고 답(JSON)을 읽는다. 오류는 LlmError 코드로만 바꾼다 (본문은 버린다)."""
     base = _env("OLLAMA_BASE_URL", "http://localhost:11434").rstrip("/")
-    body = {"model": cfg.model, "messages": messages, "stream": False,
-            "options": {"temperature": cfg.temperature, "num_predict": cfg.max_tokens}}
-    if want_json:
-        body["format"] = "json"
-    req = urllib.request.Request(base + "/api/chat", data=json.dumps(body).encode("utf-8"),
+    req = urllib.request.Request(base + path, data=json.dumps(body).encode("utf-8"),
                                  headers={"Content-Type": "application/json"}, method="POST")
     try:
-        with urllib.request.urlopen(req, timeout=cfg.timeout_s) as resp:
+        with urllib.request.urlopen(req, timeout=timeout_s) as resp:
             out = json.loads(resp.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:
         if exc.code == 404:                  # 모델을 받지 않았거나 이름이 틀림
@@ -164,8 +173,38 @@ def _call_ollama(cfg: TaskConfig, messages: list[dict], want_json: bool) -> tupl
         raise LlmError("timeout", retryable=True) from None
     except (ValueError, OSError):
         raise LlmError("provider_error") from None
+    if not isinstance(out, dict):
+        raise LlmError("provider_error")
+    return out
+
+
+def _call_ollama(cfg: TaskConfig, messages: list[dict], want_json: bool) -> tuple[str, int | None, int | None]:
+    body = {"model": cfg.model, "messages": messages, "stream": False,
+            "options": {"temperature": cfg.temperature, "num_predict": cfg.max_tokens}}
+    if want_json:
+        body["format"] = "json"
+    if cfg.keep_alive:                       # 모델을 올려 둔 채로 둘 시간 (다시 올리는 지연 막기)
+        body["keep_alive"] = cfg.keep_alive
+    if cfg.think is not None:                # 생각하기 모델의 생각 글 끄기(false). 다른 모델에는 넣지 않는다
+        body["think"] = bool(cfg.think)
+    out = _post_ollama("/api/chat", body, cfg.timeout_s)
     text = (out.get("message") or {}).get("content") or ""
     return text, out.get("prompt_eval_count"), out.get("eval_count")
+
+
+def _is_vector(v: Any) -> bool:
+    return isinstance(v, list) and bool(v) and all(isinstance(x, (int, float)) and not isinstance(x, bool) for x in v)
+
+
+def _embed_ollama(cfg: TaskConfig, texts: list[str]) -> tuple[list[list[float]], int | None]:
+    body = {"model": cfg.model, "input": texts}
+    if cfg.keep_alive:
+        body["keep_alive"] = cfg.keep_alive
+    out = _post_ollama("/api/embed", body, cfg.timeout_s)
+    vectors = out.get("embeddings")
+    if not isinstance(vectors, list) or len(vectors) != len(texts) or not all(_is_vector(v) for v in vectors):
+        raise LlmError("provider_error")                          # 글 개수와 숫자 묶음 개수가 다르거나 모양이 틀림
+    return vectors, out.get("prompt_eval_count")
 
 
 def _call_gemini(cfg: TaskConfig, messages: list[dict], want_json: bool) -> tuple[str, int | None, int | None]:
@@ -207,6 +246,7 @@ def _call_gemini(cfg: TaskConfig, messages: list[dict], want_json: bool) -> tupl
 
 
 PROVIDERS = {"internal": _call_ollama, "external": _call_gemini}
+EMBED_PROVIDERS = {"internal": _embed_ollama}       # 임베딩은 내부 경로만 (외부로 보내지 않는다)
 
 
 # ── 호출 ─────────────────────────────────────────────
@@ -277,6 +317,44 @@ def call_llm(task: str, messages: list[dict], *, data_ids: Iterable[str] = (), c
                         input_tokens=tokens_in, output_tokens=tokens_out)
         return done(ok=True, route=cfg.route, model=cfg.model, text=text, data=data, attempts=attempts,
                     input_tokens=tokens_in, output_tokens=tokens_out)
+
+
+def _check_texts(texts: list[str]) -> None:
+    if (not isinstance(texts, (list, tuple)) or not texts
+            or not all(isinstance(t, str) and t.strip() for t in texts)):
+        raise ValueError("texts는 비어 있지 않은 글자 목록이어야 합니다 (빈 글은 넣지 않습니다)")
+
+
+def call_embed(task: str, texts: list[str], *, request_id: str | None = None) -> LlmResult:
+    """글 목록을 숫자 묶음 목록으로 바꾼다. 성공하면 data = texts와 같은 순서·같은 개수의 숫자 목록, model = 쓴 모델.
+    실패해도 예외 대신 ok=False와 error_code를 준다. 내부 경로만 쓴다 (이 파일 맨 위 설명)."""
+    _check_texts(texts)
+    texts = list(texts)
+    start = time.perf_counter()
+
+    def done(**kw) -> LlmResult:
+        r = LlmResult(task=task, elapsed_ms=round((time.perf_counter() - start) * 1000, 1), **kw)
+        _log(r, request_id)
+        return r
+
+    cfg = task_config(task)
+    if cfg is None:
+        return done(ok=False, error_code="unknown_task")
+    if cfg.route not in EMBED_PROVIDERS or not cfg.model:        # 외부 경로 작업은 임베딩을 보내지 않는다
+        return done(ok=False, route=cfg.route, error_code="config_error")
+
+    call = EMBED_PROVIDERS[cfg.route]
+    attempts = 0
+    while True:
+        attempts += 1
+        try:
+            vectors, t_in = call(cfg, texts)
+        except LlmError as exc:
+            if exc.retryable and attempts <= cfg.max_retries:
+                time.sleep(min(2 ** (attempts - 1), 8))           # 1초, 2초, 4초 … 간격을 늘려 다시
+                continue
+            return done(ok=False, route=cfg.route, model=cfg.model, error_code=exc.code, attempts=attempts)
+        return done(ok=True, route=cfg.route, model=cfg.model, data=vectors, attempts=attempts, input_tokens=t_in)
 
 
 def _log(r: LlmResult, request_id: str | None) -> None:

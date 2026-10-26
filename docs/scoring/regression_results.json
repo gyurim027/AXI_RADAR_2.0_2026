@@ -1,0 +1,32 @@
+[
+  {
+    "run_id": 920001,
+    "execution": "COMMITTED",
+    "rows": 2406,
+    "scored": 730,
+    "unscored": 1676,
+    "execution_fingerprint": "53dba737ce691e8fef25d496fc1756d12f6f13a0a3ee518499224a9da97805fd",
+    "max_score_error": 0.0,
+    "rank_mismatches": 0
+  },
+  {
+    "run_id": 920002,
+    "execution": "COMMITTED",
+    "rows": 2406,
+    "scored": 730,
+    "unscored": 1676,
+    "execution_fingerprint": "59a99519a73c259556e54c19ddb2eb7910ae8fcd421c7f99ef01fcd2350eb860",
+    "max_score_error": 0.0,
+    "rank_mismatches": 0
+  },
+  {
+    "run_id": 920003,
+    "execution": "COMMITTED",
+    "rows": 2406,
+    "scored": 730,
+    "unscored": 1676,
+    "execution_fingerprint": "069bfab26b4b833e0fe5f9c272cd942416c425d2716770a3bb884a1ed7ff4db9",
+    "max_score_error": 0.0,
+    "rank_mismatches": 0
+  }
+]

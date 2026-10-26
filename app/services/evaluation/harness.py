@@ -5,6 +5,8 @@
     01      | T18  | 도로교통법 제32조 | 3등 안 | 주정차 단속
 - 기대 답이 여러 개면 ' | ' 또는 ';'로 나눈다.
 - 맞음 기준: 같음 · 포함 · 안 들어감 · 아님 · N등 안(예: 5등 안) · 못 찾음
+- 칸 이름 뒤의 괄호·별표·띄어쓰기는 무시한다: '메모(선택)' · '메모 (선택)' · '기대 답*' · '맞음기준'도 같은 칸
+- 메모는 선택 칸이다. 없거나 비어도 된다. 틀린 문제를 보여 줄 때 메모를 같이 보여 준다 (왜 이 문제를 넣었는지)
 - 민원 원문·개인정보는 넣지 않는다 (ISS-032). 가린 문장이나 만든 문장만.
 
 어댑터 = 각 기능이 만드는 함수 하나: run(입력 글자) -> 결과
@@ -59,6 +61,7 @@ class CaseResult:
     ok: bool
     got: Any = None
     reason: str = ""
+    note: str = ""                # 정답 목록의 메모 (선택)
 
 
 @dataclass
@@ -123,13 +126,19 @@ def _rows_from_file(path: Path) -> list[dict]:
     raise ValueError("정답 목록은 .csv 또는 .xlsx만 읽습니다")
 
 
+def _head(name: str | None) -> str:
+    """칸 이름 비교용: '메모 (선택)' → '메모', '기대 답*' → '기대답', 'Case_ID' → 'case_id'"""
+    return re.sub(r"\([^)]*\)|[\s*]", "", str(name or "")).lower()
+
+
 def load_cases(path: str | Path) -> list[Case]:
     rows = _rows_from_file(Path(path))
     if not rows:
         return []
     keys = {}
     for want, names in COLS.items():
-        keys[want] = next((k for k in rows[0] if k and k.strip() in names), None)
+        wanted = {_head(n) for n in names}
+        keys[want] = next((k for k in rows[0] if k and _head(k) in wanted), None)
     missing = [w for w in ("input", "rule") if not keys[w]]
     if missing:
         raise ValueError(f"칸이 없습니다: {missing} — 칸 이름은 case_id · 입력 · 기대 답 · 맞음 기준 · 메모")
@@ -211,7 +220,7 @@ def evaluate(name: str, cases: list[Case], adapter: Callable[[str], Any]) -> Rep
             b["passed"] += 1
         else:
             shown = got[:5] if isinstance(got, (list, tuple)) else got
-            rep.failed.append(asdict(CaseResult(c.case_id, c.rule, ok, shown, why)))
+            rep.failed.append(asdict(CaseResult(c.case_id, c.rule, ok, shown, why, c.note)))
     return rep
 
 
@@ -224,7 +233,7 @@ def summary_text(rep: Report) -> str:
     for rule, b in rep.by_rule.items():
         lines.append(f"  - {rule}: {b['passed']}/{b['total']}")
     for f in rep.failed:
-        lines.append(f"  ✗ {f['case_id']} ({f['rule']}) {f['reason']}")
+        lines.append(f"  ✗ {f['case_id']} ({f['rule']}) {f['reason']}" + (f"  — 메모: {f['note']}" if f.get("note") else ""))
     return "\n".join(lines)
 
 
