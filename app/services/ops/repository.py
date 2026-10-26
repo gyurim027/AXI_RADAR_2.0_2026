@@ -46,6 +46,14 @@ class OpsRepository:
             "TIMESTAMPDIFF(MINUTE, started_at, COALESCE(finished_at, NOW())) AS minutes, row_cnt, error_code, cause "
             "FROM job_run WHERE job_run_id = %s", (run_id,))
 
+    def running_same(self, run: dict) -> bool:
+        """같은 기능·이름·연결 대상이 지금 '실행 중'인지 (다시 실행 두 번 막기, I-06)"""
+        rows = db.read_only(
+            "SELECT 1 AS x FROM job_run WHERE status = '실행 중' AND module <=> %s AND job_name = %s "
+            "AND ref_table <=> %s AND ref_id <=> %s LIMIT 1",
+            (run.get("module"), run.get("job_name"), run.get("ref_table"), run.get("ref_id")))
+        return bool(rows)
+
     def list_alerts(self, unread_only: bool, limit: int) -> list[dict]:
         sql = ("SELECT alert_delivery_id, job_run_id, message, sent_at, acknowledged_at, delivery_status "
                "FROM alert_delivery WHERE job_run_id IS NOT NULL")

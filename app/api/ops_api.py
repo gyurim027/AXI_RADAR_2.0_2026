@@ -5,6 +5,8 @@ GET  /api/ops/dashboard?days=30          대시보드 AD-01: 최근 회차(run)�
                                           (칸 모양은 화면 목업 adminServer.js getDashboard와 같게. DB에 없는 값은 null + notes에 이유)
 GET  /api/ops/runs?days=30&status=실패    실행 기록 목록 (status: 성공·실패·경고·실행 중·건너뜀, 비우면 전체)
 GET  /api/ops/runs/{id}                   실행 한 건 + 단계 기록(logs)
+POST /api/ops/runs/{id}/rerun             실패한 실행을 처음부터 다시 (I-06, AD-07 1-2). 기능이 다시 실행 함수를 등록해야 함
+                                          (app/core/rerun.py). 목록·한 건의 canRerun이 true인 것만 됨
 GET  /api/ops/notifications?unread=true   실패 알림 목록 (화면 목업 listAdminNotifications의 failure 줄 모양)
 POST /api/ops/notifications/{id}/read     알림 확인 (71 acknowledged_at·acknowledged_by)
 
@@ -16,6 +18,7 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, Query
 
+from app.core import rerun
 from app.core.auth import require_roles
 from app.core.job_run import STATUSES, KINDS
 from app.core.responses import ApiError
@@ -36,7 +39,8 @@ def _run_row(r: dict) -> dict:
             "status": r["status"], "at": r["started_at"].isoformat(timespec="seconds") if r.get("started_at") else None,
             "at_label": _fmt(r.get("started_at")), "finished_at": _fmt(r.get("finished_at")),
             "minutes": r.get("minutes"), "row_cnt": r.get("row_cnt"), "error_code": r.get("error_code"),
-            "cause": r.get("cause"), "ref_table": r.get("ref_table"), "ref_id": r.get("ref_id")}
+            "cause": r.get("cause"), "ref_table": r.get("ref_table"), "ref_id": r.get("ref_id"),
+            "can_rerun": r["status"] == "실패" and rerun.can_rerun(r.get("module"))}
 
 
 APPROVAL_KEYS = {"제안": "pending", "승인": "approved", "돌려보냄": "returned"}     # 62 approval_status → 목업 칸 이름
@@ -115,6 +119,22 @@ def run_detail(run_id: int, _u: dict = Depends(operator), repo: OpsRepository = 
     row["logs"] = [f"[{l['logged_at'].strftime('%H:%M')}] {l['message']}" if l.get("logged_at") else l["message"]
                    for l in r.get("logs", [])]
     return row
+
+
+@router.post("/runs/{run_id}/rerun", status_code=202)
+def rerun_run(run_id: int, user: dict = Depends(operator), repo: OpsRepository = Depends(get_repository)):
+    run = repo.get_run(run_id)
+    if not run:
+        raise ApiError(404, "run_not_found", "실행 기록을 찾을 수 없습니다")
+    if run["status"] != "실패":
+        raise ApiError(409, "not_failed", "실패한 실행만 다시 실행합니다")
+    if not rerun.can_rerun(run.get("module")):
+        raise ApiError(409, "rerun_not_supported", "이 실행은 화면에서 다시 실행할 수 없습니다. 담당자가 명령으로 다시 돌립니다")
+    if rerun.is_running_here(run) or repo.running_same(run):
+        raise ApiError(409, "already_running", "같은 실행이 이미 돌고 있습니다. 끝난 뒤 실행 기록을 확인해 주세요")
+    if not rerun.start(run, user.get("user_id")):
+        raise ApiError(409, "already_running", "같은 실행이 이미 돌고 있습니다. 끝난 뒤 실행 기록을 확인해 주세요")
+    return {"ok": True, "rerun_of": run_id, "message": "처음부터 다시 실행을 시작했습니다. 실행 기록에서 진행 상태를 확인해 주세요."}
 
 
 @router.get("/notifications")
