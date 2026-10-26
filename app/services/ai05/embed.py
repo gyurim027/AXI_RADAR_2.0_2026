@@ -27,7 +27,11 @@ import numpy as np
 TASK = "ai05_embed"
 TEXT_MAX = 1000          # 조각 글자를 이만큼만 넣음 (조문 한 조각은 대부분 이보다 짧다)
 BATCH = 32               # 한 번에 보내는 조각 수 (공용 PC는 한 번에 하나씩 처리하므로 너무 크게 하지 않음)
-SIM_MARGIN = 0.02        # '못 찾음' 기준 = 관계없는 질문 10개의 가장 높은 유사도 + 이 값
+SIM_MARGIN = 0.02        # '못 찾음' 기준 = 관계없는 질문(아래 두 묶음)의 가장 높은 유사도 + 이 값
+# 법 냄새가 나지만 보행과 상관없는 질문 (10/26 조정: 법과 아주 먼 질문만으로 기준을 잡으면 '아파트 관리비 산정' 같은 질문을 못 거름)
+# W05-06 20문항(data/eval/ai05_cases.csv)의 질문은 넣지 않는다 — 시험 문제로 기준을 맞추면 점수가 부풀려짐
+HARD_NEGATIVE = ['상속세 신고 기한', '근로계약서 작성 의무', '전세 보증금 반환', '자동차 보험료 할인', '학교 급식 위생 기준',
+                 '공무원 연금 수령 나이', '택배 분실 보상', '부동산 중개 수수료', '건강보험료 산정 방식', '반려동물 등록 방법']
 
 
 def chunk_text(c: dict) -> str:
@@ -87,6 +91,18 @@ def build(chunks: list[dict], embedder, negatives: list[str], data_dir: Path) ->
     meta = {"task": TASK, "model": model, "chunks": len(chunks), "dim": int(vecs.shape[1]) if vecs.size else 0,
             "fingerprint": fingerprint(chunks), "sim_min": round(sim_min, 4) if sim_min is not None else None,
             "built_at": datetime.now().isoformat(timespec="seconds")}
+    (data_dir / "embeddings_meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=1), encoding="utf-8")
+    return meta
+
+
+def recalibrate(data_dir: Path, embedder, negatives: list[str]) -> dict:
+    """임베딩을 다시 만들지 않고 '못 찾음' 기준(sim_min)만 다시 정해 embeddings_meta.json에 쓴다."""
+    data_dir = Path(data_dir)
+    vecs = np.load(data_dir / "embeddings.npy").astype(np.float32)
+    neg, _ = encode(list(negatives), embedder)
+    meta = json.loads((data_dir / "embeddings_meta.json").read_text(encoding="utf-8"))
+    meta["sim_min"] = round(float((neg @ vecs.T).max()) + SIM_MARGIN, 4)
+    meta["sim_min_from"] = f"관계없는 질문 {len(negatives)}개 + {SIM_MARGIN}"
     (data_dir / "embeddings_meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=1), encoding="utf-8")
     return meta
 

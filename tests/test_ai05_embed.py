@@ -71,6 +71,17 @@ class EmbedSearchTests(unittest.TestCase):
             self.assertIsNone(r[0]["sim"])                             # 임베딩 없이 찾음
 
 
+class RecalibrateTests(unittest.TestCase):
+    def test_threshold_from_law_like_questions(self):
+        with tempfile.TemporaryDirectory() as d:
+            ix, meta = make(d)
+            self.assertLess(meta["sim_min"], 0.5)                        # 법과 먼 질문만 → 가짜 임베딩에서는 거의 0
+            new = embed.recalibrate(Path(d), fake_embedder, ["보도 주차 요금"])   # 개념이 겹치는 질문을 기준에 넣으면 기준이 올라감
+            self.assertGreater(new["sim_min"], meta["sim_min"])
+            self.assertEqual(embed.attach(ix, Path(d), fake_embedder), "낱말 + 임베딩 (fake-embed)")
+            self.assertEqual(ix.sim_min, new["sim_min"])
+
+
 class AttachTests(unittest.TestCase):
     def test_no_files_or_changed_chunks(self):
         with tempfile.TemporaryDirectory() as d:

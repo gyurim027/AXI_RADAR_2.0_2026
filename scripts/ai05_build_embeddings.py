@@ -4,6 +4,7 @@
 call_embed와 llm_tasks.toml [tasks.ai05_embed]를 넣은 뒤에 돈다.
     uv run python -m scripts.ai05_build_embeddings              # 만들기 + 비교
     uv run python -m scripts.ai05_build_embeddings --compare    # 이미 만든 파일로 비교만
+    uv run python -m scripts.ai05_build_embeddings --recalibrate  # 임베딩은 그대로, '못 찾음' 기준만 다시 정하고 비교
 
 하는 일
 1) 법령 조각(data/ai05/chunks → law_index.pkl의 조각 약 3,400개)을 공통 모듈로 숫자 묶음으로 바꿔 data/ai05/embeddings.npy에 저장
@@ -57,6 +58,7 @@ def compare(svc: LawService) -> dict:
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description="AI-05 임베딩 만들기·비교")
     ap.add_argument("--compare", action="store_true", help="만들지 않고 비교만")
+    ap.add_argument("--recalibrate", action="store_true", help="임베딩은 그대로 두고 '못 찾음' 기준만 다시 정한 뒤 비교")
     args = ap.parse_args(argv)
 
     embedder, why = embed.common_embedder()
@@ -65,9 +67,13 @@ def main(argv=None) -> int:
         print("→ 규림님 공통 모듈에 call_embed와 [tasks.ai05_embed]가 들어갔는지, .env OLLAMA_BASE_URL을 확인하세요.")
         return 1
     svc = LawService()
-    if not args.compare:
+    negatives = list(evaluate.NEGATIVE) + list(embed.HARD_NEGATIVE)
+    if args.recalibrate:
+        meta = embed.recalibrate(D, embedder, negatives)
+        print("'못 찾음' 기준 다시 정함:", meta["sim_min"], meta["sim_min_from"])
+    elif not args.compare:
         print(f"조각 {len(svc.ix.C)}개를 숫자로 바꾸는 중 (공용 PC 상태에 따라 몇 분 걸릴 수 있음)…")
-        meta = embed.build(svc.ix.C, embedder, evaluate.NEGATIVE, D)
+        meta = embed.build(svc.ix.C, embedder, negatives, D)
         print("저장:", D / "embeddings.npy", json.dumps(meta, ensure_ascii=False))
     svc.search_mode = embed.attach(svc.ix, D, embedder)
     print("검색 방식:", svc.search_mode)
