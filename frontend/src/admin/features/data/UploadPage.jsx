@@ -28,7 +28,7 @@ export default function UploadPage() {
       <PageHeader title={UPLOAD.title} subtitle={UPLOAD.subtitle} />
       <div className={styles.stackPanels}>
         <Loadable state={targets} areaName={UPLOAD.title} rows={4}>
-          {(list) => <UploadForm targets={list} preset={params.get('data')} onUploaded={records.reload} />}
+          {(list) => <UploadForm targets={list} preset={params.get('data')} records={records.data || []} onUploaded={records.reload} />}
         </Loadable>
         <Panel title={UPLOAD.recordsTitle} padded={false}>
           <Loadable state={records} areaName={UPLOAD.failedArea} rows={4}>
@@ -64,7 +64,7 @@ export default function UploadPage() {
   );
 }
 
-function UploadForm({ targets, preset, onUploaded }) {
+function UploadForm({ targets, preset, records, onUploaded }) {
   const initial = targets.find((t) => t.id === preset) || targets[0];
   const [dataId, setDataId] = useState(initial.id);
   const item = targets.find((t) => t.id === dataId);
@@ -110,6 +110,10 @@ function UploadForm({ targets, preset, onUploaded }) {
     }
   };
 
+  // 같은 자료를 같은 기준일로 이미 올렸는지. 민원은 대상 월, 그 밖은 기준일의 연도로 본다.
+  const sameLabel = dataId === 'DAT-07' ? (month ? `${month.replace('-', '.')} 기준` : null) : basis ? `${String(basis).slice(0, 4)}년 기준` : null;
+  const duplicated = !!sameLabel && records.some((r) => r.dataId === dataId && r.basis === sameLabel);
+
   const options = useMemo(() => targets.map((t) => ({ value: t.id, label: t.name })), [targets]);
 
   return (
@@ -123,6 +127,11 @@ function UploadForm({ targets, preset, onUploaded }) {
         <SelectInput label={UPLOAD.received} value={received} onChange={setReceived} options={RECEIVED} help={UPLOAD.receivedHelp} />
         <SelectInput label={UPLOAD.official} value={official} onChange={setOfficial} options={OFFICIAL} help={UPLOAD.officialHelp} />
         {item.complaint ? <TextInput label={UPLOAD.month} type="month" value={month} onChange={setMonth} help={UPLOAD.monthHelp} error={errors.month ? UPLOAD.errorMonth : null} required /> : null}
+        {duplicated && !busy ? (
+          <div className={styles.full}>
+            <Banner tone="info">{UPLOAD.duplicate(item.name)}</Banner>
+          </div>
+        ) : null}
         {busy || done ? (
           <div className={styles.full}>
             {busy ? (

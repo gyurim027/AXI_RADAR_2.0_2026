@@ -44,6 +44,8 @@ export const UPLOAD = {
   submit: '파일 올리기',
   errorSourceBasis: '출처와 기준일을 적어야 올릴 수 있습니다.',
   errorFormat: (formats) => `올릴 수 없는 형식입니다. ${formats} 파일을 골라 주세요.`,
+  // 같은 자료를 같은 기준일로 다시 올릴 때: 막지 않고 안내만 한다 (A-03, ISS-049)
+  duplicate: (name) => `기준일이 같은 ${name} 파일을 이미 올렸습니다. 올리면 기존 기록은 그대로 두고 새 기록으로 남깁니다.`,
   errorTooLarge: '파일이 너무 큽니다. 100MB 이하로 나눠서 다시 올려 주세요.', // ERR-34
   errorEmpty: '파일에 내용이 없습니다. 파일을 확인한 뒤 다시 올려 주세요.', // ERR-35
   done: (name) => `${name} 파일을 올렸습니다. 검사 결과를 확인해 주세요.`,

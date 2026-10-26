@@ -303,7 +303,7 @@ export function uploadFile({ dataId, fileName, source, basis, received, official
     by: user.org === 'RADAR 운영팀' ? OPERATOR_LABEL : `${peopleOf(user.id).name} (${user.org})`,
     dataId,
     dataName: item.name,
-    basis: `${year}년 기준`,
+    basis: dataId === 'DAT-07' && month ? `${String(month).replace('-', '.')} 기준` : `${year}년 기준`,
     source: String(source).trim(),
     file: fileName,
     errors: bad ? 3 : 0,
