@@ -30,13 +30,20 @@ const EXTRA = {
 };
 const ORDER = ['d2', 'd1', 'd3', 'd4', 'd5', 'd6', 'd7', 'd8', 'd9', 'd10', 'd11', 'd12'];
 
+// 자료 ID는 대장 06 데이터 목록을 따른다. 가짜 자료 이름과 가장 가까운 대장 줄에 맞췄다.
+// 확인이 필요한 줄: 노인의료복지시설(대장에 같은 이름 없음, 경로당 DAT-38로 둠), 수치지형도 1:5,000(DAT-04 인도 레이어로 둠),
+// 보도 폭 측정 자료(시 내부)는 대장에 아직 없어 새 ID DAT-66을 임시로 쓴다.
+const DAT_IDS = ['DAT-04', 'DAT-02', 'DAT-07', 'DAT-12', 'DAT-28', 'DAT-05', 'DAT-64', 'DAT-60', 'DAT-18', 'DAT-39', 'DAT-38', 'DAT-21'];
+/** 민원 자료 ID (대장 06: 연도별 민원 현황) */
+export const COMPLAINT_DATA_ID = 'DAT-64';
+
 export const DATA_ITEMS = [
   ...ORDER.map((key, i) => {
     const base = DATA_LIST.find((d) => d.id === key);
     const ex = EXTRA[key];
     const stale = key === 'd11'; // 세 번째 '갱신 예정일 지남' 자료 (대시보드 예시: 기준일 지난 자료 3종)
     return {
-      id: `DAT-${String(i + 1).padStart(2, '0')}`,
+      id: DAT_IDS[i],
       userKey: key,
       name: base.name,
       org: base.org,
@@ -52,7 +59,7 @@ export const DATA_ITEMS = [
     };
   }),
   {
-    id: 'DAT-13',
+    id: 'DAT-66',
     userKey: 'd13',
     name: '보도 폭 측정 자료 (시 내부)',
     org: '성남시 도로과',
@@ -71,10 +78,10 @@ export const DATA_ITEMS = [
 /** 회차별 원본 목록(파일로 올린 자료). 올린 날, 올린 운영자 */
 export const SEED_FILES = {
   'DAT-02': [{ run: '2027 연간', at: '2026-10-11', by: OPERATOR_LABEL, file: 'dongmin_walk_accident_2025.csv' }],
-  'DAT-06': [{ run: '2026 하반기 참고', at: '2026-07-15', by: OPERATOR_LABEL, file: 'parking_enforcement_2026h1.csv' }],
-  'DAT-07': [{ run: '2026 하반기 참고', at: '2026-07-15', by: OPERATOR_LABEL, file: 'complaint_2021_2026h1.csv' }],
-  'DAT-05': [{ run: '2026 연간', at: '2025-12-02', by: OPERATOR_LABEL, file: 'light_survey_2022.xlsx' }],
-  'DAT-08': [{ run: '2026 연간', at: '2026-03-28', by: OPERATOR_LABEL, file: 'police_signal.xlsx' }],
+  'DAT-05': [{ run: '2026 하반기 참고', at: '2026-07-15', by: OPERATOR_LABEL, file: 'parking_enforcement_2026h1.csv' }],
+  'DAT-64': [{ run: '2026 하반기 참고', at: '2026-07-15', by: OPERATOR_LABEL, file: 'complaint_2021_2026h1.csv' }],
+  'DAT-28': [{ run: '2026 연간', at: '2025-12-02', by: OPERATOR_LABEL, file: 'light_survey_2022.xlsx' }],
+  'DAT-60': [{ run: '2026 연간', at: '2026-03-28', by: OPERATOR_LABEL, file: 'police_signal.xlsx' }],
 };
 
 // ------------------------------------------------------------------ 올린 기록, 검사 결과 (AD-03, AD-04)
@@ -83,7 +90,7 @@ export const SEED_UPLOADS = [
     id: 'up-3',
     at: '2026-10-18T10:20:00',
     by: OPERATOR_LABEL,
-    dataId: 'DAT-13',
+    dataId: 'DAT-66',
     dataName: '보도 폭 측정 자료 (시 내부)',
     basis: '2026년 기준',
     source: '성남시 도로과 제공',
@@ -105,7 +112,7 @@ export const SEED_UPLOADS = [
     id: 'up-1',
     at: '2026-07-15T16:05:00',
     by: OPERATOR_LABEL,
-    dataId: 'DAT-06',
+    dataId: 'DAT-05',
     dataName: '주정차 위반 단속 위치 현황',
     basis: '2026.06 기준',
     source: '성남시',
@@ -117,22 +124,22 @@ export const SEED_UPLOADS = [
 /** 탭 4개. fixedBy: 이 데이터를 오류 없이 다시 올리면 사라지는 행 */
 export const SEED_CHECKS = {
   format: [
-    { id: 'c1', dataId: 'DAT-13', data: '보도 폭 측정 자료 (시 내부)', row: 128, kind: '필수 칸 비어 있음', reason: '기준일 칸이 비었음' },
-    { id: 'c2', dataId: 'DAT-13', data: '보도 폭 측정 자료 (시 내부)', row: 131, kind: '필수 칸 비어 있음', reason: '보도 면적 칸이 비었음' },
-    { id: 'c3', dataId: 'DAT-13', data: '보도 폭 측정 자료 (시 내부)', row: 240, kind: '형식이 다름', reason: '숫자 칸에 글자가 들어 있음' },
+    { id: 'c1', dataId: 'DAT-66', data: '보도 폭 측정 자료 (시 내부)', row: 128, kind: '필수 칸 비어 있음', reason: '기준일 칸이 비었음' },
+    { id: 'c2', dataId: 'DAT-66', data: '보도 폭 측정 자료 (시 내부)', row: 131, kind: '필수 칸 비어 있음', reason: '보도 면적 칸이 비었음' },
+    { id: 'c3', dataId: 'DAT-66', data: '보도 폭 측정 자료 (시 내부)', row: 240, kind: '형식이 다름', reason: '숫자 칸에 글자가 들어 있음' },
   ],
   value: [
-    { id: 'c4', dataId: 'DAT-06', data: '주정차 위반 단속 위치 현황', row: 412, kind: '성남시 밖 좌표', reason: '경도 126.4가 성남시 범위를 벗어남' },
-    { id: 'c5', dataId: 'DAT-06', data: '주정차 위반 단속 위치 현황', row: 1033, kind: '지난 회차보다 크게 바뀐 값', reason: '단속 건수가 지난 회차보다 9배 많음' },
+    { id: 'c4', dataId: 'DAT-05', data: '주정차 위반 단속 위치 현황', row: 412, kind: '성남시 밖 좌표', reason: '경도 126.4가 성남시 범위를 벗어남' },
+    { id: 'c5', dataId: 'DAT-05', data: '주정차 위반 단속 위치 현황', row: 1033, kind: '지난 회차보다 크게 바뀐 값', reason: '단속 건수가 지난 회차보다 9배 많음' },
   ],
   location: [
-    { id: 'c6', dataId: 'DAT-07', data: '성남데이터넷 연도별 민원 현황', row: 20871, kind: '좌표를 못 붙임', reason: '주소가 "○○로 일대"로만 적혀 있음' },
-    { id: 'c7', dataId: 'DAT-07', data: '성남데이터넷 연도별 민원 현황', row: 20902, kind: '도로 단위', reason: '도로 이름만 있고 번지가 없음' },
-    { id: 'c8', dataId: 'DAT-07', data: '성남데이터넷 연도별 민원 현황', row: 21144, kind: '좌표를 못 붙임', reason: '주소가 비어 있음' },
+    { id: 'c6', dataId: 'DAT-64', data: '성남데이터넷 연도별 민원 현황', row: 20871, kind: '좌표를 못 붙임', reason: '주소가 "○○로 일대"로만 적혀 있음' },
+    { id: 'c7', dataId: 'DAT-64', data: '성남데이터넷 연도별 민원 현황', row: 20902, kind: '도로 단위', reason: '도로 이름만 있고 번지가 없음' },
+    { id: 'c8', dataId: 'DAT-64', data: '성남데이터넷 연도별 민원 현황', row: 21144, kind: '좌표를 못 붙임', reason: '주소가 비어 있음' },
   ],
   group: [
-    { id: 'c9', dataId: 'DAT-03', data: '전국횡단보도표준데이터 (성남)', row: 3310, kind: '같은 시설 묶기에서 남음', reason: '30m 안에 묶을 시설이 없음' },
-    { id: 'c10', dataId: 'DAT-04', data: '보안등정보', row: 877, kind: '같은 시설 묶기에서 남음', reason: '30m 안에 묶을 시설이 없음' },
+    { id: 'c9', dataId: 'DAT-07', data: '전국횡단보도표준데이터 (성남)', row: 3310, kind: '같은 시설 묶기에서 남음', reason: '30m 안에 묶을 시설이 없음' },
+    { id: 'c10', dataId: 'DAT-12', data: '보안등정보', row: 877, kind: '같은 시설 묶기에서 남음', reason: '30m 안에 묶을 시설이 없음' },
   ],
 };
 /** 위치 낮음 민원 (AD-04 1-2). 숫자를 누르면 목록을 연다. */
@@ -349,7 +356,7 @@ export const SEED_ACCESS = [
 ];
 
 /** 갱신 예정일이 지난 자료의 예정일 (알림 날짜) */
-export const STALE_DUE = { 'DAT-06': '2026.11.15', 'DAT-09': '2026.07.01', 'DAT-11': '2026.10.30' };
+export const STALE_DUE = { 'DAT-05': '2026.11.15', 'DAT-18': '2026.07.01', 'DAT-38': '2026.10.30' };
 
 // ------------------------------------------------------------------ 조치 제안 문장 틀 초안 (AD-13 1-2)
 export const ACTION_DRAFTS = [

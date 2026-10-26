@@ -8,6 +8,7 @@ import { FileInput, SelectInput, TextInput } from '../../components/Field.jsx';
 import Loadable from '../../components/Loadable.jsx';
 import PageHeader from '../../components/PageHeader.jsx';
 import Panel, { Banner } from '../../components/Panel.jsx';
+import { COMPLAINT_DATA_ID } from '../../../mocks/adminData.js';
 import { UPLOAD } from './copy.js';
 import styles from './Data.module.css';
 import { reportActionError } from '../../utils/actionError.js';
@@ -93,7 +94,7 @@ function UploadForm({ targets, preset, records, onUploaded }) {
     setBusy(true);
     setDone(null);
     try {
-      const r = await uploadFile({ dataId, fileName: file?.name || '', source, basis, received, official, month });
+      const r = await uploadFile({ dataId, file, fileName: file?.name || '', source, basis, received, official, month });
       if (!r.ok) {
         setErrors(r.errors);
         return;
@@ -111,7 +112,7 @@ function UploadForm({ targets, preset, records, onUploaded }) {
   };
 
   // 같은 자료를 같은 기준일로 이미 올렸는지. 민원은 대상 월, 그 밖은 기준일의 연도로 본다.
-  const sameLabel = dataId === 'DAT-07' ? (month ? `${month.replace('-', '.')} 기준` : null) : basis ? `${String(basis).slice(0, 4)}년 기준` : null;
+  const sameLabel = dataId === COMPLAINT_DATA_ID ? (month ? `${month.replace('-', '.')} 기준` : null) : basis ? `${String(basis).slice(0, 4)}년 기준` : null;
   const duplicated = !!sameLabel && records.some((r) => r.dataId === dataId && r.basis === sameLabel);
 
   const options = useMemo(() => targets.map((t) => ({ value: t.id, label: t.name })), [targets]);

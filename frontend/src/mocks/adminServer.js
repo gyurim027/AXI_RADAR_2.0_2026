@@ -20,6 +20,7 @@ import {
   THRESHOLDS,
   UPLOAD_FORMATS,
   COMPLAINT_FILE_MONTHS,
+  COMPLAINT_DATA_ID,
   PED_TYPES,
 } from './adminData.js';
 import {
@@ -71,7 +72,7 @@ function settleExecutions() {
   let changed = false;
   a.executions.forEach((ex) => {
     if (ex.status !== '실행 중' || Date.now() - ex.startedMs < RUN_MS) return;
-    const missing = dataItems().some((d) => d.freshness === '빠짐' && d.id === 'DAT-13');
+    const missing = dataItems().some((d) => d.freshness === '빠짐' && d.id === 'DAT-66');
     if (ex.kind === '산정' && missing) {
       ex.status = '실패';
       ex.minutes = 18;
@@ -273,7 +274,7 @@ export function listUploadTargets() {
   // API로 받는 자료는 올리지 않는다 (AD-03 서브 타이틀)
   return dataItems()
     .filter((d) => d.source !== '공공데이터포털 API')
-    .map((d) => ({ id: d.id, name: d.name, source: d.source, official: d.official, complaint: d.id === 'DAT-07' }));
+    .map((d) => ({ id: d.id, name: d.name, source: d.source, official: d.official, complaint: d.id === COMPLAINT_DATA_ID }));
 }
 export function listUploads() {
   requireOperator();
@@ -287,7 +288,7 @@ export function uploadFile({ dataId, fileName, source, basis, received, official
   const errors = {};
   if (!String(source || '').trim() || !String(basis || '').trim()) errors.sourceBasis = true;
   // 민원 파일은 한 번에 한 달치만 올린다. 대상 월(YYYY-MM)이 필요하다 (R-02)
-  if (dataId === 'DAT-07' && !/^\d{4}-\d{2}$/.test(String(month || ''))) errors.month = true;
+  if (dataId === COMPLAINT_DATA_ID && !/^\d{4}-\d{2}$/.test(String(month || ''))) errors.month = true;
   const ext = String(fileName || '').split('.').pop().toUpperCase();
   if (!fileName || !UPLOAD_FORMATS.includes(ext)) errors.format = true;
   if (errors.sourceBasis || errors.format || errors.month) return { ok: false, errors };
@@ -303,7 +304,7 @@ export function uploadFile({ dataId, fileName, source, basis, received, official
     by: user.org === 'RADAR 운영팀' ? OPERATOR_LABEL : `${peopleOf(user.id).name} (${user.org})`,
     dataId,
     dataName: item.name,
-    basis: dataId === 'DAT-07' && month ? `${String(month).replace('-', '.')} 기준` : `${year}년 기준`,
+    basis: dataId === COMPLAINT_DATA_ID && month ? `${String(month).replace('-', '.')} 기준` : `${year}년 기준`,
     source: String(source).trim(),
     file: fileName,
     errors: bad ? 3 : 0,
@@ -327,23 +328,23 @@ export function uploadFile({ dataId, fileName, source, basis, received, official
     official: official || item.official,
     // 민원은 기준일이 마지막으로 올린 파일의 끝 달이다 (UX 고도화 메뉴 결정)
     // 민원은 기준일이 마지막으로 올린 파일의 대상 월이다
-    basis: dataId === 'DAT-07' ? `${String(month).replace('-', '.')} 기준` : `${year}년 기준`,
+    basis: dataId === COMPLAINT_DATA_ID ? `${String(month).replace('-', '.')} 기준` : `${year}년 기준`,
     collectedAt: dotDate(when),
     freshness: bad ? item.freshness : '최신',
-    note: dataId === 'DAT-07' ? `민원 대상 월 ${String(month).replace('-', '.')}` : undefined,
+    note: dataId === COMPLAINT_DATA_ID ? `민원 대상 월 ${String(month).replace('-', '.')}` : undefined,
   };
-  if (dataId === 'DAT-07') a.complaintMonths = [...new Set([...(a.complaintMonths || []), month])];
+  if (dataId === COMPLAINT_DATA_ID) a.complaintMonths = [...new Set([...(a.complaintMonths || []), month])];
   logAccess(user, '설정 변경', `${item.name} 파일 올리기`);
   stamp();
   // 민원 파일은 적재 건수를 돌려준다 (신규 + 기존 + 갱신 = 전체). 가짜 값은 파일 이름 길이로 정한다.
   let counts = null;
-  if (dataId === 'DAT-07') {
+  if (dataId === COMPLAINT_DATA_ID) {
     const rows = 8000 + ((String(fileName).length * 137) % 6000);
     const existing = Math.round(rows * 0.04);
     const updated = Math.round(rows * 0.005);
     counts = { rows, new: rows - existing - updated, existing, updated };
   }
-  return { ok: true, upload: { ...upload, atLabel: dotDate(upload.at) }, counts, month: dataId === 'DAT-07' ? month : null };
+  return { ok: true, upload: { ...upload, atLabel: dotDate(upload.at) }, counts, month: dataId === COMPLAINT_DATA_ID ? month : null };
 }
 
 function checkRows() {
