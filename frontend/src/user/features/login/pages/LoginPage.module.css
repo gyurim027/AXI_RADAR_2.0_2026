@@ -69,3 +69,16 @@
     width: min(var(--component-login-card-width), 100%);
   }
 }
+
+.mode {
+  padding: var(--space-8) var(--space-12);
+  border-radius: var(--radius-sm);
+  background: var(--semantic-color-risk-mid-soft);
+  color: var(--semantic-color-risk-mid);
+  font-size: var(--fs-small);
+  text-align: center;
+}
+.modeLive {
+  background: var(--semantic-color-risk-low-soft);
+  color: var(--semantic-color-risk-low);
+}

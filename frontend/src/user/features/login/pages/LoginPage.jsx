@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../../app/providers/AuthProvider.jsx';
-import { backendAuthEnabled, backendHome } from '../../../../api/backend.js';
+import { backendAuthEnabled, backendBaseUrl, backendHome } from '../../../../api/backend.js';
 import { ROLE } from '../../../../shared/constants.js';
 import { ACCOUNTS, MOCK_PASSWORD } from '../../../../mocks/accounts.js';
 import Button from '../../../components/Button.jsx';
@@ -71,6 +71,12 @@ export default function LoginPage() {
       <form className={styles.card} onSubmit={onSubmit} noValidate>
         <h1 className={styles.title}>{C.title}</h1>
         <p className={styles.subtitle}>{C.subtitle}</p>
+        {/* 개발 화면에서만: 서버에 붙었는지 연습용 로그인인지 보인다. 연습용인데 서버 계정으로 시도하면 틀린 비밀번호로 보여 헷갈리기 때문이다. */}
+        {import.meta.env.DEV ? (
+          <p className={`${styles.mode} ${backendAuthEnabled ? styles.modeLive : ''}`} role="note">
+            {backendAuthEnabled ? C.devServer(backendBaseUrl) : C.devMock}
+          </p>
+        ) : null}
 
         <div className={styles.fields}>
           <TextField label={C.idLabel} value={loginId} onChange={setLoginId} autoComplete="username" name="loginId" />
