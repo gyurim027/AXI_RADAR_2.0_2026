@@ -88,6 +88,7 @@ class TaskConfig:
     max_retries: int
     json_retries: int
     keep_alive: str = ""
+    think: bool | None = None           # 생각하기 모델(qwen3 등)만. None이면 보내지 않음
 
 
 class LlmError(Exception):
@@ -129,6 +130,7 @@ def task_config(task: str) -> TaskConfig | None:
         max_retries=int(raw.get("max_retries", d.get("max_retries", 2))),
         json_retries=int(raw.get("json_retries", d.get("json_retries", 1))),
         keep_alive=str(raw.get("keep_alive", d.get("keep_alive", ""))),
+        think=raw.get("think", d.get("think")),
     )
 
 
@@ -151,6 +153,8 @@ def _call_ollama(cfg: TaskConfig, messages: list[dict], want_json: bool) -> tupl
         body["format"] = "json"
     if cfg.keep_alive:                       # 모델을 올려 둔 채로 둘 시간 (다시 올리는 지연 막기)
         body["keep_alive"] = cfg.keep_alive
+    if cfg.think is not None:                # 생각하기 모델의 생각 글 끄기(false). 다른 모델에는 넣지 않는다
+        body["think"] = bool(cfg.think)
     req = urllib.request.Request(base + "/api/chat", data=json.dumps(body).encode("utf-8"),
                                  headers={"Content-Type": "application/json"}, method="POST")
     try:

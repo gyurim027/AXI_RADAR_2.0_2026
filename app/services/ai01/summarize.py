@@ -14,7 +14,7 @@ from app.services.ai01 import masking
 
 MAX_INPUT = 3000
 SHORT = 200
-VERSION = "sum-3"
+VERSION = "sum-4"
 _RESTATE = re.compile(r"^.{0,40}(?:불법\s*주정차|불법\s*주차)\s*신고입니다\.?$")
 RULE_HEAD = 150
 PLACE = re.compile(r"[가-힣0-9]{2,}(?:시|구|동|로|길|역|학교|아파트|공원|정류장|정류소|사거리|삼거리|교차로|센터|병원|시장|마을|단지)(?![가-힣])")
@@ -51,9 +51,26 @@ def rule_summary(report_type: str, masked_text: str) -> str:
     return f"{report_type} · {head}" if head else report_type
 
 
+# 장소 꼴로 잡히지만 장소가 아닌 것 (2026-10-24 확정 요약 50건 중 22건이 오탐)
+# - '…으로', '…시'(우회전시), '…구역'(주차구역): 조사·때·일반 낱말
+# - '…로/…길': 뒤에 번지 숫자나 '번길'이 올 때만 도로 이름으로 본다 (인도로·근거로·제대로는 조사)
+_NOT_PLACE = re.compile(r"(?:으로|시|구역)$")
+_ROAD_NO = re.compile(r"\s?(?:\d|번길)")
+ALLOWED_PLACES = {"성남시"}
+
+
 def made_up_places(summary: str, masked_text: str) -> list:
+    """요약에 나온 장소 꼴 중 가린 글에 없는 것."""
     src = re.sub(r"\s", "", masked_text)
-    return [p for p in PLACE.findall(summary) if re.sub(r"\s", "", p) not in src]
+    out = []
+    for m in PLACE.finditer(summary):
+        q = re.sub(r"\s", "", m.group())
+        if q in src or q in ALLOWED_PLACES or _NOT_PLACE.search(q):
+            continue
+        if q[-1] in "로길" and not q.endswith("교차로") and not _ROAD_NO.match(summary, m.end()):
+            continue
+        out.append(m.group())
+    return out
 
 
 def summarize(masked_text: str, request_id: str | None = None) -> tuple[str | None, list]:
@@ -65,7 +82,11 @@ def summarize(masked_text: str, request_id: str | None = None) -> tuple[str | No
                  contains_raw=False, response_format="json", request_id=request_id)
     if not r.ok or not isinstance(r.data, dict):
         return None, []
-    summary = str(r.data.get("summary", "")).strip()
+    return check(str(r.data.get("summary", "")).strip(), masked_text)
+
+
+def check(summary: str, masked_text: str) -> tuple[str | None, list]:
+    """모델이 낸 요약 검사 (7-1단계): 지어낸 장소면 가린 글 앞부분, 개인정보 꼴이 남으면 다시 가린다."""
     if not summary:
         return None, []
     if made_up_places(summary, masked_text):
