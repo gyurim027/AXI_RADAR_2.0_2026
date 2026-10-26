@@ -15,6 +15,14 @@
 - 89 `standard_change` = A-11·A-12가 찾은 변경 한 건에 한 줄 (스크립트가 DB가 있으면 자동으로 남김, `--no-save`로 끔). 걸리는 담당 부서 표 ID(related_jur)·법령 색인 ID(related_criteria)를 붙임
 - 화면 API (RADAR 운영자): `GET /api/standards/jurisdiction` · `GET /api/standards/changes` · `POST /api/standards/changes/{id}/seen` · `POST /api/standards/drafts`
 
+## F-05 AI 추출 (10/26, 기능정의서 F-05 "AI 후보 + 사람 승인")
+- 바뀐 업무분장·조례 문장 → 공통 LLM 모듈 `call_llm("f05_extract")`(내부 모델) → (업무, 담당 부서, 도로 종류). 코드: `app/services/standards/extract_llm.py`
+- **AI가 지어낸 값은 버린다**: 업무·부서는 입력 문장에 그대로 있는 글자만, 도로 종류는 정해진 목록(국도·지방도·시도·구도·보도·자전거도로 등)에 있고 문장에 나오는 것만
+- 뽑은 업무 글자로 담당 부서 표 줄을 찾고(규칙), 도로 종류가 표의 '나뉘는 조건'(88 condition_text)에 나오면 근거에 같이 적는다. 수정안 비교·만들기·근거 원문 붙이기는 규칙 그대로
+- 수정안마다 `method` = `AI (모델 이름)` / `규칙`. 승인하는 사람이 어떻게 만든 안인지 본다
+- `f05_extract`가 `app/core/llm_tasks.toml`에 아직 없거나 Ollama가 꺼져 있으면 **자동으로 규칙 방식**. 등록되면 코드 수정 없이 AI로 동작 (작업 등록은 규림, W05-05)
+- 규칙으로만: `uv run python -m scripts.standards_compare_duty --old … --new … --no-ai`
+
 ## 승인된 수정안 반영 (F-05 마지막 단계, 10/23 진규와 정함)
 - I-07(진규)에서 62 줄을 '승인'으로 바꾸고 커밋한 **뒤에** `app/services/standards/apply.py`의 `apply_approved(setting_version_id, user_id)`를 부른다. 승인 전 화면에는 `preview(setting_version_id)`로 바뀔 모습을 보여 줄 수 있다.
 - 한 거래로 88 줄을 새 판으로 바꾸고 87 `setting_version_id`에 승인 번호를 적는다. 글자가 그대로인 부서 줄은 원래 값(구·조건·시/구)을 둔다.
