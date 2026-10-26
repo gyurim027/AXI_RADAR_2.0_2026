@@ -72,11 +72,11 @@ def samples(run_id: int = Query(..., alias="runId"), gu: str | None = None,
     gu = _gu(user, gu)
     district = user["role"] == "district"
     types = repo.type_options()
-    repo.ensure_admin_samples(run_id)
     if district:
-        # ISS-016 전에는 구 유형 표본 수·목록이 미정이라 비운다.
-        rows = []
+        repo.ensure_district_samples(run_id)
+        rows = repo.samples(run_id, DISTRICT, gu)
     else:
+        repo.ensure_admin_samples(run_id)
         rows = repo.samples(run_id, ADMIN, gu)
     return {"run": {"id": run_id, "period_start": scope["period_start"], "period_end": scope["period_end"]},
             "available": repo.has_complaints(run_id, gu), "relevance": ["관련", "비관련", "불명"] if not district else None,
@@ -103,7 +103,7 @@ def accuracy_result(run_id: int = Query(..., alias="runId"),
     if upload_id is not None:
         raise ApiError(422, "upload_filter_removed", "이제 회차의 민원 접수 기간으로 조회합니다")
     _run(repo, run_id)
-    repo.ensure_admin_samples(run_id)
+    repo.ensure_district_samples(run_id)        # 운영자 표본도 함께 고정한다
     return {"run_id": run_id, "relevance": accuracy(repo.accuracy_strata(run_id, ADMIN)),
             "type": accuracy(repo.accuracy_strata(run_id, DISTRICT))}
 
@@ -114,7 +114,7 @@ def evaluation(request: Request, run_id: int = Query(..., alias="runId"),
                user: dict = Depends(require_roles("operator")),
                repo: C08Repository = Depends(get_repository)):
     _run(repo, run_id)
-    repo.ensure_admin_samples(run_id)
+    repo.ensure_district_samples(run_id)
     rows = repo.evaluation_rows(run_id, target)
     output = StringIO(newline="")
     writer = csv.writer(output)
