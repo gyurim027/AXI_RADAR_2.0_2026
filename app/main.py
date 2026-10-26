@@ -28,6 +28,7 @@ ROUTER_MODULES = [
     ("AI-07", "app.api.ai07_explain_api"),    # /api/ai07  근거 설명문 (진이)
     ("AI-10", "app.api.ai10_review_api"),     # /api/ai10  조치 제안 검토 (대환)
     ("C-09", "app.api.c09_upload_api"),       # /api/c09   민원 파일 등록 (규림, W07-01)
+    ("C-08", "app.api.c08_review_api"),       # /api/c08   분류 검수 (규림)
     # 새 기능은 여기에 한 줄: ("AI-03", "app.api.ai03_xxx_api"), ("ENGINE", "app.api.engine_xxx_api") …
 ]
 
