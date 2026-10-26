@@ -8,19 +8,26 @@
   class_method(관련 여부를 정한 방법: 규칙 / AI)는 79에 class_method 칸이 생기면 쓴다
 - status mask_failed: 가림 검사를 통과하지 못함. class_reason만 '가림 실패', 나머지(class_method 포함)는 None (분류로 보내지 않음, C-03)
 - status error: 모델 호출 실패 등. 적재는 이 민원의 AI-01 칸을 비워 두고 나중에 다시 돌린다
-- ped_type(유형)은 유형 목록(ISS-016)이 정해질 때까지 None
+- ped_type(유형): 보행안전 관련 민원에만 9개 중 하나(ISS-016, ptype). 신고 분류가 주정차면 규칙, 그 밖은 모델. 정하지 못하면 None
 - 원문(title·body)은 이 함수 안에서만 쓰고 결과·로그에 남기지 않는다 (ISS-032). 28 raw_pii_patterns는 적재 3단계가 채운다
+- 긴 글은 요약과 관련 여부를 모델 한 번으로 받는다(judge). 한 묶음 안에서 가린 글이 같은 민원은 한 번만 처리하고 결과를 복사한다
 - 실행 기록: app.core.job_run 의 '분류' 한 줄(건수·상태만)
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+import re
+from dataclasses import dataclass, replace
 
 from app.core.job_run import track
 from app.services.ai01 import classify as cls
-from app.services.ai01 import masking, summarize as summ
+from app.services.ai01 import judge as jdg
+from app.services.ai01 import masking, ptype, summarize as summ
 
 MASK_FAILED_REASON = "가림 실패"
+# 긴 글: 요약 → 분류 두 번(False, 기본) / 요약·관련 여부를 한 번에(True)
+# 한 번에 받기는 2026-10-24 시험에서 비관련을 관련으로 크게 기울어 게이트 미달(7.8b 64%) → 기본값을 두 번으로 되돌림
+ONE_CALL = False
+_SAME = re.compile(r"[\s\W_]+")
 
 
 @dataclass
@@ -46,30 +53,49 @@ class Ai01Result:
 
 
 def _model_tag() -> str:
-    return f"{masking.VERSION}+{summ.VERSION}+{cls.VERSION}"
+    one = f"+{jdg.VERSION}" if ONE_CALL else ""
+    return f"{masking.VERSION}+{summ.VERSION}+{cls.VERSION}+{ptype.VERSION}{one}"
+
+
+def decide(masked_text: str, report_type_raw: str | None = None, request_id: str | None = None):
+    """가린 글 → (요약, 관련 여부, 신뢰도, 판단 근거, 정한 방법). 요약이 없으면 (None,)*5, 분류 실패면 요약만 채운다."""
+    if report_type_raw:                                       # 신고 분류가 본문과 맞으면 모델 없이 끝낸다 (처리 시간)
+        quick = cls.decide_without_model(report_type_raw, masked_text)
+        if quick:
+            summary = summ.rule_summary(cls.normalize_type(report_type_raw), masked_text)
+            return (summary, *quick, cls.BY_RULE)
+    if ONE_CALL and len(summ._clean(masked_text)) > summ.SHORT:
+        judged = jdg.judge(masked_text, request_id=request_id)
+        if judged is None:
+            return (None,) * 5
+        summary, _, *answer = judged
+        rule = cls.by_rule(summary)                           # 규칙이 맞으면 규칙이 먼저다 (분류와 같은 순서)
+        return (summary, *rule, cls.BY_RULE) if rule else (summary, *answer, cls.BY_AI)
+    summary, _ = summ.summarize(masked_text, request_id=request_id)
+    if not summary:
+        return (None,) * 5
+    decided = cls.classify(summary, report_type_raw, request_id=request_id, masked_text=masked_text)
+    return (summary, *decided) if decided else (summary, None, None, None, None)
 
 
 def refine_one(item: ComplaintInput, ner=None, request_id: str | None = None,
-               drop: frozenset = frozenset()) -> Ai01Result:
+               drop: frozenset = frozenset(), seen: dict | None = None) -> Ai01Result:
+    """seen: 한 묶음 안에서 같은 가린 글의 결과 (같은 글이면 모델을 다시 부르지 않고 복사한다)."""
     m = masking.mask(item.title, item.body, ner=ner, drop=drop)
     if not m.ok:
         return Ai01Result(item.complaint_id, "mask_failed", class_reason=MASK_FAILED_REASON, model=_model_tag())
-    if item.report_type_raw:                                  # 신고 분류가 본문과 맞으면 모델 없이 끝낸다 (처리 시간)
-        quick = cls.decide_without_model(item.report_type_raw, m.text)
-        if quick:
-            relevance, conf, reason = quick
-            summary = summ.rule_summary(cls.normalize_type(item.report_type_raw), m.text)
-            return Ai01Result(item.complaint_id, "ok", masked_summary=summary, relevance=relevance, ped_type=None,
-                              class_confidence=conf, class_reason=reason, class_method=cls.BY_RULE, model=_model_tag())
-    summary, _ = summ.summarize(m.text, request_id=request_id)
-    if not summary:
-        return Ai01Result(item.complaint_id, "error", model=_model_tag())
-    decided = cls.classify(summary, item.report_type_raw, request_id=request_id, masked_text=m.text)
-    if decided is None:
+    key = (cls.normalize_type(item.report_type_raw), _SAME.sub("", m.text))
+    if seen is not None and key in seen:
+        return replace(seen[key], complaint_id=item.complaint_id)
+    summary, relevance, conf, reason, method = decide(m.text, item.report_type_raw, request_id)
+    if not summary or relevance is None:
         return Ai01Result(item.complaint_id, "error", masked_summary=summary, model=_model_tag())
-    relevance, conf, reason, method = decided
-    return Ai01Result(item.complaint_id, "ok", masked_summary=summary, relevance=relevance, ped_type=None,
-                      class_confidence=conf, class_reason=reason, class_method=method, model=_model_tag())
+    ped = ptype.decide_type(summary, item.report_type_raw, request_id) if relevance == cls.RELATED else None
+    r = Ai01Result(item.complaint_id, "ok", masked_summary=summary, relevance=relevance, ped_type=ped,
+                   class_confidence=conf, class_reason=reason, class_method=method, model=_model_tag())
+    if seen is not None:
+        seen[key] = r
+    return r
 
 
 def refine_complaints(items: list[ComplaintInput], *, upload_id=None, request_id: str | None = None,
@@ -86,15 +112,17 @@ def refine_complaints(items: list[ComplaintInput], *, upload_id=None, request_id
             by_type.setdefault(cls.normalize_type(i.report_type_raw), []).append(i.body)
         drop_all = masking.spp_template_lines() | masking.repeated_lines([i.body for i in spp])
         drop_type = {k: masking.repeated_lines(v) for k, v in by_type.items()}
+        seen = {}                                             # 같은 가린 글은 한 번만 (집단 민원, 2026-10-24)
         for item in items:
             try:
                 drop = (drop_all | drop_type.get(cls.normalize_type(item.report_type_raw), frozenset())
                         if masking.is_spp(item.source_type) else frozenset())
-                results.append(refine_one(item, ner=ner, request_id=request_id, drop=drop))
+                results.append(refine_one(item, ner=ner, request_id=request_id, drop=drop, seen=seen))
             except Exception:
                 results.append(Ai01Result(item.complaint_id, "error", model=_model_tag()))   # 예외 글자에 원문이 섞일 수 있어 남기지 않음
         n = {s: sum(r.status == s for r in results) for s in ("ok", "mask_failed", "error")}
-        job.log(f"정제 {n['ok']}건, 가림 실패 {n['mask_failed']}건, 오류 {n['error']}건")
+        copied = sum(r.status == "ok" for r in results) - len(seen)
+        job.log(f"정제 {n['ok']}건(같은 글 복사 {copied}건), 가림 실패 {n['mask_failed']}건, 오류 {n['error']}건")
         job.rows(len(results))
         if n["mask_failed"] or n["error"]:
             job.warn(f"가림 실패 {n['mask_failed']}건, 오류 {n['error']}건은 AI-01 칸을 비워 둠")
