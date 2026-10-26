@@ -164,6 +164,7 @@ class AccountsApiTests(unittest.TestCase):
 
 class StillValidTests(unittest.TestCase):
     """멈춘 계정·바뀐 역할은 토큰이 살아 있어도 막는다 (DB가 있을 때)."""
+    REAL_ACCOUNT_CHECK = True                        # tests/conftest.py가 끄는 계정 상태 확인을 이 시험만 켬
 
     def setUp(self):
         from unittest import mock
