@@ -86,7 +86,7 @@ class ApiTests(BaseLoadCase):
         r = self.post()
         self.assertEqual(r.status_code, 201, r.text)
         j = r.json()
-        self.assertEqual((j["uploadId"], j["rows"], j["new"], j["checkResult"]), (1, 2, 2, "통과"))
+        self.assertEqual((j["uploadId"], j["rows"], j["new"], j["checkResult"]), (1, 2, 2, "VALIDATION_WARNING"))     # AI-01이 연결되지 않아 경고가 있다
         up = self.store.uploads[1]
         self.assertEqual(up["file_name"], "민원 상세정보 현황-20261022190720.xlsx")
         self.assertEqual(up["uploaded_by"], OPERATOR_ID)                    # 올린 운영자 계정이 자동으로 기록됨
@@ -105,6 +105,8 @@ class ApiTests(BaseLoadCase):
         self.assertEqual(r.status_code, 201, r.text)
         self.assertEqual(self.jobs.runs[1]["status"], "성공")
         self.assertEqual(r.json()["warnings"], [])
+        self.assertEqual(r.json()["checkResult"], "VALIDATION_PASSED")
+        self.assertEqual(self.store.uploads[1]["check_result"], "VALIDATION_PASSED")
         self.assertTrue(all(c["masked_summary"] == "요약" for c in self.store.complaints.values()))
 
     def test_second_upload_is_existing(self):
@@ -140,7 +142,8 @@ class ApiTests(BaseLoadCase):
     def test_bad_file_leaves_failed_run_and_alert(self):
         r = self.post(data=b"a,b\n1,2\n")
         self.assertEqual((r.status_code, r.json()["error"]["code"]), (400, "unreadable_file"))
-        self.assertTrue(self.store.uploads[1]["check_result"].startswith("실패"))
+        self.assertEqual(self.store.uploads[1]["check_result"], "VALIDATION_FAILED")
+        self.assertTrue(self.store.uploads[1]["remark"])                    # 사유는 remark에 둔다
         self.assertEqual(self.jobs.runs[1]["status"], "실패")
         self.assertEqual(self.jobs.runs[1]["error_code"], "unreadable_file")
         self.assertEqual(len(self.jobs.alerts), 1)
@@ -173,7 +176,7 @@ class ApiTests(BaseLoadCase):
         self.assertEqual(r.status_code, 200)
         rows = r.json()["uploads"]
         self.assertEqual([u["uploadId"] for u in rows], [2])
-        self.assertEqual(rows[0]["checkResult"], "통과")
+        self.assertEqual(rows[0]["checkResult"], "VALIDATION_WARNING")
         self.assertIn("dataName", rows[0])
 
     def test_list_requires_operator(self):

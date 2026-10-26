@@ -4,7 +4,7 @@ import logging
 import unittest
 
 from app.services.load.ai01_stub import Ai01Result
-from app.services.load.pipeline import UploadMeta, run_load, validate_meta
+from app.services.load.pipeline import CHECK_FAILED, CHECK_PASSED, CHECK_WARNING, UploadMeta, run_load, validate_meta
 from app.services.load.reader import LoadFileError
 from app.services.load.store import MemoryStore
 from tests.test_load_fixtures import BaseLoadCase, GRID, general, meta, spp, xlsx
@@ -32,12 +32,23 @@ class PipelineTests(BaseLoadCase):
         self.assertEqual(self.store.changes, [])
         self.assertEqual(len(self.store.complaints), 4)
 
+    def test_84_check_result_passed_without_warnings(self):
+        ok = lambda items: [Ai01Result(i.complaint_id, "ok", "요약", "보행안전 관련", None, 0.9, "근거", model="mask v0.9") for i in items]
+        res = self.load(rows_basic(), refine=ok)
+        up = self.store.uploads[res.upload_id]
+        self.assertEqual(res.warnings, [])
+        self.assertEqual((res.check_result, up["check_result"]), (CHECK_PASSED, CHECK_PASSED))
+        self.assertNotIn("경고", up["remark"])
+
     def test_84_upload_rows(self):
         res = self.load(rows_basic())
         up = self.store.uploads[res.upload_id]
-        self.assertEqual((up["file_name"], up["check_result"], up["row_cnt"]), (FILE, "통과", 4))
+        self.assertEqual((up["file_name"], up["check_result"], up["row_cnt"]), (FILE, CHECK_WARNING, 4))   # AI-01이 연결되지 않아 경고가 있다
+        self.assertEqual(res.check_result, CHECK_WARNING)
         self.assertIsNone(up["uploaded_by"])
         self.assertTrue(up["remark"].startswith("신규 4 · 기존 0 · 갱신 0"))
+        self.assertIn(f" · 경고 {len(res.warnings)}건: ", up["remark"])                                  # 경고는 요약 뒤에 붙는다
+        self.assertFalse(res.remark.endswith(res.warnings[-1]))                                         # 결과 객체의 요약에는 경고를 섞지 않는다
         ids = {c["upload_id"] for c in self.store.complaints.values()}
         self.assertEqual(ids, {res.upload_id})
 
@@ -90,14 +101,16 @@ class PipelineTests(BaseLoadCase):
         self.assertIsNone(row["processed_date"])                   # 되돌려짐
         self.assertEqual(broken.changes, [])
         up = broken.uploads[max(broken.uploads)]
-        self.assertTrue(up["check_result"].startswith("실패"))
-        self.assertNotIn("시험용", up["check_result"])             # 예외 상세는 남기지 않음
+        self.assertEqual(up["check_result"], CHECK_FAILED)
+        self.assertNotIn("시험용", up["remark"])                    # 예외 상세는 남기지 않음
+        self.assertEqual(up["remark"], "서버 오류로 적재하지 못했습니다.")
 
     def test_rejects_bad_file_and_logs_failure(self):
         with self.assertRaises(LoadFileError):
             run_load(xlsx([], header=("가", "나", "다", "라", "마", "바")), FILE, meta(), self.store)
         up = self.store.uploads[1]
-        self.assertTrue(up["check_result"].startswith("실패 (칸 이름"))
+        self.assertEqual(up["check_result"], CHECK_FAILED)
+        self.assertTrue(up["remark"].startswith("칸 이름"))                # 사유는 remark에 둔다
         self.assertEqual(self.store.complaints, {})
 
     def test_rejects_dates_outside_period(self):

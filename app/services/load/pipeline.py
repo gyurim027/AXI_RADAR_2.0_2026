@@ -24,6 +24,12 @@ from app.services.load.upsert import Counts, apply_records
 
 log = logging.getLogger("radar.load")
 
+# 84 업로드 기록의 검사 결과 코드 (공공 자료 A-03과 같은 값). 화면에는 코드 대신 말로 보인다.
+# 대시보드는 PASSED·WARNING을 '확보'로 세고, FAILED는 확보로 세지 않는다. A-03이 쓰는 CSV_STRUCTURE_PASS_ONLY(형식만 확인)도 확보가 아니다.
+CHECK_PASSED = "VALIDATION_PASSED"      # 검사 통과
+CHECK_WARNING = "VALIDATION_WARNING"    # 검사를 마쳤고 경고가 있다 (자료는 쓴다)
+CHECK_FAILED = "VALIDATION_FAILED"      # 검사 실패 (사유는 remark)
+
 
 @dataclass
 class UploadMeta:
@@ -45,6 +51,7 @@ class LoadResult:
     check: CheckReport
     remark: str
     warnings: list[str] = field(default_factory=list)
+    check_result: str = CHECK_PASSED
 
 
 def validate_meta(meta: UploadMeta) -> None:
@@ -72,7 +79,7 @@ def run_load(data: bytes, file_name: str, meta: UploadMeta, store, refine: Calla
     except Exception as e:
         store.rollback()
         reason = e.message if isinstance(e, LoadFileError) else "서버 오류로 적재하지 못했습니다."
-        store.finish_upload(upload_id, f"실패 ({reason})", None, None)
+        store.finish_upload(upload_id, CHECK_FAILED, None, reason)
         store.commit()
         if not isinstance(e, LoadFileError):
             log.error("load failed upload_id=%s error=%s", upload_id, type(e).__name__)     # 예외 상세는 남기지 않는다 (ISS-032)
@@ -149,6 +156,9 @@ def _process(data: bytes, file_name: str, meta: UploadMeta, store, refine, uploa
     remark = (f"신규 {counts.new} · 기존 {counts.existing} · 갱신 {counts.updated}(바뀜 칸 {counts.change_rows}) · "
               f"빠짐 {counts.missing} · 낮음 상위50 겹침 {check.top50_overlap}/{check.top50_total} · 낮음 몰린 칸 {check.low_heavy_cells}"
               + (f" · 재발 {recur_cnt}" if recur_cnt is not None else ""))
-    store.finish_upload(upload_id, "통과", rows_after, remark)
-    log.info("load ok upload_id=%s rows=%d new=%d updated=%d", upload_id, len(records), counts.new, counts.updated)
-    return LoadResult(upload_id, len(records), counts, ai, check, remark, warnings)
+    check_result = CHECK_WARNING if warnings else CHECK_PASSED
+    # 84 remark: 앞의 요약은 그대로 두고, 경고는 맨 뒤에 붙인다 (500자를 넘으면 경고 쪽만 잘린다)
+    db_remark = remark + (f" · 경고 {len(warnings)}건: " + " / ".join(warnings) if warnings else "")
+    store.finish_upload(upload_id, check_result, rows_after, db_remark)
+    log.info("load ok upload_id=%s rows=%d new=%d updated=%d check=%s", upload_id, len(records), counts.new, counts.updated, check_result)
+    return LoadResult(upload_id, len(records), counts, ai, check, remark, warnings, check_result)
