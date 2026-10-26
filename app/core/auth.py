@@ -242,8 +242,55 @@ def current_user(request: Request) -> dict:
     p = decode_token(token.strip())
     user = {"user_id": int(p["sub"]), "login_id": p.get("login"), "role": p.get("role"), "gu": p.get("gu"),
             "org": p.get("org"), "name": p.get("name"), "login_at": int(p["iat"]), "session": p.get("jti")}
+    _check_still_valid(user)
     request.state.user = user
     return user
+
+
+# ── 멈춘 계정·바뀐 역할 막기 (I-01) ────────────────────
+# 토큰은 8시간 살아 있어서, 운영자가 계정을 멈추거나 역할을 바꿔도 그동안 옛 권한으로 쓸 수 있다.
+# 그래서 DB가 있으면 요청마다 60 app_user를 확인한다 (같은 계정은 30초 동안 다시 읽지 않음).
+_STATE_TTL = 30.0
+_state_cache: dict[int, tuple[float, dict | None]] = {}
+_state_lock = threading.Lock()
+
+
+def forget_account_state(user_id: int | None = None) -> None:
+    """계정 상태를 바꾼 뒤 부른다 (accounts_api). 다음 요청부터 바로 새 상태로 확인."""
+    with _state_lock:
+        if user_id is None:
+            _state_cache.clear()
+        else:
+            _state_cache.pop(user_id, None)
+
+
+def _account_state(user_id: int) -> dict | None:
+    now = time.monotonic()
+    with _state_lock:
+        hit = _state_cache.get(user_id)
+        if hit and now - hit[0] < _STATE_TTL:
+            return hit[1]
+    from app.core import db
+    rows = db.read_only("SELECT role, gu_name, is_active FROM app_user WHERE user_id = %s", (user_id,))
+    row = rows[0] if rows else None
+    with _state_lock:
+        _state_cache[user_id] = (now, row)
+    return row
+
+
+def _check_still_valid(user: dict) -> None:
+    from app.core import db
+    if not db.is_configured():                                  # DB 없이 도는 시험·개발 서버는 토큰만 본다
+        return
+    try:
+        row = _account_state(user["user_id"])
+    except Exception:                                           # DB가 잠깐 안 되면 토큰 확인만으로 통과 (기존과 같음)
+        logger.warning("account state check skipped (db unavailable)")
+        return
+    if row is None or str(row.get("is_active") or "").strip().lower() in INACTIVE:
+        raise ApiError(401, "account_inactive", "사용이 멈춘 계정입니다. RADAR 운영자에게 문의해 주세요")
+    if ROLE_CODES.get(row.get("role") or "") != user.get("role") or (row.get("gu_name") or None) != (user.get("gu") or None):
+        raise ApiError(401, "role_changed", "역할이 바뀌었습니다. 다시 로그인해 주세요")
 
 
 def require_roles(*roles: str) -> Callable[..., dict]:
