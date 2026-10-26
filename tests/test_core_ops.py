@@ -99,6 +99,15 @@ class MemoryOpsRepo(ops_repo.OpsRepository):
     def data_freshness(self):
         return self.freshness
 
+    checks = 0
+    criteria = None
+
+    def checks_unreviewed(self):
+        return self.checks
+
+    def criteria_card(self):
+        return self.criteria
+
     def running_same(self, run):
         return any(r["status"] == "실행 중" and r["module"] == run.get("module") and r["job_name"] == run.get("job_name")
                    and r["ref_id"] == run.get("ref_id") for r in self.s.runs.values())
@@ -168,6 +177,20 @@ class JobRunTests(unittest.TestCase):
             with track("아무거나", "x"):
                 pass
 
+    def test_system_exit_is_failure_not_running(self):
+        """명령이 SystemExit로 멈춰도 '실행 중'으로 남지 않는다 (남으면 다시 실행이 '이미 도는 중'으로 막힘)"""
+        with self.assertRaises(SystemExit):
+            with track("검사", "업무분장 변경 확인"):
+                raise SystemExit("읽을 수 없는 파일 형식: .doc (.hwp · .hwpx · .pdf · .txt)")
+        r = self.store.runs[1]
+        self.assertEqual((r["status"], r["error_code"]), ("실패", "SystemExit"))
+        self.assertIn("읽을 수 없는 파일 형식", r["cause"])
+        self.assertEqual(len(self.store.alerts), 1)
+        with self.assertRaises(SystemExit):
+            with track("검사", "정상 종료"):
+                raise SystemExit(0)
+        self.assertEqual(self.store.runs[2]["status"], "성공")
+
 
 class OpsApiTests(unittest.TestCase):
     def setUp(self):
@@ -226,6 +249,40 @@ class OpsApiTests(unittest.TestCase):
         j = self.c.get("/api/ops/dashboard", headers=_bearer("operator")).json()
         self.assertIsNone(j["data"]["missing"])
         self.assertTrue(any("SQL v2.3" in n for n in j["notes"]))
+
+    def test_dashboard_check_errors(self):
+        """v0.5.4 AD-01 1-1 다음에 할 일: 빠진 자료 → 검사 오류(92 미확인) → … → 실행 실패"""
+        repo = ops_repo.get_repository()
+        repo.checks = 4448
+        j = self.c.get("/api/ops/dashboard", headers=_bearer("operator")).json()
+        self.assertEqual(j["checks"], {"unreviewed": 4448})
+        self.assertEqual((j["next"]["key"], j["next"]["text"], j["next"]["to"]),
+                         ("checks", "검사에서 걸린 자료 4448건을 고쳐 주세요.", "/admin/data/checks"))   # 산정 실패보다 먼저
+        repo.freshness = {"stale": 0, "missing": 2, "unscheduled": 52, "total": 54}
+        self.assertEqual(self.c.get("/api/ops/dashboard", headers=_bearer("operator")).json()["next"]["key"], "missing")
+        repo.freshness, repo.checks = {"stale": 0, "missing": 0, "unscheduled": 54, "total": 54}, 0
+        self.assertEqual(self.c.get("/api/ops/dashboard", headers=_bearer("operator")).json()["next"]["key"], "failed")
+
+        def old_db():
+            raise RuntimeError("Table 'data_issue' doesn't exist")
+        repo.checks_unreviewed = old_db
+        j = self.c.get("/api/ops/dashboard", headers=_bearer("operator")).json()
+        self.assertEqual((j["checks"]["unreviewed"], j["next"]["key"]), (None, "failed"))
+        self.assertTrue(any("92 data_issue" in n for n in j["notes"]))
+
+    def test_dashboard_criteria_card(self):
+        """v0.5.4 AD-01 6-1: 승인 대기 버전이 있으면 그 버전, 없으면 지금 쓰는 버전(승인된 가장 최근)"""
+        repo = ops_repo.get_repository()
+        j = self.c.get("/api/ops/dashboard", headers=_bearer("operator")).json()
+        self.assertIsNone(j["criteria"])
+        repo.criteria = {"setting_version_id": 12, "setting_kind": "가중치", "version_label": "가중치 v3",
+                         "approval_status": "제안", "proposed_at": datetime(2026, 10, 20, 9, 0), "approved_at": None}
+        c = self.c.get("/api/ops/dashboard", headers=_bearer("operator")).json()["criteria"]
+        self.assertEqual((c["id"], c["pending"], c["status"], c["at"], c["to"]),
+                         (12, True, "승인 대기", "2026.10.20", "/admin/standards/criteria/12"))
+        repo.criteria = dict(repo.criteria, approval_status="승인", approved_at=datetime(2026, 10, 22, 15, 0))
+        c = self.c.get("/api/ops/dashboard", headers=_bearer("operator")).json()["criteria"]
+        self.assertEqual((c["pending"], c["status"], c["at"], c["label"]), (False, "사용 중", "2026.10.22", "가중치 v3"))
 
     def test_dashboard_survives_missing_table(self):
         repo = ops_repo.get_repository()
@@ -331,6 +388,98 @@ class RerunApiTests(unittest.TestCase):
         r = self.c.post(f"/api/ops/runs/{self._id('TEST-ENGINE')}/rerun", headers=h)
         self.assertEqual((r.status_code, r.json()["error"]["code"]), (409, "already_running"))
         self.assertEqual(self.calls, [])
+
+
+class StandardsRerunTests(unittest.TestCase):
+    """A-11 법령 개정 확인 · A-12 업무분장 변경 확인의 '다시 실행' (I-06, app/services/standards/rerun_hooks.py)"""
+
+    def setUp(self):
+        import sys
+        import types
+        from app.core import rerun
+        from app.services.standards import rerun_hooks
+        self.rerun, self.hooks, self.sys = rerun, rerun_hooks, sys
+        rerun.ASYNC = False
+        self.store = MemoryJobStore()
+        job_run.set_store(self.store)
+        ops_repo.set_repository(MemoryOpsRepo(self.store))
+        self.c = TestClient(app, base_url="http://127.0.0.1:8000")
+        self.seen, self.fail = [], True
+
+        def fake_main(argv):                                   # A-12 명령 대신 (실제 문서 없이): 입력만 받고 성공/실패
+            with track("검사", "업무분장 변경 확인 (시험)", module="A-12") as job:
+                rerun_hooks.remember(job, "A-12", argv)
+                self.seen.append(list(argv))
+                if self.fail:
+                    raise JobFailed("read_failed", "새 판 파일을 읽지 못함")
+                job.rows(3)
+        mod = types.ModuleType("tests_fake_a12")
+        mod.main = fake_main
+        sys.modules["tests_fake_a12"] = mod
+        self.old_script = rerun_hooks.SCRIPTS["A-12"]
+        rerun_hooks.SCRIPTS["A-12"] = "tests_fake_a12"
+
+    def tearDown(self):
+        self.hooks.SCRIPTS["A-12"] = self.old_script
+        self.sys.modules.pop("tests_fake_a12", None)
+        self.rerun.ASYNC = True
+        job_run.set_store(job_run.JobStore())
+        ops_repo.set_repository(ops_repo.OpsRepository())
+
+    def _latest(self):
+        return max(self.store.runs.values(), key=lambda x: x["job_run_id"])
+
+    def test_registered_on_server_start(self):
+        self.assertTrue(self.rerun.can_rerun("A-11") and self.rerun.can_rerun("A-12"))
+
+    def test_paths_become_absolute(self):
+        from pathlib import Path
+        out = self.hooks.absolute(["--old", "data/old", "--name", "업무분장", "--new=data/new"], ("--old", "--new"))
+        self.assertEqual(out[0:2], ["--old", str(Path("data/old").resolve())])
+        self.assertEqual(out[2:4], ["--name", "업무분장"])
+        self.assertEqual(out[4], f"--new={Path('data/new').resolve()}")
+
+    def test_rerun_with_same_input(self):
+        from pathlib import Path
+        with self.assertRaises(JobFailed):
+            self.sys.modules["tests_fake_a12"].main(["--old", "old_dir", "--new", "new_dir", "--no-ai"])
+        old = self._latest()["job_run_id"]
+        h = _bearer("operator")
+        self.assertTrue(self.c.get(f"/api/ops/runs/{old}", headers=h).json()["canRerun"])
+        self.fail = False
+        r = self.c.post(f"/api/ops/runs/{old}/rerun", headers=h)
+        self.assertEqual(r.status_code, 202)
+        self.assertEqual(self.seen[-1], ["--old", str(Path("old_dir").resolve()), "--new", str(Path("new_dir").resolve()), "--no-ai"])
+        new = self._latest()
+        self.assertEqual((new["status"], new["triggered_by"], new["module"]), ("성공", 9, "A-12"))
+        logs = [l["message"] for l in self.store.logs if l["job_run_id"] == new["job_run_id"]]
+        self.assertEqual(logs[0], f"실행 #{old}(실패)을 처음부터 다시 실행")
+        self.assertTrue(logs[1].startswith(self.hooks.PREFIX))              # 다시 실행한 것도 또 다시 실행 가능
+
+    def test_old_run_without_input_is_refused(self):
+        try:
+            with track("검사", "업무분장 변경 확인 (옛 실행)", module="A-12"):
+                raise JobFailed("read_failed", "x")
+        except JobFailed:
+            pass
+        old = self._latest()["job_run_id"]
+        h = _bearer("operator")
+        self.assertFalse(self.c.get(f"/api/ops/runs/{old}", headers=h).json()["canRerun"])
+        r = self.c.post(f"/api/ops/runs/{old}/rerun", headers=h)
+        self.assertEqual((r.status_code, r.json()["error"]["code"]), (409, "rerun_input_missing"))
+        self.assertEqual(self.seen, [])
+
+    def test_a11_command_logs_input_and_fails_cleanly(self):
+        """실제 A-11 명령: 없는 새 조각 파일 → 실패로 남고, 다시 실행용 입력(절대 경로)이 로그에 있다"""
+        from pathlib import Path
+        from scripts import standards_check_law_revision as a11
+        with self.assertRaises(FileNotFoundError):
+            a11.main(["--new-chunks", "out/없는_조각.jsonl", "--no-save"])
+        run = self._latest()
+        self.assertEqual((run["module"], run["status"]), ("A-11", "실패"))
+        logs = [l for l in self.store.logs if l["job_run_id"] == run["job_run_id"]]
+        self.assertEqual(self.hooks.saved_argv({"logs": logs}),
+                         ["--new-chunks", str(Path("out/없는_조각.jsonl").resolve()), "--no-save"])
 
 
 if __name__ == "__main__":

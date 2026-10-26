@@ -172,6 +172,15 @@ def track(kind: str, name: str, *, module: str | None = None, ref_table: str | N
     except Exception as exc:
         _fail(run_id, name, job, type(exc).__name__, f"처리 중 오류({type(exc).__name__})")
         raise
+    except (SystemExit, KeyboardInterrupt) as exc:      # 명령이 SystemExit로 멈추거나 Ctrl+C → '실행 중'으로 남지 않게 실패로
+        code = exc.code if isinstance(exc, SystemExit) else None
+        if isinstance(exc, SystemExit) and code in (None, 0):
+            if run_id is not None:                      # 정상 종료(exit 0)는 성공과 같다
+                _safe(_store.finish, run_id, WARNING if job._warn else SUCCESS, job._rows, None, job._warn, *job._ref)
+            raise
+        why = str(code) if isinstance(code, str) else ("중단됨(Ctrl+C)" if isinstance(exc, KeyboardInterrupt) else f"종료 코드 {code}")
+        _fail(run_id, name, job, type(exc).__name__, _cut(f"명령이 멈췄습니다: {why}"))
+        raise
     if run_id is not None:
         status = WARNING if job._warn else SUCCESS
         _safe(_store.finish, run_id, status, job._rows, None, job._warn, *job._ref)

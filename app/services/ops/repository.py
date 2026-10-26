@@ -3,6 +3,7 @@
 읽는 표: 85 job_run · 86 job_run_log · 71 alert_delivery · 84 data_upload · 70 access_audit (SQL v2.1)
 대시보드(I-05, AD-01)에 더 읽는 표: 77 priority_run(최근 회차) · 62 setting_version(승인 현황) · 89 standard_change(규정 변경) (SQL v2.2)
                                 · 56 source_list 갱신 주기·예정일 + 84 data_upload 확보 이력(자료 최신 여부) (SQL v2.3)
+                                · 92 data_issue 미확인 검사 오류 · 62 산정 기준 카드 (SQL v2.3, 기능정의서 v0.5.4 AD-01 1-1·6-1)
 """
 from __future__ import annotations
 
@@ -134,6 +135,28 @@ class OpsRepository:
             (*self.CYCLES, *self.CYCLES, *self.VALID, *self.CYCLES))
         r = rows[0] if rows else {}
         return {k: int(r.get(k) or 0) for k in ("stale", "missing", "unscheduled", "total")}
+
+    def checks_unreviewed(self) -> int:
+        """운영자가 아직 확인하지 않은 검사 오류 수 (AD-01 1-1 '검사 오류', SQL v2.3 92 data_issue).
+        칸 설명: review_status "운영자 확인 상태 (NULL = 미확인) — 검사를 다시 돌려도 덮어쓰지 않음"."""
+        rows = db.read_only("SELECT COUNT(*) AS n FROM data_issue WHERE review_status IS NULL")
+        return int(rows[0]["n"]) if rows else 0
+
+    # 산정 기준 (AD-01 6-1, 기능정의서 v0.5.4): "승인 대기 버전이 있으면 그 버전을, 없으면 지금 쓰는 버전을 연다.
+    # 지금 쓰는 버전은 시 도로과가 승인한 가장 최근 버전이다." — 62 setting_version 중 산정 설정 종류(I-02 설정 API와 같은 범위)
+    from app.services.settings.repository import KINDS as CRITERIA_KINDS
+
+    def criteria_card(self) -> dict | None:
+        """승인 대기(제안) 중 가장 최근 것, 없으면 승인된 것 중 가장 최근 것. 둘 다 없으면 None."""
+        k = ", ".join(["%s"] * len(self.CRITERIA_KINDS))
+        cols = "setting_version_id, setting_kind, version_label, approval_status, proposed_at, approved_at"
+        rows = db.read_only(f"SELECT {cols} FROM setting_version WHERE setting_kind IN ({k}) AND approval_status = '제안' "
+                            "ORDER BY proposed_at DESC, setting_version_id DESC LIMIT 1", self.CRITERIA_KINDS)
+        if not rows:
+            rows = db.read_only(f"SELECT {cols} FROM setting_version WHERE setting_kind IN ({k}) "
+                                "AND approval_status = '승인' ORDER BY approved_at DESC, setting_version_id DESC LIMIT 1",
+                                self.CRITERIA_KINDS)
+        return rows[0] if rows else None
 
     def regulation_unseen(self) -> int:
         """운영자가 아직 확인하지 않은 규정 변경 수(89 seen_at 비어 있음)."""
