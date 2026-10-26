@@ -76,6 +76,8 @@ def parse_proposal(content: str, problem: str) -> tuple[str, str, str]:
     if cut < 0 or " → " not in body[:cut]:
         raise ApplyError(422, "content_format", "수정안 글자 꼴이 '전 → 후 (근거 …)'가 아닙니다")
     before, after = body[:cut].split(" → ", 1)
+    if not after.strip():
+        raise ApplyError(422, "content_format", "반영할 담당 부서가 비어 있습니다")
     return jur_id, before.strip(), after.strip()
 
 
@@ -95,9 +97,10 @@ def plan(depts: list[dict], after: str) -> list[dict]:
 
 # ── DB ──────────────────────────────────────────
 
-def _load(cur, sv_id: int):
+def _load(cur, sv_id: int, *, lock: bool = False):
+    suffix = " FOR UPDATE" if lock else ""
     cur.execute("SELECT setting_version_id, setting_kind, content_ref, approval_status, approved_by, approved_at "
-                "FROM setting_version WHERE setting_version_id = %s", (sv_id,))
+                "FROM setting_version WHERE setting_version_id = %s" + suffix, (sv_id,))
     sv = cur.fetchone()
     if not sv:
         raise ApplyError(404, "proposal_not_found", "수정안(62)을 찾을 수 없습니다")
@@ -106,13 +109,13 @@ def _load(cur, sv_id: int):
     m = JUR_ID.match(sv["content_ref"] or "")
     if not m:
         raise ApplyError(422, "content_format", "수정안 글자에서 담당 부서 표 ID(JUR-…)를 찾지 못했습니다")
-    cur.execute("SELECT jurisdiction_id, problem, setting_version_id FROM jurisdiction WHERE jurisdiction_id = %s",
+    cur.execute("SELECT jurisdiction_id, problem, setting_version_id FROM jurisdiction WHERE jurisdiction_id = %s" + suffix,
                 (m.group(1),))
     jur = cur.fetchone()
     if not jur:
         raise ApplyError(404, "jurisdiction_not_found", f"담당 부서 표에 {m.group(1)}이 없습니다")
     cur.execute("SELECT jurisdiction_dept_id, sort_no, gu_name, condition_text, dept_name, org_level "
-                "FROM jurisdiction_dept WHERE jurisdiction_id = %s ORDER BY sort_no, jurisdiction_dept_id",
+                "FROM jurisdiction_dept WHERE jurisdiction_id = %s ORDER BY sort_no, jurisdiction_dept_id" + suffix,
                 (jur["jurisdiction_id"],))
     depts = list(cur.fetchall())
     jur_id, before, after = parse_proposal(sv["content_ref"], jur["problem"])
@@ -121,10 +124,10 @@ def _load(cur, sv_id: int):
 
 def _check(sv, jur, depts, before, after, need_approved: bool) -> str | None:
     """반영할 수 없는 이유 (없으면 None). 이미 반영된 경우는 'already'."""
-    if jur.get("setting_version_id") == sv["setting_version_id"]:
-        return "already"
     if need_approved and sv["approval_status"] != "승인":
         raise ApplyError(409, "not_approved", f"승인된 수정안만 반영합니다 (지금 상태: {sv['approval_status']})")
+    if jur.get("setting_version_id") == sv["setting_version_id"]:
+        return "already"
     if table_label(depts) != before:
         raise ApplyError(409, "table_changed", "제안한 뒤 담당 부서 표가 바뀌었습니다. 지금 표를 보고 다시 제안해 주세요")
     if "확인 필요" in after:
@@ -153,9 +156,9 @@ def apply_approved(sv_id: int, applied_by: int | None = None) -> dict:
     """승인된 수정안 반영. 한 거래로 88 줄 바꿈 + 87.setting_version_id. 실패하면 아무것도 안 바뀐다."""
     with db.connect() as con:
         with con.cursor() as cur:
-            sv, jur, depts, before, after = _load(cur, sv_id)
-            cur.execute("SELECT jurisdiction_id FROM jurisdiction WHERE jurisdiction_id = %s FOR UPDATE",
-                        (jur["jurisdiction_id"],))                        # 같은 줄을 동시에 반영하지 않게
+            # 잠금을 얻은 뒤 현재 값을 읽는다. 대기 전에 읽은 RR 스냅샷으로 판정하면
+            # 서로 다른 제안이 같은 부서표를 연이어 덮어쓸 수 있다.
+            sv, jur, depts, before, after = _load(cur, sv_id, lock=True)
             if _check(sv, jur, depts, before, after, need_approved=True) == "already":
                 return {"ok": True, "already_applied": True, "jur_id": jur["jurisdiction_id"], "setting_version_id": sv_id}
             rows = plan(depts, after)
