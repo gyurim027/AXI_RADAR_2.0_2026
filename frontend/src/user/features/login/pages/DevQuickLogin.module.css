@@ -1,0 +1,40 @@
+.box {
+  width: var(--component-login-card-width);
+  max-width: 100%;
+  margin-top: var(--space-16);
+  padding: var(--space-12) var(--space-16);
+  border: 1px dashed var(--semantic-color-border);
+  border-radius: var(--radius-md);
+  background: var(--semantic-color-bg-surface);
+}
+.title {
+  margin-bottom: var(--space-8);
+  font-size: var(--fs-caption);
+  color: var(--semantic-color-text-muted);
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+.btn {
+  min-height: 40px;
+  padding: 0 var(--space-12);
+  border: 1px solid var(--semantic-color-border);
+  border-radius: var(--radius-sm);
+  background: var(--semantic-color-bg-subtle);
+  color: var(--semantic-color-text);
+  font-size: var(--fs-small);
+}
+.btn:hover:not(:disabled) {
+  border-color: var(--semantic-color-primary-strong);
+  color: var(--semantic-color-primary-strong);
+}
+.btn:disabled {
+  opacity: 0.6;
+}
+.hint {
+  margin-top: var(--space-8);
+  font-size: var(--fs-caption);
+  color: var(--semantic-color-text-muted);
+}

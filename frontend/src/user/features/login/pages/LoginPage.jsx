@@ -3,10 +3,10 @@ import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../../app/providers/AuthProvider.jsx';
 import { backendAuthEnabled, backendBaseUrl, backendHome } from '../../../../api/backend.js';
 import { ROLE } from '../../../../shared/constants.js';
-import { ACCOUNTS, MOCK_PASSWORD } from '../../../../mocks/accounts.js';
 import Button from '../../../components/Button.jsx';
 import { TextField } from '../../../components/FormControls.jsx';
 import { LOGIN_COPY as C } from '../copy.js';
+import DevQuickLogin from './DevQuickLogin.jsx'; // DEV-QUICK-LOGIN
 import styles from './LoginPage.module.css';
 
 const MAX_FAILS = 5; // POL-022 잠금 기준 (5번, 10분)
@@ -44,13 +44,12 @@ export default function LoginPage() {
 
   const canSubmit = loginId.trim() !== '' && password !== '';
 
-  const onSubmit = async (e) => {
-    e.preventDefault();
-    if (!canSubmit || busy) return;
+  const login = async (id, pw) => {
+    if (busy) return;
     setBusy(true);
     setError('');
     try {
-      const r = await signIn(loginId.trim(), password);
+      const r = await signIn(id.trim(), pw);
       if (r.ok) {
         const from = location.state?.from;
         navigate(backendAuthEnabled ? backendHome(r.user.role) : r.user.role === ROLE.OPERATOR ? '/admin' : from && from !== '/login' ? from : '/candidates', { replace: true });
@@ -65,6 +64,19 @@ export default function LoginPage() {
       setBusy(false);
     }
   };
+
+  const onSubmit = (e) => {
+    e.preventDefault();
+    if (canSubmit) login(loginId, password);
+  };
+
+  // DEV-QUICK-LOGIN 시작 (배포 전에 지운다)
+  const quickLogin = (id, pw) => {
+    setLoginId(id);
+    setPassword(pw);
+    if (pw) login(id, pw);
+  };
+  // DEV-QUICK-LOGIN 끝
 
   return (
     <div className={styles.page}>
@@ -96,19 +108,8 @@ export default function LoginPage() {
         <p className={styles.help}>{C.help}</p>
       </form>
 
-      {import.meta.env.DEV && !backendAuthEnabled ? (
-        <details className={styles.dev}>
-          <summary>개발용 가짜 계정 (화면 기능이 아님)</summary>
-          <p>비밀번호는 모두 {MOCK_PASSWORD}</p>
-          <ul>
-            {ACCOUNTS.map((a) => (
-              <li key={a.id}>
-                <code>{a.id}</code> — {a.org}
-              </li>
-            ))}
-          </ul>
-        </details>
-      ) : null}
+      {/* DEV-QUICK-LOGIN */}
+      <DevQuickLogin onPick={quickLogin} disabled={busy} />
     </div>
   );
 }
