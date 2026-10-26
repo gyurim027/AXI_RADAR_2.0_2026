@@ -1,9 +1,14 @@
 """Gemini API 미호출: 두 응답을 모의하여 재생성 및 차단 규칙 검증."""
 import importlib.util, json, os, sys, tempfile, types
+import pytest
 from pathlib import Path
 from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[1]
-FILE = ROOT / 'app' / 'services' / 'ai10_draft.py'
+if not (ROOT / 'data' / 'ai10_ck_rules_v0.4.1.json').is_file():
+    pytest.skip('AI-10 CK 규칙 파일 미배치', allow_module_level=True)
+if not (ROOT / 'data' / 'ai10_reference' / 'seongnam_mobility_plan_excerpt_2026.json').is_file():
+    pytest.skip('AI-10 추가 참고자료 JSON 미배치', allow_module_level=True)
+FILE = ROOT / 'app' / 'services' / 'AI-10' / 'ai10_draft.py'
 spec=importlib.util.spec_from_file_location('draft_retry',FILE)
 m=importlib.util.module_from_spec(spec)
 sys.modules['draft_retry']=m

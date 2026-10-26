@@ -1,5 +1,6 @@
 """기존 ai10_draft import API 및 최신 문장 규칙 오프라인 회귀검증."""
 import sys
+import pytest
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
@@ -14,6 +15,9 @@ def test_ck14():
         assert r['rule_id']==f"CK-{n:02d}"
 
 def test_prompt():
+    reference = ROOT / 'data' / 'ai10_reference' / 'seongnam_mobility_plan_excerpt_2026.json'
+    if not reference.is_file():
+        pytest.skip('AI-10 추가 참고자료 JSON이 없어 프롬프트 검사를 건너뜁니다.')
     p=make_prompt(load_rule('CK-03'))
     assert '정확히 두 문장' in p
     assert '원문(없으면 null): null' in p
