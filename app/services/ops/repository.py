@@ -2,6 +2,7 @@
 
 읽는 표: 85 job_run · 86 job_run_log · 71 alert_delivery · 84 data_upload · 70 access_audit (SQL v2.1)
 대시보드(I-05, AD-01)에 더 읽는 표: 77 priority_run(최근 회차) · 62 setting_version(승인 현황) · 89 standard_change(규정 변경) (SQL v2.2)
+                                · 56 source_list 갱신 주기·예정일 + 84 data_upload 확보 이력(자료 최신 여부) (SQL v2.3)
 """
 from __future__ import annotations
 
@@ -115,6 +116,24 @@ class OpsRepository:
             "WHERE YEAR(CASE WHEN approval_status = '제안' THEN proposed_at ELSE approved_at END) = %s "
             "GROUP BY approval_status", (year,))
         return {r["st"]: int(r["n"]) for r in rows}
+
+    # 자료 최신 여부 (AD-01 2-1, SQL v2.3) — 규칙은 10/26 진이·규림 합의 + 은경
+    CYCLES = ("월간", "분기", "반기", "연간")                       # 이 주기가 정해진 자료만 '빠짐'·'지남' 대상
+    VALID = ("VALIDATION_PASSED", "VALIDATION_WARNING")           # 84 check_result 중 '확보'로 세는 값
+
+    def data_freshness(self) -> dict:
+        """56 자료마다: 지남(다음 갱신 예정일이 오늘보다 앞) · 빠짐(주기가 있는데 유효한 확보 이력이 없음) · 일정 미설정(주기 없음·수시)"""
+        c, v = ", ".join(["%s"] * len(self.CYCLES)), ", ".join(["%s"] * len(self.VALID))
+        rows = db.read_only(
+            "SELECT "
+            f" SUM(s.refresh_cycle IN ({c}) AND s.next_refresh_date < CURDATE()) AS stale,"
+            f" SUM(s.refresh_cycle IN ({c}) AND NOT EXISTS (SELECT 1 FROM data_upload u WHERE u.source_id = s.source_id"
+            f"     AND u.check_result IN ({v}))) AS missing,"
+            f" SUM(s.refresh_cycle IS NULL OR s.refresh_cycle NOT IN ({c})) AS unscheduled,"
+            " COUNT(*) AS total FROM source_list s",
+            (*self.CYCLES, *self.CYCLES, *self.VALID, *self.CYCLES))
+        r = rows[0] if rows else {}
+        return {k: int(r.get(k) or 0) for k in ("stale", "missing", "unscheduled", "total")}
 
     def regulation_unseen(self) -> int:
         """운영자가 아직 확인하지 않은 규정 변경 수(89 seen_at 비어 있음)."""
