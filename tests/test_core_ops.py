@@ -2,7 +2,7 @@
 실행: uv run python -m pytest tests/test_core_ops.py
 """
 import unittest
-from datetime import datetime
+from datetime import date, datetime
 
 from fastapi.testclient import TestClient
 
@@ -75,6 +75,24 @@ class MemoryOpsRepo(ops_repo.OpsRepository):
 
     def access_today(self):
         return 3
+
+    # 대시보드 (I-05 AD-01)
+    run = None
+    approvals = {}
+    unseen = 0
+
+    def latest_run(self):
+        return self.run
+
+    def latest_calc(self):
+        rows = [r for r in self.s.runs.values() if r["job_kind"] == "산정"]
+        return max(rows, key=lambda r: r["job_run_id"]) if rows else None
+
+    def approval_counts(self, year):
+        return self.approvals
+
+    def regulation_unseen(self):
+        return self.unseen
 
 
 def _bearer(role):
@@ -169,6 +187,31 @@ class OpsApiTests(unittest.TestCase):
         j = self.c.get("/api/ops/dashboard", headers=_bearer("operator")).json()
         self.assertEqual((j["runs"]["success"], j["runs"]["failure"], j["alerts"]["unread"]), (1, 1, 1))
         self.assertEqual(j["uploads"]["count"], 7)
+        self.assertEqual(j["next"]["key"], "failed")                       # 가장 최근 산정이 실패 → 다시 실행 안내
+        self.assertEqual((j["run"], j["data"]["stale"], j["regulations"]), (None, None, 0))
+        self.assertEqual(j["approvals"], {"pending": 0, "approved": 0, "returned": 0})
+
+    def test_dashboard_approvals_regulations_run(self):
+        repo = ops_repo.get_repository()
+        repo.run = {"run_id": 3, "created_at": datetime(2027, 1, 5, 9, 0), "period_start": date(2026, 1, 1),
+                    "period_end": date(2026, 12, 31), "admin_sampled_at": None}
+        repo.approvals = {"제안": 2, "승인": 5, "돌려보냄": 1}
+        repo.unseen = 4
+        j = self.c.get("/api/ops/dashboard", headers=_bearer("operator")).json()
+        self.assertEqual(j["approvals"], {"pending": 2, "approved": 5, "returned": 1})
+        self.assertEqual(j["regulations"], 4)
+        self.assertEqual((j["run"]["id"], j["run"]["periodStart"], j["run"]["status"]), (3, "2026.01.01", None))
+        self.assertTrue(any("회차 상태" in n for n in j["notes"]))
+
+    def test_dashboard_survives_missing_table(self):
+        repo = ops_repo.get_repository()
+
+        def boom(*a):
+            raise RuntimeError("no table")
+        repo.regulation_unseen = boom
+        j = self.c.get("/api/ops/dashboard", headers=_bearer("operator")).json()
+        self.assertIsNone(j["regulations"])
+        self.assertIn("89 standard_change를 읽지 못함", j["notes"])
 
     def test_runs_filter_and_detail(self):
         h = _bearer("operator")

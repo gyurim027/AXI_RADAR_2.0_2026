@@ -1,6 +1,7 @@
 """운영 화면이 읽는 값 (I-05·I-06·I-03). 읽기만 하고, 알림 확인만 71에 쓴다.
 
 읽는 표: 85 job_run · 86 job_run_log · 71 alert_delivery · 84 data_upload · 70 access_audit (SQL v2.1)
+대시보드(I-05, AD-01)에 더 읽는 표: 77 priority_run(최근 회차) · 62 setting_version(승인 현황) · 89 standard_change(규정 변경) (SQL v2.2)
 """
 from __future__ import annotations
 
@@ -77,6 +78,40 @@ class OpsRepository:
                             "WHERE uploaded_at >= NOW() - INTERVAL %s DAY", (days,))
         r = rows[0] if rows else {"n": 0, "last_at": None}
         return {"count": int(r["n"] or 0), "last_at": r["last_at"]}
+
+    # ---------- 대시보드 (I-05, 화면명세 AD-01) ----------
+    RUN_BASE = "run_id, build_id, rule_version, created_at, note"
+    RUN_V22 = ", period_start, period_end, admin_sampled_at, district_sampled_at"      # SQL v2.2에서 더한 칸
+
+    def latest_run(self) -> dict | None:
+        """가장 최근 회차(77). v2.1 DB면 v2.2 칸 없이 읽는다."""
+        for cols in (self.RUN_BASE + self.RUN_V22, self.RUN_BASE):
+            try:
+                rows = db.read_only(f"SELECT {cols} FROM priority_run ORDER BY run_id DESC LIMIT 1")
+                return rows[0] if rows else None
+            except Exception:
+                if cols == self.RUN_BASE:
+                    raise
+        return None
+
+    def latest_calc(self) -> dict | None:
+        """가장 최근 산정 실행(85, job_kind='산정')."""
+        rows = db.read_only("SELECT job_run_id, status, ref_table, ref_id, started_at FROM job_run "
+                            "WHERE job_kind = '산정' ORDER BY started_at DESC, job_run_id DESC LIMIT 1")
+        return rows[0] if rows else None
+
+    def approval_counts(self, year: int) -> dict:
+        """올해 제안·승인·돌려보냄 수(62 approval_status). 제안은 제안 시각, 승인·돌려보냄은 처리 시각의 해로 센다."""
+        rows = db.read_only(
+            "SELECT approval_status AS st, COUNT(*) AS n FROM setting_version "
+            "WHERE YEAR(CASE WHEN approval_status = '제안' THEN proposed_at ELSE approved_at END) = %s "
+            "GROUP BY approval_status", (year,))
+        return {r["st"]: int(r["n"]) for r in rows}
+
+    def regulation_unseen(self) -> int:
+        """운영자가 아직 확인하지 않은 규정 변경 수(89 seen_at 비어 있음)."""
+        rows = db.read_only("SELECT COUNT(*) AS n FROM standard_change WHERE seen_at IS NULL")
+        return int(rows[0]["n"]) if rows else 0
 
     def access_today(self) -> int:
         rows = db.read_only("SELECT COUNT(*) AS n FROM access_audit WHERE accessed_at >= CURDATE()")
