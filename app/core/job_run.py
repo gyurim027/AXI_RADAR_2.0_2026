@@ -1,7 +1,7 @@
 """실행 기록 (I-06) + 실패 알림 연결 (I-03), 초안 v0.1 — SQL v2.1의 85 job_run · 86 job_run_log · 71 alert_delivery.
 
 수집·업로드·검사·좌표·분류·산정·설명문·조치 제안·색인을 한 번 돌릴 때마다 85에 한 줄, 중간 단계는 86에 한 줄씩.
-실패하면 71 alert_delivery에 RADAR 운영자 알림을 한 줄 남긴다(I-03). 어드민 실행 로그·대시보드(I-05)가 이 기록을 읽는다.
+실패하면 71 alert_delivery에 RADAR 운영자 알림을 한 줄 남기고, 알림 설정(AD-17)에 메일이 있으면 메일도 보낸다(I-03, app/core/mailer.py). 어드민 실행 로그·대시보드(I-05)가 이 기록을 읽는다.
 
 각 기능(배치·API)에서 쓰는 법
     from app.core.job_run import track, JobFailed
@@ -182,3 +182,5 @@ def _fail(run_id, name, job, code, cause) -> None:
         return
     _safe(_store.finish, run_id, FAILURE, job._rows, _cut(code, 50), cause, *job._ref)
     _safe(_store.alert_failure, run_id, _cut(f"{name} 실행이 실패했습니다: {cause}"))
+    from app.core import mailer                       # RADAR 운영자가 정한 메일로도 (I-03, AD-17). 실패해도 작업·화면 알림은 그대로
+    _safe(mailer.notify_failure, run_id, name, cause, lambda m: _safe(_store.log, run_id, _cut(m)))
