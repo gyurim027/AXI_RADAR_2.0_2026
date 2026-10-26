@@ -107,7 +107,7 @@ async def upload_complaints(
     except Exception:
         raise ApiError(500, "load_failed", "적재하지 못했습니다. 업로드 기록의 검사 결과를 확인하세요.")
     return {
-        "upload_id": res.upload_id, "rows": res.rows, "check_result": "통과",
+        "upload_id": res.upload_id, "rows": res.rows, "check_result": res.check_result,
         "new": res.counts.new, "existing": res.counts.existing, "updated": res.counts.updated,
         "change_rows": res.counts.change_rows, "missing": res.counts.missing,
         "warnings": res.warnings, "remark": res.remark,

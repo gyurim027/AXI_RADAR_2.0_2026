@@ -33,12 +33,31 @@ model = "exaone3.5:7.8b"
 temperature = 0
 max_tokens = 120
 
+[tasks.ai01_judge]
+# AI-01 요약과 관련 여부를 한 번에 (가린 민원 글 → 요약 + 관련 / 비관련 / 불명 + 판단 근거). 긴 글만. 내부 모델만.
+route = "internal"
+model = "exaone3.5:7.8b"
+temperature = 0
+max_tokens = 300
+
+[tasks.ai01_type]
+# AI-01 민원 유형 (관련 민원의 가린 요약 → 유형 9개 중 하나 + 근거, ISS-016). 내부 모델만.
+route = "internal"
+model = "exaone3.5:7.8b"
+temperature = 0
+max_tokens = 80
+
 [tasks.ai03_refine]
 # AI-03 위치 글자 다듬기 (ai03_location_refine/llm.py의 _call). 값은 담당자 정리 문서 기준.
 route = "internal"
 model = "exaone3.5:7.8b"
 temperature = 0
 max_tokens = 300
+
+[tasks.ai05_embed]
+# AI-05 임베딩 (공개 법령 원문 조각·검색 질문 → 숫자 묶음). 민원·개인정보 없음. 내부 모델만. call_embed()로 부른다.
+route = "internal"
+model = "bge-m3"
 
 [tasks.ai07_explain]
 # AI-07 설명문 다듬기 (E-03). 점수·근거는 바꾸지 않으므로 같은 입력이면 같은 문장이 나오게 temperature 0.
@@ -51,3 +70,10 @@ temperature = 0
 route = "external"
 model = ""              # 지금처럼 .env의 GEMINI_MODEL을 쓴다
 temperature = 0.2
+
+[tasks.f05_extract]
+# F-05 담당 부서 표 수정안 (바뀐 업무분장·조례 문장 → 업무·담당 부서·도로 종류). 공개 자료만. 내부 모델만.
+route = "internal"
+model = "exaone3.5:7.8b"
+temperature = 0
+max_tokens = 400

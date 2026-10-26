@@ -1,4 +1,10 @@
 """CK-14 신규 표현 및 Gemini 1회 재시도 회귀검사: 실제 API/DB 호출 없음."""
+import pytest
+from pathlib import Path
+_REFERENCE = Path(__file__).resolve().parents[1] / 'data' / 'ai10_reference' / 'seongnam_mobility_plan_excerpt_2026.json'
+if not _REFERENCE.is_file():
+    pytest.skip('AI-10 공개 참고자료 미배치: 테스트 수집 시 skip', allow_module_level=True)
+
 from app.services.ai10_draft import DraftOutput, validate_draft, make_prompt
 
 CASES = [

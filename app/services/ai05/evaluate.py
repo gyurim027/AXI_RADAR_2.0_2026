@@ -15,8 +15,16 @@ def law_hit(item, law, arts):
     return (not arts) or item.get('article') in arts
 
 def main(index_path, criterion_json, out):
-    ix = LawIndex.load(index_path)
-    rows = json.load(open(criterion_json, encoding='utf-8'))
+    rep = run(LawIndex.load(index_path), json.load(open(criterion_json, encoding='utf-8')))
+    json.dump(rep, open(out, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+    print(json.dumps(brief(rep), ensure_ascii=False))
+    return rep
+
+def brief(rep):
+    return {k: v for k, v in rep.items() if not k.endswith('상세')}
+
+def run(ix, rows):
+    """색인(ix) 하나를 법령색인 rows로 평가 (임베딩을 붙인 색인도 그대로 넣을 수 있음)"""
     have = set(ix.by_law)
     A, B = [], []
     for r in rows:
@@ -37,8 +45,6 @@ def main(index_path, criterion_json, out):
     rate = lambda xs, k: round(sum(x[k] for x in xs) / max(len(xs), 1), 3)
     rep = {'A_대응표': {'건수': len(A), '전부 꺼냄': rate(A, 'ok')}, 'B_검색': {'건수': len(B), '1등 정답': rate(B, 'top1'), '5등 안 정답': rate(B, 'top5'), '5등 안 법령만 맞음': rate(B, 'law_top5')},
            'C_못찾음': {'건수': len(C), '못 찾음으로 나옴': rate(C, 'not_found')}, 'A_상세': A, 'B_상세': B, 'C_상세': C}
-    json.dump(rep, open(out, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
-    print(json.dumps({k: v for k, v in rep.items() if not k.endswith('상세')}, ensure_ascii=False))
     return rep
 
 if __name__ == '__main__':

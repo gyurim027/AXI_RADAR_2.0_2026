@@ -42,25 +42,26 @@ export default function ClassifyPage() {
             <DataTable
               caption={CLASSIFY.title}
               columns={[
-                { key: 'summary', header: CLASSIFY.head[0], first: true },
-                { key: 'relevance', header: CLASSIFY.head[1], nowrap: true },
-                { key: 'label', header: CLASSIFY.head[2] },
-                { key: 'keywords', header: CLASSIFY.head[3] },
-                { key: 'confidence', header: CLASSIFY.head[4], align: 'right', render: (r) => CLASSIFY.confidence(r.confidence) },
+                { key: 'summary', header: CLASSIFY.head[0], first: true, width: 300 },
+                { key: 'relevance', header: CLASSIFY.head[1], nowrap: true, width: 110 },
+                { key: 'label', header: CLASSIFY.head[2], nowrap: true, width: 90, render: (r) => r.label || '-' },
+                { key: 'keywords', header: CLASSIFY.head[3], width: 320 },
+                { key: 'confidence', header: CLASSIFY.head[4], align: 'right', width: 110, render: (r) => CLASSIFY.confidence(r.confidence) },
                 {
                   key: 'action',
                   header: <span className="sr-only">동작</span>,
                   align: 'right',
+                  width: 180,
                   render: (r) =>
                     r.done ? (
                       <Badge tone={r.done === '맞음' ? 'success' : 'info'}>{r.done === '맞음' ? CLASSIFY.doneOk : CLASSIFY.doneFix}</Badge>
                     ) : (
                       <span className={styles.rowBtns}>
                         <Button compact variant="secondary" loading={busyId === r.id} onClick={() => markOk(r)} aria-label={`${CLASSIFY.ok}: ${r.summary}`}>
-                          {CLASSIFY.ok}
+                          {CLASSIFY.okShort}
                         </Button>
                         <Button compact variant="secondary" onClick={() => setFixing(r)} aria-label={`${CLASSIFY.fix}: ${r.summary}`}>
-                          {CLASSIFY.fix}
+                          {CLASSIFY.fixShort}
                         </Button>
                       </span>
                     ),
@@ -68,7 +69,7 @@ export default function ClassifyPage() {
               ]}
               rows={d.items}
               getRowKey={(r) => r.id}
-              emptyContent={<EmptyState text={CLASSIFY.empty} />}
+              emptyContent={<EmptyState text={run.complaintPeriod ? CLASSIFY.empty : CLASSIFY.emptyNoPeriod} />}
             />
             {fixing ? (
               <FixDialog
@@ -91,12 +92,16 @@ export default function ClassifyPage() {
 
 function FixDialog({ item, relevance, types, onClose, onDone }) {
   const [rel, setRel] = useState(item.relevance);
-  const [label, setLabel] = useState(item.label);
+  const [label, setLabel] = useState(item.label || types[0]);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
   const apply = async () => {
+    // 바뀐 값이 없으면 보내지 않는다 (ERR-31)
+    if (rel === item.relevance && (rel !== '관련' || label === item.label)) return setError(CLASSIFY.errorUnchanged);
+    setError('');
     setBusy(true);
     try {
-      await markClassifyAdmin({ id: item.id, result: '고침', relevance: rel, label });
+      await markClassifyAdmin({ id: item.id, result: '고침', relevance: rel, label: rel === '관련' ? label : null });
       onDone();
     } catch {
       reportActionError();
@@ -117,8 +122,9 @@ function FixDialog({ item, relevance, types, onClose, onDone }) {
         </Button>
       }
     >
+      {error ? <p role="alert">{error}</p> : null}
       <SelectInput label={CLASSIFY.fixRelevance} value={rel} onChange={setRel} options={relevance} />
-      <SelectInput label={CLASSIFY.fixType} value={label} onChange={setLabel} options={types} />
+      <SelectInput label={CLASSIFY.fixType} value={rel === '관련' ? label : ''} onChange={setLabel} options={types} placeholder="-" disabled={rel !== '관련'} help={CLASSIFY.fixTypeHelp} />
     </Dialog>
   );
 }

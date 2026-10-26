@@ -26,3 +26,22 @@
     transition: none;
   }
 }
+
+@media (max-width: 1099px) {
+  .bar {
+    flex-wrap: wrap;
+    gap: var(--space-8);
+    padding: var(--space-8) var(--space-16);
+  }
+  .msg {
+    flex-basis: 100%;
+  }
+}
+
+@media (max-width: 1099px) {
+  .bar,
+  .hidden {
+    position: static;
+    transform: none;
+  }
+}

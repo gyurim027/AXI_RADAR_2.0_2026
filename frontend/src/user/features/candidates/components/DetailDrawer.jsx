@@ -2,7 +2,8 @@ import { useEffect, useRef } from 'react';
 import Button from '../../../components/Button.jsx';
 import Icon from '../../../components/Icon.jsx';
 import Tag from '../../../components/Tag.jsx';
-import { ErrorState, SkeletonBlock } from '../../../components/States.jsx';
+import { COMMON } from '../../../../shared/copy/common.js';
+import { EmptyState, ErrorState, SkeletonBlock } from '../../../components/States.jsx';
 import { DRAWER } from '../copy.js';
 import RankBasisTab from './tabs/RankBasisTab.jsx';
 import ArticlesTab from './tabs/ArticlesTab.jsx';
@@ -24,7 +25,7 @@ export function visibleTabs(detail) {
  * US-03 후보 상세. 오른쪽 서랍이 지도 영역을 덮는다. 목록은 뒤에 그대로 남는다.
  * 머리와 탭 줄은 고정하고 탭 내용만 스크롤한다.
  */
-export default function DetailDrawer({ row, detail, loading, failed, onRetry, tab, setTab, onClose, onPrev, onNext, onChanged, onGoTab }) {
+export default function DetailDrawer({ row, detail, loading, failed, errorCode, onRetry, tab, setTab, onClose, onPrev, onNext, onChanged, onGoTab }) {
   const ref = useRef(null);
   const tabs = visibleTabs(detail);
   const current = tabs.includes(tab) ? tab : 1;
@@ -94,7 +95,14 @@ export default function DetailDrawer({ row, detail, loading, failed, onRetry, ta
       </div>
 
       <div id="drawer-panel" role="tabpanel" aria-labelledby={`drawer-tab-${current}`} className={styles.body}>
-        {failed ? (
+        {failed && (errorCode === 'forbidden' || errorCode === 'notFound') ? (
+          // 접근할 수 없거나 없는 후보는 불러오기 실패가 아니라 안내로 쓴다 (ERR-14·42, POL-024)
+          <EmptyState text={errorCode === 'forbidden' ? COMMON.forbiddenGu : COMMON.notFoundCandidate}>
+            <Button variant="soft" onClick={onClose}>
+              {COMMON.backToList}
+            </Button>
+          </EmptyState>
+        ) : failed ? (
           <ErrorState areaName="후보 상세" onRetry={onRetry} />
         ) : loading && !detail ? (
           <SkeletonBlock />

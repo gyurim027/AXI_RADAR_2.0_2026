@@ -7,6 +7,7 @@ import { ErrorState, SkeletonBlock } from '../../../components/States.jsx';
 import { confirmGu, getConfirmSummary } from '../../../../api/candidates.js';
 import { useAsync } from '../../../../shared/hooks/useAsync.js';
 import { ROLE } from '../../../../shared/constants.js';
+import { COMMON } from '../../../../shared/copy/common.js';
 import { CONFIRM } from '../copy.js';
 import styles from './ConfirmModal.module.css';
 
@@ -16,7 +17,7 @@ import styles from './ConfirmModal.module.css';
  * - 도로관리팀: 확정 확인 → 확정 완료. 다른 구의 진행 상황과 회차 확정 조건은 구 화면에 쓰지 않는다 (ISS-029).
  * 바깥을 눌러도 닫히지 않는다. 확정은 되돌릴 수 없는 일이기 때문이다 (디자인 시스템 8장).
  */
-export default function ConfirmModal({ runId, role, onClose, onConfirmed }) {
+export default function ConfirmModal({ runId, role, onClose, onConfirmed, onFailed }) {
   const { data, failed, reload, loading } = useAsync(() => getConfirmSummary({ runId }), [runId]);
   const [stage, setStage] = useState('ask'); // ask | done
   const [busy, setBusy] = useState(false);
@@ -31,7 +32,8 @@ export default function ConfirmModal({ runId, role, onClose, onConfirmed }) {
       setStage('done');
       onConfirmed();
     } catch {
-      setErr('점검 대상을 확정하지 못했습니다. 잠시 뒤 다시 시도해 주세요.');
+      setErr(COMMON.saveFailed);
+      onFailed?.(); // POL-024
     } finally {
       setBusy(false);
     }

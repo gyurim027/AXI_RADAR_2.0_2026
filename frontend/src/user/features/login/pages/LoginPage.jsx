@@ -1,17 +1,37 @@
 import { useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../../app/providers/AuthProvider.jsx';
-import { backendAuthEnabled } from '../../../../api/backend.js';
+import { backendAuthEnabled, backendBaseUrl, backendHome } from '../../../../api/backend.js';
 import { ROLE } from '../../../../shared/constants.js';
-import { ACCOUNTS, MOCK_PASSWORD } from '../../../../mocks/accounts.js';
 import Button from '../../../components/Button.jsx';
 import { TextField } from '../../../components/FormControls.jsx';
 import { LOGIN_COPY as C } from '../copy.js';
+import DevQuickLogin from './DevQuickLogin.jsx'; // DEV-QUICK-LOGIN
 import styles from './LoginPage.module.css';
+
+const MAX_FAILS = 5; // POL-022 잠금 기준 (5번, 10분)
+
+/** 오류 코드로 문구를 고른다 (2-7~2-12). 모르는 코드는 2-11. */
+function errorText(e) {
+  switch (e?.code) {
+    case 'inactive_account':
+      return C.inactive;
+    case 'unknown_role':
+      return C.noRole;
+    case 'network_error':
+      return C.network;
+    case 'session_unavailable':
+      return C.noStorage;
+    case 'forbidden_role':
+      return e.message;
+    default:
+      return C.other;
+  }
+}
 
 /** CM-01 로그인. 로그인하면 계정의 역할과 소속 구로 첫 화면을 연다 (U-04). */
 export default function LoginPage() {
-  const { user, checking, signIn } = useAuth();
+  const { user, checking, signIn, loginNotice } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [loginId, setLoginId] = useState('');
@@ -20,46 +40,64 @@ export default function LoginPage() {
   const [busy, setBusy] = useState(false);
 
   if (checking) return <p role="status">로그인을 확인하고 있습니다.</p>;
-  if (user) return <Navigate to={backendAuthEnabled ? user.role === ROLE.OPERATOR ? '/admin/standards/criteria' : '/reference/approvals' : user.role === ROLE.OPERATOR ? '/admin' : '/candidates'} replace />;
+  if (user) return <Navigate to={backendAuthEnabled ? backendHome(user.role) : user.role === ROLE.OPERATOR ? '/admin' : '/candidates'} replace />;
 
   const canSubmit = loginId.trim() !== '' && password !== '';
 
-  const onSubmit = async (e) => {
-    e.preventDefault();
-    if (!canSubmit || busy) return;
+  const login = async (id, pw) => {
+    if (busy) return;
     setBusy(true);
     setError('');
     try {
-      const r = await signIn(loginId.trim(), password);
+      const r = await signIn(id.trim(), pw);
       if (r.ok) {
         const from = location.state?.from;
-        navigate(backendAuthEnabled ? r.user.role === ROLE.OPERATOR ? '/admin/standards/criteria' : '/reference/approvals' : r.user.role === ROLE.OPERATOR ? '/admin' : from && from !== '/login' ? from : '/candidates', { replace: true });
+        navigate(backendAuthEnabled ? backendHome(r.user.role) : r.user.role === ROLE.OPERATOR ? '/admin' : from && from !== '/login' ? from : '/candidates', { replace: true });
       } else if (r.reason === 'locked') {
-        setError(C.locked(r.lockMinutes));
+        setError(C.locked(MAX_FAILS, r.lockMinutes));
       } else {
         setError(C.wrong(r.remaining, r.lockMinutes));
       }
     } catch (e) {
-      setError(e.message || '로그인하지 못했습니다. 다시 시도해 주세요.');
+      setError(errorText(e));
     } finally {
       setBusy(false);
     }
   };
+
+  const onSubmit = (e) => {
+    e.preventDefault();
+    if (canSubmit) login(loginId, password);
+  };
+
+  // DEV-QUICK-LOGIN 시작 (배포 전에 지운다)
+  const quickLogin = (id, pw) => {
+    setLoginId(id);
+    setPassword(pw);
+    if (pw) login(id, pw);
+  };
+  // DEV-QUICK-LOGIN 끝
 
   return (
     <div className={styles.page}>
       <form className={styles.card} onSubmit={onSubmit} noValidate>
         <h1 className={styles.title}>{C.title}</h1>
         <p className={styles.subtitle}>{C.subtitle}</p>
+        {/* 개발 화면에서만: 서버에 붙었는지 연습용 로그인인지 보인다. 연습용인데 서버 계정으로 시도하면 틀린 비밀번호로 보여 헷갈리기 때문이다. */}
+        {import.meta.env.DEV ? (
+          <p className={`${styles.mode} ${backendAuthEnabled ? styles.modeLive : ''}`} role="note">
+            {backendAuthEnabled ? C.devServer(backendBaseUrl) : C.devMock}
+          </p>
+        ) : null}
 
         <div className={styles.fields}>
           <TextField label={C.idLabel} value={loginId} onChange={setLoginId} autoComplete="username" name="loginId" />
           <TextField label={C.pwLabel} value={password} onChange={setPassword} type="password" autoComplete="current-password" name="password" />
         </div>
 
-        {error ? (
+        {error || loginNotice ? (
           <p className={styles.error} role="alert">
-            {error}
+            {error || loginNotice}
           </p>
         ) : null}
 
@@ -70,19 +108,8 @@ export default function LoginPage() {
         <p className={styles.help}>{C.help}</p>
       </form>
 
-      {import.meta.env.DEV && !backendAuthEnabled ? (
-        <details className={styles.dev}>
-          <summary>개발용 가짜 계정 (화면 기능이 아님)</summary>
-          <p>비밀번호는 모두 {MOCK_PASSWORD}</p>
-          <ul>
-            {ACCOUNTS.map((a) => (
-              <li key={a.id}>
-                <code>{a.id}</code> — {a.org}
-              </li>
-            ))}
-          </ul>
-        </details>
-      ) : null}
+      {/* DEV-QUICK-LOGIN */}
+      <DevQuickLogin onPick={quickLogin} disabled={busy} />
     </div>
   );
 }

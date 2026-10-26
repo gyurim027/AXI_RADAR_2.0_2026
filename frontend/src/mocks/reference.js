@@ -40,14 +40,15 @@ export const PROPOSALS = [
 
 /** US-11 분류 검수 표본 (구 도로관리팀, 자기 구 민원만) */
 const SAMPLE_BASE = [
-  ['…역 출구 앞 인도에 차가 올라와…', '인도 불법 주정차', '인도, 차'],
-  ['…횡단보도 앞에 차량이 계속 서 있어…', '횡단보도 불법 주정차', '횡단보도, 차량'],
-  ['…학교 앞 인도가 좁아 걷기 어려워…', '보도 폭 부족', '인도, 좁아'],
-  ['…건널목 신호가 너무 빨리 바뀌어…', '횡단보도 신호시간 판단 불가', '신호, 바뀌어'],
-  ['…골목 가로등이 꺼져 밤에 어두워…', '조도 부족', '가로등, 어두워'],
-  ['…시장 입구 인도에 트럭이 서 있어…', '인도 불법 주정차', '인도, 트럭'],
-  ['…큰 도로를 건널 때 중간에 쉴 곳이 없어…', '중간 대피 공간 없음', '건널, 중간'],
-  ['…버스정류장 횡단보도에 상습 주차…', '횡단보도 불법 주정차', '횡단보도, 주차'],
+  ['…역 출구 앞 인도에 차가 올라와…', '주정차', '인도, 차'],
+  ['…횡단보도 앞에 차량이 계속 서 있어…', '주정차', '횡단보도, 차량'],
+  ['…학교 앞 인도가 좁아 걷기 어려워…', '보행로', '인도, 좁아'],
+  ['…건널목 신호가 너무 빨리 바뀌어…', '신호', '신호, 바뀌어'],
+  ['…골목 가로등이 꺼져 밤에 어두워…', '조명', '가로등, 어두워'],
+  ['…상가 앞 인도에 물건을 쌓아 두어…', '점유', '인도, 물건'],
+  ['…큰 도로를 건널 때 중간에 쉴 곳이 없어…', '시설', '건널, 중간'],
+  ['…버스정류장 횡단보도에 상습 주차…', '주정차', '횡단보도, 주차'],
+  ['…동 주민센터에 문의했는데 답이 없어…', null, '문의, 답변', '불명'], // 관련 여부가 불명이면 유형은 비운다
 ];
 export const CLASSIFY_SAMPLES = Object.fromEntries(
   ['수정구', '중원구', '분당구'].map((gu, gi) => [
@@ -58,6 +59,7 @@ export const CLASSIFY_SAMPLES = Object.fromEntries(
       summary: row[0],
       label: row[1],
       keywords: row[2],
+      relevance: row[3] || '관련',
     })),
   ]),
 );
@@ -78,7 +80,7 @@ export const ACTION_TABLE = OBSTACLES.filter((o, i, arr) => arr.findIndex((x) =>
 /** US-00 알림. role: 누가 받는지, kind: 눌렀을 때 가는 곳 */
 export const NOTIFICATIONS = [
   { id: 'n1', roles: [ROLE.CITY], kind: 'approval', date: '2026.11.03', text: (c) => `산정 기준 ${c.version} 승인 요청이 왔습니다.` },
-  { id: 'n2', roles: [ROLE.CITY], kind: 'runOpen', date: '2026.11.01', text: (c) => `${c.runName} 회차가 열렸습니다. 3개 구 점검 후보를 확인해 보세요.` },
-  { id: 'n3', roles: [ROLE.DISTRICT], kind: 'runOpen', date: '2026.11.01', text: (c) => `${c.runName} 회차가 열렸습니다. ${c.gu} 점검 후보를 결정해 주세요.` },
-  { id: 'n4', roles: [ROLE.CITY, ROLE.DISTRICT], kind: 'halfYear', date: '2026.07.15', text: (c) => `${c.refName} 참고 회차가 열렸습니다. 바뀐 순위를 확인해 보세요.` },
+  { id: 'n2', roles: [ROLE.CITY], kind: 'runOpen', date: '2026.11.01', text: (c) => `${c.runTitle}가 열렸습니다. 3개 구 점검 후보를 확인해 보세요.` },
+  { id: 'n3', roles: [ROLE.DISTRICT], kind: 'runOpen', date: '2026.11.01', text: (c) => `${c.runTitle}가 열렸습니다. ${c.gu} 점검 후보를 결정해 주세요.` },
+  { id: 'n4', roles: [ROLE.CITY, ROLE.DISTRICT], kind: 'halfYear', date: '2026.07.15', text: (c) => `${c.refTitle}이 열렸습니다. 바뀐 순위를 확인해 보세요.` },
 ];

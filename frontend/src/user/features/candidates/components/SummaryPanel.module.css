@@ -107,3 +107,9 @@
   justify-content: flex-start;
   margin-top: var(--space-8);
 }
+
+@media (max-width: 1099px) {
+  .panel {
+    max-width: calc(100% - 2 * var(--component-map-card-margin));
+  }
+}

@@ -1,15 +1,19 @@
 import Button from '../../../components/Button.jsx';
 import Tag from '../../../components/Tag.jsx';
 import Icon from '../../../components/Icon.jsx';
+import { InfoHelp } from '../../../components/FormControls.jsx';
 import { RELIABILITY } from '../../../../shared/constants.js';
-import { LIST } from '../copy.js';
+import { DRAWER, LIST } from '../copy.js';
 import { activeTags, clearTag } from '../filters.js';
 import styles from './FilterBar.module.css';
 
-function ChipGroup({ label, options, value, onToggle }) {
+function ChipGroup({ label, options, value, onToggle, help, helpLabel }) {
   return (
     <div className={styles.group} role="group" aria-label={label}>
-      <span className={styles.groupLabel}>{label}</span>
+      <span className={styles.groupLabel}>
+        {label}
+        {help ? <InfoHelp label={helpLabel}>{help}</InfoHelp> : null}
+      </span>
       <div className={styles.chips}>
         {options.map((o) => {
           const on = value.includes(o);
@@ -51,9 +55,9 @@ export default function FilterBar({ filters, setFilters, city, obstacleOptions, 
       {open ? (
         <div id="filter-panel" className={styles.panel} role="group" aria-label={LIST.filterPanelLabel}>
           <ChipGroup label={LIST.obstacleLabel} options={obstacleOptions} value={filters.obstacles} onToggle={toggle('obstacles')} />
-          <ChipGroup label={LIST.reliabilityLabel} options={RELIABILITY} value={filters.reliability} onToggle={toggle('reliability')} />
+          <ChipGroup label={LIST.reliabilityLabel} options={RELIABILITY} value={filters.reliability} onToggle={toggle('reliability')} help={DRAWER.reliabilityHelp} helpLabel={DRAWER.reliabilityHelpLabel} />
           <ChipGroup label={LIST.zoneLabel} options={LIST.zoneOptions} value={filters.zone} onToggle={toggle('zone')} />
-          <ChipGroup label={LIST.complaintLabel} options={LIST.complaintOptions} value={filters.complaint} onToggle={toggle('complaint')} />
+          <ChipGroup label={LIST.complaintLabel} options={LIST.complaintOptions} value={filters.complaint} onToggle={toggle('complaint')} help={LIST.complaintHelp} helpLabel={LIST.complaintHelpLabel} />
         </div>
       ) : null}
 

@@ -46,5 +46,10 @@ export function approvalErrorMessage(error) {
   if (details.approvalStatus === '승인') {
     return `승인은 기록됐습니다. ${details.departmentApplied === false ? '담당 부서 표는 반영되지 않았습니다.' : '담당 부서 표 반영 여부를 확인해야 합니다.'} ${message}`;
   }
+  // 연결이 끊겨 처리됐는지 모르면 같은 요청을 다시 보내기 전에 처리 상태를 먼저 확인하게 한다 (POL-024)
+  if (error?.code === 'network_error') return `${message} 처리 상태를 다시 확인해 주세요.`;
+  if (error?.code === 'proposal_already_reviewed') return '이미 처리된 제안입니다. 목록을 새로 불러왔습니다.'; // ERR-37
+  if (error?.code === 'proposal_conflict') return '다른 사용자가 먼저 이 제안을 처리했습니다. 처리 결과를 목록에서 확인해 주세요.'; // ERR-38
+  if (error?.code === 'proposal_not_found') return '선택한 제안을 찾을 수 없습니다. 목록을 새로 불러왔으니 다시 골라 주세요.'; // ERR-44
   return message;
 }

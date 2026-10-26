@@ -1,6 +1,6 @@
 """AI-05 법령 RAG ③ 색인·찾기
 - 대응표 경로: 조문을 알면(예: '도로교통법 제32조', 판정 유형 'T18') 원문에서 그 조를 그대로 꺼냄
-- 검색 경로: 대응표에 없으면 BM25(형태소) 검색. 임베딩 모델이 있으면 함께 써서 순위를 섞음(RRF)
+- 검색 경로: 대응표에 없으면 BM25(형태소 낱말) 검색. 임베딩(공통 LLM 모듈 call_embed, embed.py)이 붙어 있으면 함께 써서 순위를 섞음(RRF)
 지킬 것(기능정의서 05 AI-05): 원문 조각만 그대로 인용 · 없는 조문 번호를 만들지 않음 · 못 찾으면 '보유 원문에서 못 찾음' ·
 시행 전 판은 '시행 전'으로 따로 표시 · 법 해석·위반 판단을 하지 않음
 """
@@ -47,7 +47,7 @@ class LawIndex:
         self.tokset = [set(t) for t in toks]                      # '못 찾음' 판단용: 질문 단어가 조각에 얼마나 들어 있나
         self.bm = BM25Okapi(toks)
         self._max_idf = max(self.bm.idf.values()) * 1.2
-        self.emb = None                                           # load_embeddings()로 켬
+        self.emb = None                                           # attach_embeddings()로 켬 (embed.py)
         self.by_law = {}
         for i, c in enumerate(chunks): self.by_law.setdefault(norm_law(c['law_name']), []).append(i)
 
@@ -61,12 +61,19 @@ class LawIndex:
     def load(path):
         return pickle.load(open(path, 'rb'))
 
-    # ---------- 임베딩(선택) ----------
-    def load_embeddings(self, model_name_or_path):
-        """한국어 임베딩 모델(예: 내부에 받아 둔 bge-m3)을 켬. 이 작업 공간은 모델 사이트 접속이 막혀 시험하지 못함"""
-        from sentence_transformers import SentenceTransformer
-        self.model = SentenceTransformer(model_name_or_path)
-        self.emb = self.model.encode([c['text'][:1000] for c in self.C], normalize_embeddings=True, batch_size=32)
+    # ---------- 임베딩(선택, embed.py) ----------
+    def attach_embeddings(self, vectors, embed_query, sim_min=None):
+        """조각별 숫자 묶음(길이 1)과 질문을 숫자로 바꾸는 함수를 붙인다. 모델은 공통 LLM 모듈(call_embed)이 부른다.
+        sim_min: 이보다 덜 비슷하면 임베딩만으로는 '찾음'으로 치지 않음 (관계없는 질문으로 정한 값)"""
+        self.emb, self._embed_query, self.sim_min = vectors, embed_query, sim_min
+
+    def _query_sim(self, query):
+        """질문과 모든 조각의 유사도. 임베딩이 없거나 호출이 실패하면 None (낱말 검색만)"""
+        if getattr(self, 'emb', None) is None: return None
+        try:
+            return self.emb @ self._embed_query(query)
+        except Exception:                                         # 공용 PC Ollama가 꺼져 있는 등 → 이번 질문은 낱말 검색만
+            return None
 
     # ---------- 대응표 경로: 조문 바로 꺼내기 ----------
     def article(self, law, article_no, include_future=False):
@@ -99,6 +106,8 @@ class LawIndex:
         if getattr(self, '_tt', None) is None:
             self._tt = [set(tokens(c.get('article_title') or c.get('section') or '')) for c in self.C]
         return self._tt
+    EMB_W = 1.0          # 임베딩 순위 무게 (낱말 순위 = 1). 비교 결과가 낮으면 조정 (docs/ai05/embedding.md)
+    POOL = 200           # 낱말·임베딩 각각 위에서 몇 개까지 섞을지
     MIN_COVER = 0.4      # 희귀도 가중 포함률 기준. 2026-10-18 평가: 0.4에서 5등 안 정답 83% · 관계없는 질문 10/10 걸러냄 (evaluate.py)
 
     def search(self, query, k=5, include_future=False, law=None, min_score=None, min_cover=None):
@@ -118,12 +127,13 @@ class LawIndex:
             keep = set(self.by_law.get(norm_law(law), []))
             s = [v if i in keep else 0 for i, v in enumerate(s)]
         order = sorted(range(len(s)), key=lambda i: -s[i])
-        if self.emb is not None:                                  # BM25 순위 + 임베딩 순위 섞기(RRF)
-            qv = self.model.encode([query], normalize_embeddings=True)[0]
-            sim = self.emb @ qv; eo = sorted(range(len(sim)), key=lambda i: -sim[i])[:200]
+        sim = self._query_sim(query)
+        if sim is not None:                                       # 낱말(BM25) 순위 + 임베딩 순위 섞기(RRF, 순위만 씀)
+            if law: sim = [v if i in keep else -1 for i, v in enumerate(sim)]
+            eo = sorted(range(len(sim)), key=lambda i: -sim[i])[:self.POOL]
             rrf = {}
-            for r, i in enumerate(order[:200]): rrf[i] = rrf.get(i, 0) + 1 / (60 + r)
-            for r, i in enumerate(eo): rrf[i] = rrf.get(i, 0) + 1 / (60 + r)
+            for r, i in enumerate(order[:self.POOL]): rrf[i] = rrf.get(i, 0) + 1 / (60 + r)
+            for r, i in enumerate(eo): rrf[i] = rrf.get(i, 0) + self.EMB_W / (60 + r)
             order = sorted(rrf, key=lambda i: -rrf[i])
         top = s[order[0]] if order else 0
         floor = min_score if min_score is not None else max(4.0, 1.2 * len(q))   # 너무 약하면 '못 찾음' (평가로 정한 값)
@@ -132,13 +142,16 @@ class LawIndex:
             c = self.C[i]
             if self.ONE_PER_CITE and c['cite'] in cites: continue      # 같은 인용(같은 조·같은 별표 소제목)은 한 번만 — 다른 조문에 자리를 줌
             if c['status'] == '시행 전' and not include_future: continue
-            if s[i] < floor and self.emb is None: break
+            sem = sim is not None and self.sim_min is not None and sim[i] >= self.sim_min   # 뜻이 충분히 가까움 (낱말이 달라도)
+            if sim is None and s[i] < floor: break
             # 포함률 = 조각에 있는 질문 단어의 희귀도 합 / 질문 단어 희귀도 합. 법령 원문에 아예 없는 단어(아이폰 등)는 가장 무겁게 셈
             w = {t: self.bm.idf.get(t, self._max_idf) for t in qs}
             has = [t for t in qs if t in self.tokset[i] or any(y in self.tokset[i] for y in alt[t])]   # 같은 뜻 낱말이 있어도 들어 있는 것으로
             cover = sum(w[t] for t in has) / sum(w.values())
-            if cover < cover_need: continue
-            out.append({**c, 'score': round(float(s[i]), 2), 'cover': round(cover, 2)}); cites.add(c['cite'])
+            if cover < cover_need and not sem: continue
+            if sim is not None and s[i] < floor and not sem: continue
+            out.append({**c, 'score': round(float(s[i]), 2), 'cover': round(cover, 2),
+                        'sim': round(float(sim[i]), 3) if sim is not None else None}); cites.add(c['cite'])
             if len(out) >= k: break
         return out
 

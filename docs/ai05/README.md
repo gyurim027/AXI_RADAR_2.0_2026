@@ -50,5 +50,6 @@ uv run python -m scripts.ai05_build_index <법령 원문 폴더> 2026-10-21    #
 
 - 유형-조문 대응표(W02-03·W04-19)와 E-04에 넣을 문제 유형(CK / JUR / 화면 유형)이 정해지면 `problem_type`이 바뀝니다.
 - 화면 조문 탭(`ArticlesTab.jsx`)은 `{id, name, effective, pending, body}`를 기대합니다. 연결할 때 `cite→name`, `quote→body`, `status=='시행 전'→pending`으로 맞춥니다.
-- 평가 기준 질문 20개가 정해지지 않아 법령색인으로 대신 평가했습니다 (대응표 97% · 검색 5등 안 81% · 못 찾음 10/10).
+- ~~평가 기준 질문 20개가 정해지지 않아 법령색인으로 대신 평가했습니다~~ → 10/23 기능정의서 기준 20문항(`data/eval/ai05_cases.csv`)으로 공통 평가 틀(W05-06)에서 평가: 16/20.
+- 법령 색인 원문 대조(W04-19, 은경): `uv run python -m scripts.ai05_check_criterion` → `docs/ai05/criterion_check.csv`. 결과와 더 받아야 할 원문은 `docs/ai05/W04-19_criterion_check.md`.
 - 임베딩 검색은 코드만 있고 시험하지 않았습니다.

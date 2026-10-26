@@ -23,6 +23,7 @@ export default function AccountsPage() {
   const [done, setDone] = useState(false);
   const [error, setError] = useState('');
   const [busyId, setBusyId] = useState(null);
+  const [temp, setTemp] = useState(null); // 새 계정의 임시 비밀번호. 한 번만 보인다.
 
   const toggle = async (row) => {
     setBusyId(row.id);
@@ -91,12 +92,31 @@ export default function AccountsPage() {
         <CreateDialog
           roles={state.data.roles}
           onClose={() => setCreating(false)}
-          onCreated={() => {
+          onCreated={(r) => {
             setCreating(false);
             setDone(true);
+            if (r?.tempPassword) setTemp({ id: r.id, tempPassword: r.tempPassword });
             state.reload();
           }}
         />
+      ) : null}
+      {temp ? (
+        <Dialog
+          title={ACCOUNTS.tempTitle}
+          titleId="temp-password-title"
+          onClose={() => setTemp(null)}
+          closeLabel={ACCOUNTS.tempClose}
+          footer={
+            <Button variant="primary" onClick={() => setTemp(null)}>
+              {ACCOUNTS.tempDone}
+            </Button>
+          }
+        >
+          <p>{ACCOUNTS.tempNote(temp.id)}</p>
+          <p className={styles.temp}>
+            <code>{temp.tempPassword}</code>
+          </p>
+        </Dialog>
       ) : null}
     </div>
   );
@@ -116,7 +136,7 @@ function CreateDialog({ roles, onClose, onCreated }) {
     setBusy(true);
     try {
       const r = await createAccount({ role, gu: district ? gu : null, team, name, loginId });
-      if (r.ok) onCreated();
+      if (r.ok) onCreated(r);
       else setErrors({ gu: r.code === 'guRequired', duplicate: r.code === 'duplicate' });
     } catch {
       reportActionError();

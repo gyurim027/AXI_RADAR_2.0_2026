@@ -45,7 +45,7 @@
   overflow-wrap: anywhere;
 }
 .tr.high .td {
-  background: var(--component-table-row-high-bg);
+  background: var(--component-table-row-high-bg); /* 상위 후보는 옅은 붉은 바탕 (이전 버전 방식으로 되돌림) */
 }
 .tr.selected .td {
   background: var(--semantic-color-primary-soft);

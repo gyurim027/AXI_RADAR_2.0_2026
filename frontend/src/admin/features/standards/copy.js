@@ -7,7 +7,8 @@ export const CRITERIA = {
   statusLabel: '상태',
   statuses: ['전체', '작성 중', '승인 대기', '승인됨', '돌려받음'],
   create: '새 버전 만들기',
-  head: ['버전', '버전 이름', '적용 회차', '상태', '수정일', '지표 수'],
+  head: ['버전', '버전 이름', '적용 회차', '상태', '수정일', '사용 지표 수'],
+  empty: "아직 만든 산정 기준이 없습니다. '새 버전 만들기'로 시작해 주세요.", // E-5
   caption: '산정 기준 버전 목록',
   failedArea: '산정 기준 버전 목록',
   createFailed: '새 버전을 만들지 못했습니다.',
@@ -32,14 +33,18 @@ export const DETAIL = {
   use: '사용',
   useOff: '사용 안 함',
 
+  usedTitle: '이 버전이 쓰는 지표',
+  usedHead: ['분야', '지표', '자료', '값 상태'],
+  toApprovals: '승인 이력에서 보기',
+
   previewTitle: '상위 후보 변화 미리 보기',
   previewBody: (top, changed) => `상위 ${top}곳 중 ${changed}곳이 바뀝니다.`,
   recalc: '변화 다시 계산하기',
   recalcedAt: (t) => `마지막 계산 ${t}`,
 
-  reasonLabel: '바꾸는 이유',
+  reasonLabel: '변경 사유',
   reasonPlaceholder: '예: 시 도로과 검토 의견 반영',
-  reasonError: '바꾸는 이유를 적어 주세요.',
+  reasonError: '변경 사유를 적어 주세요.',
   request: '승인 요청하기',
   requested: '승인을 요청했습니다. 시 도로과가 승인하면 다음 산정부터 사용할 수 있습니다.',
 };
@@ -69,10 +74,14 @@ export const REGS = {
   // AD-12
   title: '규정 변경',
   subtitle: '근거로 쓰는 법령과 업무분장이 바뀐 내역을 확인합니다.',
-  head: ['종류', '법령·업무분장', '바뀐 조문·팀·업무', '알게 된 날', '영향받는 관할'],
+  head: ['종류', '규정 제목', '변경 대상', '시행일', '영향받는 관할'],
   caption: '규정 변경 목록',
-  beforeTitle: '바뀌기 전',
-  afterTitle: '바뀐 뒤',
+  beforeTitle: '변경 전',
+  afterTitle: '변경 후',
+  detected: (date) => `변경 감지일 ${date}`, // RADAR가 변경을 찾은 날
+  jurCount: (n) => `관할 ${n}곳`,
+  jurHead: ['관할', '조건', '담당 부서'],
+  toDeptRow: '담당 부서 표에서 보기',
   pending: '시행 전',
   toDept: '담당 부서 표로 가기',
   empty: '바뀐 법령이나 업무분장이 없습니다.',
@@ -118,7 +127,8 @@ export const APPROVALS = {
   title: '승인 이력',
   subtitle: '누가 언제 무엇을 왜 바꿨는지 봅니다.',
   period: '기간',
-  periods: ['올해', '작년', '전체'],
+  // 해는 올해·작년 대신 숫자로 쓴다 (K-23)
+  periods: (year) => [`${year}년`, `${year - 1}년`, '전체'],
   head: ['대상', '버전', '제안자', '제안일', '승인자', '결과', '사유'],
   caption: '승인 이력',
   fix: '돌려받은 제안 고치기',

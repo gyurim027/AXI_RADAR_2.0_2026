@@ -8,6 +8,7 @@ import DataTable from '../../components/DataTable.jsx';
 import { SelectInput } from '../../components/Field.jsx';
 import Loadable from '../../components/Loadable.jsx';
 import PageHeader from '../../components/PageHeader.jsx';
+import { EmptyState } from '../../components/States.jsx';
 import Toolbar from '../../components/Toolbar.jsx';
 import { CRITERIA } from './copy.js';
 import styles from './Standards.module.css';
@@ -79,6 +80,7 @@ function MockCriteriaListPage() {
             getRowKey={(v) => v.version}
             onRowClick={(v) => navigate(`/admin/standards/criteria/${v.version}`)}
             rowLabel={(v) => `산정 기준 ${v.version} 상세 보기`}
+            emptyContent={<EmptyState text={CRITERIA.empty} />}
           />
         )}
       </Loadable>

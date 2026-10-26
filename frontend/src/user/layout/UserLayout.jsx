@@ -5,6 +5,7 @@ import { RUN_STATUS } from '../../shared/constants.js';
 import { useAuth } from '../../app/providers/AuthProvider.jsx';
 import { useRun } from '../../app/providers/RunProvider.jsx';
 import TopBar from './TopBar.jsx';
+import SubNav from './SubNav.jsx';
 import StatusBand from './StatusBand.jsx';
 import ViewAsBand from './ViewAsBand.jsx';
 import styles from './UserLayout.module.css';
@@ -41,6 +42,7 @@ function RunUserLayout() {
   const { user } = useAuth();
   const matches = useMatches();
   const edge = matches.some((m) => m.handle?.edgeToEdge); // 지도가 화면 끝까지 차는 화면
+  const reading = matches.some((m) => m.handle?.reading); // 보고서·참고 자료: 본문 폭 하나
   const pageTitle = [...matches].reverse().find((m) => m.handle?.title)?.handle.title;
 
   // 화면마다 브라우저 탭 제목을 다르게 한다 (스크린 리더와 탭 구분용)
@@ -55,9 +57,10 @@ function RunUserLayout() {
       </a>
       {user.readOnly ? <ViewAsBand /> : null}
       <TopBar />
+      <SubNav />
       {run.status !== RUN_STATUS.REVIEW ? <StatusBand run={run} /> : null}
       <main className={`${styles.main} ${edge ? styles.mainEdge : ''}`} id="main" tabIndex={-1}>
-        <div className={edge ? styles.edge : styles.content}>
+        <div className={edge ? styles.edge : `${styles.content} ${reading ? styles.reading : ''}`}>
           <Outlet />
         </div>
       </main>

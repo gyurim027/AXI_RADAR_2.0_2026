@@ -68,3 +68,24 @@
 .metrics > span[aria-hidden='true'] {
   display: none;
 }
+.more {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--a-size-compact);
+  margin-top: var(--a-s3);
+  font-size: var(--a-fs-sm);
+  font-weight: var(--a-fw-medium);
+  color: var(--radar-admin-semantic-color-text-link);
+  text-underline-offset: 3px;
+}
+.empty {
+  margin-top: var(--a-s4);
+  font-size: var(--a-fs-md);
+  color: var(--radar-admin-semantic-color-text-secondary);
+}
+
+@media (max-width: 1099px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

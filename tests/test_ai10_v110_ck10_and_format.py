@@ -1,4 +1,16 @@
 """최신 CK-10 자료 미확정 경계 + 기존 상세 출력 형식 확인 (실제 Gemini/DB 호출 없음)."""
+import pytest
+from pathlib import Path as _Path
+_root = _Path(__file__).resolve().parents[1]
+_required = [
+    _root / 'data' / 'ai10_ck_rules_v0.4.1.json',
+    _root / 'data' / 'ai10_reference' / 'seongnam_mobility_plan_excerpt_2026.json',
+    _root / 'data' / 'RADAR_AI10_민원샘플_정리_v2.json',
+]
+_missing = [p.name for p in _required if not p.is_file()]
+if _missing:
+    pytest.skip('AI-10 시험 자료 미배치: ' + ', '.join(_missing), allow_module_level=True)
+
 import sys
 import os
 import subprocess

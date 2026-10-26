@@ -1,6 +1,8 @@
 """운영 화면이 읽는 값 (I-05·I-06·I-03). 읽기만 하고, 알림 확인만 71에 쓴다.
 
 읽는 표: 85 job_run · 86 job_run_log · 71 alert_delivery · 84 data_upload · 70 access_audit (SQL v2.1)
+대시보드(I-05, AD-01)에 더 읽는 표: 77 priority_run(최근 회차) · 62 setting_version(승인 현황) · 89 standard_change(규정 변경) (SQL v2.2)
+                                · 56 source_list 갱신 주기·예정일 + 84 data_upload 확보 이력(자료 최신 여부) (SQL v2.3)
 """
 from __future__ import annotations
 
@@ -45,6 +47,14 @@ class OpsRepository:
             "TIMESTAMPDIFF(MINUTE, started_at, COALESCE(finished_at, NOW())) AS minutes, row_cnt, error_code, cause "
             "FROM job_run WHERE job_run_id = %s", (run_id,))
 
+    def running_same(self, run: dict) -> bool:
+        """같은 기능·이름·연결 대상이 지금 '실행 중'인지 (다시 실행 두 번 막기, I-06)"""
+        rows = db.read_only(
+            "SELECT 1 AS x FROM job_run WHERE status = '실행 중' AND module <=> %s AND job_name = %s "
+            "AND ref_table <=> %s AND ref_id <=> %s LIMIT 1",
+            (run.get("module"), run.get("job_name"), run.get("ref_table"), run.get("ref_id")))
+        return bool(rows)
+
     def list_alerts(self, unread_only: bool, limit: int) -> list[dict]:
         sql = ("SELECT alert_delivery_id, job_run_id, message, sent_at, acknowledged_at, delivery_status "
                "FROM alert_delivery WHERE job_run_id IS NOT NULL")
@@ -77,6 +87,58 @@ class OpsRepository:
                             "WHERE uploaded_at >= NOW() - INTERVAL %s DAY", (days,))
         r = rows[0] if rows else {"n": 0, "last_at": None}
         return {"count": int(r["n"] or 0), "last_at": r["last_at"]}
+
+    # ---------- 대시보드 (I-05, 화면명세 AD-01) ----------
+    RUN_BASE = "run_id, build_id, rule_version, created_at, note"
+    RUN_V22 = ", period_start, period_end, admin_sampled_at, district_sampled_at"      # SQL v2.2에서 더한 칸
+
+    def latest_run(self) -> dict | None:
+        """가장 최근 회차(77). v2.1 DB면 v2.2 칸 없이 읽는다."""
+        for cols in (self.RUN_BASE + self.RUN_V22, self.RUN_BASE):
+            try:
+                rows = db.read_only(f"SELECT {cols} FROM priority_run ORDER BY run_id DESC LIMIT 1")
+                return rows[0] if rows else None
+            except Exception:
+                if cols == self.RUN_BASE:
+                    raise
+        return None
+
+    def latest_calc(self) -> dict | None:
+        """가장 최근 산정 실행(85, job_kind='산정')."""
+        rows = db.read_only("SELECT job_run_id, status, ref_table, ref_id, started_at FROM job_run "
+                            "WHERE job_kind = '산정' ORDER BY started_at DESC, job_run_id DESC LIMIT 1")
+        return rows[0] if rows else None
+
+    def approval_counts(self, year: int) -> dict:
+        """올해 제안·승인·돌려보냄 수(62 approval_status). 제안은 제안 시각, 승인·돌려보냄은 처리 시각의 해로 센다."""
+        rows = db.read_only(
+            "SELECT approval_status AS st, COUNT(*) AS n FROM setting_version "
+            "WHERE YEAR(CASE WHEN approval_status = '제안' THEN proposed_at ELSE approved_at END) = %s "
+            "GROUP BY approval_status", (year,))
+        return {r["st"]: int(r["n"]) for r in rows}
+
+    # 자료 최신 여부 (AD-01 2-1, SQL v2.3) — 규칙은 10/26 진이·규림 합의 + 은경
+    CYCLES = ("월간", "분기", "반기", "연간")                       # 이 주기가 정해진 자료만 '빠짐'·'지남' 대상
+    VALID = ("VALIDATION_PASSED", "VALIDATION_WARNING")           # 84 check_result 중 '확보'로 세는 값
+
+    def data_freshness(self) -> dict:
+        """56 자료마다: 지남(다음 갱신 예정일이 오늘보다 앞) · 빠짐(주기가 있는데 유효한 확보 이력이 없음) · 일정 미설정(주기 없음·수시)"""
+        c, v = ", ".join(["%s"] * len(self.CYCLES)), ", ".join(["%s"] * len(self.VALID))
+        rows = db.read_only(
+            "SELECT "
+            f" SUM(s.refresh_cycle IN ({c}) AND s.next_refresh_date < CURDATE()) AS stale,"
+            f" SUM(s.refresh_cycle IN ({c}) AND NOT EXISTS (SELECT 1 FROM data_upload u WHERE u.source_id = s.source_id"
+            f"     AND u.check_result IN ({v}))) AS missing,"
+            f" SUM(s.refresh_cycle IS NULL OR s.refresh_cycle NOT IN ({c})) AS unscheduled,"
+            " COUNT(*) AS total FROM source_list s",
+            (*self.CYCLES, *self.CYCLES, *self.VALID, *self.CYCLES))
+        r = rows[0] if rows else {}
+        return {k: int(r.get(k) or 0) for k in ("stale", "missing", "unscheduled", "total")}
+
+    def regulation_unseen(self) -> int:
+        """운영자가 아직 확인하지 않은 규정 변경 수(89 seen_at 비어 있음)."""
+        rows = db.read_only("SELECT COUNT(*) AS n FROM standard_change WHERE seen_at IS NULL")
+        return int(rows[0]["n"]) if rows else 0
 
     def access_today(self) -> int:
         rows = db.read_only("SELECT COUNT(*) AS n FROM access_audit WHERE accessed_at >= CURDATE()")

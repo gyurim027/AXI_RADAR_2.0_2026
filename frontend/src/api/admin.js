@@ -1,6 +1,11 @@
 // 어드민 화면이 데이터를 받는 길. 지금은 src/mocks/adminServer.js(가짜 서버)를 부른다. 백엔드가 붙으면 각 함수 안쪽만 fetch로 바꾼다.
 import { mockCall } from './client.js';
 import * as server from '../mocks/adminServer.js';
+import { COMPLAINT_DATA_ID } from '../mocks/adminData.js';
+import { backendRequest, opsBackendEnabled } from './backend.js';
+import { createOpsApi } from './ops.js';
+
+const ops = createOpsApi(backendRequest);
 
 export const getViewAsLabel = () => server.viewAsLabel();
 export const listAdminRuns = mockCall('admin.listAdminRuns', (arg) => server.listAdminRuns(arg));
@@ -13,7 +18,17 @@ export const getDashboard = mockCall('admin.getDashboard', (arg) => server.getDa
 export const listData = mockCall('admin.listData', (arg) => server.listData(arg));
 export const listUploadTargets = mockCall('admin.listUploadTargets', (arg) => server.listUploadTargets(arg));
 export const listUploads = mockCall('admin.listUploads', (arg) => server.listUploads(arg));
-export const uploadFile = mockCall('admin.uploadFile', (arg) => server.uploadFile(arg));
+const uploadCall = mockCall('admin.uploadFile', (arg) => server.uploadFile(arg));
+/** 민원 파일은 개인정보를 가리고 분류하느라 처리 시간이 길다 (목업에서도 조금 기다리게 한다) */
+/**
+ * 파일 올리기 요청. 서버가 파일 내용을 검사하고 저장하려면 실제 File 객체가 함께 가야 한다.
+ * arg: { dataId, file(File), fileName, source, basis(기준일 YYYY-MM-DD), received, official, month(민원 파일 대상 월 YYYY-MM) }
+ * 실제 서버 연결 때는 multipart/form-data로 보낸다(file을 그대로 붙인다).
+ */
+export const uploadFile = async (arg) => {
+  if (arg?.dataId === COMPLAINT_DATA_ID) await new Promise((resolve) => setTimeout(resolve, 1500));
+  return uploadCall(arg);
+};
 export const getChecks = mockCall('admin.getChecks', (arg) => server.getChecks(arg));
 export const listLowLocation = mockCall('admin.listLowLocation', (arg) => server.listLowLocation(arg));
 export const listClassify = mockCall('admin.listClassify', (arg) => server.listClassify(arg));
@@ -42,10 +57,12 @@ export const getDraftArticle = mockCall('admin.getDraftArticle', (arg) => server
 export const saveActionDraft = mockCall('admin.saveActionDraft', (arg) => server.saveActionDraft(arg));
 export const recordAdminDownload = mockCall('admin.recordAdminDownload', (arg) => server.recordAdminDownload(arg));
 export const listApprovals = mockCall('admin.listApprovals', (arg) => server.listApprovals(arg));
-export const listAccounts = mockCall('admin.listAccounts', (arg) => server.listAccounts(arg));
-export const createAccount = mockCall('admin.createAccount', (arg) => server.createAccount(arg));
-export const setAccountStatus = mockCall('admin.setAccountStatus', (arg) => server.setAccountStatus(arg));
-export const listAccess = mockCall('admin.listAccess', (arg) => server.listAccess(arg));
-export const getAlertEmail = mockCall('admin.getAlertEmail', (arg) => server.getAlertEmail(arg));
-export const saveAlertEmail = mockCall('admin.saveAlertEmail', (arg) => server.saveAlertEmail(arg));
+export const listAccounts = opsBackendEnabled ? ops.listAccounts : mockCall('admin.listAccounts', (arg) => server.listAccounts(arg));
+export const createAccount = opsBackendEnabled ? ops.createAccount : mockCall('admin.createAccount', (arg) => server.createAccount(arg));
+export const setAccountStatus = opsBackendEnabled ? ops.setAccountStatus : mockCall('admin.setAccountStatus', (arg) => server.setAccountStatus(arg));
+export const listAccess = opsBackendEnabled ? ops.listAccess : mockCall('admin.listAccess', (arg) => server.listAccess(arg));
+export const getAlertEmail = opsBackendEnabled ? ops.getAlertEmail : mockCall('admin.getAlertEmail', (arg) => server.getAlertEmail(arg));
+export const saveAlertEmail = opsBackendEnabled ? ops.saveAlertEmail : mockCall('admin.saveAlertEmail', (arg) => server.saveAlertEmail(arg));
 export const getNewRunDefaults = mockCall('admin.getNewRunDefaults', (arg) => server.getNewRunDefaults(arg));
+export const getPeriodGaps = mockCall('admin.periodGaps', (arg) => server.getPeriodGaps(arg));
+export const setRunPeriod = mockCall('admin.setRunPeriod', (arg) => server.setRunPeriod(arg));

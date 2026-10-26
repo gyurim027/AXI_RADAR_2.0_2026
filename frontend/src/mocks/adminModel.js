@@ -48,6 +48,7 @@ export function adminState() {
   if (!s.admin) {
     s.admin = {
       extraRuns: [], // 새로 만든 회차
+      periodEdits: {}, // { 회차: { start, end } | null } 산정 시작 전에 고친 민원 접수 기간
       calcDone: {}, // { 회차: true } 산정이 끝난 회차
       executions: [], // 어드민에서 새로 돌린 실행
       uploads: [], // 새로 올린 기록
@@ -65,6 +66,7 @@ export function adminState() {
       accountStatus: {}, // { 아이디: '멈춤' }
       roleLog: [], // 권한 변경 기록
       alertEmails: 'radar-ops@example.com',
+      complaintMonths: [], // 이번에 올린 민원 파일의 대상 월 (YYYY-MM)
       runOpenNotices: [], // 회차를 열 때 사용자에게 가는 알림
       adminNoticeRead: [],
     };
@@ -83,8 +85,12 @@ const RUN_META = {
 export function allRuns() {
   const s = getState();
   const a = adminState();
+  const edits = a.periodEdits || {};
   return [...RUNS, ...a.extraRuns].map((r) => ({
     ...r,
+    // 산정 시작 전에 고친 민원 접수 기간이 있으면 그것을 쓴다. 기간이 없으면 민원 없이 산정하는 회차다.
+    complaintPeriod: r.id in edits ? edits[r.id] : r.complaintPeriod || null,
+    hasComplaints: r.id in edits ? !!edits[r.id] : r.hasComplaints,
     status: s.runStatus[r.id] || r.status,
     created: RUN_META[r.id]?.created || r.created,
     review: s.runReview?.[r.id] || RUN_META[r.id]?.review || r.review || null,

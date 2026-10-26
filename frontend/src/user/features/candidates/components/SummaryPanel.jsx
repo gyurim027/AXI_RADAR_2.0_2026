@@ -43,8 +43,8 @@ export default function SummaryPanel({ row, detail, loading, onClose, onDetail }
           )}
           <h3 className={styles.sub}>{SUMMARY.evidenceTitle}</h3>
           <ul className={styles.dots}>
-            {detail.topEvidence.map((e) => (
-              <li key={e}>{e}</li>
+            {detail.topEvidence.map((e, i) => (
+              <li key={`${i}-${e}`}>{e}</li>
             ))}
           </ul>
           <h3 className={styles.sub}>{SUMMARY.deptTitle}</h3>

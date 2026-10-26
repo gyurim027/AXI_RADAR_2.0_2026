@@ -1,5 +1,6 @@
 import DataTable from '../../../components/DataTable.jsx';
 import Button from '../../../components/Button.jsx';
+import { InfoHelp } from '../../../components/FormControls.jsx';
 import { LIST } from '../copy.js';
 import styles from './GuCompare.module.css';
 
@@ -11,7 +12,14 @@ export default function GuCompare({ rows, onBack }) {
     { key: 'gu', header: H[0], render: (r) => r.gu },
     { key: 'top', header: H[1], align: 'right', render: (r) => pct(r.topRatio) },
     { key: 'acc', header: H[2], align: 'right', render: (r) => pct(r.accidentRatio) },
-    { key: 'before', header: H[3], align: 'right', render: (r) => pct(r.beforeRatio) },
+    {
+      key: 'before',
+      header: (
+        <span>
+          {H[3]}
+          <InfoHelp label={LIST.compareBeforeHelpLabel}>{LIST.compareBeforeHelp}</InfoHelp>
+        </span>
+      ), align: 'right', render: (r) => pct(r.beforeRatio) },
   ];
   return (
     <div className={styles.box}>

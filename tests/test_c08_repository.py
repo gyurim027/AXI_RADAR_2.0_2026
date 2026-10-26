@@ -18,6 +18,8 @@ class FakeCursor:
         self.stale = stale
         self.candidates = candidates or []
         self.marked = marked
+        self.district_marked = False
+        self.admin_ids = []
         self.last_sql = ""
         self.statements = []
 
@@ -34,6 +36,8 @@ class FakeCursor:
             raise RuntimeError("audit failed")
         if sql.startswith("UPDATE priority_run SET admin_sampled_at"):
             self.marked = True
+        if sql.startswith("UPDATE priority_run SET district_sampled_at"):
+            self.district_marked = True
 
     def fetchone(self):
         if "FROM complaint_review s JOIN src_complaint" in self.last_sql:
@@ -50,12 +54,15 @@ class FakeCursor:
                     "sample_class_reason": "판단 근거"}
         if "FROM priority_run" in self.last_sql:
             return {"period_start": date(2026, 1, 1), "period_end": date(2026, 1, 31),
-                    "admin_sampled_at": date(2026, 1, 31) if self.marked else None}
+                    "admin_sampled_at": date(2026, 1, 31) if self.marked else None,
+                    "district_sampled_at": date(2026, 1, 31) if self.district_marked else None}
         return None
 
     def fetchall(self):
         if "FROM src_complaint" in self.last_sql:
             return self.candidates
+        if "SELECT complaint_id FROM complaint_review" in self.last_sql:
+            return [{"complaint_id": c} for c in self.admin_ids]
         return []
 
 
@@ -127,10 +134,10 @@ def test_type_only_change_preserves_relevance_method(monkeypatch):
 
     class WithTypes(C08Repository):
         def type_options(self):
-            return ["보도 폭 부족"]
+            return ["보행로"]
 
     WithTypes().review(11, {"user_id": 9, "role": "district", "gu": "수정구"},
-                       "고침", None, "보도 폭 부족", "127.0.0.1")
+                       "고침", None, "보행로", "127.0.0.1")
     updates = [args for sql, args in con.cur.statements if sql.startswith("UPDATE src_complaint")]
     assert updates[0][2] == "AI"
     changed = [args[1] for sql, args in con.cur.statements if sql.startswith("INSERT INTO src_complaint_change")]
@@ -189,3 +196,32 @@ def test_population_mismatch_is_rejected(monkeypatch):
     with pytest.raises(ApiError) as error:
         C08Repository().accuracy_strata(7, "전체 분류")
     assert error.value.code == "population_snapshot_inconsistent"
+
+
+def test_admin_type_change_uses_iss016_list(monkeypatch):
+    connection(monkeypatch)
+    with pytest.raises(ApiError) as error:
+        C08Repository().review(11, {"user_id": 1, "role": "operator"}, "고침", None, "도로 파손", "127.0.0.1")
+    assert error.value.status == 422 and error.value.code == "invalid_type"
+    con = connection(monkeypatch)
+    C08Repository().review(11, {"user_id": 1, "role": "operator"}, "고침", None, "노면", "127.0.0.1")
+    changed = [args[1:3] for sql, args in con.cur.statements if sql.startswith("INSERT INTO src_complaint_change")]
+    assert changed == [("ped_type", None)]
+    assert con.committed
+
+
+def test_district_samples_are_related_typed_and_skip_admin_samples(monkeypatch):
+    base = {"gu": "수정구", "received_date": date(2026, 1, 3), "masked_summary": "가린 요약",
+            "relevance": "보행안전 관련", "ped_type": "노면", "class_method": "AI",
+            "class_confidence": 0.8, "class_reason": "판단 근거", "report_type_raw": None}
+    con = connection(monkeypatch, marked=True, candidates=[
+        dict(base, complaint_id="A"), dict(base, complaint_id="B"),
+        dict(base, complaint_id="P", ped_type="주정차", report_type_raw="횡단보도 불법 주정차"),
+        dict(base, complaint_id="N", relevance="비관련", ped_type=None),
+        dict(base, complaint_id="X", ped_type="도로 파손")])
+    con.cur.admin_ids = ["B"]
+    C08Repository().ensure_district_samples(7)
+    sample_args = [args for sql, args in con.cur.statements if sql.startswith("INSERT INTO complaint_review")]
+    assert {(args[1], args[3], args[4], args[5]) for args in sample_args} == {
+        ("A", "유형", "AI 판단", 2), ("P", "유형", "규칙 판단", 1)}      # B는 운영자 표본이라 빼되 모집단에는 셈
+    assert con.cur.district_marked and con.committed

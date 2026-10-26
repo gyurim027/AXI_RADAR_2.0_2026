@@ -2,9 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 import './CandidateMap.css';
 import Icon from '../../../components/Icon.jsx';
-import { COMMON, MAP_CREDIT } from '../../../../shared/copy/common.js';
+import { InfoHelp } from '../../../components/FormControls.jsx';
+import { COMMON, MAP_COORD_CREDIT, MAP_CREDIT } from '../../../../shared/copy/common.js';
 import { LIST } from '../copy.js';
-import { addHatchPattern, mapColors, pointIcon, prefersReducedMotion, tierFill } from './mapUtils.js';
+import { addHatchPattern, mapColors, prefersReducedMotion, tierFill } from './mapUtils.js';
+import { CLUSTER_LIMIT, basisSummary, clusterIcon, clusterLabel, groupComplaintPoints, pointIcon, pointKind, pointLabel } from './mapPoints.js';
 import styles from './CandidateMap.module.css';
 
 // 성남시 둘레. 어두운 막이 지도를 움직여도 빈틈없이 덮고, 지도가 이 밖으로 나가지 않는다.
@@ -12,7 +14,7 @@ const DIM_BOUNDS = [
   [37.25, 126.95],
   [37.65, 127.35],
 ];
-const POINT_ZOOM = 15; // 이 확대 단계부터 모든 근거 지점을 보인다. 그보다 멀 때는 고른 구역의 점만 보인다.
+const SELECT_ZOOM = 17; // 구역을 고르면 그 칸이 지도에 크게 보이도록 이 단계까지 확대한다 (US-01 1-5)
 
 /**
  * 후보 지도 (US-01 1-5, 디자인 시스템 10장)
@@ -146,23 +148,38 @@ export default function CandidateMap({ items, unrated, boundaries, ownGu, select
         // 후보 범위 표시 (CM-00 4번): 고른 구역을 네모 영역으로 칠하고 근거 지점 수를 적는다
         rect.bindTooltip(COMMON.rangeText(r.points.length), { permanent: true, direction: 'bottom', className: 'rmap-range', offset: [0, 4] }).openTooltip();
       }
-      // 구역을 고르면 그 구역의 근거 지점만 보인다. 고르지 않았을 때는 확대하면 모두 보인다.
-      if (isSel || (!sel && zoom >= POINT_ZOOM)) {
-        r.points.forEach((p) => {
-          // 지점에 마우스를 올리거나 포커스가 오면 보행 문제 유형이 뜬다 (와이어프레임 5-2)
-          const m = L.marker([p.lat, p.lon], { icon: pointIcon(p.shape), keyboard: true, title: p.issue, alt: p.issue });
-          m.bindTooltip(p.issue, { direction: 'top', offset: [0, -6], className: 'rmap-issue' });
-          m.on('add', () => {
-            const el = m.getElement();
-            if (!el) return;
-            el.setAttribute('aria-label', p.issue);
-            el.addEventListener('focus', () => m.openTooltip());
-            el.addEventListener('blur', () => m.closeTooltip());
-          });
-          m.addTo(points);
-        });
-      }
     });
+    // 칸을 고르기 전에는 점을 그리지 않는다. 고른 칸의 근거 지점(■)과 민원 점(● ○)만 그린다 (US-01 1-5, ISS-036)
+    if (sel) {
+      const addMarker = (latlng, icon, label, onClick) => {
+        const m = L.marker(latlng, { icon, keyboard: true, title: label, alt: label });
+        m.bindTooltip(label, { direction: 'top', offset: [0, -6], className: 'rmap-issue' });
+        m.on('add', () => {
+          const el = m.getElement();
+          if (!el) return;
+          el.setAttribute('aria-label', label);
+          el.addEventListener('focus', () => m.openTooltip());
+          el.addEventListener('blur', () => m.closeTooltip());
+          if (onClick) el.addEventListener('keydown', (e) => e.key === 'Enter' && onClick());
+        });
+        if (onClick) m.on('click', onClick);
+        m.addTo(points);
+      };
+      const site = (p) => addMarker([p.lat, p.lon], pointIcon('site'), p.issue);
+      const one = (p) => addMarker([p.lat, p.lon], pointIcon(pointKind(p), p.count), pointLabel(p));
+      sel.points.forEach(site);
+      const complaints = sel.complaintPoints || [];
+      if (complaints.length > CLUSTER_LIMIT) {
+        // 점이 많은 칸: 가까운 점을 숫자 원으로 묶는다. 누르거나 확대하면 나뉜다 (ISS-038)
+        groupComplaintPoints(map, complaints, zoom).forEach((g) => {
+          if (g.single) return one(g.single);
+          const zoomTo = () => map.fitBounds(L.latLngBounds(g.members.map((p) => [p.lat, p.lon])), { padding: [48, 48], maxZoom: 18, animate: !prefersReducedMotion() });
+          addMarker([g.lat, g.lon], clusterIcon(g.count), clusterLabel(g), zoomTo);
+        });
+      } else {
+        complaints.forEach(one);
+      }
+    }
   }, [all, byId, selectedId, zoom]);
 
   // 처음과 범위가 바뀔 때 전체가 보이게 맞춘다
@@ -180,9 +197,9 @@ export default function CandidateMap({ items, unrated, boundaries, ownGu, select
     const r = byId.get(selectedId);
     if (!map || !r) return;
     // 요약 패널이 지도 위쪽을 덮으므로, 고른 구역이 패널 아래에 오도록 중심을 조금 위로 옮긴다
-    const z = Math.max(map.getZoom(), 15);
+    const z = Math.max(map.getZoom(), SELECT_ZOOM);
     const center = L.latLng((r.bounds[0][0] + r.bounds[1][0]) / 2, (r.bounds[0][1] + r.bounds[1][1]) / 2);
-    const target = map.unproject(map.project(center, z).subtract([0, map.getSize().y * 0.2]), z);
+    const target = map.unproject(map.project(center, z).subtract([0, map.getSize().y * 0.12]), z);
     map.flyTo(target, z, { animate: !prefersReducedMotion(), duration: 0.5 });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedId]);
@@ -249,6 +266,8 @@ export default function CandidateMap({ items, unrated, boundaries, ownGu, select
   };
 
   const focused = byId.get(focusId);
+  const selCell = byId.get(selectedId) || null;
+  const clustered = !!selCell && (selCell.complaintPoints?.length || 0) > CLUSTER_LIMIT;
   return (
     <div className={styles.wrap}>
       <div
@@ -280,6 +299,7 @@ export default function CandidateMap({ items, unrated, boundaries, ownGu, select
       </div>
 
       <div className={styles.legendWrap}>
+        {clustered ? <p className={styles.clusterNote}>{LIST.clusterNote}</p> : null}
         {legendOpen ? (
           <>
             <button type="button" className={styles.legendToggle} aria-expanded="true" aria-label={LIST.legendToggle(true)} onClick={() => setLegendOpen(false)}>
@@ -293,6 +313,16 @@ export default function CandidateMap({ items, unrated, boundaries, ownGu, select
                 </li>
               ))}
             </ul>
+            {selCell ? (
+              <div className={styles.legendBasis}>
+                <p>{LIST.legendBasis(basisSummary(selCell))}</p>
+                <p aria-label={LIST.legendShapesLabel}>
+                  {LIST.legendShapes}
+                  <InfoHelp label={LIST.evidenceHelpLabel}>{LIST.evidenceHelp}</InfoHelp>
+                </p>
+                {clustered ? <p>{LIST.legendCluster}</p> : null}
+              </div>
+            ) : null}
           </>
         ) : (
           <button type="button" className={styles.legendChip} aria-expanded="false" aria-label={LIST.legendToggle(false)} onClick={() => setLegendOpen(true)}>
@@ -300,7 +330,7 @@ export default function CandidateMap({ items, unrated, boundaries, ownGu, select
           </button>
         )}
       </div>
-      <p className={styles.credit}>{MAP_CREDIT}</p>
+      <p className={styles.credit}>{selCell?.complaintPoints?.length ? MAP_COORD_CREDIT : MAP_CREDIT}</p>
     </div>
   );
 }

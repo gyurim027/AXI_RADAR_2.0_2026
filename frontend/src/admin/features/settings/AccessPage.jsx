@@ -38,7 +38,7 @@ export default function AccessPage() {
             label: v === '전체' ? '전체' : state.data.accounts.find((a) => a.value === v).label,
           }))}
         />
-        <SelectInput label={ACCESS.action} value={action} onChange={(v) => setFilter('action', v, '전체')} options={['전체', ...(state.data?.actions || [])]} />
+        <SelectInput label={ACCESS.action} value={action} onChange={(v) => setFilter('action', v, '전체')} options={['전체', ...(state.data?.actions || [])].map((v) => ({ value: v, label: ACCESS.actionLabel[v] || v }))} />
       </Toolbar>
       <Loadable state={state} areaName={ACCESS.failedArea} rows={8}>
         {(d) => (
@@ -50,7 +50,7 @@ export default function AccessPage() {
               { key: 'atLabel', header: ACCESS.head[0], nowrap: true, width: 160 },
               { key: 'who', header: ACCESS.head[1], first: true, width: 300 },
               { key: 'ip', header: ACCESS.head[2], nowrap: true, width: 130 },
-              { key: 'action', header: ACCESS.head[3], nowrap: true, width: 140 },
+              { key: 'action', header: ACCESS.head[3], nowrap: true, width: 140, render: (r) => ACCESS.actionLabel[r.action] || r.action },
               { key: 'target', header: ACCESS.head[4], width: 360 },
               { key: 'reason', header: ACCESS.head[5], width: 200 },
             ]}

@@ -6,9 +6,9 @@
 .card {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: 0;
   width: 100%;
-  padding: var(--space-12) var(--space-16);
+  padding: var(--space-8) var(--space-16);
   border: 1px solid var(--semantic-color-border-card);
   border-radius: var(--radius-lg);
   background: var(--semantic-color-bg-surface);
@@ -37,10 +37,22 @@
   gap: var(--space-4);
 }
 .value {
-  font-size: var(--fs-h2);
+  font-size: var(--fs-h3);
   font-weight: var(--fw-bold);
   line-height: 1.2;
 }
 .unit {
   font-size: var(--fs-small);
+}
+
+@media (max-width: 1099px) {
+  .list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.value,
+.label,
+.unit {
+  white-space: nowrap;
 }

@@ -63,6 +63,7 @@ def main(argv=None) -> int:
     ap.add_argument("--jurisdiction", help="담당 부서 표 JSON (있으면 F-05 수정안까지)")
     ap.add_argument("--not-delegation", action="store_true", help="사무위임 별표가 아닌 일반 업무분장 문서")
     ap.add_argument("--no-save", action="store_true", help="89 standard_change에 남기지 않기 (기본: DB가 있으면 남김)")
+    ap.add_argument("--no-ai", action="store_true", help="F-05 수정안을 규칙 방식으로만 (공통 LLM f05_extract를 부르지 않음)")
     args = ap.parse_args(argv)
 
     OUT.mkdir(parents=True, exist_ok=True)
@@ -79,8 +80,10 @@ def main(argv=None) -> int:
             rows = get_repository().jurisdiction()
         if rows is not None:
             link_jurisdiction(rep["changes"], rows)
-            rep["drafts"] = make_drafts(rep["changes"], rows, args.name, delegation_annex=not args.not_delegation)
-            job.log(f"담당 부서 표 수정안 {len(rep['drafts'])}개를 만들었습니다")
+            rep["drafts"] = make_drafts(rep["changes"], rows, args.name, delegation_annex=not args.not_delegation,
+                                        use_ai=not args.no_ai)
+            n_ai = sum(1 for d in rep["drafts"] if d.get("method", "").startswith("AI"))
+            job.log(f"담당 부서 표 수정안 {len(rep['drafts'])}개를 만들었습니다 (AI {n_ai} · 규칙 {len(rep['drafts']) - n_ai})")
         rep["checked_at"] = datetime.datetime.now().isoformat(timespec="seconds")
         path = OUT / f"duty_compare_{datetime.datetime.now():%y%m%d_%H%M}.json"
         path.write_text(json.dumps(rep, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -94,7 +97,8 @@ def main(argv=None) -> int:
             print("  새 부서:", rep["depts"]["new"], "· 없어진 부서:", rep["depts"]["gone"])
         if "drafts" in rep:
             for d in rep["drafts"]:
-                print(f"  수정안 {d['jur_id']} {d['problem']}: {d['from']} → {d['to']}")
+                print(f"  수정안 [{d.get('method', '규칙')}] {d['jur_id']} {d['problem']}: {d['from']} → {d['to']}"
+                      + (f" (도로 종류 {d['road_type']})" if d.get("road_type") else ""))
         print("자세한 결과:", path)
         if not args.no_save and db.is_configured() and rep["changes"]:
             from app.services.standards.repository import get_repository

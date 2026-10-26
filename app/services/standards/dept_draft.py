@@ -1,4 +1,4 @@
-"""F-05 담당 부서 표 수정안 만들기 (초안 v0.1). AI 후보 + 사람 승인.
+"""F-05 담당 부서 표 수정안 만들기 (v0.2, 10/26 AI 추출 추가). AI 후보 + 사람 승인.
 
 A-12가 찾은 사무 변화(부서 옮김 · 새 사무 · 없어진 사무)를 담당 부서 표의 문제 유형과 맞춰, 표를 고칠 '안'을 만든다.
 안은 확정이 아니다. RADAR 운영자가 고쳐서 62 setting_version에 '제안'으로 올리고, 시 도로과가 승인한다(I-07, 진규).
@@ -76,32 +76,58 @@ def _short(text: str, n: int = 120) -> str:
     return text if len(text) <= n else text[: n - 1] + "…"
 
 
+def _road_condition(row: dict, road: str | None) -> str | None:
+    """AI가 뽑은 도로 종류가 담당 부서 표 줄의 '나뉘는 조건'(88 condition_text)에 나오면 그 조건 글자."""
+    if not road:
+        return None
+    for d in row.get("depts") or []:
+        cond = d.get("condition_text") or ""
+        if road in cond:
+            return cond
+    return None
+
+
 def make_drafts(changes: Iterable[dict], jurisdiction: Iterable[dict], doc_name: str,
-                delegation_annex: bool = True) -> list[dict]:
-    """A-12 changes × 담당 부서 표 → 수정안 목록. 같은 표 줄에 여러 변화가 걸리면 각각 한 안."""
+                delegation_annex: bool = True, use_ai: bool = True, extractor=None) -> list[dict]:
+    """A-12 changes × 담당 부서 표 → 수정안 목록. 같은 표 줄에 여러 변화가 걸리면 각각 한 안.
+
+    use_ai=True면 바뀐 문장을 공통 LLM(f05_extract)으로 읽어 (업무, 부서, 도로 종류)를 뽑고, 그 업무 글자로 표 줄을 찾는다.
+    AI를 쓸 수 없으면(작업 미등록·Ollama 꺼짐) 그 변화는 규칙 방식(사무 글자 × 낱말 점수)으로 만든다.
+    수정안마다 method = 'AI' / '규칙'을 붙여 승인하는 사람이 알 수 있게 한다."""
+    if extractor is None and use_ai:
+        from app.services.standards.extract_llm import extract as extractor
     drafts = []
     rows = list(jurisdiction)
     for ch in changes:
         if ch.get("change") not in ("부서 옮김", "새 사무", "없어진 사무"):
             continue
         duty = ch.get("duty") or ""
-        for row in best_rows(rows, duty):
-            hit = ", ".join(w for w in _words(row.get("problem", "")) if w in duty)
+        ai = extractor(ch.get("after") or ch.get("before") or duty) if use_ai else None
+        item = (ai or {}).get("items", [None])[0] if ai and ai.get("items") else None
+        method = f"AI ({ai.get('model') or 'f05_extract'})" if item else "규칙"
+        key_text = f"{item['duty']} {duty}" if item else duty      # AI가 뽑은 업무 글자를 더해 표 줄을 찾음
+        for row in best_rows(rows, key_text):
+            hit = ", ".join(w for w in _words(row.get("problem", "")) if w in key_text)
             if ch["change"] == "부서 옮김":
-                to = ch.get("to_dept")
+                to = (item or {}).get("dept") or ch.get("to_dept")
             elif ch["change"] == "새 사무":
-                to = DELEGATED_TO if delegation_annex else ch.get("to_dept")
+                to = DELEGATED_TO if delegation_annex else ((item or {}).get("dept") or ch.get("to_dept"))
             else:
                 to = ch.get("from_dept") if delegation_annex else "확인 필요 (사무가 없어짐)"
             if not to or to in (row.get("dept") or ""):        # 이미 그 부서가 맡고 있으면 고칠 것 없음
                 continue
+            road = (item or {}).get("road_type")
+            ev = {"matched_word": hit, "duty": _short(duty), "basis_law": _short(ch.get("basis") or "", 80),
+                  "before": _short(ch.get("before") or ""), "after": _short(ch.get("after") or "")}
+            if item:
+                ev["ai"] = {"duty": item["duty"], "dept": item.get("dept"), "road_type": road,
+                            "road_condition": _road_condition(row, road)}
             drafts.append({
                 "id": f"dd-{len(drafts) + 1}", "jur_id": row.get("id"), "problem": row.get("problem"),
-                "from": row.get("dept"), "to": to, "basis": doc_name,
+                "from": row.get("dept"), "to": to, "basis": doc_name, "road_type": road, "method": method,
                 "article": _short(f"{doc_name} ({duty}: {ch['change']})", 200), "change": ch["change"],
                 "needs_review": True,             # 사람이 원문을 보고 고친 뒤 올린다
-                "evidence": {"matched_word": hit, "duty": _short(duty), "basis_law": _short(ch.get("basis") or "", 80),
-                             "before": _short(ch.get("before") or ""), "after": _short(ch.get("after") or "")},
+                "evidence": ev,
             })
     return drafts
 

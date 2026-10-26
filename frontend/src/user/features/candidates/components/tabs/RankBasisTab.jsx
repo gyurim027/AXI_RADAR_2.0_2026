@@ -4,7 +4,7 @@ import DataTable from '../../../../components/DataTable.jsx';
 import { InfoHelp } from '../../../../components/FormControls.jsx';
 import { COMMON } from '../../../../../shared/copy/common.js';
 import { formatBasis } from '../../../../../shared/utils/format.js';
-import { DRAWER } from '../../copy.js';
+import { DRAWER, LIST } from '../../copy.js';
 import MiniMap from '../MiniMap.jsx';
 import styles from './Tabs.module.css';
 
@@ -56,7 +56,20 @@ export default function RankBasisTab({ detail }) {
         <p className={styles.sub}>{DRAWER.basisSub}</p>
         <div className={styles.content}>
           {d.score != null ? (
-            <p className={`${styles.numbers} num`}>{DRAWER.scoreLine(d.score, d.cityPercent)}</p>
+            <p className={`${styles.numbers} num`}>
+              {DRAWER.scoreLine(d.score, d.cityPercent)}
+              <InfoHelp label={DRAWER.scoreHelpLabel}>{DRAWER.scoreHelp}</InfoHelp>
+            </p>
+          ) : null}
+          {d.conditions?.length ? (
+            <div className={styles.tagRow}>
+              {d.conditions.map((c) => (
+                <span key={c.id} className={styles.choice}>
+                  <Tag tone="info">{LIST.conditionTag(c.name)}</Tag>
+                  <InfoHelp label={`${c.name} 반영 비율 보기`}>{LIST.conditionRatioHelp(c.name, c.ratio)}</InfoHelp>
+                </span>
+              ))}
+            </div>
           ) : null}
           {axes ? <div className={styles.tagRow}><Tag tone="info">{DRAWER.axisTag(axes)}</Tag></div> : null}
           {d.explanation ? (
@@ -67,18 +80,32 @@ export default function RankBasisTab({ detail }) {
           ) : (
             <p className={styles.fail}>설명문을 만들지 못했습니다. 아래 근거를 직접 확인해 주세요.</p>
           )}
+          {d.topEvidence?.length ? (
+            <>
+              <p className={styles.keyTitle}>핵심 근거</p>
+              <ul className={styles.keyList}>
+                {d.topEvidence.map((e, i) => (
+                  <li key={`${i}-${e}`}>{e}</li>
+                ))}
+              </ul>
+            </>
+          ) : null}
           {d.evidence.length ? (
             <div className={styles.tableWrap}>
               <DataTable caption="순위 근거" columns={columns} rows={d.evidence} getRowKey={(e) => `${e.field}-${e.item}`} minWidth={990} />
             </div>
-          ) : null}
+          ) : (
+            <p className={styles.muted}>{COMMON.noEvidence}</p>
+          )}
           <div className={styles.tagRow}>
             {d.unrated.map((u) => (
               <Tag key={u.name} tone="gray">
                 {DRAWER.unratedTag(u.name, u.reason)}
               </Tag>
             ))}
+            {d.unrated.length ? <InfoHelp label={DRAWER.unratedHelpLabel}>{DRAWER.unratedHelp}</InfoHelp> : null}
             <Tag tone={d.reliability === '낮음' ? 'mid' : 'gray'}>{DRAWER.reliabilityTag(d.reliability, d.reliabilityReason)}</Tag>
+            <InfoHelp label={DRAWER.reliabilityHelpLabel}>{DRAWER.reliabilityHelp}</InfoHelp>
           </div>
           <MiniMap bounds={d.bounds} points={d.points} tier={d.score >= 70 ? 'top' : d.score >= 50 ? 'mid' : 'rest'} />
         </div>

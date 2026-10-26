@@ -22,7 +22,7 @@ export const adminRoutes = [
   { path: 'data/list', element: <DataListPage />, handle: { title: '데이터 목록' } },
   { path: 'data/upload', element: <UploadPage />, handle: { title: '자료 올리기' } },
   { path: 'data/checks', element: <ChecksPage />, handle: { title: '검사 결과' } },
-  { path: 'data/classify', element: <ClassifyPage />, handle: { title: '분류 검수' } },
+  { path: 'data/classify', element: <ClassifyPage />, handle: { title: '민원 분류 검수' } },
   { path: 'runs/list', element: <RunListPage />, handle: { title: '회차 목록' } },
   { path: 'runs/log', element: <LogPage />, handle: { title: '실행 기록' } },
   { path: 'runs/schedule', element: <SchedulePage />, handle: { title: '실행 일정' } },
