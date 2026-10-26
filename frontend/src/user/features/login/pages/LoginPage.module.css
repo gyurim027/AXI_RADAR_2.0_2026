@@ -1,5 +1,6 @@
 .page {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
@@ -45,21 +46,6 @@
   font-size: var(--fs-small);
   color: var(--semantic-color-text-muted);
 }
-.dev {
-  position: fixed;
-  left: var(--space-16);
-  bottom: var(--space-16);
-  max-width: 360px;
-  padding: var(--space-8) var(--space-12);
-  border: 1px dashed var(--semantic-color-border);
-  border-radius: var(--radius-sm);
-  background: var(--semantic-color-bg-surface);
-  font-size: var(--fs-caption);
-  color: var(--semantic-color-text-muted);
-}
-.dev ul {
-  margin-top: var(--space-4);
-}
 
 @media (max-width: 1099px) {
   .page {
@@ -68,4 +54,17 @@
   .card {
     width: min(var(--component-login-card-width), 100%);
   }
+}
+
+.mode {
+  padding: var(--space-8) var(--space-12);
+  border-radius: var(--radius-sm);
+  background: var(--semantic-color-risk-mid-soft);
+  color: var(--semantic-color-risk-mid);
+  font-size: var(--fs-small);
+  text-align: center;
+}
+.modeLive {
+  background: var(--semantic-color-risk-low-soft);
+  color: var(--semantic-color-risk-low);
 }

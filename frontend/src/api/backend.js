@@ -11,6 +11,8 @@ export function backendHome(role) {
   return '/reference/approvals';
 }
 const baseUrl = import.meta.env?.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
+/** 개발 화면에서 어느 서버로 가는지 보이려고 내보낸다 (비밀 값 아님) */
+export const backendBaseUrl = baseUrl;
 const sessionKey = 'radar.backend.session.v1';
 
 export class BackendError extends Error {
