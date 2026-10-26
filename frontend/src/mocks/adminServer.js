@@ -280,15 +280,17 @@ export function listUploads() {
   return allUploads().map((u) => ({ ...u, atLabel: dotDate(u.at) }));
 }
 
-export function uploadFile({ dataId, fileName, source, basis, received, official, period }) {
+export function uploadFile({ dataId, fileName, source, basis, received, official, month }) {
   const user = requireOperator();
   const item = dataItems().find((d) => d.id === dataId);
   if (!item) throw new ApiError('invalid', '자료를 찾을 수 없습니다.');
   const errors = {};
   if (!String(source || '').trim() || !String(basis || '').trim()) errors.sourceBasis = true;
+  // 민원 파일은 한 번에 한 달치만 올린다. 대상 월(YYYY-MM)이 필요하다 (R-02)
+  if (dataId === 'DAT-07' && !/^\d{4}-\d{2}$/.test(String(month || ''))) errors.month = true;
   const ext = String(fileName || '').split('.').pop().toUpperCase();
   if (!fileName || !UPLOAD_FORMATS.includes(ext)) errors.format = true;
-  if (errors.sourceBasis || errors.format) return { ok: false, errors };
+  if (errors.sourceBasis || errors.format || errors.month) return { ok: false, errors };
 
   const a = adminState();
   const when = mockNow();
@@ -324,13 +326,13 @@ export function uploadFile({ dataId, fileName, source, basis, received, official
     source: received || item.source,
     official: official || item.official,
     // 민원은 기준일이 마지막으로 올린 파일의 끝 달이다 (UX 고도화 메뉴 결정)
-    basis: dataId === 'DAT-07' && period && /(\d{4})\D+(\d{1,2})\D*$/.test(String(period))
-      ? String(period).replace(/^.*?(\d{4})\D+(\d{1,2})\D*$/, (_, y, m) => `${y}.${m.padStart(2, '0')} 기준`)
-      : `${year}년 기준`,
+    // 민원은 기준일이 마지막으로 올린 파일의 대상 월이다
+    basis: dataId === 'DAT-07' ? `${String(month).replace('-', '.')} 기준` : `${year}년 기준`,
     collectedAt: dotDate(when),
     freshness: bad ? item.freshness : '최신',
-    note: period ? `민원 접수 기간 ${period}` : undefined,
+    note: dataId === 'DAT-07' ? `민원 대상 월 ${String(month).replace('-', '.')}` : undefined,
   };
+  if (dataId === 'DAT-07') a.complaintMonths = [...new Set([...(a.complaintMonths || []), month])];
   logAccess(user, '설정 변경', `${item.name} 파일 올리기`);
   stamp();
   // 민원 파일은 적재 건수를 돌려준다 (신규 + 기존 + 갱신 = 전체). 가짜 값은 파일 이름 길이로 정한다.
@@ -341,7 +343,7 @@ export function uploadFile({ dataId, fileName, source, basis, received, official
     const updated = Math.round(rows * 0.005);
     counts = { rows, new: rows - existing - updated, existing, updated };
   }
-  return { ok: true, upload: { ...upload, atLabel: dotDate(upload.at) }, counts };
+  return { ok: true, upload: { ...upload, atLabel: dotDate(upload.at) }, counts, month: dataId === 'DAT-07' ? month : null };
 }
 
 function checkRows() {
@@ -411,15 +413,19 @@ const lastDay = (monthStr) => {
 function periodLabel(p) {
   return p ? `${ym(p.start).replace('-', '.')} ~ ${ym(p.end).replace('-', '.')}` : '-';
 }
+/** 올린 민원 파일이 있는 달: 기본 기록 + 이번에 올린 달 */
+function fileMonths() {
+  return [...new Set([...COMPLAINT_FILE_MONTHS, ...(adminState().complaintMonths || [])])].sort();
+}
 /** 올린 민원 파일 중 가장 이른 시작일부터 가장 늦은 끝일까지 (기본값) */
 function defaultPeriod() {
-  const months = [...COMPLAINT_FILE_MONTHS].sort();
+  const months = fileMonths();
   return { start: `${months[0]}-01`, end: lastDay(months[months.length - 1]) };
 }
 /** 기간 안에 올린 민원 파일이 없는 달 */
 function gapMonths(start, end) {
   if (!start || !end || end < start) return [];
-  const have = new Set(COMPLAINT_FILE_MONTHS);
+  const have = new Set(fileMonths());
   const out = [];
   let [y, m] = ym(start).split('-').map(Number);
   const [ey, em] = ym(end).split('-').map(Number);

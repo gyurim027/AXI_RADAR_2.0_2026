@@ -38,6 +38,9 @@ export const COMMON = {
   forbiddenRole: '이 기능은 현재 계정으로 사용할 수 없습니다. 권한이 필요하면 RADAR 운영팀에 문의해 주세요.',
   notFound: '찾는 화면이 없습니다. 메뉴에서 다시 골라 주세요.',
   goHome: '첫 화면으로 가기',
+  notFoundCandidate: '이 구역의 결과가 선택한 점검 후보에 없습니다. 점검 후보 목록에서 다시 골라 주세요.', // ERR-42
+  notFoundRun: '선택한 회차를 찾을 수 없습니다. 목록에서 다시 골라 주세요.', // ERR-43
+  backToList: '점검 후보 목록으로 돌아가기',
 
   // 15 민원 내용 표시 (원문은 보이지 않고 가린 요약과 건수만)
   complaintSummary: (total, typeText, recur) =>

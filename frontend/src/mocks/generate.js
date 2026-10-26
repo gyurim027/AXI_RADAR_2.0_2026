@@ -535,8 +535,9 @@ function complaintFor(base, r) {
   const recur1 = Math.min(t1, Math.floor(r() * 3));
   const recur2 = Math.min(t2, Math.floor(r() * 2));
   const types = [];
-  if (t1) types.push({ type: '인도 불법 주정차', count: t1, recur: recur1 });
-  if (t2) types.push({ type: '횡단보도 불법 주정차', count: t2, recur: recur2 });
+  // 민원 유형은 보행을 막거나 위험하게 하는 대상 9개(주정차·점유·공사·노면·보행로·시설·신호·조명·기타)로 센다 (ISS-016). 장소는 유형이 아니다.
+  if (t1) types.push({ type: '주정차', count: t1, recur: recur1 });
+  if (t2) types.push({ type: '보행로', count: t2, recur: recur2 });
   return {
     total: t1 + t2,
     recur: recur1 + recur2,

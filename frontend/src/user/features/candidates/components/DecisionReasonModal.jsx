@@ -13,7 +13,7 @@ const OTHER = '기타';
  * 사유 입력 창 (US-03 5-2). 표의 결정 상태 칸과 서랍 ⑤ 탭이 같이 쓴다.
  * 제외·보류는 사유가 있어야 저장된다. 사유 규칙과 저장은 기존 기능 그대로다.
  */
-export default function DecisionReasonModal({ runId, gid, decision, onClose, onSaved }) {
+export default function DecisionReasonModal({ runId, gid, decision, onClose, onSaved, onFailed }) {
   const [reasonKey, setReasonKey] = useState('');
   const [other, setOther] = useState('');
   const [memo, setMemo] = useState('');
@@ -37,6 +37,7 @@ export default function DecisionReasonModal({ runId, gid, decision, onClose, onS
       else setError(r.code === 'otherRequired' ? DRAWER.otherRequired : DRAWER.reasonRequired);
     } catch {
       setError(COMMON.saveFailed);
+      onFailed?.(); // 처리됐는지 모를 수 있어 목록과 상태를 다시 불러와 먼저 확인하게 한다 (POL-024)
     } finally {
       setBusy(false);
     }

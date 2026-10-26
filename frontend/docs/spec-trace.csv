@@ -67,7 +67,7 @@ CM-01,로그인,기본,2,로그인 입력,,5,버튼,로그인,,src/user/features
 CM-01,로그인,기본,2,로그인 입력,,6,오류 문구,아이디 또는 비밀번호가 맞지 않습니다. %남은 횟수%번 더 틀리면 %잠금 시간% 동안 로그인할 수 없습니다.,,src/user/features/login/pages/LoginPage.jsx,구현,
 CM-01,로그인,기본,3,계정 도움,성남시 (시 도로과),1,도움말,계정이 필요하거나 비밀번호를 잊었다면 RADAR 운영팀에 연락해 주세요. %연락처%,제안,src/user/features/login/pages/LoginPage.jsx,구현 (제안),
 CM-01,로그인,기본,3,계정 도움,수정·중원·분당구 (구 도로관리팀),1,도움말,계정이 필요하거나 비밀번호를 잊었다면 RADAR 운영팀에 연락해 주세요. %연락처%,,src/user/features/login/pages/LoginPage.jsx,구현,
-US-00,공통 상단,기본,0-1,메뉴,성남시 (시 도로과),1,탭,점검 후보,확정,src/user/layout/*,구현,"UX 고도화(261025) 코드 반영: 메뉴 점검 후보·보고서·승인 대기·참고 자료와 하위 탭 줄, 승인 대기 건수 배지, 점검 해 선택 칸(회차 대신 2027년 점검 후보 등) (M-1·M-2·W-9)"
+US-00,공통 상단,기본,0-1,메뉴,성남시 (시 도로과),1,탭,점검 후보,확정,src/user/layout/*,구현,"UX 고도화(261025) 코드 반영: 메뉴 점검 후보·보고서·승인 대기·참고 자료와 하위 탭 줄, 승인 대기 건수 배지, 점검 해 선택 칸(회차 대신 2027년 점검 후보 등) (M-1·M-2·W-9) / 261026 결정: 라벨 '점검 연도', ⓘ는 마우스를 올릴 때(터치는 누르면, ×로 닫기)만 보인다"
 US-00,공통 상단,기본,0-1,메뉴,,2,탭,보고서,,src/user/layout/*,구현,
 US-00,공통 상단,기본,0-1,메뉴,,3,탭,기준정보,,src/user/layout/*,구현,
 US-00,공통 상단,기본,0-1,메뉴,수정·중원·분당구 (구 도로관리팀),1,탭,점검 후보,,src/user/layout/*,구현,
@@ -102,7 +102,7 @@ US-00,공통 상단,알림,4-1,알림,,2,소제목,알림,,src/user/layout/*,구
 US-00,공통 상단,알림,4-1,알림,,3,알림,%회차 이름% 회차가 열렸습니다. %구 이름% 점검 후보를 결정해 주세요. · %알림 날짜%,,src/user/layout/*,구현,
 US-00,공통 상단,알림,4-1,알림,,4,알림,%회차 이름% 참고 회차가 열렸습니다. 바뀐 순위를 확인해 보세요. · %알림 날짜%,,src/user/layout/*,구현,
 US-00,공통 상단,알림,4-1,알림,,5,빈 화면 문구,새 알림이 없습니다.,,src/user/layout/*,구현,
-US-01,점검 후보 > 후보 목록,기본,0-1,화면 머리,성남시 (시 도로과),1,타이틀,점검 후보,제안,src/user/features/candidates/pages/CandidateListPage.jsx · src/user/components/PageHeader.jsx,구현 (제안),"UX 고도화(261025) 코드 반영: 첫 화면 안내 줄(결정 전 건수·마감일 / 확정 현황), 위쪽 영역 낮춤, 목록 결정 칸은 상태만, 상위 후보 왼쪽 막대와 범례 한 줄, 자료 신뢰도·민원이 몰린 곳 ⓘ, 근거 지점 ⓘ (U-1·U-3·U-5·W-7·W-13·W-14·W-16)"
+US-01,점검 후보 > 후보 목록,기본,0-1,화면 머리,성남시 (시 도로과),1,타이틀,점검 후보,제안,src/user/features/candidates/pages/CandidateListPage.jsx · src/user/components/PageHeader.jsx,구현 (제안),"UX 고도화(261025) 코드 반영: 첫 화면 안내 줄(결정 전 건수·마감일 / 확정 현황), 위쪽 영역 낮춤, 목록 결정 칸은 상태만, 상위 후보 왼쪽 막대와 범례 한 줄, 자료 신뢰도·민원이 몰린 곳 ⓘ, 근거 지점 ⓘ (U-1·U-3·U-5·W-7·W-13·W-14·W-16) / 261026 결정: 목록 결정 상태 칸은 메뉴 버튼(도로관리팀·검토 중·확정 전), 상위 후보는 옅은 붉은 행 배경, 평가하지 못한 구역 표에 구 열(시 도로과)"
 US-01,점검 후보 > 후보 목록,기본,0-1,화면 머리,,2,서브 타이틀,3개 구 점검 후보를 함께 봅니다. 우선 점검 대상은 각 구가 정합니다.,,src/user/features/candidates/pages/CandidateListPage.jsx · src/user/components/PageHeader.jsx,구현,
 US-01,점검 후보 > 후보 목록,기본,0-1,화면 머리,,3,안내 문구,RADAR 점검 우선순위는 먼저 점검할 곳을 고르는 참고 순위입니다. 공사·예산 순위가 아닙니다.,,src/user/features/candidates/pages/CandidateListPage.jsx · src/user/components/PageHeader.jsx,삭제 (명세에서 뺌),
 US-01,점검 후보 > 후보 목록,기본,0-1,화면 머리,,4,라벨,성남시,,src/user/features/candidates/pages/CandidateListPage.jsx · src/user/components/PageHeader.jsx,구현,
@@ -243,7 +243,7 @@ US-02,점검 후보 > 요약 패널,기본,1,요약 패널,,7,소제목,담당 �
 US-02,점검 후보 > 요약 패널,기본,1,요약 패널,,8,본문,%부서 이름% · %담당 확인 상태%,,src/user/features/candidates/components/SummaryPanel.jsx,구현,
 US-02,점검 후보 > 요약 패널,기본,1,요약 패널,,9,버튼,근거 자세히 보기,,src/user/features/candidates/components/SummaryPanel.jsx,구현,
 US-02,점검 후보 > 요약 패널,기본,1,요약 패널,,10,오류 문구,설명문을 만들지 못했습니다. 아래 근거를 직접 확인해 주세요.,,src/user/features/candidates/components/SummaryPanel.jsx,구현,
-US-03,점검 후보 > 후보 상세,기본,0-1,상세 머리,성남시 (시 도로과),1,타이틀,%순위%위 · %주소% · %대표 지점%,확정,src/user/features/candidates/components/DetailDrawer.jsx · src/user/features/candidates/components/tabs/*,구현,"UX 고도화(261025) 코드 반영: 점수 87점·성남시 내 상위, 먼저 볼 이유 꼬리표와 반영 비율 ⓘ, 핵심 근거 3개, 결정 선택지 ⓘ와 제외·보류 사유 목록 분리, 탭 ⑥ 점검 요청, 작년 결정 문구 (W-6~W-12·K-1·K-4~K-6·K-10~K-13·K-15·K-16·U-6)"
+US-03,점검 후보 > 후보 상세,기본,0-1,상세 머리,성남시 (시 도로과),1,타이틀,%순위%위 · %주소% · %대표 지점%,확정,src/user/features/candidates/components/DetailDrawer.jsx · src/user/features/candidates/components/tabs/*,구현,"UX 고도화(261025) 코드 반영: 점수 87점·성남시 내 상위, 먼저 볼 이유 꼬리표와 반영 비율 ⓘ, 핵심 근거 3개, 결정 선택지 ⓘ와 제외·보류 사유 목록 분리, 탭 ⑥ 점검 요청, 작년 결정 문구 (W-6~W-12·K-1·K-4~K-6·K-10~K-13·K-15·K-16·U-6) / 261026: 민원 유형 이름은 9개 유형(R-25), 다른 구·없는 후보 주소는 안내 문구(ERR-14·42)"
 US-03,점검 후보 > 후보 상세,기본,0-1,상세 머리,,2,꼬리표,%결정 상태%,,src/user/features/candidates/components/DetailDrawer.jsx · src/user/features/candidates/components/tabs/*,구현,
 US-03,점검 후보 > 후보 상세,기본,0-1,상세 머리,,3,버튼,◀ 이전 후보,,src/user/features/candidates/components/DetailDrawer.jsx · src/user/features/candidates/components/tabs/*,구현,
 US-03,점검 후보 > 후보 상세,기본,0-1,상세 머리,,4,버튼,다음 후보 ▶,,src/user/features/candidates/components/DetailDrawer.jsx · src/user/features/candidates/components/tabs/*,구현,
@@ -555,7 +555,7 @@ AD-02,데이터 > 데이터 목록,기본,1-2,데이터 표,RADAR 운영자,1,�
 AD-02,데이터 > 데이터 목록,기본,1-2,데이터 표,,2,표 행,%데이터 ID% · %데이터 이름% · %제공기관% · %받은 곳% · %갱신 주기% · %기준일% · %수집일% · %공식 원본 여부% · %최신 여부% · %결과물에 넣기% · %외부 AI로 보내기%,,src/admin/features/data/DataListPage.jsx,구현,"펼친 목록의 열 이름과 API 자료의 수집일 표는 명세에 없어 지었다. 원본이 없는 자료(빠짐)는 펼치지 않는다. 빈 표 문구도 명세에 없어 공통 규칙 11번을 따랐다. ""공식 원본 여부"" 예시 값(확인)이 선택지(공식 원본/가공본/미확인)와 달라 선택지를 따랐다."
 AD-02,데이터 > 데이터 목록,기본,1-2,데이터 표,,3,꼬리표,과거 기록,,src/admin/features/data/DataListPage.jsx,구현,"펼친 목록의 열 이름과 API 자료의 수집일 표는 명세에 없어 지었다. 원본이 없는 자료(빠짐)는 펼치지 않는다. 빈 표 문구도 명세에 없어 공통 규칙 11번을 따랐다. ""공식 원본 여부"" 예시 값(확인)이 선택지(공식 원본/가공본/미확인)와 달라 선택지를 따랐다."
 AD-02,데이터 > 데이터 목록,기본,1-2,데이터 표,,4,꼬리표,기준일 미확인,,src/admin/features/data/DataListPage.jsx,구현,"펼친 목록의 열 이름과 API 자료의 수집일 표는 명세에 없어 지었다. 원본이 없는 자료(빠짐)는 펼치지 않는다. 빈 표 문구도 명세에 없어 공통 규칙 11번을 따랐다. ""공식 원본 여부"" 예시 값(확인)이 선택지(공식 원본/가공본/미확인)와 달라 선택지를 따랐다."
-AD-03,데이터 > 업로드,기본,0-1,화면 머리,RADAR 운영자,1,타이틀,자료 올리기,제안,src/admin/features/data/UploadPage.jsx,구현 (제안),"UX 고도화(261025) 코드 반영: 입력 2열 배치, 수집 경로·공식 원본 여부 도움말, 열 머리 (A-2·K-22)"
+AD-03,데이터 > 업로드,기본,0-1,화면 머리,RADAR 운영자,1,타이틀,자료 올리기,제안,src/admin/features/data/UploadPage.jsx,구현 (제안),"UX 고도화(261025) 코드 반영: 입력 2열 배치, 수집 경로·공식 원본 여부 도움말, 열 머리 (A-2·K-22) / 261026 결정: 민원 파일은 한 번에 한 달치만 올린다. 입력 칸 '민원 접수 기간'을 필수 '대상 월'(월 선택)로 바꾸고 완료 문구에 월을 보인다(R-02). 정의서 AD-03 1-1 줄16·17은 문서 수정 대기"
 AD-03,데이터 > 업로드,기본,0-1,화면 머리,,2,서브 타이틀,API로 받지 못하는 자료와 민원 파일을 올립니다. 출처와 기준일이 없으면 올릴 수 없습니다.,,src/admin/features/data/UploadPage.jsx,구현,
 AD-03,데이터 > 업로드,기본,1-1,올리기 입력,RADAR 운영자,1,라벨,자료 이름,제안,src/admin/features/data/UploadPage.jsx,구현 (제안),가짜 검사 규칙: 파일 이름에 오류·error가 있으면 3건이 걸린다(개발 장치). 받은 곳은 파일/시 내부 자료 두 가지만 고르게 했다(API는 올리지 않는다).
 AD-03,데이터 > 업로드,기본,1-1,올리기 입력,,2,선택,%데이터 이름%,,src/admin/features/data/UploadPage.jsx,구현,가짜 검사 규칙: 파일 이름에 오류·error가 있으면 3건이 걸린다(개발 장치). 받은 곳은 파일/시 내부 자료 두 가지만 고르게 했다(API는 올리지 않는다).

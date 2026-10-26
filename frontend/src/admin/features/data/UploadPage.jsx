@@ -73,7 +73,7 @@ function UploadForm({ targets, preset, onUploaded }) {
   const [basis, setBasis] = useState('');
   const [received, setReceived] = useState(initial.source);
   const [official, setOfficial] = useState(initial.official === '미확인' ? '가공본' : initial.official);
-  const [period, setPeriod] = useState('');
+  const [month, setMonth] = useState(''); // 민원 파일의 대상 월 (YYYY-MM)
   const [errors, setErrors] = useState({});
   const [done, setDone] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -93,13 +93,14 @@ function UploadForm({ targets, preset, onUploaded }) {
     setBusy(true);
     setDone(null);
     try {
-      const r = await uploadFile({ dataId, fileName: file?.name || '', source, basis, received, official, period });
+      const r = await uploadFile({ dataId, fileName: file?.name || '', source, basis, received, official, month });
       if (!r.ok) {
         setErrors(r.errors);
         return;
       }
       setErrors({});
-      setDone({ name: item.name, counts: r.counts });
+      setDone({ name: item.name, counts: r.counts, month: r.month });
+      setMonth('');
       setFile(null);
       onUploaded();
     } catch {
@@ -121,7 +122,7 @@ function UploadForm({ targets, preset, onUploaded }) {
         <TextInput label={UPLOAD.basis} type="date" value={basis} onChange={setBasis} help={UPLOAD.basisHelp} error={errors.sourceBasis && !basis.trim() ? UPLOAD.errorSourceBasis : null} required />
         <SelectInput label={UPLOAD.received} value={received} onChange={setReceived} options={RECEIVED} help={UPLOAD.receivedHelp} />
         <SelectInput label={UPLOAD.official} value={official} onChange={setOfficial} options={OFFICIAL} help={UPLOAD.officialHelp} />
-        {item.complaint ? <TextInput label={UPLOAD.period} value={period} onChange={setPeriod} /> : null}
+        {item.complaint ? <TextInput label={UPLOAD.month} type="month" value={month} onChange={setMonth} help={UPLOAD.monthHelp} error={errors.month ? UPLOAD.errorMonth : null} required /> : null}
         {busy || done ? (
           <div className={styles.full}>
             {busy ? (
@@ -131,7 +132,7 @@ function UploadForm({ targets, preset, onUploaded }) {
             ) : null}
             {done ? (
               <Banner tone="success">
-                {done.counts ? UPLOAD.doneComplaint(done.counts) : UPLOAD.done(done.name)}{' '}
+                {done.counts ? UPLOAD.doneComplaint(done.counts, done.month) : UPLOAD.done(done.name)}{' '}
                 <Link to="/admin/data/checks" className={styles.link}>
                   {UPLOAD.goChecks}
                 </Link>

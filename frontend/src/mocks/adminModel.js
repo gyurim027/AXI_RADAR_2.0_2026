@@ -66,6 +66,7 @@ export function adminState() {
       accountStatus: {}, // { 아이디: '멈춤' }
       roleLog: [], // 권한 변경 기록
       alertEmails: 'radar-ops@example.com',
+      complaintMonths: [], // 이번에 올린 민원 파일의 대상 월 (YYYY-MM)
       runOpenNotices: [], // 회차를 열 때 사용자에게 가는 알림
       adminNoticeRead: [],
     };

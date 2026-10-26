@@ -38,7 +38,9 @@ export const UPLOAD = {
   receivedHelp: '자료를 받은 방법입니다.', // A-2
   officialHelp: '공식 기관이 낸 원본인지를 나타냅니다.',
   official: '공식 원본 여부',
-  period: '민원 접수 기간',
+  month: '대상 월',
+  monthHelp: '민원 파일은 한 번에 한 달치만 올립니다. 올리는 파일이 어느 달의 민원인지 골라 주세요.', // R-02
+  errorMonth: '대상 월을 골라 주세요.',
   submit: '파일 올리기',
   errorSourceBasis: '출처와 기준일을 적어야 올릴 수 있습니다.',
   errorFormat: (formats) => `올릴 수 없는 형식입니다. ${formats} 파일을 골라 주세요.`,
@@ -46,7 +48,7 @@ export const UPLOAD = {
   errorEmpty: '파일에 내용이 없습니다. 파일을 확인한 뒤 다시 올려 주세요.', // ERR-35
   done: (name) => `${name} 파일을 올렸습니다. 검사 결과를 확인해 주세요.`,
   // 민원 파일은 적재 건수를 함께 보인다 (제안, 작업파일 261024 프론트_수정_보완_정리 R-05)
-  doneComplaint: (c) => `민원 ${c.rows.toLocaleString('ko-KR')}건을 올렸습니다. 새로 ${c.new.toLocaleString('ko-KR')}건, 이미 있던 ${c.existing.toLocaleString('ko-KR')}건, 값이 바뀐 ${c.updated.toLocaleString('ko-KR')}건입니다.`,
+  doneComplaint: (c, month) => `민원 ${month ? `${Number(month.slice(0, 4))}년 ${Number(month.slice(5))}월분 ` : ''}${c.rows.toLocaleString('ko-KR')}건을 올렸습니다. 새로 ${c.new.toLocaleString('ko-KR')}건, 이미 있던 ${c.existing.toLocaleString('ko-KR')}건, 값이 바뀐 ${c.updated.toLocaleString('ko-KR')}건입니다.`,
   busy: '올리는 중입니다. 끝날 때까지 이 창을 닫지 마세요.', // 제안 (R-07)
   goChecks: '검사 결과 보기',
   recordsTitle: '올린 기록',

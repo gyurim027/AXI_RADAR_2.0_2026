@@ -26,6 +26,8 @@ import PriorityAlert from '../components/PriorityAlert.jsx';
 import RankTable from '../components/RankTable.jsx';
 import SummaryPanel from '../components/SummaryPanel.jsx';
 import UnratedPanel from '../components/UnratedPanel.jsx';
+import Button from '../../../components/Button.jsx';
+import drawerStyles from '../components/DetailDrawer.module.css';
 import styles from './CandidateListPage.module.css';
 
 /** 회차를 바꾸면 화면 상태(선택, 필터, 쪽)를 새로 시작한다 */
@@ -279,12 +281,23 @@ function CandidateListPage() {
             <SummaryPanel row={selectedRow} detail={detail.data} loading={detail.loading} onClose={closeSummary} onDetail={openDetail} />
           ) : null}
         </CandidateMap>
+        {drawerOpen && !selectedRow && detail.failed && ['forbidden', 'notFound'].includes(detail.error?.code) ? (
+          // 다른 구 자료이거나 없는 후보 주소를 직접 열었을 때 (ERR-14·42)
+          <aside className={drawerStyles.drawer} aria-label="후보 상세">
+            <EmptyState text={detail.error.code === 'forbidden' ? COMMON.forbiddenGu : COMMON.notFoundCandidate}>
+              <Button variant="soft" onClick={closeSummary}>
+                {COMMON.backToList}
+              </Button>
+            </EmptyState>
+          </aside>
+        ) : null}
         {drawerOpen && selectedRow ? (
           <DetailDrawer
             row={selectedRow}
             detail={detail.data}
             loading={detail.loading}
             failed={detail.failed}
+            errorCode={detail.error?.code}
             onRetry={detail.reload}
             tab={tab}
             setTab={setTab}
@@ -303,6 +316,7 @@ function CandidateListPage() {
           gid={deciding.gid}
           decision={deciding.decision}
           onClose={() => setDeciding(null)}
+          onFailed={onChanged}
           onSaved={() => {
             setDeciding(null);
             onChanged();
@@ -315,6 +329,7 @@ function CandidateListPage() {
           runId={run.id}
           role={user.role}
           onClose={() => setConfirmOpen(false)}
+          onFailed={onChanged}
           onConfirmed={() => {
             onChanged();
             reloadRuns();
