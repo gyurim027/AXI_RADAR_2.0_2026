@@ -1,4 +1,15 @@
 """원본 22건의 현재 정보만으로 판정하는 것을 차단하는 회귀시험."""
+import pytest
+from pathlib import Path as _Path
+_root = _Path(__file__).resolve().parents[1]
+_required = [
+    _root / 'data' / 'RADAR_AI10_민원샘플_정리_v2.json',
+    _root / 'data' / 'ai10_ck_rules_v0.4.1.json',
+]
+_missing = [p.name for p in _required if not p.is_file()]
+if _missing:
+    pytest.skip('AI-10 시험 자료 미배치: ' + ', '.join(_missing), allow_module_level=True)
+
 import json
 from pathlib import Path
 from ai10_22_ck_readiness_report import report
