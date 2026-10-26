@@ -22,8 +22,6 @@ function errorText(e) {
       return C.network;
     case 'session_unavailable':
       return C.noStorage;
-    case 'forbidden_role':
-      return e.message;
     default:
       return C.other;
   }
