@@ -24,6 +24,8 @@
 
 함께 세는 값 (모든 기능 공통, AI-03에서 가장 중요)
     결과 낸 수      어댑터가 빈 값이 아닌 결과를 낸 문제 수
+                    상태·등급처럼 '못 찾음'도 글자로 돌려주는 어댑터는 --empty "못 찾음"으로 그 글자를 '결과 없음'으로 센다
+                    (판정은 그대로 — 기대 답이 '못 찾음'인 문제는 그 글자가 나와야 맞음. 세는 값만 바뀜, 10/26 AI-03 상태 평가에서 찾음)
     오연결          결과를 냈는데 틀린 문제 수.  오연결률 = 오연결 / 결과 낸 수
     찾은 비율       찾아야 하는 문제(같음 · 포함 · N등 안) 중 결과를 낸 비율
 """
@@ -77,6 +79,7 @@ class Report:
     answered_wrong: int = 0      # 결과를 냈는데 틀림 (오연결)
     should_find: int = 0         # 찾아야 하는 문제 수 (같음 · 포함 · N등 안)
     found: int = 0               # 그중 결과를 낸 수
+    empty_values: list = field(default_factory=list)   # '결과 없음'으로 센 글자 (--empty)
 
     @property
     def rate(self) -> float:
@@ -189,14 +192,19 @@ def load_adapter(spec: str) -> Callable[[str], Any]:
     return getattr(importlib.import_module(mod), fn or "run")
 
 
-def _has_result(got: Any) -> bool:
+def _has_result(got: Any, empty: frozenset = frozenset()) -> bool:
+    def real(x):
+        return x not in (None, "") and norm(x) not in empty
     if isinstance(got, (list, tuple)):
-        return any(x not in (None, "") for x in got)
-    return got not in (None, "")
+        return any(real(x) for x in got)
+    return real(got)
 
 
-def evaluate(name: str, cases: list[Case], adapter: Callable[[str], Any]) -> Report:
-    rep = Report(name=name, total=len(cases), passed=0, at=datetime.now().isoformat(timespec="seconds"))
+def evaluate(name: str, cases: list[Case], adapter: Callable[[str], Any], empty: list[str] | tuple = ()) -> Report:
+    """empty: 어댑터가 '못 찾음'을 글자로 돌려줄 때 그 글자 (결과 낸 수·오연결률·찾은 비율에서 '결과 없음'으로 셈)"""
+    empty_set = frozenset(norm(e) for e in empty if str(e).strip())
+    rep = Report(name=name, total=len(cases), passed=0, at=datetime.now().isoformat(timespec="seconds"),
+                 empty_values=sorted(empty_set))
     for c in cases:
         key = "N등 안" if TOP_N.match(c.rule) else c.rule
         b = rep.by_rule.setdefault(key, {"total": 0, "passed": 0})
@@ -207,7 +215,7 @@ def evaluate(name: str, cases: list[Case], adapter: Callable[[str], Any]) -> Rep
         except Exception as exc:                 # 한 문제가 오류여도 나머지는 계속
             got, ok, why = None, False, f"오류({type(exc).__name__})"
             rep.errors += 1
-        has = _has_result(got)
+        has = _has_result(got, empty_set)
         if has:
             rep.answered += 1
             if not ok:
@@ -230,6 +238,8 @@ def summary_text(rep: Report) -> str:
     fr = "-" if rep.find_rate is None else f"{rep.find_rate}%"
     lines.append(f"  결과 낸 수 {rep.answered} · 그중 틀림(오연결) {rep.answered_wrong} → 오연결률 {wl}"
                  f" · 찾은 비율 {rep.found}/{rep.should_find} ({fr})")
+    if rep.empty_values:
+        lines.append("  ('" + "' · '".join(rep.empty_values) + "'은 결과 없음으로 셈)")
     for rule, b in rep.by_rule.items():
         lines.append(f"  - {rule}: {b['passed']}/{b['total']}")
     for f in rep.failed:

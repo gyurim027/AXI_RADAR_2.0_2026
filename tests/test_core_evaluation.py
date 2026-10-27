@@ -40,6 +40,18 @@ class HarnessTests(unittest.TestCase):
         self.assertEqual(rep.wrong_link_rate, 75.0)                     # 분모 = 결과 낸 수 (전체 아님)
         self.assertEqual((rep.found, rep.should_find, rep.find_rate), (2, 3, 66.7))
 
+    def test_text_not_found_counted_as_empty(self):
+        """AI-03 상태 평가처럼 '못 찾음'을 글자로 돌려주는 어댑터 (10/26): --empty로 세는 값만 바꾸고 판정은 그대로"""
+        cases = [C("같음", ["성공"], "a"), C("같음", ["성공"], "b"), C("같음", ["못 찾음"], "c"), C("같음", ["성공"], "d")]
+        answers = {"a": "성공", "b": "못 찾음", "c": "못 찾음", "d": "도로 단위"}
+        plain = evaluate("st", cases, lambda s: answers[s])
+        self.assertEqual((plain.passed, plain.answered, plain.answered_wrong), (2, 4, 2))   # 놓친 b가 '오연결'로 보임
+        rep = evaluate("st", cases, lambda s: answers[s], empty=["못 찾음"])
+        self.assertEqual(rep.passed, 2)                                    # 판정은 같음 (c는 '못 찾음'이 나와야 맞음)
+        self.assertEqual((rep.answered, rep.answered_wrong, rep.wrong_link_rate), (2, 1, 50.0))   # d만 진짜 오연결
+        self.assertEqual((rep.found, rep.should_find), (2, 4))
+        self.assertIn("'못 찾음'은 결과 없음으로 셈", summary_text(rep))
+
     def test_spacing_and_case_ignored(self):
         self.assertTrue(judge(C("같음", ["EPSG 5179"]), "epsg  5179")[0])
 
