@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../../app/providers/AuthProvider.jsx';
 import { backendAuthEnabled, backendBaseUrl, backendHome } from '../../../../api/backend.js';
@@ -25,6 +25,31 @@ function errorText(e) {
     default:
       return C.other;
   }
+}
+
+/** 개발 화면에서만: 서버 주소로 실제 요청을 보내 닿는지 확인해 보여 준다. 주소만 적혀 있는 것과 서버가 켜져 있는 것은 다르다. */
+function DevServerStatus() {
+  const [state, setState] = useState('checking'); // checking | up | down
+  useEffect(() => {
+    if (!backendAuthEnabled) return undefined;
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 4000);
+    fetch(`${backendBaseUrl.replace(/\/+$/, '')}/health`, { signal: ctrl.signal })
+      .then((r) => setState(r.ok ? 'up' : 'down'))
+      .catch(() => setState('down'))
+      .finally(() => clearTimeout(timer));
+    return () => {
+      clearTimeout(timer);
+      ctrl.abort();
+    };
+  }, []);
+  if (!backendAuthEnabled) return <p className={styles.mode} role="note">{C.devMock}</p>;
+  const cls = state === 'up' ? styles.modeLive : state === 'down' ? styles.modeDown : '';
+  return (
+    <p className={`${styles.mode} ${cls}`} role="note">
+      {C.devServer(state, backendBaseUrl)}
+    </p>
+  );
 }
 
 /** CM-01 로그인. 로그인하면 계정의 역할과 소속 구로 첫 화면을 연다 (U-04). */
@@ -82,11 +107,7 @@ export default function LoginPage() {
         <h1 className={styles.title}>{C.title}</h1>
         <p className={styles.subtitle}>{C.subtitle}</p>
         {/* 개발 화면에서만: 서버에 붙었는지 연습용 로그인인지 보인다. 연습용인데 서버 계정으로 시도하면 틀린 비밀번호로 보여 헷갈리기 때문이다. */}
-        {import.meta.env.DEV ? (
-          <p className={`${styles.mode} ${backendAuthEnabled ? styles.modeLive : ''}`} role="note">
-            {backendAuthEnabled ? C.devServer(backendBaseUrl) : C.devMock}
-          </p>
-        ) : null}
+        {import.meta.env.DEV ? <DevServerStatus /> : null}
 
         <div className={styles.fields}>
           <TextField label={C.idLabel} value={loginId} onChange={setLoginId} autoComplete="username" name="loginId" />

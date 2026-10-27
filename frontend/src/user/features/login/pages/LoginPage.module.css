@@ -64,6 +64,10 @@
   font-size: var(--fs-small);
   text-align: center;
 }
+.modeDown {
+  background: var(--semantic-color-risk-high-soft);
+  color: var(--semantic-color-risk-high);
+}
 .modeLive {
   background: var(--semantic-color-risk-low-soft);
   color: var(--semantic-color-risk-low);
