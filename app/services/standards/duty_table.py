@@ -17,7 +17,7 @@ DEPT = re.compile(r"^[가-힣]{2,12}(과|관|담당관|팀|센터|사업소|단|
 SKIP = re.compile(r"^(소\s*관|부\s*서|일련|번호|위\s*임.*명|근\s*거.*규|■.*|<.*>|구청장에게.*|\d+)$")
 LAW = re.compile(r"(법|령|규칙|조례|규정|지침|고시)(\s|$|\s*제|\s*\d|,)|같은\s*법|제\d+조")
 BULLET_TOP = re.compile(r"^○\s*")
-BULLET_SUB = re.compile(r"^(ㆍ|·|․|‧|-|－)\s*")
+BULLET_SUB = re.compile(r"^(ㆍ|·|․|‧|∙|･|-|－)\s*")   # ∙(U+2219)·･(U+FF65): 2025년 판 별표 1이 세부 사무 앞에 씀 (10/26 F-05 평가에서 찾음)
 RELATED = ("보도", "보행", "횡단", "가로등", "보안등", "조명", "도로", "주ㆍ정차", "주정차", "주·정차", "주차", "교통약자",
            "보호구역", "점용", "적치", "신호", "육교", "지하보도", "통학로")
 
@@ -30,7 +30,34 @@ class Duty:
 
     @property
     def key(self) -> str:
-        return re.sub(r"[\s․·ㆍ・,()]", "", self.duty)
+        return duty_key(self.duty)
+
+
+def duty_key(duty: str, laws: tuple[str, ...] = ()) -> str:
+    """같은 사무인지 볼 때 쓰는 글자. 판마다 표 칸을 읽는 순서가 달라 사무 이름에 끼어드는 것은 뺀다 (10/26 F-05 평가):
+    괄호 안 팀 이름 '(생태하천과)' · 근거 법규 칸의 법령 이름(laws) · 제목 끝 '에 관한 권한'·'에 관한 사항'·'에 의한'."""
+    parts = []
+    for part in duty.split(">"):
+        t = re.sub(r"\([가-힣]+(과|팀|소)\)", "", part)
+        for law in laws:
+            t = t.replace(law, "")
+        t = re.sub(r"(에\s*관한\s*(다음의\s*)?권한|에\s*관한\s*사항|에\s*의한|다음의\s*권한)\s*$", "", " ".join(t.split()))
+        parts.append(t)
+    return re.sub(r"[\s․·ㆍ・∙･‧,()「」]", "", ">".join(parts))
+
+
+LAW_NAME = re.compile(r"「?([가-힣][가-힣ㆍ·․\s]{1,40}?(?:법률|법|시행령|시행규칙|조례|규칙|규정))」?\s*(?=제\s*\d|$|,)")
+
+
+def law_names(duties: list["Duty"]) -> tuple[str, ...]:
+    """근거 법규 칸에 나온 법령 이름 (긴 것부터). '같은 법'은 뺀다."""
+    names = set()
+    for d in duties:
+        for m in LAW_NAME.finditer(d.basis or ""):
+            n = " ".join(m.group(1).split())
+            if len(n) >= 4 and not n.startswith("같은"):
+                names.add(n)
+    return tuple(sorted(names, key=len, reverse=True))
 
 
 def _clean(s: str) -> str:
@@ -74,6 +101,11 @@ def parse(text: str) -> list[Duty]:
     return [d for d in out if d.duty]
 
 
+def _basis_key(b: str | None) -> str:
+    """근거 법규 비교용: 띄어쓰기·쉼표·가운뎃점(․·ㆍ∙･‧) 차이를 없앤다 (판마다 줄바꿈·기호 모양이 달라 '근거 바뀜'이 잘못 나오던 것, 10/26)"""
+    return re.sub(r"[\s,․·ㆍ・∙･‧]", "", b or "")
+
+
 def _trim_title(t: str | None) -> str:
     t = re.sub(r"(에\s*관한|에\s*의한)?\s*다음의\s*권한$", "", t or "").strip()
     return re.sub(r"에\s*관한\s*권한$", "", t).strip()
@@ -84,12 +116,13 @@ def is_related(d: Duty) -> bool:
 
 
 def compare(old: list[Duty], new: list[Duty], name: str = "업무분장") -> dict:
+    laws = law_names(old + new)                       # 사무 이름에 끼어든 근거 법령 이름은 같은 사무 판단에서 뺌
     ob: dict[str, list[Duty]] = {}
     for d in old:
-        ob.setdefault(d.key, []).append(d)
+        ob.setdefault(duty_key(d.duty, laws), []).append(d)
     nb: dict[str, list[Duty]] = {}
     for d in new:
-        nb.setdefault(d.key, []).append(d)
+        nb.setdefault(duty_key(d.duty, laws), []).append(d)
 
     changes = []
 
@@ -114,8 +147,8 @@ def compare(old: list[Duty], new: list[Duty], name: str = "업무분장") -> dic
             add("부서 옮김", to or d.dept, f"{frm}: {d.duty}" if frm else None, f"{to}: {d.duty}" if to else None, d,
                 from_dept=frm, to_dept=to, basis=d.basis)
             continue
-        ob_basis = {(d.dept, d.basis) for d in ob[k]}
-        nb_basis = {(d.dept, d.basis) for d in nb[k]}
+        ob_basis = {(d.dept, _basis_key(d.basis)) for d in ob[k]}     # 띄어쓰기·쉼표·가운뎃점 모양만 다른 것은 같은 근거
+        nb_basis = {(d.dept, _basis_key(d.basis)) for d in nb[k]}
         if ob_basis != nb_basis:
             d = nb[k][0]
             add("근거 바뀜", d.dept, ob[k][0].basis, d.basis, d)

@@ -53,6 +53,21 @@ class DutyTests(unittest.TestCase):
         self.assertEqual(kinds, sorted([("근거 바뀜", "교통기획과"), ("없어진 사무", "도로과"), ("새 사무", "도로과")]))
         self.assertTrue(all(c["related"] for c in rep["changes"]))
 
+    def test_layout_only_differences_are_quiet(self):
+        """판마다 모양만 다른 것은 바뀜으로 세지 않는다 (10/26 F-05 평가: 사무위임 조례 별표 1 제4263호 ↔ 제4374호에서 찾음)
+        ① 세부 사무 앞 기호 ∙(U+2219)·･ ② 근거 법규의 띄어쓰기·쉼표·가운뎃점 ③ 사무 이름에 끼어든 법령 이름·팀 이름"""
+        old = ("■ 시험 조례 [별표 1]\n도시계획과\n○ 개발행위 허가에\n국토의 계획 및 이용에 관한 법률 제56조\n관한 사항\n"
+               " ∙ 물건의 적치허가\n같은 법 제56조\n"
+               "도로과\n○ 도로에 관한 권한\n ∙ 도로유지관리(국도 제외)\n도로법 제31조,\n같은 법 시행령 제2조\n"
+               " ･ 가로등․보안등 설치\n도로법 제50조 (도로조명팀)\n")
+        new = ("■ 시험 조례 [별표 1]\n도시계획과\n○ 개발행위 허가에 관한 사항\n국토의 계획 및 이용에 관한 법률 제56조\n"
+               " ㆍ 물건의 적치허가\n같은 법 제56조\n"
+               "도로과\n○ 도로에 관한 권한\n ㆍ 도로유지관리(국도 제외)\n도로법 제31조, 같은 법 시행령 제2조\n"
+               " ㆍ 가로등·보안등 설치\n도로법 제50조 (도로조명팀)\n"
+               " ㆍ 보도 정비\n도로법 제31조\n")
+        rep = duty_compare(parse(old), parse(new))
+        self.assertEqual([(c["change"], c["duty"]) for c in rep["changes"]], [("새 사무", "도로 > 보도 정비")])   # 진짜로 더한 것만
+
     def test_moved_between_depts(self):
         moved = OLD.replace("교통기획과\n3\n", "주차지원과\n3\n")
         rep = duty_compare(parse(OLD), parse(moved))
