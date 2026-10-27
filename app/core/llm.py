@@ -18,6 +18,12 @@
     else:
         handle(result.error_code)                        # 예외를 던지지 않고 실패 코드를 돌려준다
 
+답 양식을 정하려면 schema에 pydantic 모델 클래스나 JSON Schema(dict)를 넘긴다. 모델에 양식을 함께 보내고
+(Ollama format, Gemini response_json_schema). pydantic 클래스면 받은 답이 양식에 맞는지 검사하고, 맞으면 data는 그 모양의 dict다.
+
+    result = call_llm("ai10_draft", messages, data_ids=["SRC06"], contains_raw=False,
+                      response_format="json", schema=CaseDraftOutput)
+
 임베딩(글 → 숫자 묶음)은 call_embed() 하나로 부른다. 내부 모델(Ollama /api/embed)만 쓰고 외부로는 보내지 않는다.
 
     result = call_embed("ai05_embed", ["보도의 너비", "인도 폭"], request_id=None)
@@ -31,6 +37,8 @@
   · data_ids가 비어 있지 않고, 모두 llm_tasks.toml [external_allowed]에 있다 (POL-021). 목록에 없거나 미확인이면 막는다.
 - 막히면 외부로 보내지 않고 실패(external_not_allowed)로 돌려준다. 내부 모델로 몰래 바꾸지 않는다.
 - Ollama가 꺼져 있으면 외부로 넘기지 않고 실패(internal_unavailable)로 돌려준다.
+- schema를 주면 JSON 답으로 본다(response_format="text"와 같이 줄 수 없다). 양식에 맞지 않으면 JSON 형식 오류처럼
+  json_retries만큼 다시 묻고, 그래도 틀리면 invalid_json이다.
 - 임베딩 작업은 내부 경로(internal)만 쓴다. 외부 경로 작업이면 보내지 않고 config_error로 돌려준다.
   공용 PC가 한 번에 하나씩 처리하므로 한 번에 32개 안팎으로 나눠 부른다.
 - 로그(radar.llm)에는 작업·경로·모델·성공 여부·실패 코드·시도 횟수·걸린 시간·토큰 수·request_id만 남긴다.
@@ -178,10 +186,13 @@ def _post_ollama(path: str, body: dict, timeout_s: float) -> dict:
     return out
 
 
-def _call_ollama(cfg: TaskConfig, messages: list[dict], want_json: bool) -> tuple[str, int | None, int | None]:
+def _call_ollama(cfg: TaskConfig, messages: list[dict], want_json: bool,
+                 schema: dict | None = None) -> tuple[str, int | None, int | None]:
     body = {"model": cfg.model, "messages": messages, "stream": False,
             "options": {"temperature": cfg.temperature, "num_predict": cfg.max_tokens}}
-    if want_json:
+    if schema:                               # 답 양식(JSON Schema)이 있으면 그 모양으로만 답하게 한다
+        body["format"] = schema
+    elif want_json:
         body["format"] = "json"
     if cfg.keep_alive:                       # 모델을 올려 둔 채로 둘 시간 (다시 올리는 지연 막기)
         body["keep_alive"] = cfg.keep_alive
@@ -207,7 +218,8 @@ def _embed_ollama(cfg: TaskConfig, texts: list[str]) -> tuple[list[list[float]],
     return vectors, out.get("prompt_eval_count")
 
 
-def _call_gemini(cfg: TaskConfig, messages: list[dict], want_json: bool) -> tuple[str, int | None, int | None]:
+def _call_gemini(cfg: TaskConfig, messages: list[dict], want_json: bool,
+                 schema: dict | None = None) -> tuple[str, int | None, int | None]:
     key = _env("GEMINI_API_KEY")
     if not key or not cfg.model:
         raise LlmError("config_error")
@@ -220,7 +232,8 @@ def _call_gemini(cfg: TaskConfig, messages: list[dict], want_json: bool) -> tupl
                 for m in messages if m["role"] != "system"]
     config = types.GenerateContentConfig(
         temperature=cfg.temperature, max_output_tokens=cfg.max_tokens, system_instruction=system,
-        response_mime_type="application/json" if want_json else None,
+        response_mime_type="application/json" if want_json or schema else None,
+        response_json_schema=schema or None,
         http_options=types.HttpOptions(timeout=int(cfg.timeout_s * 1000)),
     )
     client = genai.Client(api_key=key)
@@ -264,12 +277,36 @@ def _check_messages(messages: list[dict]) -> None:
         raise ValueError("messages는 role(system/user/assistant)과 content(글자)를 가진 dict 목록이어야 합니다")
 
 
+def _schema_dict(schema: Any) -> dict | None:
+    """pydantic 모델 클래스나 JSON Schema(dict)를 JSON Schema dict로 바꾼다."""
+    if schema is None:
+        return None
+    if isinstance(schema, dict):
+        return schema
+    if isinstance(schema, type) and hasattr(schema, "model_json_schema"):
+        return schema.model_json_schema()
+    raise ValueError("schema는 pydantic 모델 클래스나 JSON Schema(dict)입니다")
+
+
+def _check_schema(schema: Any, data: Any) -> Any:
+    """pydantic 클래스면 답을 검사해 dict로 돌려준다. 맞지 않으면 ValueError(형식 오류와 같게 다시 묻는다)."""
+    if not (isinstance(schema, type) and hasattr(schema, "model_validate")):
+        return data
+    try:
+        return schema.model_validate(data).model_dump(mode="json")
+    except Exception:                        # 검사 오류 글에 답 일부가 섞일 수 있어 종류만 남긴다
+        raise ValueError("schema_mismatch") from None
+
+
 def call_llm(task: str, messages: list[dict], *, data_ids: Iterable[str] = (), contains_raw: bool | None = None,
-             response_format: str = "text", request_id: str | None = None) -> LlmResult:
+             response_format: str = "text", request_id: str | None = None, schema: Any = None) -> LlmResult:
     """LLM을 부른다. 자세한 규칙은 이 파일 맨 위 설명."""
     _check_messages(messages)
     if response_format not in ("text", "json"):
         raise ValueError("response_format은 'text' 또는 'json'입니다")
+    if schema is not None and response_format == "text":
+        raise ValueError("schema를 주면 response_format은 'json'입니다")
+    schema_dict = _schema_dict(schema)
     data_ids = list(data_ids)
     start = time.perf_counter()
 
@@ -288,12 +325,13 @@ def call_llm(task: str, messages: list[dict], *, data_ids: Iterable[str] = (), c
 
     call = PROVIDERS[cfg.route]
     want_json = response_format == "json"
+    extra = {"schema": schema_dict} if schema_dict else {}       # 양식이 없으면 제공자에 넘기지 않는다
     attempts, json_left = 0, cfg.json_retries
     tokens_in = tokens_out = None
     while True:
         attempts += 1
         try:
-            text, t_in, t_out = call(cfg, messages, want_json)
+            text, t_in, t_out = call(cfg, messages, want_json, **extra)
         except LlmError as exc:
             if exc.retryable and attempts <= cfg.max_retries:
                 time.sleep(min(2 ** (attempts - 1), 8))           # 1초, 2초, 4초 … 간격을 늘려 다시
@@ -308,7 +346,7 @@ def call_llm(task: str, messages: list[dict], *, data_ids: Iterable[str] = (), c
             return done(ok=True, route=cfg.route, model=cfg.model, text=text, attempts=attempts,
                         input_tokens=tokens_in, output_tokens=tokens_out)
         try:
-            data = _parse_json(text)
+            data = _check_schema(schema, _parse_json(text))
         except ValueError:
             if json_left > 0:
                 json_left -= 1

@@ -5,6 +5,8 @@ import logging
 import unittest
 from unittest import mock
 
+from pydantic import BaseModel
+
 from app.core import llm
 
 SECRET = "주민등록번호-원문-테스트-문장"          # 로그에 나오면 안 되는 글자
@@ -131,6 +133,65 @@ class LlmTests(unittest.TestCase):
             llm.call_llm("t_internal", [{"role": "user"}])
 
 
+
+class Draft(BaseModel):
+    """답 양식 시험용 (AI-10 CaseDraftOutput과 같은 모양)."""
+    case_reference: str
+    draft_template: str
+
+
+class SchemaProvider(FakeProvider):
+    """schema를 키워드로 받는 가짜 제공자. 받은 양식을 남긴다."""
+
+    def __call__(self, cfg, messages, want_json, schema=None):
+        self.schema = schema
+        return super().__call__(cfg, messages, want_json)
+
+
+class SchemaTests(unittest.TestCase):
+    setUp = LlmTests.setUp
+
+    def run_with(self, provider, **kw):
+        with mock.patch.dict(llm.PROVIDERS, {"internal": provider, "external": FakeProvider()}):
+            return llm.call_llm("t_internal", MSG, response_format="json", **kw)
+
+    def test_schema_sent_and_checked(self):
+        p = SchemaProvider('{"case_reference": "C1", "draft_template": "문장", "extra": 1}')
+        r = self.run_with(p, schema=Draft)
+        self.assertTrue(r.ok)
+        self.assertEqual(r.data, {"case_reference": "C1", "draft_template": "문장"})   # 양식 밖 칸은 버린다
+        self.assertEqual(p.schema["required"], ["case_reference", "draft_template"])
+
+    def test_schema_mismatch_retries_then_invalid_json(self):
+        p = SchemaProvider('{"case_reference": "C1"}', '{"draft_template": "문장"}')
+        r = self.run_with(p, schema=Draft)
+        self.assertEqual((r.ok, r.error_code, p.calls), (False, "invalid_json", 2))
+
+    def test_schema_mismatch_then_ok(self):
+        p = SchemaProvider('{"case_reference": "C1"}', '{"case_reference": "C1", "draft_template": "문장"}')
+        r = self.run_with(p, schema=Draft)
+        self.assertTrue(r.ok)
+        self.assertEqual(p.calls, 2)
+
+    def test_dict_schema_passed_as_is(self):
+        js = {"type": "object", "properties": {"a": {"type": "string"}}}
+        p = SchemaProvider('{"a": "x"}')
+        r = self.run_with(p, schema=js)
+        self.assertEqual((r.data, p.schema), ({"a": "x"}, js))
+
+    def test_no_schema_keeps_old_provider_call(self):
+        r = self.run_with(FakeProvider('{"a": 1}'))                  # 인자 3개짜리 제공자도 그대로 돈다
+        self.assertEqual(r.data, {"a": 1})
+
+    def test_schema_with_text_format_raises(self):
+        with self.assertRaises(ValueError):
+            llm.call_llm("t_internal", MSG, response_format="text", schema=Draft)
+
+    def test_bad_schema_raises(self):
+        with self.assertRaises(ValueError):
+            llm.call_llm("t_internal", MSG, response_format="json", schema="Draft")
+
+
 class OllamaBodyTests(unittest.TestCase):
     def test_keep_alive_sent(self):
         sent = {}
@@ -168,6 +229,26 @@ class OllamaBodyTests(unittest.TestCase):
             llm._call_ollama(llm.TaskConfig("t", "internal", "m", 0, 10, 5, 0, 0), MSG, False)
             self.assertNotIn("think", sent)
 
+    def test_schema_goes_into_format(self):
+        sent = {}
+
+        class Resp:
+            def __enter__(self): return self
+            def __exit__(self, *a): return False
+            def read(self): return json.dumps({"message": {"content": "{}"}}).encode("utf-8")
+
+        def fake_urlopen(req, timeout):
+            sent.update(json.loads(req.data.decode("utf-8")))
+            return Resp()
+
+        cfg = llm.TaskConfig("t", "internal", "local-model", 0, 10, 5, 0, 0)
+        js = Draft.model_json_schema()
+        with mock.patch.object(llm.urllib.request, "urlopen", fake_urlopen):
+            llm._call_ollama(cfg, MSG, True, schema=js)
+            self.assertEqual(sent["format"], js)
+            llm._call_ollama(cfg, MSG, True)
+            self.assertEqual(sent["format"], "json")                   # 양식이 없으면 지금처럼 "json"
+
     def test_keep_alive_empty_not_sent(self):
         sent = {}
 
@@ -184,6 +265,27 @@ class OllamaBodyTests(unittest.TestCase):
         with mock.patch.object(llm.urllib.request, "urlopen", fake_urlopen):
             llm._call_ollama(cfg, MSG, False)
         self.assertNotIn("keep_alive", sent)
+
+
+
+class GeminiSchemaTests(unittest.TestCase):
+    def test_schema_goes_into_config(self):
+        from google import genai
+        seen = {}
+
+        class Client:
+            def __init__(self, api_key): self.models = self
+            def generate_content(self, model, contents, config):
+                seen["config"] = config
+                return mock.Mock(text="{}", usage_metadata=None)
+            def close(self): pass
+
+        cfg = llm.TaskConfig("t", "external", "cloud-model", 0, 10, 5, 0, 0)
+        js = Draft.model_json_schema()
+        with mock.patch.object(genai, "Client", Client), mock.patch.object(llm, "_env", return_value="key"):
+            llm._call_gemini(cfg, MSG, True, schema=js)
+        self.assertEqual(seen["config"].response_json_schema, js)
+        self.assertEqual(seen["config"].response_mime_type, "application/json")
 
 
 class FakeEmbedProvider:
