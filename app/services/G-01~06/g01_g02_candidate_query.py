@@ -15,11 +15,14 @@ class CandidateQueryError(ValueError):
 
 BASE = """FROM priority_candidate AS p
 JOIN grid_cell AS g ON p.gid = g.gid
+LEFT JOIN grid_feature AS f ON f.ID_gid = g.gid
 WHERE p.run_id = %s"""
 FIELDS = """p.run_id, p.gid, p.selected_yn, p.score, p.rank_no,
 p.complaint_cnt, p.complaint_cnt_excl_low,
 p.cond_result_yn, p.cond_hazard_yn, p.cond_exposure_yn, p.cond_vulnerable_yn,
-p.matched_roles, p.note, g.gu_center, g.admin_dong_center,
+p.matched_roles, p.note,
+NULLIF(TRIM(REPLACE(f.id_gu, '성남시 ', '')), '') AS gu_center,
+g.admin_dong_center,
 g.center_lat, g.center_lon"""
 SORT = {"rank": "p.rank_no", "score": "p.score", "complaints": "p.complaint_cnt"}
 GU = {"수정구", "중원구", "분당구"}
@@ -41,12 +44,16 @@ def _build_conditions(*, run_id: Any, allowed_gu: set[str], gu: str | None,
         raise CandidateQueryError('최소 점수는 0~100 범위여야 합니다.')
     predicates = [BASE]
     params: list[Any] = [run_id]
+    gu_expr = "NULLIF(TRIM(REPLACE(f.id_gu, '성남시 ', '')), '')"
+
     if gu:
-        predicates.append('AND g.gu_center = %s')
+        predicates.append(f'AND {gu_expr} = %s')
         params.append(gu)
     else:
         ordered = sorted(allowed_gu)
-        predicates.append('AND g.gu_center IN (' + ', '.join(['%s'] * len(ordered)) + ')')
+        predicates.append(
+            f'AND {gu_expr} IN (' + ', '.join(['%s'] * len(ordered)) + ')'
+        )
         params.extend(ordered)
     if selected_only:
         predicates.append("AND p.selected_yn = 'Y'")
@@ -103,7 +110,7 @@ def list_candidates(cursor, *, run_id: int, allowed_gu: set[str],
     sql = f'SELECT {FIELDS}\n{where}\nORDER BY {SORT[sort]} {direction}, p.gid ASC\nLIMIT %s OFFSET %s'
     rows = _fetch_dicts(cursor, sql, [*params, page_size, (page - 1) * page_size])
     return {'items': rows, 'total': total, 'page': page, 'page_size': page_size,
-            'read_only': True, 'source': 'priority_candidate + grid_cell',
+            'read_only': True, 'source': 'priority_candidate + grid_cell + grid_feature',
             'not_included': ['결정 상태', '신뢰도 판정', '보호구역 구분', '민원 재발 구분']}
 
 
@@ -129,4 +136,4 @@ def map_candidate_grids(cursor, *, run_id: int, allowed_gu: set[str],
                               'complaint_cnt': x['complaint_cnt']} for x in rows],
             'geometry': '격자 중심 좌표(격자 다각형 아님)',
             'evidence_points': None, 'complaint_points': None,
-            'read_only': True, 'source': 'priority_candidate + grid_cell'}
+            'read_only': True, 'source': 'priority_candidate + grid_cell + grid_feature'}
