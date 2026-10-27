@@ -14,7 +14,7 @@ export const markAdminNotificationRead = mockCall('admin.markAdminNotificationRe
 export const listViewAsOptions = mockCall('admin.listViewAsOptions', (arg) => server.listViewAsOptions(arg));
 export const startViewAs = mockCall('admin.startViewAs', (arg) => server.startViewAs(arg));
 export const stopViewAs = mockCall('admin.stopViewAs', (arg) => server.stopViewAs(arg));
-export const getDashboard = mockCall('admin.getDashboard', (arg) => server.getDashboard(arg));
+export const getDashboard = opsBackendEnabled ? ops.getDashboard : mockCall('admin.getDashboard', (arg) => server.getDashboard(arg));
 export const listData = mockCall('admin.listData', (arg) => server.listData(arg));
 export const listUploadTargets = mockCall('admin.listUploadTargets', (arg) => server.listUploadTargets(arg));
 export const listUploads = mockCall('admin.listUploads', (arg) => server.listUploads(arg));
@@ -37,8 +37,10 @@ export const createRun = mockCall('admin.createRun', (arg) => server.createRun(a
 export const getOpenCheck = mockCall('admin.getOpenCheck', (arg) => server.getOpenCheck(arg));
 export const openRun = mockCall('admin.openRun', (arg) => server.openRun(arg));
 export const startCalc = mockCall('admin.startCalc', (arg) => server.startCalc(arg));
-export const listExecutions = mockCall('admin.listExecutions', (arg) => server.listExecutions(arg));
-export const rerunExecution = mockCall('admin.rerunExecution', (arg) => server.rerunExecution(arg));
+export const listExecutions = opsBackendEnabled ? ops.listExecutions : mockCall('admin.listExecutions', (arg) => server.listExecutions(arg));
+/** 서버 줄에는 로그가 없어 펼칠 때 한 건을 따로 받는다. 연습용 서버는 줄에 로그가 이미 있다. */
+export const getExecution = opsBackendEnabled ? ops.getExecution : mockCall('admin.getExecution', ({ id }) => server.listExecutions({ days: 3650 }).find((e) => e.id === id));
+export const rerunExecution = opsBackendEnabled ? ops.rerunExecution : mockCall('admin.rerunExecution', (arg) => server.rerunExecution(arg));
 export const listSchedule = mockCall('admin.listSchedule', (arg) => server.listSchedule(arg));
 export const listVersions = mockCall('admin.listVersions', (arg) => server.listVersions(arg));
 export const createVersion = mockCall('admin.createVersion', (arg) => server.createVersion(arg));

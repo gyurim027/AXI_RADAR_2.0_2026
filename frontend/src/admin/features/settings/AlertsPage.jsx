@@ -36,7 +36,8 @@ function AlertsForm({ initial }) {
       if (r.ok) {
         setError('');
         setDone(true);
-      } else setError(ALERTS.error);
+      } else if (r.code === 'tableMissing') reportActionError(ALERTS.tableMissing);
+      else setError(ALERTS.error);
     } catch {
       reportActionError();
     } finally {

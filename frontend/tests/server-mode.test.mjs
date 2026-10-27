@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 // 서버 모드는 import.meta.env 값으로 정해지므로, 환경을 바꿔 모듈을 새로 불러와 확인한다.
 async function load(env) {
   const { createServer } = await import('vite');
-  const server = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true }, appType: 'custom', define: Object.fromEntries(Object.entries(env).map(([k, v]) => [`import.meta.env.${k}`, JSON.stringify(v)])) });
+  const server = await createServer({ configFile: false, envFile: false, logLevel: 'silent', server: { middlewareMode: true }, appType: 'custom', define: Object.fromEntries(Object.entries(env).map(([k, v]) => [`import.meta.env.${k}`, JSON.stringify(v)])) });
   try {
     return { backend: await server.ssrLoadModule('/src/api/backend.js'), client: await server.ssrLoadModule('/src/api/client.js'), close: () => server.close() };
   } catch (e) { await server.close(); throw e; }

@@ -13,6 +13,9 @@ export const ACCOUNTS = {
   statusOff: '멈춤',
   failedArea: '계정 목록',
   actionFailed: '계정 상태를 바꾸지 못했습니다.',
+  // 서버 업무 오류 (정의서 12 오류 케이스 추가안, 문구는 제안)
+  selfChange: '내 계정은 멈추거나 역할을 바꿀 수 없습니다. 다른 RADAR 운영자에게 요청해 주세요.',
+  notFound: '선택한 계정을 찾을 수 없습니다. 목록을 새로 불러왔으니 다시 골라 주세요.',
 
   dialogTitle: '계정 만들기',
   dialogClose: '계정 만들기 창 닫기',
@@ -66,4 +69,5 @@ export const ALERTS = {
   error: '메일 주소 형식이 맞지 않습니다. 예: name@example.com',
   done: '알림 메일을 저장했습니다.',
   failedArea: '알림 설정',
+  tableMissing: '알림 설정을 저장하지 못했습니다. 개발 담당자에게 알려 주세요.', // 제안 문구
 };

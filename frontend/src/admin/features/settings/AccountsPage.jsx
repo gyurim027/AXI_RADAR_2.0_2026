@@ -29,8 +29,13 @@ export default function AccountsPage() {
     setBusyId(row.id);
     setError('');
     try {
-      await setAccountStatus({ id: row.id, status: row.status === ACCOUNTS.statusOn ? '멈춤' : '사용 중' });
+      const r = await setAccountStatus({ id: row.id, status: row.status === ACCOUNTS.statusOn ? '멈춤' : '사용 중' });
       setDone(false);
+      if (r?.ok === false) {
+        setError(r.code === 'selfChange' ? ACCOUNTS.selfChange : ACCOUNTS.notFound);
+        if (r.code === 'notFound') state.reload();
+        return;
+      }
       state.reload();
     } catch {
       setError(ACCOUNTS.actionFailed);
