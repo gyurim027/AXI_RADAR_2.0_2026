@@ -99,7 +99,7 @@ class MemoryOpsRepo(ops_repo.OpsRepository):
     def data_freshness(self):
         return self.freshness
 
-    checks = 0
+    checks = {"fix": 0, "reference": 0, "total": 0}
     criteria = None
 
     def checks_unreviewed(self):
@@ -253,14 +253,18 @@ class OpsApiTests(unittest.TestCase):
     def test_dashboard_check_errors(self):
         """v0.5.4 AD-01 1-1 다음에 할 일: 빠진 자료 → 검사 오류(92 미확인) → … → 실행 실패"""
         repo = ops_repo.get_repository()
-        repo.checks = 4448
+        repo.checks = {"fix": 1301, "reference": 3147, "total": 4448}
         j = self.c.get("/api/ops/dashboard", headers=_bearer("operator")).json()
-        self.assertEqual(j["checks"], {"unreviewed": 4448})
+        self.assertEqual(j["checks"], {"fix": 1301, "reference": 3147, "unreviewed": 4448})
         self.assertEqual((j["next"]["key"], j["next"]["text"], j["next"]["to"]),
-                         ("checks", "검사에서 걸린 자료 4448건을 고쳐 주세요.", "/admin/data/checks"))   # 산정 실패보다 먼저
+                         ("checks", "검사에서 걸린 자료 1301건을 고쳐 주세요.", "/admin/data/checks"))   # 고칠 수 있는 것(A-05)만, 산정 실패보다 먼저
+        repo.checks = {"fix": 0, "reference": 3147, "total": 3147}         # 표시만 하는 것(A-06·A-08)만 남으면 다음 할 일을 막지 않음
+        j = self.c.get("/api/ops/dashboard", headers=_bearer("operator")).json()
+        self.assertEqual((j["checks"]["reference"], j["next"]["key"]), (3147, "failed"))
+        repo.checks = {"fix": 1301, "reference": 3147, "total": 4448}
         repo.freshness = {"stale": 0, "missing": 2, "unscheduled": 52, "total": 54}
         self.assertEqual(self.c.get("/api/ops/dashboard", headers=_bearer("operator")).json()["next"]["key"], "missing")
-        repo.freshness, repo.checks = {"stale": 0, "missing": 0, "unscheduled": 54, "total": 54}, 0
+        repo.freshness, repo.checks = {"stale": 0, "missing": 0, "unscheduled": 54, "total": 54}, {"fix": 0, "reference": 0, "total": 0}
         self.assertEqual(self.c.get("/api/ops/dashboard", headers=_bearer("operator")).json()["next"]["key"], "failed")
 
         def old_db():

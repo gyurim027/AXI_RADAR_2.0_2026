@@ -7,7 +7,7 @@
  "run": {"id": 3, "name": null, "status": null, "createdAt": "2027.01.05 09:00", "periodStart": "2026.01.01", "periodEnd": "2026.12.31", "adminSampledAt": null},
  "next": {"key": "failed", "text": "실행이 실패했습니다. 원인을 확인하고 다시 실행해 주세요.", "to": "/admin/runs/log", "toLabel": "실행 기록"},
  "data": {"stale": 2, "missing": 2, "unscheduled": 51, "total": 54},
- "checks": {"unreviewed": 4448},
+ "checks": {"fix": 1301, "reference": 3147, "unreviewed": 4448},
  "criteria": {"id": 12, "kind": "가중치", "label": "가중치 v3", "pending": true, "status": "승인 대기", "at": "2026.10.20", "to": "/admin/standards/criteria/12", "toLabel": "산정 기준 상세"},
  "runs": {"days": 30, "success": 1, "failure": 1, "warning": 0, "running": 0, "skipped": 0},
  "approvals": {"pending": 2, "approved": 5, "returned": 1},
@@ -20,8 +20,8 @@
 | 칸 | 읽는 곳 | 목업과 다른 점 |
 |---|---|---|
 | run | 77 priority_run 가장 최근 회차 (v2.2 칸: 민원 기간·표본 완료) | `name`·`status`는 null — 77에 회차 이름·상태 칸이 없음 (D-10은 아직 개발용 메모리 저장) |
-| next | v0.5.4 AD-01 1-1 순서. ① 빠진 자료 → missing("빠진 자료 N종을 올려 주세요.") ② 미확인 검사 오류 → checks("검사에서 걸린 자료 N건을 고쳐 주세요.", 검사 결과 화면) ③ 85 가장 최근 '산정' 실행: 실행 중 → running · 실패 → failed · 회차·산정 기록 없음 → calc | 검토 중으로 열기 · 3개 구 확정 기다림은 77 회차 상태 칸이 생기면 (D-10, 대환) |
-| checks | 92 data_issue에서 review_status가 NULL(= 미확인, 칸 설명)인 수 (SQL v2.3) | 목업은 형식·값 검사 결과 수. 92가 없는 DB면 null + notes |
+| next | v0.5.4 AD-01 1-1 순서. ① 빠진 자료 → missing("빠진 자료 N종을 올려 주세요.") ② 미확인 검사 오류 중 고칠 수 있는 것(A-05) → checks("검사에서 걸린 자료 N건을 고쳐 주세요.", 검사 결과 화면) ③ 85 가장 최근 '산정' 실행: 실행 중 → running · 실패 → failed · 회차·산정 기록 없음 → calc | 검토 중으로 열기 · 3개 구 확정 기다림은 77 회차 상태 칸이 생기면 (D-10, 대환) |
+| checks | 92 data_issue에서 review_status가 NULL(= 미확인, 칸 설명)인 수 (SQL v2.3). `fix` = check_fn A-05(형식·빈칸·중복, 고쳐서 다시 올림) · `reference` = 그 밖(A-06 이상한 값·A-08 같은 시설 의심 — 기능정의서 1-2 "고치지 않고 표시만") · `unreviewed` = 합. 다음 할 일은 `fix`만 봄 (10/27 세은 제안) | 목업은 형식·값 검사 결과 수. 화면에서 `reference`는 '확인 필요(참고)'로 따로 보임. 92가 없는 DB면 null + notes |
 | data | 56 source_list + 84 data_upload (SQL v2.3) — 아래 '자료 최신 여부 규칙' | 목업에 없는 unscheduled(일정 미설정)·total(56 전체 자료 수)도 줌. v2.2 DB면 모두 null + notes |
 | runs | 85 job_run 최근 days일 | 목업에 없는 running·skipped도 줌 |
 | approvals | 62 setting_version 올해: 제안 → pending · 승인 → approved · 돌려보냄 → returned | 목업 이름 '승인 대기'·'돌려받음' = DB '제안'·'돌려보냄' |

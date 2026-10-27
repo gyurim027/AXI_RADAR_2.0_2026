@@ -50,7 +50,8 @@ APPROVAL_KEYS = {"제안": "pending", "승인": "approved", "돌려보냄": "ret
 def _next_task(run: dict | None, calc: dict | None, data: dict | None = None, checks: int | None = None) -> dict | None:
     """'다음에 할 일' (기능정의서 v0.5.4 AD-01 1-1 순서: 빠진 자료 → 검사 오류 → 산정 실행 → 실행 실패 →
     검토 중으로 열기 → (검토 중) 3개 구 확정 기다림). 문구·key·to는 화면 목업 adminServer.js nextTask와 같게.
-    빠진 자료는 56·84, 검사 오류는 92 data_issue 미확인(review_status NULL), 산정은 85 실행 기록으로 본다 (SQL v2.3).
+    빠진 자료는 56·84, 검사 오류는 92 data_issue 미확인(review_status NULL) 중 고칠 수 있는 오류(A-05)만, 산정은 85 실행 기록 (SQL v2.3).
+    이상한 값(A-06)·같은 시설 의심(A-08)은 '고치지 않고 표시만' 하는 것이라 다음 할 일을 막지 않는다 (checks.reference로 따로 보임).
     '검토 중으로 열기'·'3개 구 확정 기다림'은 77 회차 상태 칸이 생기면 더한다 (D-10)."""
     if data and data.get("missing"):
         return {"key": "missing", "text": f"빠진 자료 {data['missing']}종을 올려 주세요.",
@@ -97,16 +98,16 @@ def dashboard(days: int = Query(30, ge=1, le=366), _u: dict = Depends(operator),
     ap = _safe(lambda: repo.approval_counts(datetime.now().year), None, notes, "62 setting_version을 읽지 못함")
     reg = _safe(repo.regulation_unseen, None, notes, "89 standard_change를 읽지 못함")
     data = _safe(repo.data_freshness, None, notes, "자료 최신 여부: 56 갱신 칸·84 source_id를 읽지 못함 (SQL v2.3 전 DB)")
-    checks = _safe(repo.checks_unreviewed, None, notes, "검사 오류: 92 data_issue를 읽지 못함 (SQL v2.3 전 DB)")
+    checks = _safe(repo.checks_unreviewed, None, notes, "검사 오류: 92 data_issue를 읽지 못함 (SQL v2.3 전 DB)") or {}
     crit = _safe(repo.criteria_card, None, notes, "산정 기준: 62 setting_version을 읽지 못함")
     notes.append("회차 상태(산정 중·검토 중·확정)는 DB에 칸이 없어 비움 (D-10)")
     return {
         "run": ({"id": run["run_id"], "name": None, "status": None, "createdAt": _fmt(run.get("created_at")),
                  "periodStart": _fmt(run.get("period_start"), False), "periodEnd": _fmt(run.get("period_end"), False),
                  "adminSampledAt": _fmt(run.get("admin_sampled_at"))} if run else None),
-        "next": _next_task(run, calc, data, checks),
+        "next": _next_task(run, calc, data, checks.get("fix")),
         "data": data or {"stale": None, "missing": None, "unscheduled": None, "total": None},
-        "checks": {"unreviewed": checks},
+        "checks": {"fix": checks.get("fix"), "reference": checks.get("reference"), "unreviewed": checks.get("total")},
         "criteria": _criteria(crit),
         "runs": {"days": days, "success": c.get("성공", 0), "failure": c.get("실패", 0), "warning": c.get("경고", 0),
                  "running": c.get("실행 중", 0), "skipped": c.get("건너뜀", 0)},

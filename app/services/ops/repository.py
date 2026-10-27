@@ -136,11 +136,17 @@ class OpsRepository:
         r = rows[0] if rows else {}
         return {k: int(r.get(k) or 0) for k in ("stale", "missing", "unscheduled", "total")}
 
-    def checks_unreviewed(self) -> int:
-        """운영자가 아직 확인하지 않은 검사 오류 수 (AD-01 1-1 '검사 오류', SQL v2.3 92 data_issue).
-        칸 설명: review_status "운영자 확인 상태 (NULL = 미확인) — 검사를 다시 돌려도 덮어쓰지 않음"."""
-        rows = db.read_only("SELECT COUNT(*) AS n FROM data_issue WHERE review_status IS NULL")
-        return int(rows[0]["n"]) if rows else 0
+    # 검사 오류 (AD-01 1-1). 기능정의서 1-2: 형식·빈칸·중복은 고쳐서 다시 올리는 오류, 이상한 값(A-06)·같은 시설 의심(A-08)은
+    # "고치지 않고 표시만 한다" → '다음에 할 일'은 고칠 수 있는 오류(A-05)만 세고, 나머지는 '확인 필요(참고)'로 따로 (10/27 세은 제안)
+    FIX_FNS = ("A-05",)
+
+    def checks_unreviewed(self) -> dict:
+        """운영자가 아직 확인하지 않은 검사 결과 수 (SQL v2.3 92 data_issue, review_status NULL = 미확인).
+        {"fix": 고쳐서 다시 올릴 오류(A-05), "reference": 표시만 하는 것(A-06·A-08 등), "total": 합}"""
+        rows = db.read_only("SELECT check_fn, COUNT(*) AS n FROM data_issue WHERE review_status IS NULL GROUP BY check_fn")
+        fix = sum(int(r["n"]) for r in rows if (r.get("check_fn") or "") in self.FIX_FNS)
+        total = sum(int(r["n"]) for r in rows)
+        return {"fix": fix, "reference": total - fix, "total": total}
 
     # 산정 기준 (AD-01 6-1, 기능정의서 v0.5.4): "승인 대기 버전이 있으면 그 버전을, 없으면 지금 쓰는 버전을 연다.
     # 지금 쓰는 버전은 시 도로과가 승인한 가장 최근 버전이다." — 62 setting_version 중 산정 설정 종류(I-02 설정 API와 같은 범위)
