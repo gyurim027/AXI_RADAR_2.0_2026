@@ -39,6 +39,11 @@ export function AdminProvider({ children }) {
   return <AdminContext.Provider value={value}>{children}</AdminContext.Provider>;
 }
 
+/** 서버 연결 모드에는 회차 선택이 없어(AdminProvider가 없다) 없어도 되는 화면이 쓴다. */
+export function useAdminOptional() {
+  return useContext(AdminContext);
+}
+
 export function useAdmin() {
   const ctx = useContext(AdminContext);
   if (!ctx) throw new Error('AdminProvider 안에서만 쓸 수 있습니다.');

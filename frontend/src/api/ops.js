@@ -4,6 +4,23 @@
 import { BackendError } from './backend.js';
 
 const CREATE_CODES = { gu_required: 'guRequired', required: 'required', duplicate: 'duplicate' };
+// 계정 상태 바꾸기·다시 실행에서 서버가 주는 업무 오류. 화면이 코드로 문구를 고른다 (정의서 12 오류 케이스 추가안).
+const STATUS_CODES = { self_change: 'selfChange', account_not_found: 'notFound' };
+const RERUN_CODES = { not_failed: 'notFailed', rerun_not_supported: 'notSupported', rerun_input_missing: 'notSupported', already_running: 'alreadyRunning' };
+
+/** 서버가 모르는 칸은 null로 온다. 화면이 '-'로 보이게 그대로 두고, 없는 묶음만 빈 값으로 채운다. */
+export function adaptDashboard(d) {
+  return {
+    run: { id: d.run?.id ?? null, name: d.run?.name ?? null, status: d.run?.status ?? null },
+    next: { key: d.next?.key ?? 'none', text: d.next?.text ?? null, to: d.next?.to ?? null, toLabel: d.next?.toLabel ?? null },
+    data: { stale: d.data?.stale ?? null, missing: d.data?.missing ?? null },
+    checks: d.checks ? { fix: d.checks.fix ?? null, reference: d.checks.reference ?? null } : null,
+    runs: { days: d.runs?.days ?? 30, success: d.runs?.success ?? 0, failure: d.runs?.failure ?? 0, warning: d.runs?.warning ?? 0 },
+    approvals: d.approvals ?? null,
+    regulations: d.regulations ?? null,
+    criteria: d.criteria ?? null,
+  };
+}
 
 export function createOpsApi(request) {
   return {
@@ -20,8 +37,14 @@ export function createOpsApi(request) {
         throw e;
       }
     },
-    setAccountStatus({ id, status, reason }) {
-      return request(`/api/admin/accounts/${encodeURIComponent(id)}/status`, { method: 'PATCH', body: { status, ...(reason ? { reason } : {}) } });
+    async setAccountStatus({ id, status, reason }) {
+      try {
+        await request(`/api/admin/accounts/${encodeURIComponent(id)}/status`, { method: 'PATCH', body: { status, ...(reason ? { reason } : {}) } });
+        return { ok: true };
+      } catch (e) {
+        if (e instanceof BackendError && STATUS_CODES[e.code]) return { ok: false, code: STATUS_CODES[e.code] };
+        throw e;
+      }
     },
     async listAccess({ days = 30, accountId = '전체', action = '전체' } = {}) {
       const q = new URLSearchParams({ days: String(days) });
@@ -39,6 +62,29 @@ export function createOpsApi(request) {
         return { ok: true, value: r.value, message: r.message };
       } catch (e) {
         if (e instanceof BackendError && e.code === 'format') return { ok: false, code: 'format' };
+        if (e instanceof BackendError && e.code === 'setting_table_missing') return { ok: false, code: 'tableMissing' };
+        throw e;
+      }
+    },
+    async getDashboard() {
+      return adaptDashboard(await request('/api/ops/dashboard'));
+    },
+    /** 목록 줄에는 로그가 없다. 펼칠 때 getExecution으로 한 건을 불러 채운다. */
+    async listExecutions({ days = 30, status = '전체' } = {}) {
+      const q = new URLSearchParams({ days: String(days) });
+      if (status && status !== '전체') q.set('status', status);
+      const d = await request(`/api/ops/runs?${q}`);
+      return d.runs || [];
+    },
+    getExecution({ id }) {
+      return request(`/api/ops/runs/${encodeURIComponent(id)}`);
+    },
+    async rerunExecution({ id }) {
+      try {
+        await request(`/api/ops/runs/${encodeURIComponent(id)}/rerun`, { method: 'POST' });
+        return { ok: true };
+      } catch (e) {
+        if (e instanceof BackendError && RERUN_CODES[e.code]) return { ok: false, code: RERUN_CODES[e.code] };
         throw e;
       }
     },

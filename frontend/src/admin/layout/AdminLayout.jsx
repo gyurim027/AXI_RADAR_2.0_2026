@@ -18,18 +18,24 @@ export default function AdminLayout() {
 
 function SettingsLayout(){
   const {user,signOut}=useAuth();
+  const {pathname}=useLocation();
+  const [failed,setFailed]=useState(null);
   useEffect(()=>{document.title='RADAR 어드민';},[]);
+  useEffect(()=>onActionError((message)=>setFailed({path:window.location.pathname,message})),[]);
+  const banner=failed&&failed.path===pathname?failed.message||ADMIN_COPY.actionFailed:null;
   return <div className={styles.shell}>
     <a href="#admin-main" className={styles.skip}>본문 바로가기</a>
     <div className={styles.fixed}><header className={topStyles.bar}>
       <Link className={topStyles.brand} to={backendHome('operator')}>{ADMIN_COPY.serviceName}</Link>
       <nav className={topStyles.nav} aria-label="설정 관리">
+        {opsBackendEnabled?<NavLink className={topStyles.tab} to="/admin" end>대시보드</NavLink>:null}
+        {opsBackendEnabled?<NavLink className={topStyles.tab} to="/admin/runs/log">실행 기록</NavLink>:null}
         {settingsBackendEnabled?<NavLink className={topStyles.tab} to="/admin/standards/criteria">산정 기준</NavLink>:null}
         {opsBackendEnabled?[['/admin/settings/accounts','계정'],['/admin/settings/access','접속 기록'],['/admin/settings/alerts','알림 설정']].map(([to,label])=><NavLink key={to} className={topStyles.tab} to={to}>{label}</NavLink>):null}
       </nav>
       <div className={topStyles.tools}><span>{user.org}</span><button className={topStyles.logout} onClick={signOut}>로그아웃</button></div>
     </header></div>
-    <main id="admin-main" className={styles.main} tabIndex={-1}><div className={styles.content}><Outlet/></div></main>
+    <main id="admin-main" className={styles.main} tabIndex={-1}><div className={styles.content}>{banner?<div style={{marginBottom:16}}><Banner tone="danger">{banner}</Banner></div>:null}<Outlet/></div></main>
   </div>;
 }
 
@@ -39,9 +45,9 @@ function RunAdminLayout() {
   const pageTitle = [...matches].reverse().find((m) => m.handle?.title)?.handle.title;
   const wide = matches.some((m) => m.handle?.wide);
   const { pathname } = useLocation();
-  const [failedAt, setFailedAt] = useState(null);
-  const actionFailed = failedAt === pathname;
-  useEffect(() => onActionError(() => setFailedAt(window.location.pathname)), []);
+  const [failed, setFailed] = useState(null);
+  const actionFailed = failed?.path === pathname;
+  useEffect(() => onActionError((message) => setFailed({ path: window.location.pathname, message })), []);
 
   useEffect(() => {
     document.title = pageTitle ? `${pageTitle} · ${ADMIN_COPY.serviceName}` : ADMIN_COPY.serviceName;
@@ -61,7 +67,7 @@ function RunAdminLayout() {
           {/* 회차를 바꾸면 지금 메뉴를 그 회차로 다시 연다 (AD-00 2-1) */}
           {actionFailed ? (
             <div style={{ marginBottom: 16 }}>
-              <Banner tone="danger">{ADMIN_COPY.actionFailed}</Banner>
+              <Banner tone="danger">{failed.message || ADMIN_COPY.actionFailed}</Banner>
             </div>
           ) : null}
           <Outlet key={run.id} />

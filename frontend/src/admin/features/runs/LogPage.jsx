@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { listExecutions, rerunExecution } from '../../../api/admin.js';
+import { getExecution, listExecutions, rerunExecution } from '../../../api/admin.js';
 import { useAsync } from '../../../shared/hooks/useAsync.js';
 import Badge, { EXEC_TONE } from '../../components/Badge.jsx';
 import Button from '../../components/Button.jsx';
@@ -21,6 +21,8 @@ export default function LogPage() {
   const status = params.get('status') || '전체';
   const [openId, setOpenId] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [detail, setDetail] = useState({}); // 서버 줄에는 로그가 없어 펼칠 때 한 건씩 받아 둔다 (id → 한 건)
+  const [rerunError, setRerunError] = useState('');
   const state = useAsync(() => listExecutions({ days, status }), [days, status]);
   const { reload } = state;
   const running = (state.data || []).some((e) => e.status === '실행 중');
@@ -32,6 +34,19 @@ export default function LogPage() {
     return () => clearInterval(t);
   }, [running, reload]);
 
+  const openRow = (state.data || []).find((e) => e.id === openId);
+  const needDetail = Boolean(openRow) && !openRow.logs && !detail[openId];
+  useEffect(() => {
+    if (!needDetail) return undefined;
+    let alive = true;
+    getExecution({ id: openId })
+      .then((d) => alive && setDetail((prev) => ({ ...prev, [openId]: d || { logs: null } })))
+      .catch(() => alive && setDetail((prev) => ({ ...prev, [openId]: { logs: null } })));
+    return () => {
+      alive = false;
+    };
+  }, [needDetail, openId]);
+
   const setFilter = (key, value, empty) => {
     const next = new URLSearchParams(params);
     if (value === empty) next.delete(key);
@@ -41,8 +56,11 @@ export default function LogPage() {
 
   const rerun = async (e) => {
     setBusy(true);
+    setRerunError('');
     try {
-      await rerunExecution({ id: e.id });
+      const r = await rerunExecution({ id: e.id });
+      if (r?.ok === false) setRerunError(LOG.rerunErrors[r.code] || LOG.rerunErrors.notSupported);
+      setDetail((prev) => ({ ...prev, [e.id]: undefined }));
       state.reload();
     } catch {
       reportActionError();
@@ -74,21 +92,35 @@ export default function LogPage() {
             rows={rows}
             getRowKey={(e) => e.id}
             expandedKey={openId}
-            onRowClick={(e) => setOpenId(openId === e.id ? null : e.id)}
+            onRowClick={(e) => {
+              setRerunError('');
+              setOpenId(openId === e.id ? null : e.id);
+            }}
             rowLabel={(e) => `${e.name} 로그 ${openId === e.id ? '접기' : '펼치기'}`}
             renderExpanded={(e) => (
               <div className={styles.expanded}>
                 <h3 className={styles.h4}>{LOG.logTitle}</h3>
-                <pre className={styles.log}>{e.logs.join('\n')}</pre>
+                <pre className={styles.log}>{(e.logs || detail[e.id]?.logs)?.join('\n') ?? (detail[e.id] ? LOG.noLogs : '')}</pre>
                 {e.status === '실패' ? (
                   <>
                     <p className={styles.cause} role="alert">
                       {LOG.cause(e.cause)}
                     </p>
-                    <Button variant="secondary" loading={busy} onClick={() => rerun(e)}>
-                      {LOG.rerun}
-                    </Button>
-                    <p className={styles.help}>{LOG.rerunHelp}</p>
+                    {rerunError ? (
+                      <p className={styles.cause} role="alert">
+                        {rerunError}
+                      </p>
+                    ) : null}
+                    {(detail[e.id]?.canRerun ?? e.canRerun) === false ? (
+                      <p className={styles.help}>{LOG.cannotRerun}</p>
+                    ) : (
+                      <>
+                        <Button variant="secondary" loading={busy} onClick={() => rerun(e)}>
+                          {LOG.rerun}
+                        </Button>
+                        <p className={styles.help}>{LOG.rerunHelp}</p>
+                      </>
+                    )}
                   </>
                 ) : null}
               </div>
