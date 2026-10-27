@@ -36,6 +36,27 @@ else:
 - `messages`의 role은 `system` / `user` / `assistant`만 쓴다.
 - `model`을 결과와 같이 저장해 두면 어떤 모델로 만든 결과인지 나중에 알 수 있다.
 
+### 답 양식(schema) 정하기
+
+JSON 답의 모양까지 정하려면 `schema`에 pydantic 모델 클래스나 JSON Schema(dict)를 넘긴다.
+
+```python
+class CaseDraftOutput(BaseModel):
+    case_reference: str
+    draft_template: str
+    review_note: str
+
+result = call_llm("ai10_draft", messages, data_ids=[...], contains_raw=False,
+                  response_format="json", schema=CaseDraftOutput)
+if result.ok:
+    draft = CaseDraftOutput.model_validate(result.data)   # data는 양식에 맞춘 dict
+```
+
+- 양식은 모델에 같이 보낸다. Ollama는 `format`, Gemini는 `response_json_schema`로 간다.
+- pydantic 클래스를 넘기면 받은 답이 양식에 맞는지 검사한다. 양식에 없는 칸은 버린다. 맞지 않으면 JSON 형식 오류처럼 `json_retries`번 다시 묻고, 그래도 틀리면 `invalid_json`이다.
+- dict(JSON Schema)를 넘기면 모델에 보내기만 하고 검사는 하지 않는다.
+- `schema`를 주면 `response_format="json"`이어야 한다. `"text"`와 같이 주면 `ValueError`다.
+
 ### 임베딩 부르기
 
 글을 숫자 묶음으로 바꿀 때는 `call_embed()`를 쓴다. 내부 모델(Ollama)만 쓰고, 외부로는 보내지 않는다.
@@ -77,7 +98,7 @@ else:
 | `timeout` | 시간 초과 | 최대 `max_retries`번 (1초, 2초, 4초 간격) |
 | `rate_limited` | 외부 API 속도 제한 | 위와 같음 |
 | `provider_error` | 그 밖의 제공자 오류 | 서버 오류(5xx)일 때만 |
-| `invalid_json` | JSON으로 답하게 했는데 형식이 틀림 | 최대 `json_retries`번 |
+| `invalid_json` | JSON으로 답하게 했는데 형식이 틀리거나 답 양식(schema)에 맞지 않음 | 최대 `json_retries`번 |
 
 `call_embed()`도 같은 코드를 쓴다. 외부 경로로 정한 작업은 `config_error`다. 숫자 묶음 개수나 모양이 글과 맞지 않으면 `provider_error`로 돌려주고 다시 부르지 않는다.
 
