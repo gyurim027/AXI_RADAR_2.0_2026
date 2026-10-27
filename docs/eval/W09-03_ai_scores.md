@@ -12,7 +12,8 @@
 | AI-05 법령 RAG | 은경 | `ai05_cases.csv` 20 | 10/26 은경 PC Ollama bge-m3 (낱말 + 임베딩, 조정 후) | **17/20** · 오연결률 16.7% · 색인 자체 평가 검색 5등 안 0.885 · 관계없는 질문 10/10 걸러냄 (`docs/ai05/embedding.md`) |
 | AI-10 조치 제안 문장 | 대환 | `ai10_cases.csv` 14 (PR 중) | — | **아직** — 규칙 파일 `data/ai10_rules/ai10_generation_rules_v0.1.json`이 PR에 없어 다른 PC에서 14건 모두 오류 (대환님께 요청함) |
 | AI-01 민원 정제 | 규림 | `ai01_relevance_cases.csv` 16 · `ai01_mask_cases.csv` 12 | 10/27 규림 PC (Ollama exaone3.5:7.8b, 흔한 낱말 목록 656줄 지정) | **관련 여부 16/16 (100%)** · 오연결 0 · **가림 12/12 (100%)** · 안 들어감 11/11 · 포함 1/1 — 이 정답 목록 조건에서 오류가 없었다는 뜻이며 전체 자료 성능을 보장하지는 않음. 흔한 낱말 목록·결과 파일은 규림 PC에만 있음 |
-| AI-07 근거 문장 | 진이 | `ai07_cases.xlsx` | — | **아직** |
+| AI-07 근거 문장 (문장 틀) | 진이 | `ai07_cases.xlsx` 20 | 10/27 14:20 은경 PC, 최신 develop (LLM 안 부름) | **20/20 (100%)** · 오연결률 0.0% · 포함 14/14 · 안 들어감 6/6 — LLM 미호출 문장 틀 평가. 001~012 `app.services.ai07.e02.explain_card`, 013~020 `app.services.ai07.engine_explainer.explain` (진이 안내의 `run_ai07_unevaluated.explain`과 같은 함수) |
+| AI-07 근거 문장 (E-03 다듬기) | 진이 | — | — | **아직** — Ollama로 다듬은 문장은 따로 평가. 평가 기준·정답 목록 정한 뒤 진행 (10/28 진이) |
 
 ## 읽는 법 (모든 AI 공통)
 - **맞음 비율**: 정답 목록 전체 중 맞힌 비율
