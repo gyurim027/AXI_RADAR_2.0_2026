@@ -100,7 +100,7 @@ uv run python -m pytest tests                 # 시험 (실제 DB 없이 도는 
 **각 기능(배치·API)에서** — 돌릴 때마다 감싸기만 하면 85 `job_run`·86 `job_run_log`에 남고, 실패하면 71 `alert_delivery`에 운영자 알림이 생긴다.
 ```python
 from app.core.job_run import track, JobFailed
-with track("좌표", "2026 하반기 민원 좌표", module="AI-03") as job:   # 종류: 수집·업로드·검사·좌표·분류·산정·설명문·조치 제안·색인
+with track("좌표", "2026 하반기 민원 좌표", module="AI-03") as job:   # 종류: 수집·업로드·검사·좌표·분류·집계·산정·설명문·조치 제안·색인
     job.log("주소 2,546건을 읽었습니다")       # 단계 한 줄 (원문·개인정보·SQL X)
     job.rows(2546)                            # 처리 건수 · job.warn("…") 이면 '경고'로 끝남
 raise JobFailed("missing_column", "보도 면적 열이 비어 있음")       # 화면에 보여도 되는 실패 원인

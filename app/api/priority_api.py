@@ -11,6 +11,7 @@ GET /api/priority/runs/{run_id}/candidates/{gid}        격자 한 칸 결과 + 
 - 78 상세 5칸(분야별 점수·지표별 기여·미평가 사유·신뢰도·사고 제외 점수)은 아직 DB에 없다 (진규 추가안, v2.2 예정).
   그 전까지는 details.stored=false 와 모두 null로 내려보낸다.
 - run_id는 숫자 (77 priority_run.run_id BIGINT). 글자면 422.
+- 78 note가 'ev1:'로 시작하면 진규 산정이 넣은 근거 파일 표시(해시)라 사람이 보는 비고가 아니다 → note는 null로 보낸다 (10/27).
 """
 from __future__ import annotations
 
@@ -50,6 +51,13 @@ def _run(r: dict) -> dict:
     return out
 
 
+EVIDENCE_PREFIX = "ev1:"           # 진규 app/services/priority/details.py가 78 note에 넣는 근거 파일 표시
+
+
+def _note(v):
+    return None if isinstance(v, str) and v.startswith(EVIDENCE_PREFIX) else v
+
+
 def _candidate(c: dict) -> dict:
     score = _num(c.get("score"))
     return {
@@ -59,7 +67,7 @@ def _candidate(c: dict) -> dict:
         "complaint_cnt": c.get("complaint_cnt"), "complaint_cnt_excl_low": c.get("complaint_cnt_excl_low"),
         "conditions": {"result": c.get("cond_result_yn"), "hazard": c.get("cond_hazard_yn"),
                        "exposure": c.get("cond_exposure_yn"), "vulnerable": c.get("cond_vulnerable_yn")},
-        "matched_roles": c.get("matched_roles"), "note": c.get("note"),
+        "matched_roles": c.get("matched_roles"), "note": _note(c.get("note")),
         "details": {"stored": False, **{k: None for k in DETAIL_NAMES}},
     }
 
