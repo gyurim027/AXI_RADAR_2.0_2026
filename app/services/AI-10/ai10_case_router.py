@@ -34,19 +34,9 @@ def generate_integrated_case_draft(case: CaseInput, *, generator: Callable[[str]
     context=build_reference_context(case)
     ref=find_optional_ck_reference(case.ck_reference)
     # 원본 generate_case_draft의 생성/검증/게이트를 그대로 활용.
-    if context:
-        if generator is None:
-            # 실제 호출 시에도 CK 참고 내용을 전달해야 하므로 프롬프트를 주입하는 경로 필요.
-            # 이 경우 기존 함수가 build_case_prompt를 호출하므로 별도 래퍼에서 무단 대체하지 않는다.
-            # CK는 조회 가능하다는 사실만 보존하고, 사례 근거만 AI 입력으로 사용한다.
-            result=generate_case_draft(case)
-        else:
-            def with_reference(prompt: str):
-                return generator(prompt + context)
-            result=generate_case_draft(case, generator=with_reference)
-    else:
-        result=generate_case_draft(case, generator=generator)
+    # 실제 호출과 주입 생성기가 같은 참고 문장을 사용한다.
+    result = generate_case_draft(case, generator=generator, reference_context=context)
     result['ck_reference_status'] = ('참고 사례 연결' if ref else
                                    'CK 미제공' if not case.ck_reference else '참고 CK 조회 불가 / 생성 차단 아님')
-    result['ck_reference_used_in_prompt'] = bool(context and generator is not None and result.get('model_call_allowed'))
+    result['ck_reference_used_in_prompt'] = bool(context and result.get('model_call_allowed'))
     return result

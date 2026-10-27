@@ -6,7 +6,6 @@
 """
 from __future__ import annotations
 import json
-import os
 from pathlib import Path
 
 from pydantic import BaseModel, Field
@@ -181,48 +180,36 @@ def validate_draft(result: DraftOutput, rule_id: str, *, confirmed_source_text: 
     return result
 
 def generate_draft(rule_id: str, *, confirmed_source_text: str | None = None) -> DraftOutput:
-    """최대 2회 Gemini 호출: 첫 응답이 검증에 실패한 때 한 번만 보완 요청.
-    승인/DB 저장 없음. 연결 장애나 JSON 형식 오류는 자동 재시도하지 않음.
+    """공통 LLM 호출을 통한 CK 초안 생성. 승인 및 DB 저장 없음.
+
+    문장 검증 실패 시 1회 보완 요청한다. 공통 모듈이 JSON/스키마 실패를
+    별도 재시도하고, 최종 실패 시 invalid_json을 반환한다.
     """
-    from dotenv import load_dotenv
-    from google import genai
-    load_dotenv(ROOT / '.env', override=True)
-    api_key=os.getenv('GEMINI_API_KEY'); model=os.getenv('GEMINI_MODEL')
-    if not api_key or not model:
-        raise RuntimeError('.env GEMINI_API_KEY / GEMINI_MODEL을 확인하세요.')
-    rule=load_rule(rule_id)
-    prompt=make_prompt(rule,confirmed_source_text=confirmed_source_text)
-    print(f'[AI-10] {rule_id} 최신 기준 Gemini 초안 생성 시작',flush=True)
-    client=genai.Client(api_key=api_key)
-    try:
-        for attempt in (1,2):
-            # 실제 AI-10 프롬프트로 정상 응답이 확인된 기본 호출을 사용합니다.
-            # 구조화 응답 스키마 요청에서 반복된 503 문제를 회피합니다.
-            response=client.models.generate_content(model=model, contents=prompt)
-            response_text=(response.text or '').strip()
-            # 기본 호출은 JSON을 ```json ... ``` 코드 블록으로 감쌀 수 있습니다.
-            if response_text.startswith('```'):
-                lines=response_text.splitlines()
-                if len(lines) >= 3 and lines[-1].strip() == '```':
-                    response_text='\n'.join(lines[1:-1]).strip()
-            raw=DraftOutput.model_validate_json(response_text)
-            try:
-                result=validate_draft(raw,rule_id,confirmed_source_text=confirmed_source_text)
-            except ValueError as exc:
-                if attempt==2:
-                    raise ValueError(f'2회 생성 모두 기준 미충족, 미승인·미저장: {exc}') from exc
-                print(f'[AI-10] 1차 문장 검증 실패: {exc} / 보완 요청 1회',flush=True)
-                prompt += ('\n이전 초안은 아래 검증 문제로 사용 불가입니다: '
-                           + str(exc) + '\n이전 문장: ' + raw.draft_template
-                           + '\n위 문제를 피하면서 두 문장 JSON으로 새로 작성하세요. '
-                           '자료 상태가 미확정이면 현재 상태를 확인할 수 없다고 쓰세요. '
-                           '현장 확인 전 설치를 직접 명령하지 말고 필요성을 검토하라고 쓰세요.')
-                continue
-            print(f'[AI-10] {rule_id} 초안 생성 완료 (검토 미완료)',flush=True)
-            return result
-        raise RuntimeError('예상하지 못한 생성 루프 종료')
-    finally:
-        client.close()
+    from app.core.llm import call_llm
+
+    rule = load_rule(rule_id)
+    prompt = make_prompt(rule, confirmed_source_text=confirmed_source_text)
+    for attempt in (1, 2):
+        result = call_llm(
+            "ai10_draft", [{"role": "user", "content": prompt}],
+            data_ids=[],  # CK 규칙의 SRC 대응이 검증되지 않아 임의 배정 금지
+            contains_raw=True,  # 확정 근거 원문 전달 가능성을 보수적으로 차단
+            response_format="json", schema=DraftOutput,
+        )
+        if not result.ok:
+            raise RuntimeError(f"AI-10 공통 LLM 호출 실패: {result.error_code}")
+        raw = DraftOutput.model_validate(result.data)
+        try:
+            return validate_draft(raw, rule_id, confirmed_source_text=confirmed_source_text)
+        except ValueError as exc:
+            if attempt == 2:
+                raise ValueError(f"2회 생성 모두 기준 미충족, 미승인·미저장: {exc}") from exc
+            prompt += ('\n이전 초안은 아래 검증 문제로 사용 불가입니다: '
+                       + str(exc) + '\n이전 문장: ' + raw.draft_template
+                       + '\n위 문제를 피하면서 두 문장 JSON으로 새로 작성하세요. '
+                       '자료 상태가 미확정이면 현재 상태를 확인할 수 없다고 쓰세요. '
+                       '현장 확인 전 설치를 직접 명령하지 말고 필요성을 검토하라고 쓰세요.')
+    raise RuntimeError('예상하지 못한 생성 루프 종료')
 
 if __name__=='__main__':
     import argparse

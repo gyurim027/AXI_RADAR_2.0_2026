@@ -5,7 +5,6 @@ CK는 선택 항목이다. 저장·승인·대상 확정은 하지 않는다.
 """
 from __future__ import annotations
 import json
-import os
 import re
 from pathlib import Path
 from typing import Any, Callable
@@ -164,22 +163,19 @@ def generate_case_draft(case: CaseInput, *, generator: Callable[[str], dict | st
     if reference_context:
         prompt += reference_context
     if generator is None:
-        from dotenv import load_dotenv
-        from google import genai
-        from google.genai import types
-        load_dotenv(ROOT / '.env')
-        key,model=os.getenv('GEMINI_API_KEY'),os.getenv('GEMINI_MODEL')
-        if not key or not model:
-            raise RuntimeError('실제 AI 호출을 위한 GEMINI_API_KEY / GEMINI_MODEL 없음')
-        client=genai.Client(api_key=key)
-        try:
-            response=client.models.generate_content(
-                model=model,contents=prompt,
-                config=types.GenerateContentConfig(response_mime_type='application/json',
-                    response_schema=CaseDraftOutput,temperature=0.2))
-            raw=response.text or ''
-        finally:
-            client.close()
+        from app.core.llm import call_llm
+        # 검증된 원천 SRC만 전달한다. 미확인은 빈 값으로 두고 외부 전송은 차단한다.
+        # 실제 판정값의 SRC 계보가 검증되기 전까지 전달하지 않음
+        data_ids = []
+        response = call_llm(
+            "ai10_draft", [{"role": "user", "content": prompt}],
+            data_ids=data_ids,
+            contains_raw=True,  # 원본값·주장·위치 등이 있을 수 있으므로 외부 전송 불가
+            response_format="json", schema=CaseDraftOutput,
+        )
+        if not response.ok:
+            raise RuntimeError(f"AI-10 공통 LLM 호출 실패: {response.error_code}")
+        raw = response.data
     else:
         raw=generator(prompt)
     output=CaseDraftOutput.model_validate_json(raw) if isinstance(raw,str) else CaseDraftOutput.model_validate(raw)
