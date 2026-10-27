@@ -177,6 +177,12 @@ class JobRunTests(unittest.TestCase):
             with track("아무거나", "x"):
                 pass
 
+    def test_aggregate_kind(self):
+        """격자 집계·재계산(B-02 등)은 '산정'이 아니라 '집계'로 남긴다 (10/27). 대시보드 '최근 산정'에 섞이지 않게"""
+        with track("집계", "격자 EXT_ 열 다시 채우기", module="B-02"):
+            pass
+        self.assertEqual(self.store.runs[1]["job_kind"], "집계")
+
     def test_system_exit_is_failure_not_running(self):
         """명령이 SystemExit로 멈춰도 '실행 중'으로 남지 않는다 (남으면 다시 실행이 '이미 도는 중'으로 막힘)"""
         with self.assertRaises(SystemExit):

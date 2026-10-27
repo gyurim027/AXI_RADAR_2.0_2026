@@ -17,6 +17,7 @@ ROWS = [
     {"gid": "다사02", "gu": "분당구", "selected_yn": "N", "score": None, "rank_no": None},     # 미산출
     {"gid": "다사03", "gu": None, "selected_yn": None, "score": None, "rank_no": None},        # 구 없는 격자
 ]
+EV = "ev1:" + "a" * 64                                                                  # 진규 근거 파일 표시
 
 
 def _row(r):
@@ -96,6 +97,18 @@ class PriorityApiTests(unittest.TestCase):
         d = self.c.get("/api/priority/runs/1/candidates/다사01", headers=_h("city")).json()
         self.assertEqual(d["actions"][0]["itemId"], "CK-12")
         self.assertEqual(d["gu"], "수정구")
+
+    def test_evidence_pointer_note_hidden(self):
+        """78 note의 'ev1:<해시>'는 근거 파일 표시라 화면 비고로 보내지 않는다 (10/27). 사람이 쓴 비고는 그대로"""
+        ROWS[0]["note"], ROWS[1]["note"] = EV, "현장 확인 필요"
+        try:
+            j = self.c.get("/api/priority/runs/1/candidates", headers=_h("operator")).json()
+            self.assertIsNone(j["candidates"][0]["note"])
+            self.assertEqual(j["candidates"][1]["note"], "현장 확인 필요")
+            d = self.c.get("/api/priority/runs/1/candidates/다사01", headers=_h("city")).json()
+            self.assertIsNone(d["note"])
+        finally:
+            ROWS[0].pop("note"); ROWS[1].pop("note")
 
     def test_bad_input(self):
         self.assertEqual(self.c.get("/api/priority/runs/abc/candidates", headers=_h("city")).status_code, 422)
