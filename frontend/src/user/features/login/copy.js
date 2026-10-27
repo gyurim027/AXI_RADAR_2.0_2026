@@ -21,6 +21,11 @@ export const LOGIN_COPY = {
   roleChanged: '계정의 권한이 바뀌었습니다. 다시 로그인해 주세요.', // 서버 401 role_changed. 정의서에 없는 문구라 제안
   // 개발 화면에서만 보이는 안내 (정의서에 없음)
   devMock: '서버에 연결되지 않은 연습용 로그인입니다. 서버 계정으로는 들어갈 수 없고, 아래 연습용 계정만 됩니다.',
-  devServer: (url) => `서버에 연결됨: ${url}`,
+  devServer: (state, url) =>
+    state === 'up'
+      ? `서버에 연결됨: ${url}`
+      : state === 'down'
+        ? `서버에 닿지 않습니다: ${url}. 주소가 맞는지, 서버가 켜져 있는지 확인해 주세요.`
+        : `서버 확인 중: ${url}`,
   help: `계정이 필요하거나 비밀번호를 잊었다면 RADAR 운영팀에 연락해 주세요. ${CONTACT_PHONE}`, // 3-1
 };

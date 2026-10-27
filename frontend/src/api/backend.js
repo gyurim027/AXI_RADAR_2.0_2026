@@ -1,14 +1,19 @@
 // I-07 실제 연결은 명시적으로 켠 경우에만 사용한다. 실패 시 목업으로 대체하지 않는다.
-export const i07BackendEnabled = import.meta.env?.VITE_I07_API === 'true';
-export const settingsBackendEnabled = import.meta.env?.VITE_SETTINGS_API === 'true';
+// 서버 주소(VITE_API_BASE_URL)를 적어 두면 서버를 쓰겠다는 뜻으로 보고, 연결된 화면을 모두 서버로 연다.
+// 스위치를 'false'로 적으면 그 기능만 끈다. 주소도 스위치도 없으면 서버 없이 가짜 서버로 돈다(연습용).
+const serverAddressSet = Boolean((import.meta.env?.VITE_API_BASE_URL || '').trim());
+const on = (flag) => flag === 'true' || (serverAddressSet && flag !== 'false');
+export const i07BackendEnabled = on(import.meta.env?.VITE_I07_API);
+export const settingsBackendEnabled = on(import.meta.env?.VITE_SETTINGS_API);
 // 계정 관리·접속 기록·알림 설정(I-01·I-03·I-04) 실제 연결. 켜면 RADAR 운영자 로그인과 그 세 화면만 서버를 쓴다.
-export const opsBackendEnabled = import.meta.env?.VITE_OPS_API === 'true';
+export const opsBackendEnabled = on(import.meta.env?.VITE_OPS_API);
 export const backendAuthEnabled = i07BackendEnabled || settingsBackendEnabled || opsBackendEnabled;
 
 /** 서버 연결 모드에서 로그인 뒤 처음 여는 화면 */
 export function backendHome(role) {
   if (role === 'operator') return settingsBackendEnabled ? '/admin/standards/criteria' : '/admin/settings/accounts';
-  return '/reference/approvals';
+  if (role === 'city' && i07BackendEnabled) return '/reference/approvals';
+  return '/candidates';
 }
 const baseUrl = import.meta.env?.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
 /** 개발 화면에서 어느 서버로 가는지 보이려고 내보낸다 (비밀 값 아님) */

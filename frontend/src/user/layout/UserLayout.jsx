@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 import { Link, Outlet, useLocation, useMatches, useNavigate } from 'react-router-dom';
-import { i07BackendEnabled } from '../../api/backend.js';
+import { backendAuthEnabled, i07BackendEnabled } from '../../api/backend.js';
+import NotConnected from '../components/NotConnected.jsx';
+import { ROLE } from '../../shared/constants.js';
 import { RUN_STATUS } from '../../shared/constants.js';
 import { useAuth } from '../../app/providers/AuthProvider.jsx';
 import { useRun } from '../../app/providers/RunProvider.jsx';
@@ -13,26 +15,29 @@ import bar from './TopBar.module.css';
 
 /** US-00 공통 상단 + 상태 띠 + 본문. 순위 안내는 각 화면 머리(PageHeader)가 보인다. */
 export default function UserLayout() {
-  const { pathname } = useLocation();
-  if (i07BackendEnabled && pathname.replace(/\/$/, '') === '/reference/approvals') return <ApprovalOnlyLayout />;
+  // 서버 연결 모드에서는 회차·가짜 데이터를 쓰지 않는 최소 틀만 쓴다. 연결된 화면(승인 대기)만 열고 나머지는 안내를 보인다.
+  if (backendAuthEnabled) return <ServerUserLayout />;
   return <RunUserLayout />;
 }
 
 // 승인 작업은 회차·점수 생성에 의존하지 않는다. 기존 승인 화면과 공통 스타일을 사용한다.
-function ApprovalOnlyLayout() {
+function ServerUserLayout() {
   const { user, signOut } = useAuth();
+  const { pathname } = useLocation();
   const navigate = useNavigate();
-  useEffect(() => { document.title = '승인 대기 · RADAR 보도 점검 우선순위'; }, []);
+  const approvals = i07BackendEnabled && user.role === ROLE.CITY;
+  const onApprovals = pathname.replace(/\/$/, '') === '/reference/approvals';
+  useEffect(() => { document.title = 'RADAR 보도 점검 우선순위'; }, []);
   const logout = async () => { await signOut(); navigate('/login', { replace: true }); };
   return (
     <div className={styles.shell}>
       <a href="#main" className={styles.skip}>본문 바로가기</a>
       <header className={bar.bar}>
-        <Link to="/reference/approvals" className={bar.brand}>RADAR 보도 점검 우선순위</Link>
-        <nav aria-label="주 메뉴"><Link to="/reference/approvals">승인 대기</Link></nav>
+        <Link to={approvals ? '/reference/approvals' : '/'} className={bar.brand}>RADAR 보도 점검 우선순위</Link>
+        {approvals ? <nav aria-label="주 메뉴"><Link to="/reference/approvals">승인 대기</Link></nav> : null}
         <div className={bar.account}><span>{user.org}</span><button type="button" className={bar.logout} onClick={logout}>로그아웃</button></div>
       </header>
-      <main className={styles.main} id="main" tabIndex={-1}><div className={styles.content}><Outlet /></div></main>
+      <main className={styles.main} id="main" tabIndex={-1}><div className={styles.content}>{approvals && onApprovals ? <Outlet /> : <NotConnected role={user.role} />}</div></main>
     </div>
   );
 }
