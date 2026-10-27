@@ -11,6 +11,9 @@
         run_engine(int(ref_id))                       # 예: 진규님 산정 — ref_table='priority_run', ref_id=run_id
     register_rerun("ENGINE", _rerun)                  # module 이름은 track(module=...)과 같게
 
+입력이 파일인 기능은 실행 기록 로그에 입력을 남기고 check=로 '이 실행을 다시 돌릴 수 있는지'를 알려 줄 수 있다
+(예: app/services/standards/rerun_hooks.py — A-11·A-12).
+
 다시 실행으로 생긴 새 실행 기록에는 첫 단계 로그 '실행 #N(실패)을 처음부터 다시 실행'과 누른 운영자(triggered_by)가 남는다.
 """
 from __future__ import annotations
@@ -22,18 +25,32 @@ from typing import Callable
 
 logger = logging.getLogger("radar.job")
 _REG: dict[str, Callable] = {}
+_CHECK: dict[str, Callable[[dict], str | None]] = {}   # (선택) 실행 한 건을 다시 돌릴 수 있는지 — 못 하면 이유 글자
 _RUNNING: set[tuple] = set()          # 이 서버에서 지금 다시 실행 중인 것 (빠르게 두 번 누르기 막기)
 _LOCK = threading.Lock()
 _CTX: ContextVar[tuple[int, int | None] | None] = ContextVar("radar_rerun", default=None)
 ASYNC = True                          # 뒤에서 돌림. 시험에서는 False
 
 
-def register_rerun(module: str, fn: Callable[[str | None, str | None, int | None], None]) -> None:
+def register_rerun(module: str, fn: Callable[[str | None, str | None, int | None], None], *,
+                   check: Callable[[dict], str | None] | None = None) -> None:
+    """check(run) (선택): 실행 한 건(로그 포함)을 보고 다시 돌릴 수 없으면 이유를, 되면 None을 돌려준다.
+    예: 입력 파일 경로가 실행 기록에 남지 않은 옛 실행 (A-11·A-12)."""
     _REG[module] = fn
+    if check is not None:
+        _CHECK[module] = check
+    else:
+        _CHECK.pop(module, None)
 
 
 def can_rerun(module: str | None) -> bool:
     return bool(module) and module in _REG
+
+
+def why_not(run: dict) -> str | None:
+    """등록된 기능이라도 이 실행 한 건을 다시 돌릴 수 없으면 이유 글자 (없으면 None)."""
+    check = _CHECK.get(run.get("module") or "")
+    return check(run) if check else None
 
 
 def current() -> tuple[int, int | None] | None:

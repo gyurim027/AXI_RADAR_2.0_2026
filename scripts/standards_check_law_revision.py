@@ -51,6 +51,7 @@ def main(argv=None) -> int:
     OUT.mkdir(parents=True, exist_ok=True)
     stamp = datetime.datetime.now().strftime("%y%m%d_%H%M")
     with track("색인", f"법령 개정 확인 ({args.date})", module="A-11") as job:
+        _remember(job, "A-11", sys.argv[1:] if argv is None else argv)   # 운영 화면 '다시 실행'(I-06)용 입력 한 줄
         if args.new_src:
             new_docs, new_chunks = OUT / f"new_docs_{stamp}.jsonl", OUT / f"new_chunks_{stamp}.jsonl"
             extract.main(args.new_src, new_docs)
@@ -101,6 +102,15 @@ def _save(rows, run_id, no_save) -> None:
     repo = get_repository()
     link_jurisdiction(rows, repo.jurisdiction())
     print(f"규정 변경 기록(89)에 {repo.save_changes(rows, run_id)}줄 남겼습니다")
+
+
+def _remember(job, module, argv) -> None:
+    """86 실행 로그에 다시 실행용 입력을 남긴다 (app/services/standards/rerun_hooks.py). 실패해도 명령은 계속."""
+    try:
+        from app.services.standards.rerun_hooks import remember
+        remember(job, module, argv)
+    except Exception:                       # pragma: no cover - 실행 기록 없이 도는 브랜치·환경
+        pass
 
 
 if __name__ == "__main__":

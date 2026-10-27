@@ -68,6 +68,7 @@ def main(argv=None) -> int:
 
     OUT.mkdir(parents=True, exist_ok=True)
     with track("검사", f"업무분장 변경 확인 ({args.name})", module="A-12") as job:
+        _remember(job, "A-12", sys.argv[1:] if argv is None else argv)   # 운영 화면 '다시 실행'(I-06)용 입력 한 줄
         old, new = load_duties(args.old), load_duties(args.new)
         job.log(f"이전 판 사무 {len(old)}개, 새 판 사무 {len(new)}개를 읽었습니다")
         rep = compare(old, new, args.name)
@@ -105,6 +106,15 @@ def main(argv=None) -> int:
             n = get_repository().save_changes(rep["changes"], getattr(job, "run_id", None))
             print(f"규정 변경 기록(89)에 {n}줄 남겼습니다")
     return 0
+
+
+def _remember(job, module, argv) -> None:
+    """86 실행 로그에 다시 실행용 입력을 남긴다 (app/services/standards/rerun_hooks.py). 실패해도 명령은 계속."""
+    try:
+        from app.services.standards.rerun_hooks import remember
+        remember(job, module, argv)
+    except Exception:                       # pragma: no cover - 실행 기록 없이 도는 브랜치·환경
+        pass
 
 
 if __name__ == "__main__":

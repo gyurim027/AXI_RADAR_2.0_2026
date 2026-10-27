@@ -7,6 +7,7 @@ POST /api/standards/drafts                담당 부서 표 수정안 올리기 
     {"jurId": "JUR-05", "problem": "가로등·보안등 문제", "from": "…", "to": "…", "basis": "성남시 사무위임 조례 별표 1"}
 
 바꾸는 기록은 접근 기록(70)에 '설정 변경'으로 남긴다 (POL-022).
+A-11·A-12 명령이 실패하면 운영 화면 실행 기록(AD-07)에서 '다시 실행'할 수 있다 (rerun_hooks, I-06).
 """
 from __future__ import annotations
 
@@ -18,6 +19,7 @@ from app.core.auth import require_roles
 from app.core.responses import ApiError
 from app.services.standards.dept_draft import check_draft, submit
 from app.services.standards.repository import StandardsRepository, get_repository
+from app.services.standards import rerun_hooks  # noqa: F401  서버가 켜질 때 A-11·A-12 '다시 실행'(I-06) 등록
 
 router = APIRouter(prefix="/api/standards", tags=["법령·업무 기준 (A-11·A-12·F-05)"])
 operator = require_roles("operator")
