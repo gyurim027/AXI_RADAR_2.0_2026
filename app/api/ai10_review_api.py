@@ -1,12 +1,12 @@
+"""AI-10 운영자 검토 API.
 
-"""AI-10 개발용 검토 API.
-
-H-07 운영자 검토 요청에는 공통 인증 및 operator 역할을 적용한다.
-개발용 쓰기는 AI10_DEV_API_ENABLED=1일 때만 허용한다.
-
-현재 검토 결과는 개발용 JSON 저장소에 보관한다.
-v2.1 운영 DB 저장·조회 연동은 별도 작업이다.
+개발용 JSON 검토 경로와 DB 승인 경로를 분리한다.
+- 개발용 JSON 쓰기: AI10_DEV_API_ENABLED=1
+- 실제 DB 승인 쓰기: AI10_DB_APPROVAL_ENABLED=1
+DB 승인 경로는 아직 검토 표시 원천 확인 및 승인 이력 영속화가 완성되지 않았으므로
+운영 환경에서 활성화하지 않는다.
 """
+import importlib
 import os
 from pathlib import Path
 
@@ -36,6 +36,15 @@ class ProposalRequest(BaseModel):
     confirmed_legal_basis: str | None = None
 
 
+class DbApprovalRequest(BaseModel):
+    approved_text: str = Field(min_length=1)
+    note: str = Field(min_length=1)
+    evidence_source: str = Field(min_length=1)
+    evidence_checked: bool = False
+    has_findings: bool
+    acknowledge_findings: bool = False
+
+
 def create_router(store: Path = STORE) -> APIRouter:
     api = APIRouter(
         prefix="/api/ai10/reviews",
@@ -50,8 +59,16 @@ def create_router(store: Path = STORE) -> APIRouter:
                 detail="개발용 쓰기 API 비활성화",
             )
 
+    def protect_db_write():
+        """실제 DB 승인 기능을 개발용 API와 별도로 보호한다."""
+        if os.getenv("AI10_DB_APPROVAL_ENABLED") != "1":
+            raise HTTPException(
+                status_code=403,
+                detail="운영 DB 승인 기능 비활성화",
+            )
+
     def reviewer_id(user: dict) -> str:
-        """개발용 JSON의 문자열 검토자 칸에 인증된 사용자 ID를 기록한다."""
+        """인증된 사용자 ID를 개발용 JSON 검토자 칸에 기록한다."""
         user_id = user.get("user_id")
         if type(user_id) is not int or user_id < 1:
             raise HTTPException(
@@ -107,7 +124,7 @@ def create_router(store: Path = STORE) -> APIRouter:
 
     @api.get("/approved/{rule_id}")
     def show_approved_template(rule_id: str):
-        """H-06 연결: 승인된 문장 틀만 반환."""
+        """개발용 JSON에서 승인된 문장 틀만 반환."""
         item = read_review(rule_id)
         if (
             item.get("review_status") != "approved"
@@ -225,6 +242,61 @@ def create_router(store: Path = STORE) -> APIRouter:
             store,
         )
         return read_review(rule_id)
+
+    @api.post("/{rule_id}/approve-db")
+    def approve_review_db(
+        rule_id: str,
+        payload: DbApprovalRequest,
+        user: dict = Depends(operator_role),
+    ):
+        """개발용 JSON을 사용하지 않고 DB에 승인 결과를 저장한다."""
+        protect_db_write()
+
+        if payload.has_findings and not payload.acknowledge_findings:
+            raise HTTPException(
+                status_code=400,
+                detail="검토 표시를 확인해야 승인할 수 있습니다.",
+            )
+
+        module = importlib.import_module(
+            "app.services.AI-10.ai10_db_approval"
+        )
+        try:
+            return module.save_approved_template(
+                item_id=rule_id,
+                approved_text=payload.approved_text,
+                reviewer_id=int(reviewer_id(user)),
+                approval_note=payload.note,
+                evidence_source=payload.evidence_source,
+                evidence_checked=payload.evidence_checked,
+                has_findings=payload.has_findings,
+                findings_acknowledged=payload.acknowledge_findings,
+            )
+        except ValueError as exc:
+            raise HTTPException(
+                status_code=400,
+                detail=str(exc),
+            ) from exc
+
+    @api.get("/approved-db/{rule_id}")
+    def show_approved_template_db(rule_id: str):
+        """DB 81번에서 검토 완료된 조치 문장만 조회한다."""
+        module = importlib.import_module(
+            "app.services.AI-10.ai10_db_approval"
+        )
+        try:
+            result = module.get_approved_template(rule_id)
+        except ValueError as exc:
+            raise HTTPException(
+                status_code=400,
+                detail=str(exc),
+            ) from exc
+        if result is None:
+            raise HTTPException(
+                status_code=404,
+                detail="DB에 사용 가능한 승인 문장이 없습니다.",
+            )
+        return result
 
     return api
 
