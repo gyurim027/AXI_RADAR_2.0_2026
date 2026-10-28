@@ -11,7 +11,6 @@ GET /api/priority/runs/{run_id}/candidates/{gid}        격자 한 칸 결과 + 
 - 78 상세 5칸(분야별 점수·지표별 기여·미평가 사유·신뢰도·사고 제외 점수)은 아직 DB에 없다 (진규 추가안, v2.2 예정).
   그 전까지는 details.stored=false 와 모두 null로 내려보낸다.
 - run_id는 숫자 (77 priority_run.run_id BIGINT). 글자면 422.
-- 78 note가 'ev1:'로 시작하면 진규 산정이 넣은 근거 파일 표시(해시)라 사람이 보는 비고가 아니다 → note는 null로 보낸다 (10/27).
 """
 from __future__ import annotations
 
@@ -51,24 +50,18 @@ def _run(r: dict) -> dict:
     return out
 
 
-EVIDENCE_PREFIX = "ev1:"           # 진규 app/services/priority/details.py가 78 note에 넣는 근거 파일 표시
-
-
-def _note(v):
-    return None if isinstance(v, str) and v.startswith(EVIDENCE_PREFIX) else v
-
-
 def _candidate(c: dict) -> dict:
     score = _num(c.get("score"))
     return {
         "run_id": c["run_id"], "gid": c["gid"], "gu": c.get("gu"),
+        "center_lat": _num(c.get("center_lat")), "center_lon": _num(c.get("center_lon")),
         "selected_yn": c.get("selected_yn"), "score": score, "rank_no": c.get("rank_no"),
         "score_status": "산출" if score is not None else "미산출",
         "complaint_cnt": c.get("complaint_cnt"), "complaint_cnt_excl_low": c.get("complaint_cnt_excl_low"),
         "conditions": {"result": c.get("cond_result_yn"), "hazard": c.get("cond_hazard_yn"),
                        "exposure": c.get("cond_exposure_yn"), "vulnerable": c.get("cond_vulnerable_yn")},
-        "matched_roles": c.get("matched_roles"), "note": _note(c.get("note")),
-        "details": {"stored": False, **{k: None for k in DETAIL_NAMES}},
+        "matched_roles": c.get("matched_roles"), "note": None if isinstance(c.get("note"), str) and c["note"].startswith("ev1:") else c.get("note"),
+        "details": c.get("details") if c.get("details") is not None else {"stored": False, **{k: None for k in DETAIL_NAMES}},
     }
 
 
@@ -109,7 +102,220 @@ def candidate(run_id: int, gid: str, user: dict = Depends(current_user),
         raise ApiError(404, "candidate_not_found", "그 회차에 이 격자 결과가 없습니다")
     if user.get("role") == "district" and c.get("gu") not in allowed_gus(user):
         raise ApiError(403, "forbidden_gu", "담당 구가 아닌 자료입니다")
+    run = repo.get_run(run_id)
+    if not run:
+        raise ApiError(409, 'run_missing', '결과의 실행회차를 확인할 수 없습니다')
     out = _candidate(c)
+    out['run'] = _run(run)
+    from app.services.ai07.read_only_db import stored_explanation
+    try:
+        summary = stored_explanation({**c, 'rule_version': run.get('rule_version')})
+    except ValueError:
+        raise ApiError(409, 'invalid_stored_result', '저장된 점수·순위를 확인할 수 없습니다') from None
+    out['explanation_context'] = {'run_id': run_id, 'gid': gid,
+        'source': 'STORED_DB_RESULT', 'generation_method': 'local_template',
+        'external_api_called': False, 'summary': summary,
+        'score_status': out['score_status'], 'details': out['details'],
+        'complaint_count_is_not_contribution': True, 'official_policy_verified': False}
     out["actions"] = [{k: _iso(a.get(k)) for k in ("item_id", "action_text", "dept_text", "basis_text", "created_at")}
                       for a in c.get("actions", [])]
     return out
+
+
+# B07_READ_ONLY_LINEAGE_ROUTE_V1
+@router.get("/runs/{run_id}/lineage")
+def run_lineage(run_id: int, user: dict = Depends(current_user)):
+    if user.get("role") == "district":
+        raise ApiError(403, "forbidden_gu", "? ???? ?? ?? ??? ??? ? ????")
+    from app.services.priority.lineage import read_run_lineage
+    result = read_run_lineage(run_id)
+    if result is None:
+        raise ApiError(404, "run_not_found", "실행 회차를 찾을 수 없습니다")
+    return result
+
+@router.get("/runs/{run_id}/evidence")
+def run_evidence(run_id: int, gu: str | None = None,
+                 selected: str | None = Query(None, pattern="^[YN]$"),
+                 limit: int = Query(100, ge=1, le=500), offset: int = Query(0, ge=0),
+                 user: dict = Depends(current_user), repo: PriorityRepository = Depends(get_repository)):
+    """Five evidence fields for a paged, authorized 78 population; read-only.
+
+    UNSTORED means no ev1 pointer, never five verified details. Broken ev1
+    pointers are reported as integrity failures, not silently converted to zero.
+    """
+    run = repo.get_run(run_id)
+    if not run:
+        raise ApiError(404, "run_not_found", "실행 회차를 찾을 수 없습니다")
+    gus, include_no_gu = _scope(user, gu or None)
+    rows, total = repo.list_candidates(run_id, gus, include_no_gu, selected, limit, offset)
+    from app.core import db
+    from app.services.priority.details import read_evidence
+    results = []
+    stored = 0
+    missing = 0
+    errors = 0
+    for row in rows:
+        note = row.get("note") or ""
+        item = {"run_id": run_id, "gid": row["gid"], "gu": row.get("gu"),
+                "score": _num(row.get("score")), "rank_no": row.get("rank_no")}
+        if not note.startswith("ev1:"):
+            item.update(evidence_status="UNSTORED", details={"stored": False, **{k: None for k in DETAIL_NAMES}})
+            missing += 1
+        else:
+            try:
+                details = read_evidence(db.read_only, run_id, row["gid"])
+                if not details.get("stored") or set(DETAIL_NAMES) - details.keys():
+                    raise ValueError("incomplete persisted evidence")
+                if any(details[k] is None for k in DETAIL_NAMES):
+                    raise ValueError("null persisted evidence field")
+            except (ValueError, OSError, KeyError, TypeError) as exc:
+                item.update(evidence_status="INTEGRITY_ERROR", details=None,
+                            evidence_error=type(exc).__name__)
+                errors += 1
+            else:
+                item.update(evidence_status="STORED_VERIFIED_SHA256", details=details)
+                stored += 1
+        results.append(item)
+    return {"run": _run(run), "total": total, "limit": limit, "offset": offset,
+            "stored_verified": stored, "unstored": missing, "integrity_errors": errors,
+            "official_policy_verified": False, "candidates": results}
+
+@router.get('/runs/{run_id}/actions')
+def b09_candidate_actions(run_id: int, gu: str | None = None,
+                          selected: str | None = Query(None, pattern='^[YN]$'),
+                          action_filter: str = Query('all', pattern='^(all|with_action|without_action)$'),
+                          limit: int = Query(100, ge=1, le=500), offset: int = Query(0, ge=0),
+                          user: dict = Depends(current_user),
+                          repo: PriorityRepository = Depends(get_repository)):
+    """B09: stored 77/78 candidates and actual 82 rows, no synthetic actions.
+
+    item_id/action_text/dept_text/basis_text/created_at are the only verified
+    columns from 82; don't invent workflow states or an assigned operator.
+    """
+    from app.core import db
+    run = repo.get_run(run_id)
+    if not run:
+        raise ApiError(404, 'run_not_found', '실행 회차를 찾을 수 없습니다')
+    gus, include_no_gu = _scope(user, gu or None)
+    if gus is not None and not gus:
+        return {'run': _run(run), 'total': 0, 'limit': limit, 'offset': offset,
+                'candidates': [], 'source': '77_78_82_STORED_DB',
+                'action_status_basis': '82_RECORD_PRESENCE_ONLY'}
+    args = [run_id]
+    where = ['c.run_id = %s']
+    if gus is not None:
+        where.append("NULLIF(REPLACE(f.id_gu, '성남시 ', ''), '') IN (" + ','.join(['%s'] * len(gus)) + ')')
+        args += list(gus)
+    elif not include_no_gu:
+        where.append("NULLIF(REPLACE(f.id_gu, '성남시 ', ''), '') IS NOT NULL")
+    if selected:
+        where.append('c.selected_yn = %s')
+        args.append(selected)
+    action_exists = ('EXISTS (SELECT 1 FROM priority_candidate_action a '
+                     'WHERE a.run_id = c.run_id AND a.gid = c.gid)')
+    if action_filter == 'with_action':
+        where.append(action_exists)
+    elif action_filter == 'without_action':
+        where.append('NOT ' + action_exists)
+    base = (' FROM priority_candidate c LEFT JOIN grid_feature f ON f.ID_gid = c.gid '
+            'WHERE ' + ' AND '.join(where))
+    count = db.read_only('SELECT COUNT(*) AS n' + base, args)
+    rows = db.read_only(
+        "SELECT c.run_id, c.gid, c.selected_yn, c.score, c.rank_no, "
+        "NULLIF(REPLACE(f.id_gu, '성남시 ', ''), '') AS gu, "
+        "(SELECT COUNT(*) FROM priority_candidate_action a "
+        " WHERE a.run_id=c.run_id AND a.gid=c.gid) AS action_count"
+        + base + ' ORDER BY c.rank_no IS NULL, c.rank_no, c.gid LIMIT %s OFFSET %s',
+        [*args, limit, offset])
+    gids = [r['gid'] for r in rows]
+    grouped = {gid: [] for gid in gids}
+    if gids:
+        binds = ','.join(['%s'] * len(gids))
+        action_rows = db.read_only(
+            'SELECT run_id,gid,item_id,action_text,dept_text,basis_text,created_at '
+            'FROM priority_candidate_action WHERE run_id=%s AND gid IN (' + binds + ') '
+            'ORDER BY gid,item_id', [run_id, *gids])
+        for action in action_rows:
+            gid = action['gid']
+            if gid in grouped:
+                grouped[gid].append({
+                    'item_id': action.get('item_id'),
+                    'action_text': action.get('action_text'),
+                    'dept_text': action.get('dept_text'),
+                    'basis_text': action.get('basis_text'),
+                    'created_at': _iso(action.get('created_at'))})
+    results = []
+    for c in rows:
+        actual = grouped[c['gid']]
+        results.append({
+            'run_id': c['run_id'], 'gid': c['gid'], 'gu': c.get('gu'),
+            'selected_yn': c.get('selected_yn'), 'score': _num(c.get('score')),
+            'rank_no': c.get('rank_no'),
+            'action_status': 'RECORDED_ACTION' if actual else 'NO_RECORDED_ACTION',
+            'action_count': len(actual), 'actions': actual,
+            'workflow_status': None, 'assignee': None})
+    return {'run': _run(run), 'total': int(count[0]['n']) if count else 0,
+            'limit': limit, 'offset': offset, 'candidates': results,
+            'source': '77_78_82_STORED_DB',
+            'action_status_basis': '82_RECORD_PRESENCE_ONLY',
+            'note': '82 기록 존재 여부만 판정하며, 미기록은 실제 미조치의 증명이 아닙니다.'}
+
+@router.get('/runs/{run_id}/decision-basis')
+def b10_decision_basis(run_id: int, gu: str | None = None,
+                       selected: str | None = Query(None, pattern='^[YN]$'),
+                       limit: int = Query(100, ge=1, le=200), offset: int = Query(0, ge=0),
+                       user: dict = Depends(current_user),
+                       repo: PriorityRepository = Depends(get_repository)):
+    """B10 D-05 / D-06: expose *stored* decision flags separately from evidence reliability.
+
+    A stored selected_yn is not evidence that the thresholds were validated;
+    confidence_grade is not derivable from score. No policy guessed here.
+    """
+    from app.services.priority.details import read_evidence
+    from app.core import db
+    run = repo.get_run(run_id)
+    if not run:
+        raise ApiError(404, 'run_not_found', '실행 회차를 찾을 수 없습니다')
+    gus, include_no_gu = _scope(user, gu or None)
+    rows, total = repo.list_candidates(run_id, gus, include_no_gu, selected, limit, offset)
+    output = []
+    for row in rows:
+        gid = row['gid']
+        status = 'UNSTORED'
+        details = None
+        try:
+            evidence = read_evidence(db.read_only, run_id, gid)
+            if evidence.get('stored'):
+                status = 'STORED_VERIFIED_SHA256'
+                details = evidence
+        except (ValueError, FileNotFoundError, RuntimeError, OSError, KeyError) as exc:
+            status = 'INTEGRITY_OR_STORAGE_ERROR'
+        selected_value = row.get('selected_yn')
+        flags = {k: row.get(k) for k in
+                 ('cond_result_yn', 'cond_hazard_yn', 'cond_exposure_yn', 'cond_vulnerable_yn')}
+        output.append({
+            'run_id': run_id, 'gid': gid, 'gu': row.get('gu'),
+            'D05': {
+                'selected_yn': selected_value,
+                'score': _num(row.get('score')),
+                'rank_no': row.get('rank_no'),
+                'stored_conditions': flags,
+                'matched_roles': row.get('matched_roles'),
+                'source': '78_STORED_RESULT',
+                'policy_conditions_verified': False,
+                'decision_status': 'NOT_RECORDED' if selected_value is None else 'STORED_NOT_REVALIDATED',
+            },
+            'D06': {
+                'evidence_status': status,
+                'confidence_grade': details.get('confidence_grade') if details else None,
+                'unevaluated_reasons': details.get('unevaluated_reasons') if details else None,
+                'source': '78_NOTE_SHA256_SIDECAR' if details else None,
+                'independent_from_score': True,
+            },
+        })
+    return {
+        'run': _run(run), 'total': total, 'limit': limit, 'offset': offset,
+        'items': output, 'read_only': True,
+        'policy_conditions_verified': False,
+        'note': 'Stored result inspection only; no retroactive approval or inferred confidence.'
+    }
