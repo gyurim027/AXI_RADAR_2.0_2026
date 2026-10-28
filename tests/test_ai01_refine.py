@@ -192,6 +192,28 @@ class RefineTests(unittest.TestCase):
         self.assertNotIn("12가3456", r.masked_summary)
         self.assertNotIn("[", r.masked_summary)
 
+    def test_rule_summary_is_checked_last(self):
+        # 안전신문고 규칙 요약은 모델 요약 검사를 거치지 않는다. 마지막 검사로 차량번호 꼴을 다시 가린다 (2026-10-28)
+        item = refine.ComplaintInput("C000000000009", "안전신문고(SPP)", "제목", "본문")
+        decided = ("횡단보도 불법 주정차 · 12가 3456 차량이 횡단보도에", cls.RELATED, 0.9, "규칙", cls.BY_RULE)
+        with mock.patch.object(masking, "common_words", return_value=frozenset()), \
+             mock.patch.object(refine, "decide", return_value=decided):
+            r = refine.refine_one(item, ner=fake_ner(()))
+        self.assertEqual(r.status, "ok")
+        self.assertNotIn("3456", r.masked_summary)
+        self.assertEqual(masking.left_kinds(r.masked_summary), [])
+
+    def test_summary_still_leaking_is_mask_failed(self):
+        item = refine.ComplaintInput("C000000000010", "안전신문고(SPP)", "제목", "본문")
+        decided = ("요약", cls.RELATED, 0.9, "규칙", cls.BY_RULE)
+        with mock.patch.object(masking, "common_words", return_value=frozenset()), \
+             mock.patch.object(refine, "decide", return_value=decided), \
+             mock.patch.object(masking, "left_kinds", side_effect=lambda t: [] if t != "요약" else ["차량번호"]), \
+             mock.patch.object(masking, "rule_mask", side_effect=lambda t, c: t):          # 다시 가려도 남는 경우
+            r = refine.refine_one(item, ner=fake_ner(()))
+        self.assertEqual((r.status, r.masked_summary, r.relevance, r.class_reason),
+                         ("mask_failed", None, None, refine.MASK_FAILED_REASON))
+
     def test_short_text_skips_model(self):
         with mock.patch.object(summ, "call_llm") as c:
             out, hits = summ.summarize("횡단보도 위 [차량번호] 주차")
