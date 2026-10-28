@@ -67,8 +67,8 @@ temperature = 0
 
 [tasks.ai10_draft]
 # AI-10 조치 제안 문장 초안 (app/services/ai10_draft.py의 generate_draft). 값은 지금 코드 기준.
-route = "external"
-model = ""              # 지금처럼 .env의 GEMINI_MODEL을 쓴다
+route = "internal"
+model = "exaone3.5:7.8b"  # 기존 내부 작업에서 쓰는 모델; 설치 여부 확인 필요
 temperature = 0.2
 
 [tasks.f05_extract]
