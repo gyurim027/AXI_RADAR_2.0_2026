@@ -15,7 +15,10 @@ A-11·A-12 명령이 실패하면 운영 화면 실행 기록(AD-07)에서 **다
 ## SQL v2.1 연결 (10/23)
 - 87 `jurisdiction`·88 `jurisdiction_dept` = 담당 부서 표 (대장 v0.4.2 05 관할 매핑). 62 `setting_version` 자동 번호로 수정안 제안
 - 89 `standard_change` = A-11·A-12가 찾은 변경 한 건에 한 줄 (스크립트가 DB가 있으면 자동으로 남김, `--no-save`로 끔). 걸리는 담당 부서 표 ID(related_jur)·법령 색인 ID(related_criteria)를 붙임
-- 화면 API (RADAR 운영자): `GET /api/standards/jurisdiction` · `GET /api/standards/changes` · `POST /api/standards/changes/{id}/seen` · `POST /api/standards/drafts`
+- 화면 API (RADAR 운영자): `GET /api/standards/jurisdiction` · `GET /api/standards/changes` · `POST /api/standards/changes/{id}/seen` · `GET /api/standards/drafts` · `POST /api/standards/drafts`
+- 수정안 목록 `GET /api/standards/drafts` (10/28): 62 '담당 부서 표' 제안마다 상태(`statusLabel`: 승인 대기 · 승인 · 반려), 고칠 내용(`jurId`·`from`·`to`·`basis`),
+  같은 표 줄에 걸린 89 규정 변경의 원문 앞부분(`changes[].before`·`after`, 최대 500자). 근거 원문 전체는 저장하지 않는다 —
+  화면이 `basisQuery`로 `GET /api/ai05/search?q=…`를 부르면 AI-05가 가진 원문에서 찾는다 (색인에 없는 조례·지침은 '보유 원문에서 못 찾음')
 
 ## F-05 AI 추출 (10/26, 기능정의서 F-05 "AI 후보 + 사람 승인")
 - 바뀐 업무분장·조례 문장 → 공통 LLM 모듈 `call_llm("f05_extract")`(내부 모델) → (업무, 담당 부서, 도로 종류). 코드: `app/services/standards/extract_llm.py`

@@ -2,6 +2,7 @@
 실행: uv run python -m pytest tests/test_standards.py
 """
 import unittest
+from datetime import datetime
 
 from app.services.standards.dept_draft import DELEGATED_TO, check_draft, make_drafts, proposal_text
 from app.services.standards.duty_table import compare as duty_compare, parse
@@ -166,6 +167,19 @@ class StandardsApiTests(unittest.TestCase):
                 self.props.append((label, content, by))
                 return 7
 
+            def list_drafts(self, limit):
+                return [{"setting_version_id": 7, "version_label": "담당 부서 표 수정안 JUR-05", "approval_status": "돌려보냄",
+                         "content_ref": "JUR-05 가로등: 수정구 도로조명팀 → 시 도로과 도로관리팀 (근거 성남시 사무위임 조례 별표 1)",
+                         "proposed_at": datetime(2026, 10, 27, 9, 0), "approved_at": datetime(2026, 10, 28, 10, 0),
+                         "review_comment": "근거 조문 확인 필요"},
+                        {"setting_version_id": 8, "version_label": "직접 넣은 줄", "approval_status": "제안",
+                         "content_ref": "꼴이 다른 글", "proposed_at": None, "approved_at": None, "review_comment": None}]
+
+            def changes_for_jur(self, jur_id, limit=3):
+                return [{"standard_change_id": 2, "change_kind": "업무분장", "doc_name": "성남시 사무위임 조례",
+                         "where_text": "별표 1", "change_type": "새 사무", "before_text": None, "after_text": "가로등 관리…",
+                         "effective_date": None, "detected_at": None}] if jur_id == "JUR-05" else []
+
         class Audit(access_audit.AuditStore):
             def insert(self, *a):
                 pass
@@ -195,6 +209,16 @@ class StandardsApiTests(unittest.TestCase):
         self.assertEqual((r.status_code, r.json()["settingVersionId"]), (200, 7))
         bad = dict(body, to="각 구 (구청장 위임, 담당 팀 확인 필요)")
         self.assertEqual(self.c.post("/api/standards/drafts", json=bad, headers=self.h).status_code, 400)
+
+    def test_list_drafts(self):
+        """수정안 목록 (10/28): 상태는 화면 말('반려'), 같은 표 줄의 규정 변경 원문 앞부분, AI-05 검색용 근거 이름"""
+        self.assertEqual(self.c.get("/api/standards/drafts").status_code, 401)
+        d = self.c.get("/api/standards/drafts", headers=self.h).json()["drafts"]
+        self.assertEqual((d[0]["jurId"], d[0]["from"], d[0]["to"]), ("JUR-05", "수정구 도로조명팀", "시 도로과 도로관리팀"))
+        self.assertEqual((d[0]["status"], d[0]["statusLabel"]), ("돌려보냄", "반려"))
+        self.assertEqual(d[0]["basisQuery"], "성남시 사무위임 조례 별표 1")
+        self.assertEqual(d[0]["changes"][0]["after"], "가로등 관리…")
+        self.assertEqual((d[1]["jurId"], d[1]["statusLabel"], d[1]["changes"], d[1]["text"]), (None, "승인 대기", [], "꼴이 다른 글"))
 
     def test_seen(self):
         self.assertEqual(self.c.post("/api/standards/changes/1/seen", headers=self.h).status_code, 200)

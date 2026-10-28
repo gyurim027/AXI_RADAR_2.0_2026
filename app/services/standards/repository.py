@@ -1,4 +1,7 @@
-"""법령·업무 기준 관리 DB 읽기·쓰기 (SQL v2.1: 87 jurisdiction · 88 jurisdiction_dept · 89 standard_change · 62 setting_version)."""
+"""법령·업무 기준 관리 DB 읽기·쓰기 (SQL v2.1: 87 jurisdiction · 88 jurisdiction_dept · 89 standard_change · 62 setting_version).
+
+수정안 목록(10/28): 62 '담당 부서 표' 제안 + 같은 담당 부서 표 줄에 걸린 89 규정 변경의 원문 앞부분.
+"""
 from __future__ import annotations
 
 from app.core import db
@@ -66,7 +69,21 @@ class StandardsRepository:
             con.commit()
         return True
 
+    def changes_for_jur(self, jur_id: str, limit: int = 3) -> list[dict]:
+        """담당 부서 표 한 줄(JUR-…)에 걸린 규정 변경 (89 related_jur는 'JUR-02,JUR-05' 꼴) — 수정안의 근거 원문 앞부분용"""
+        return db.read_only(
+            "SELECT standard_change_id, change_kind, doc_name, where_text, change_type, before_text, after_text, "
+            "effective_date, detected_at FROM standard_change WHERE FIND_IN_SET(%s, REPLACE(related_jur, ' ', '')) > 0 "
+            "ORDER BY detected_at DESC, standard_change_id DESC LIMIT %s", (jur_id, limit))
+
     # ── 62 수정안 제안 (승인은 I-07, 진규) ───────────
+    def list_drafts(self, limit: int) -> list[dict]:
+        """올린 담당 부서 표 수정안 (62 setting_kind = '담당 부서 표') — 최근 제안 순"""
+        return db.read_only(
+            "SELECT setting_version_id, version_label, content_ref, proposed_at, approval_status, approved_at, review_comment "
+            "FROM setting_version WHERE setting_kind = '담당 부서 표' ORDER BY proposed_at DESC, setting_version_id DESC "
+            "LIMIT %s", (limit,))
+
     def submit_proposal(self, label: str, content: str, proposed_by: int) -> int:
         with db.connect() as con:
             with con.cursor() as cur:

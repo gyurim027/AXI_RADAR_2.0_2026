@@ -8,10 +8,12 @@ GET  /api/ops/runs?days=30&status=실패    실행 기록 목록 (status: 성공
 GET  /api/ops/runs/{id}                   실행 한 건 + 단계 기록(logs)
 POST /api/ops/runs/{id}/rerun             실패한 실행을 처음부터 다시 (I-06, AD-07 1-2). 기능이 다시 실행 함수를 등록해야 함
                                           (app/core/rerun.py). 목록·한 건의 canRerun이 true인 것만 됨
-GET  /api/ops/notifications?unread=true   실패 알림 목록 (화면 목업 listAdminNotifications의 failure 줄 모양)
-POST /api/ops/notifications/{id}/read     알림 확인 (71 acknowledged_at·acknowledged_by)
+GET  /api/ops/notifications?unread=true   종 아이콘 알림 목록 (화면 목업 listAdminNotifications 모양)
+                                          kind: failure(실행 실패) · staleData(갱신 예정일 지남) · regulation(규정 개정) · approval(승인 결과)
+POST /api/ops/notifications/{id}/read     알림 확인 (71 acknowledged_at·acknowledged_by) — 네 종류 모두 같은 주소
 
-화면 목업의 데이터 갱신(staleData)·법령 개정(regulation)·승인(approval) 알림은 각 기능이 생기면 여기에 더한다.
+실패 말고 세 종류는 목록을 열 때 56·89·62를 보고 71에 만든다 (app/services/ops/alerts.py, 10/28).
+71에 알림 종류 칸(docs/ops/sql_71_alert_kind.sql)이 없는 DB에서는 실패 알림만 보인다.
 """
 from __future__ import annotations
 
@@ -100,6 +102,7 @@ def dashboard(days: int = Query(30, ge=1, le=366), _u: dict = Depends(operator),
     data = _safe(repo.data_freshness, None, notes, "자료 최신 여부: 56 갱신 칸·84 source_id를 읽지 못함 (SQL v2.3 전 DB)")
     checks = _safe(repo.checks_unreviewed, None, notes, "검사 오류: 92 data_issue를 읽지 못함 (SQL v2.3 전 DB)") or {}
     crit = _safe(repo.criteria_card, None, notes, "산정 기준: 62 setting_version을 읽지 못함")
+    _safe(repo.sync_alerts, None, notes, "알림: 71 알림 종류 칸이 없어 실패 알림만 셈 (docs/ops/sql_71_alert_kind.sql)")
     notes.append("회차 상태(산정 중·검토 중·확정)는 DB에 칸이 없어 비움 (D-10)")
     return {
         "run": ({"id": run["run_id"], "name": None, "status": None, "createdAt": _fmt(run.get("created_at")),
@@ -170,11 +173,16 @@ def rerun_run(run_id: int, user: dict = Depends(operator), repo: OpsRepository =
 @router.get("/notifications")
 def notifications(unread: bool = False, limit: int = Query(100, ge=1, le=500), _u: dict = Depends(operator),
                   repo: OpsRepository = Depends(get_repository)):
+    try:
+        repo.sync_alerts()                                # 갱신 예정일·규정 개정·승인 결과 알림 맞추기
+    except Exception:                                     # 알림 종류 칸 전 DB → 실패 알림만
+        pass
     rows = repo.list_alerts(unread, limit)
     return {"notifications": [
-        {"id": a["alert_delivery_id"], "kind": "failure", "run_id": a["job_run_id"],
+        {"id": a["alert_delivery_id"], "kind": a.get("alert_kind") or "failure", "run_id": a.get("job_run_id"),
+         "ref_table": a.get("ref_table"), "ref_id": a.get("ref_id"),
          "date": _fmt(a.get("sent_at"), with_time=False), "text": a.get("message"),
-         "read": a.get("acknowledged_at") is not None} for a in rows]}
+         "read": a.get("acknowledged_at") is not None, "status": a.get("delivery_status")} for a in rows]}
 
 
 @router.post("/notifications/{alert_id}/read")

@@ -10,7 +10,7 @@ from app.core import job_run
 from app.core.auth import make_token
 from app.core.job_run import JobFailed, JobSkipped, track
 from app.main import app
-from app.services.ops import repository as ops_repo
+from app.services.ops import alerts, repository as ops_repo
 
 
 class MemoryJobStore(job_run.JobStore):
@@ -107,6 +107,26 @@ class MemoryOpsRepo(ops_repo.OpsRepository):
 
     def criteria_card(self):
         return self.criteria
+
+    # 알림 원인 (56 갱신 예정일 지난 자료 · 89 확인 안 한 규정 변경 · 62 최근 승인·반려) — 시험마다 바꿈
+    sources = ([], [], [])
+
+    def alert_sources(self):
+        return self.sources
+
+    def save_alerts(self, want):
+        """71 INSERT IGNORE(UNIQUE 종류·표·번호) + 원인이 풀린 안 읽은 알림 '해결됨' 닫기를 메모리로"""
+        have = {(a.get("alert_kind"), a.get("ref_table"), a.get("ref_id")) for a in self.s.alerts}
+        for w in want:
+            if (w["kind"], w["ref_table"], w["ref_id"]) not in have:
+                self.s.alerts.append(dict(alert_delivery_id=len(self.s.alerts) + 1, job_run_id=None, alert_kind=w["kind"],
+                                          ref_table=w["ref_table"], ref_id=w["ref_id"], message=w["message"],
+                                          sent_at=datetime.now(), acknowledged_at=None, delivery_status="보냄", by=None))
+        for kind in alerts.CLOSE_WHEN_GONE:
+            active = {w["ref_id"] for w in want if w["kind"] == kind}
+            for a in self.s.alerts:
+                if a.get("alert_kind") == kind and a["acknowledged_at"] is None and a["ref_id"] not in active:
+                    a.update(acknowledged_at=datetime.now(), delivery_status="해결됨")
 
     def running_same(self, run):
         return any(r["status"] == "실행 중" and r["module"] == run.get("module") and r["job_name"] == run.get("job_name")
@@ -313,6 +333,36 @@ class OpsApiTests(unittest.TestCase):
         self.assertTrue(d["logs"][0].endswith("산정을 시작했습니다"))
         self.assertEqual(self.c.get("/api/ops/runs?status=이상함", headers=h).status_code, 400)
         self.assertEqual(self.c.get("/api/ops/runs/999", headers=h).status_code, 404)
+
+    def test_business_alerts(self):
+        """실패 말고 갱신 예정일·규정 개정·승인 결과 알림 (I-03, 10/28). 읽음은 71에 남고, 원인이 풀리면 '해결됨'으로 닫힘"""
+        h = _bearer("operator")
+        repo = ops_repo.get_repository()
+        repo.sources = ([{"source_id": "DAT-06", "dataset": "주정차 위반 단속 위치", "next_refresh_date": date(2026, 7, 1)}],
+                        [{"standard_change_id": 5, "doc_name": "도로교통법", "where_text": "제32조", "change_type": "바뀜"}],
+                        [{"setting_version_id": 9, "setting_kind": "담당 부서 표", "version_label": "x", "approval_status": "돌려보냄"}])
+        n = self.c.get("/api/ops/notifications", headers=h).json()["notifications"]
+        by = {x["kind"]: x for x in n}
+        self.assertEqual(sorted(by), ["approval", "failure", "regulation", "staleData"])
+        self.assertIn("갱신 예정일(2026.07.01)이 지났습니다", by["staleData"]["text"])
+        self.assertEqual((by["regulation"]["refTable"], by["regulation"]["refId"]), ("standard_change", "5"))
+        self.assertEqual(by["approval"]["text"], "담당 부서 표 수정안 제안이 반려되었습니다. 사유를 확인해 주세요.")
+        self.assertEqual(self.c.get("/api/ops/dashboard", headers=h).json()["alerts"]["unread"], 4)
+        self.assertEqual(self.c.post(f"/api/ops/notifications/{by['approval']['id']}/read", headers=h).status_code, 200)
+        again = self.c.get("/api/ops/notifications", headers=h).json()["notifications"]
+        self.assertEqual(len(again), 4)                                    # 다시 열어도 같은 알림이 또 생기지 않음
+        self.assertTrue({x["kind"]: x for x in again}["approval"]["read"])  # 읽음이 남아 있음
+        repo.sources = ([], [], repo.sources[2])                            # 자료를 다시 올림 · 규정 변경을 확인함
+        left = self.c.get("/api/ops/notifications?unread=true", headers=h).json()["notifications"]
+        self.assertEqual([x["kind"] for x in left], ["failure"])
+        closed = {x["kind"]: x for x in self.c.get("/api/ops/notifications", headers=h).json()["notifications"]}
+        self.assertEqual(closed["staleData"]["status"], "해결됨")
+
+    def test_alert_plan_text(self):
+        p = alerts.plan([], [], [{"setting_version_id": 3, "setting_kind": "가중치", "version_label": "v2",
+                                  "approval_status": "승인"}])
+        self.assertEqual(p[0]["message"], "가중치 v2 제안이 승인되었습니다. 다음 산정부터 사용할 수 있습니다.")
+        self.assertEqual((p[0]["kind"], p[0]["ref_table"], p[0]["ref_id"]), ("approval", "setting_version", "3"))
 
     def test_notifications_read(self):
         h = _bearer("operator")

@@ -38,3 +38,18 @@
 - 확인: v2.3 시험 DB에서 자료 3개에 주기를 넣고 1개만 VALIDATION_PASSED로 이었을 때 stale 2 · missing 2 · unscheduled 51
 
 표 하나를 못 읽어도(옛 SQL·빈 DB) 대시보드 전체는 뜨고, 그 칸만 null + notes에 이유.
+
+## 종 아이콘 알림 (I-03, AD-00 3-1) — 10/28
+`GET /api/ops/notifications?unread=true` · `POST /api/ops/notifications/{id}/read` (네 종류 모두 같은 주소)
+
+| kind | 언제 생기나 | 원인 표 | 언제 닫히나 |
+|---|---|---|---|
+| failure | 실행이 실패할 때 (job_run) | 85 | 운영자가 확인 |
+| staleData | 주기가 정해진 자료의 다음 갱신 예정일이 오늘보다 앞 | 56 | 확인 · 또는 새 자료를 올려 예정일이 바뀌면 '해결됨' |
+| regulation | 운영자가 아직 확인하지 않은 규정 변경 | 89 | 확인 · 또는 '규정 변경' 화면에서 확인하면 '해결됨' |
+| approval | 최근 30일에 승인·반려된 제안 (문구는 '반려') | 62 | 확인 |
+
+- 실패 말고 세 종류는 목록(또는 대시보드)을 열 때 원인 표를 보고 71 `alert_delivery`에 한 번만 남긴다 (`alert_kind`·`ref_table`·`ref_id`, UNIQUE). 읽음은 71 `acknowledged_at`.
+- 응답 한 줄: `id` · `kind` · `runId`(실패) · `refTable`·`refId`(나머지) · `date` · `text` · `read` · `status`(보냄 · 확인함 · 해결됨)
+- 필요한 SQL: `docs/ops/sql_71_alert_kind.sql` (다음 통합 SQL v2.4에 넣음). 이 SQL 전 DB에서는 실패 알림만 보이고 대시보드 notes에 이유가 남는다.
+

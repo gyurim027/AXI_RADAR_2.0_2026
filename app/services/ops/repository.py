@@ -1,6 +1,7 @@
-"""운영 화면이 읽는 값 (I-05·I-06·I-03). 읽기만 하고, 알림 확인만 71에 쓴다.
+"""운영 화면이 읽는 값 (I-05·I-06·I-03). 읽기만 하고, 알림만 71에 쓴다 (업무 알림 만들기 · 확인).
 
 읽는 표: 85 job_run · 86 job_run_log · 71 alert_delivery · 84 data_upload · 70 access_audit (SQL v2.1)
+알림(I-03): 71에 실패 말고 갱신 예정일·규정 개정·승인 결과 알림도 남긴다 (56·89·62를 보고 만듦, 10/28 SQL docs/ops/sql_71_alert_kind.sql)
 대시보드(I-05, AD-01)에 더 읽는 표: 77 priority_run(최근 회차) · 62 setting_version(승인 현황) · 89 standard_change(규정 변경) (SQL v2.2)
                                 · 56 source_list 갱신 주기·예정일 + 84 data_upload 확보 이력(자료 최신 여부) (SQL v2.3)
                                 · 92 data_issue 미확인 검사 오류 · 62 산정 기준 카드 (SQL v2.3, 기능정의서 v0.5.4 AD-01 1-1·6-1)
@@ -8,6 +9,7 @@
 from __future__ import annotations
 
 from app.core import db
+from app.services.ops import alerts
 
 
 class OpsRepository:
@@ -56,25 +58,41 @@ class OpsRepository:
             (run.get("module"), run.get("job_name"), run.get("ref_table"), run.get("ref_id")))
         return bool(rows)
 
+    # ---------- 알림 (I-03, AD-00 종 아이콘) — 71 alert_delivery ----------
+    # 실패 알림(job_run_id)과 업무 알림(alert_kind: staleData · regulation · approval, 10/28 SQL docs/ops/sql_71_alert_kind.sql).
+    # 알림 종류 칸이 아직 없는 DB에서는 실패 알림만 읽는다 (옛 SQL로 다시 읽음).
+    ALERT_COLS = "alert_delivery_id, job_run_id, alert_kind, ref_table, ref_id, message, sent_at, acknowledged_at, delivery_status"
+    ALERT_WHERE = "(job_run_id IS NOT NULL OR alert_kind IS NOT NULL)"
+    OLD_COLS = "alert_delivery_id, job_run_id, message, sent_at, acknowledged_at, delivery_status"
+    APPROVAL_DAYS = 30                                    # 승인 결과는 최근 30일 것만 알림으로 만든다
+
     def list_alerts(self, unread_only: bool, limit: int) -> list[dict]:
-        sql = ("SELECT alert_delivery_id, job_run_id, message, sent_at, acknowledged_at, delivery_status "
-               "FROM alert_delivery WHERE job_run_id IS NOT NULL")
-        if unread_only:
-            sql += " AND acknowledged_at IS NULL"
-        sql += " ORDER BY sent_at DESC, alert_delivery_id DESC LIMIT %s"
-        return db.read_only(sql, (limit,))
+        unread = " AND acknowledged_at IS NULL" if unread_only else ""
+        order = " ORDER BY sent_at DESC, alert_delivery_id DESC LIMIT %s"
+        try:
+            return db.read_only(f"SELECT {self.ALERT_COLS} FROM alert_delivery WHERE {self.ALERT_WHERE}" + unread + order,
+                                (limit,))
+        except Exception:                                 # 알림 종류 칸 전 DB
+            return db.read_only(f"SELECT {self.OLD_COLS} FROM alert_delivery WHERE job_run_id IS NOT NULL" + unread + order,
+                                (limit,))
 
     def unread_alerts(self) -> int:
-        rows = db.read_only("SELECT COUNT(*) AS n FROM alert_delivery WHERE job_run_id IS NOT NULL "
-                            "AND acknowledged_at IS NULL")
+        try:
+            rows = db.read_only(f"SELECT COUNT(*) AS n FROM alert_delivery WHERE {self.ALERT_WHERE} AND acknowledged_at IS NULL")
+        except Exception:
+            rows = db.read_only("SELECT COUNT(*) AS n FROM alert_delivery WHERE job_run_id IS NOT NULL "
+                                "AND acknowledged_at IS NULL")
         return int(rows[0]["n"]) if rows else 0
 
     def acknowledge(self, alert_id: int, user_id: int) -> bool:
         """처음 확인한 사람·시각만 남긴다. 이미 확인한 알림은 바꾸지 않는다."""
         with db.connect() as con:
             with con.cursor() as cur:
-                cur.execute("SELECT 1 FROM alert_delivery WHERE alert_delivery_id = %s AND job_run_id IS NOT NULL",
-                            (alert_id,))
+                try:
+                    cur.execute(f"SELECT 1 FROM alert_delivery WHERE alert_delivery_id = %s AND {self.ALERT_WHERE}", (alert_id,))
+                except Exception:
+                    cur.execute("SELECT 1 FROM alert_delivery WHERE alert_delivery_id = %s AND job_run_id IS NOT NULL",
+                                (alert_id,))
                 if not cur.fetchone():
                     return False
                 cur.execute("UPDATE alert_delivery SET acknowledged_at = NOW(), acknowledged_by = %s, "
@@ -82,6 +100,40 @@ class OpsRepository:
                             (user_id, alert_id))
             con.commit()
         return True
+
+    def alert_sources(self) -> tuple[list[dict], list[dict], list[dict]]:
+        """알림 원인: 56 갱신 예정일 지난 자료 · 89 확인 안 한 규정 변경 · 62 최근 승인·반려"""
+        c = ", ".join(["%s"] * len(self.CYCLES))
+        stale = db.read_only(f"SELECT source_id, dataset, next_refresh_date FROM source_list "
+                             f"WHERE refresh_cycle IN ({c}) AND next_refresh_date < CURDATE()", self.CYCLES)
+        changes = db.read_only("SELECT standard_change_id, doc_name, where_text, change_type FROM standard_change "
+                               "WHERE seen_at IS NULL")
+        decided = db.read_only("SELECT setting_version_id, setting_kind, version_label, approval_status FROM setting_version "
+                               "WHERE approval_status IN ('승인', '돌려보냄') AND approved_at >= NOW() - INTERVAL %s DAY",
+                               (self.APPROVAL_DAYS,))
+        return stale, changes, decided
+
+    def save_alerts(self, want: list[dict]) -> None:
+        """없는 알림만 새로 남기고(INSERT IGNORE + UNIQUE), 원인이 풀린 안 읽은 알림은 '해결됨'으로 닫는다."""
+        with db.connect() as con:
+            with con.cursor() as cur:
+                for a in want:
+                    cur.execute("INSERT IGNORE INTO alert_delivery (alert_kind, ref_table, ref_id, channel, recipient_ref, "
+                                "sent_at, delivery_status, message) VALUES (%s, %s, %s, '화면', 'RADAR 운영자', NOW(), '보냄', %s)",
+                                (a["kind"], a["ref_table"], a["ref_id"], a["message"]))
+                for kind in alerts.CLOSE_WHEN_GONE:
+                    active = [a["ref_id"] for a in want if a["kind"] == kind]
+                    sql = ("UPDATE alert_delivery SET acknowledged_at = NOW(), delivery_status = '해결됨' "
+                           "WHERE alert_kind = %s AND acknowledged_at IS NULL")
+                    if active:
+                        sql += " AND ref_id NOT IN (" + ", ".join(["%s"] * len(active)) + ")"
+                    cur.execute(sql, (kind, *active))
+            con.commit()
+
+    def sync_alerts(self) -> None:
+        """종 아이콘을 열 때마다 원인 표를 보고 알림을 맞춘다 (I-03). 알림 종류 칸 전 DB면 오류 → 부르는 쪽이 건너뜀."""
+        stale, changes, decided = self.alert_sources()
+        self.save_alerts(alerts.plan(stale, changes, decided))
 
     def upload_summary(self, days: int) -> dict:
         rows = db.read_only("SELECT COUNT(*) AS n, MAX(uploaded_at) AS last_at FROM data_upload "
