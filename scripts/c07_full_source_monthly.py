@@ -12,7 +12,21 @@ def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--out', default='out/c07_full_source')
     parser.add_argument('--through', help='YYYY-MM-DD; default latest actual 79 received_date')
+    parser.add_argument('--verified-cache', action='store_true',
+                        help='Use verified, read-only C-07 aggregate preview cache')
     opts=parser.parse_args()
+    if opts.verified_cache:
+        if opts.out != 'out/c07_full_source':
+            parser.error('--out cannot be combined with --verified-cache')
+        if opts.through not in (None, '2026-09-30'):
+            parser.error('--verified-cache currently supports only through=2026-09-30')
+        import subprocess
+        import sys
+        subprocess.run(
+            [sys.executable, '-m', 'scripts.c07_verified_cached_preview'],
+            check=True
+        )
+        return
     # No assumption about an unimplemented C-08 SQL table: source-only data here.
     gids=[r['ID_gid'] for r in read_only('SELECT ID_gid FROM grid_feature ORDER BY ID_gid')]
     rows=read_only('SELECT complaint_id,gid,coord_accuracy,relevance,received_date,source_type,ped_type,report_type_raw '
