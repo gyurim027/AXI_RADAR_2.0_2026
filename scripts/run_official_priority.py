@@ -10,6 +10,7 @@ import json
 from pathlib import Path
 
 from app.core import db
+from app.core.job_run import track
 from app.services.scoring.operational_scoring import run_from_live_rows
 
 
@@ -47,10 +48,24 @@ def main():
         p.error(f'INCOMPLETE_HUMAN_REVIEW_POPULATION: exported={in_scope} source={expected}')
     # Source of truth: live existing 05 grid rows. Never read the isolated experiment SQLite.
     grids=db.read_only('SELECT * FROM grid_feature')
-    result=run_from_live_rows(setting_version_id=a.setting_id,evidence_dir=a.policy_dir,
-        build_id=a.build_id,start=a.start,end=a.end,grid_rows=grids,reviewed_rows=rows,
-        authorized_by=a.authorized_by,approval_reference=a.approval_reference,
-        explicit_db_write_approval=True)
+    with track("\uC0B0\uC815", f"RADAR official priority scoring ({a.start}~{a.end})",
+               module="ENGINE", triggered_by=None) as job:
+        if job.run_id is None:
+            raise RuntimeError("OFFICIAL_JOB_RECORD_UNAVAILABLE")
+
+        result=run_from_live_rows(setting_version_id=a.setting_id,evidence_dir=a.policy_dir,
+            build_id=a.build_id,start=a.start,end=a.end,grid_rows=grids,reviewed_rows=rows,
+            authorized_by=a.authorized_by,approval_reference=a.approval_reference,
+            explicit_db_write_approval=True)
+
+        if (not isinstance(result, dict)
+                or result.get("status") != "WRITTEN"
+                or result.get("run_id") is None):
+            raise RuntimeError("OFFICIAL_WRITE_RESULT_INVALID")
+
+        job.ref("priority_run", result["run_id"])
+        job.rows(result["candidate_count"])
+
     print(json.dumps(result,ensure_ascii=False,sort_keys=True,default=str))
 
 if __name__=='__main__':main()
