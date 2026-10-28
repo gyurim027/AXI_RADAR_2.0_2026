@@ -7,6 +7,8 @@
 - status ok: DB 79의 27 masked_summary, 31 relevance, 32 ped_type, 33 class_confidence, 34 class_reason에 쓴다
   class_method(관련 여부를 정한 방법: 규칙 / AI)는 79에 class_method 칸이 생기면 쓴다
 - status mask_failed: 가림 검사를 통과하지 못함. class_reason만 '가림 실패', 나머지(class_method 포함)는 None (분류로 보내지 않음, C-03)
+  만든 요약도 마지막에 한 번 더 검사한다. 개인정보 꼴이 남으면 규칙으로 다시 가리고, 그래도 남으면 mask_failed다
+  (안전신문고 규칙 요약은 모델 요약 검사를 거치지 않아 생긴 빈틈, 2026-10-28)
 - status error: 모델 호출 실패 등. 적재는 이 민원의 AI-01 칸을 비워 두고 나중에 다시 돌린다
 - ped_type(유형): 보행안전 관련 민원에만 9개 중 하나(ISS-016, ptype). 신고 분류가 주정차면 규칙, 그 밖은 모델. 정하지 못하면 None
 - 원문(title·body)은 이 함수 안에서만 쓰고 결과·로그에 남기지 않는다 (ISS-032). 28 raw_pii_patterns는 적재 3단계가 채운다
@@ -15,6 +17,7 @@
 """
 from __future__ import annotations
 
+import collections
 import re
 from dataclasses import dataclass, replace
 
@@ -78,6 +81,14 @@ def decide(masked_text: str, report_type_raw: str | None = None, request_id: str
     return (summary, *decided) if decided else (summary, None, None, None, None)
 
 
+def _guard_summary(summary: str | None) -> tuple[str | None, bool]:
+    """요약에 개인정보 꼴이 남았는지 마지막으로 본다. 남으면 규칙으로 다시 가린다. (요약, 통과 여부)"""
+    if not summary or not masking.left_kinds(summary):
+        return summary, True
+    again = masking.rule_mask(summary, collections.Counter())
+    return (again, True) if not masking.left_kinds(again) else (None, False)
+
+
 def refine_one(item: ComplaintInput, ner=None, request_id: str | None = None,
                drop: frozenset = frozenset(), seen: dict | None = None) -> Ai01Result:
     """seen: 한 묶음 안에서 같은 가린 글의 결과 (같은 글이면 모델을 다시 부르지 않고 복사한다)."""
@@ -88,6 +99,9 @@ def refine_one(item: ComplaintInput, ner=None, request_id: str | None = None,
     if seen is not None and key in seen:
         return replace(seen[key], complaint_id=item.complaint_id)
     summary, relevance, conf, reason, method = decide(m.text, item.report_type_raw, request_id)
+    summary, safe = _guard_summary(summary)
+    if not safe:
+        return Ai01Result(item.complaint_id, "mask_failed", class_reason=MASK_FAILED_REASON, model=_model_tag())
     if not summary or relevance is None:
         return Ai01Result(item.complaint_id, "error", masked_summary=summary, model=_model_tag())
     ped = ptype.decide_type(summary, item.report_type_raw, request_id) if relevance == cls.RELATED else None
