@@ -85,5 +85,19 @@ def list_data_issues(
         "items": rows,
         "source": "data_issue",
         "db_written": False,
+        "duplicate_role_source": (
+            "local_snapshot"
+            if any(
+                row.get("duplicate_role_status") == "verified"
+                for row in rows
+            )
+            else "unavailable"
+            if any(
+                row.get("check_fn") == "A-05"
+                and row.get("error_code") == "A05_DUPLICATE_ROW"
+                for row in rows
+            )
+            else "not_applicable"
+        ),
     }
 
