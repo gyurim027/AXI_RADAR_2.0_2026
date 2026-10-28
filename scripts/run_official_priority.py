@@ -1,0 +1,56 @@
+"""RADAR official existing-schema 62 -> C-07 -> score -> 77/78 entrypoint.
+
+Run from repo root with explicit approved classification export. Never infers
+human confirmation from AI-01 type candidate or C-08 preview-only records.
+"""
+from __future__ import annotations
+import argparse
+from datetime import date
+import json
+from pathlib import Path
+
+from app.core import db
+from app.services.scoring.operational_scoring import run_from_live_rows
+
+
+def main():
+    p=argparse.ArgumentParser()
+    p.add_argument('--setting-id',type=int,required=True)
+    p.add_argument('--policy-dir',required=True)
+    p.add_argument('--reviewed-json',required=True,help='Actual confirmed C-08 export: list[dict], no sampled/test-only rows')
+    p.add_argument('--start',type=date.fromisoformat,required=True)
+    p.add_argument('--end',type=date.fromisoformat,required=True)
+    p.add_argument('--build-id',required=True,help='Verified 05 build snapshot identity <=30 chars')
+    p.add_argument('--authorized-by',required=True)
+    p.add_argument('--approval-reference',required=True)
+    p.add_argument('--commit-official',action='store_true',help='Write existing 77/78 (explicit operator action)')
+    a=p.parse_args()
+    if not a.commit_official:
+        p.error('--commit-official is required to write; this command does not have a preview mode')
+    if len(a.build_id)>30:
+        p.error('build-id must fit priority_run.build_id VARCHAR(30)')
+    path=Path(a.reviewed_json)
+    if not path.is_file():p.error('Confirmed classification JSON not found: '+str(path))
+    rows=json.loads(path.read_text(encoding='utf-8-sig'))
+    if not isinstance(rows,list) or not rows:
+        p.error('Confirmed classification export must be a nonempty array')
+    if any(r.get('scope') in ('TEST_ONLY_NOT_OFFICIAL','TYPE_ONLY_LOCAL_UNAUTHENTICATED') for r in rows):
+        p.error('Test/pre-review data cannot be used as official input')
+    # The full applicable complaint population must be accounted for. A one-row
+    # review export cannot silently stand for 281k source records.
+    population = db.read_only(
+        'SELECT COUNT(*) AS n FROM src_complaint WHERE received_date BETWEEN %s AND %s',
+        (a.start, a.end))
+    expected = int(population[0]['n'])
+    in_scope = sum(1 for r in rows if a.start <= date.fromisoformat(str(r['received_date'])[:10]) <= a.end)
+    if in_scope != expected:
+        p.error(f'INCOMPLETE_HUMAN_REVIEW_POPULATION: exported={in_scope} source={expected}')
+    # Source of truth: live existing 05 grid rows. Never read the isolated experiment SQLite.
+    grids=db.read_only('SELECT * FROM grid_feature')
+    result=run_from_live_rows(setting_version_id=a.setting_id,evidence_dir=a.policy_dir,
+        build_id=a.build_id,start=a.start,end=a.end,grid_rows=grids,reviewed_rows=rows,
+        authorized_by=a.authorized_by,approval_reference=a.approval_reference,
+        explicit_db_write_approval=True)
+    print(json.dumps(result,ensure_ascii=False,sort_keys=True,default=str))
+
+if __name__=='__main__':main()
