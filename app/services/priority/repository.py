@@ -47,7 +47,7 @@ class PriorityRepository:
         base = ("FROM priority_candidate c LEFT JOIN grid_feature f ON f.ID_gid = c.gid WHERE " + " AND ".join(where))
         total = db.read_only("SELECT COUNT(*) AS n " + base, args)
         rows = db.read_only(
-            "SELECT " + ", ".join("c." + k for k in CANDIDATE_COLS) + f", {_GU} AS gu " + base +
+            "SELECT " + ", ".join("c." + k for k in CANDIDATE_COLS) + f", {_GU} AS gu, f.`ID_중심위도` AS center_lat, f.`ID_중심경도` AS center_lon " + base +
             " ORDER BY c.rank_no IS NULL, c.rank_no, c.gid LIMIT %s OFFSET %s", [*args, limit, offset])
         return rows, int(total[0]["n"]) if total else 0
 
@@ -59,6 +59,8 @@ class PriorityRepository:
         if not rows:
             return None
         cand = rows[0]
+        from app.services.priority.details import read_evidence
+        cand["details"] = read_evidence(db.read_only, run_id, gid)
         cand["actions"] = db.read_only(
             "SELECT " + ", ".join(ACTION_COLS) + " FROM priority_candidate_action "
             "WHERE run_id = %s AND gid = %s ORDER BY item_id", (run_id, gid))

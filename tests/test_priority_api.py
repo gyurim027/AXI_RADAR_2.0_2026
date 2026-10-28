@@ -81,6 +81,32 @@ class PriorityApiTests(unittest.TestCase):
                                                "unevaluatedReasons": None, "confidenceGrade": None,
                                                "scoreExcludingAccidents": None})
 
+    def test_lineage_denied_for_district_before_db_access(self):
+        from unittest.mock import patch
+        with patch("app.services.priority.lineage.read_run_lineage") as reader:
+            response = self.c.get(
+                "/api/priority/runs/1/lineage",
+                headers=_h("district", "???")
+            )
+            self.assertEqual(response.status_code, 403)
+            reader.assert_not_called()
+
+    def test_lineage_city_read_only_result(self):
+        from unittest.mock import patch
+        result = {"run_id": 1, "end_to_end_verified": False,
+                  "evidence_status": "INDIRECT_LOOKUP_ONLY", "db_writes": 0}
+        with patch(
+            "app.services.priority.lineage.read_run_lineage",
+            return_value=result
+        ) as reader:
+            response = self.c.get(
+                "/api/priority/runs/1/lineage",
+                headers=_h("city")
+            )
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.json()["endToEndVerified"], False)
+            reader.assert_called_once_with(1)
+
     def test_district_sees_own_gu_only(self):
         j = self.c.get("/api/priority/runs/1/candidates", headers=_h("district", "수정구")).json()
         self.assertEqual([c["gid"] for c in j["candidates"]], ["다사01"])
