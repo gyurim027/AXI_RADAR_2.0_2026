@@ -23,7 +23,8 @@ export const DASH = {
     checks: '검사 결과 보러 가기',
   },
   checksTitle: '자료 검사', // 제안 문구: 정의서 AD-01에 이 카드 이름이 없다
-  criteriaLine: (approved, pending) => `지금 쓰는 버전 ${approved || '-'}${pending ? ` · 승인 대기 ${pending}` : ''}`,
+  criteriaCurrent: '현재 버전',
+  criteriaPending: '승인 대기',
   runsEmpty: '아직 실행한 기록이 없습니다. 회차 목록에서 산정을 시작해 주세요.', // E-4
   failed: '대시보드를 불러오지 못했습니다.',
 };

@@ -142,7 +142,18 @@ function Body({ data }) {
       more={DASH.more.criteria}
     >
       <div className={styles.metrics}>
-        <span>{DASH.criteriaLine(c?.approved, c?.pending)}</span>
+        <div className={styles.versions}>
+          <p className={styles.version}>
+            <span>{DASH.criteriaCurrent}</span>
+            <span className={styles.versionName} title={c?.approved || undefined}>{c?.approved || '-'}</span>
+          </p>
+          {c?.pending ? (
+            <p className={styles.version}>
+              <span>{DASH.criteriaPending}</span>
+              <span className={styles.versionName} title={c.pending}>{c.pending}</span>
+            </p>
+          ) : null}
+        </div>
       </div>
     </StatCard>
   );

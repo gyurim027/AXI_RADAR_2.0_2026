@@ -89,3 +89,26 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* 산정 기준 카드: 버전 이름이 길어도 한 줄로 줄이고(말줄임), 전체 이름은 마우스를 올리면 보인다 */
+.versions {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+}
+.version {
+  display: flex;
+  gap: var(--space-8);
+  min-width: 0;
+  margin: 0;
+}
+.version > span:first-child {
+  flex: none;
+  color: var(--semantic-color-text-muted, inherit);
+}
+.versionName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
