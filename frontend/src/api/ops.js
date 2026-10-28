@@ -12,6 +12,12 @@ const dotDate = (iso) => (iso ? String(iso).slice(0, 10).replaceAll('-', '.') : 
 const dotDateTime = (iso) => (iso ? `${dotDate(iso)} ${String(iso).slice(11, 16)}`.trim() : null);
 
 /** 서버가 모르는 칸은 null로 온다. 화면이 '-'로 보이게 그대로 두고, 없는 묶음만 빈 값으로 채운다. */
+/** 승인 시각이 가장 늦은 것, 같으면 설정 번호가 큰 것 (서버 대시보드 `criteria_card`와 같은 정렬). 시각이 없는 줄은 뒤로 간다. */
+export function latestApproved(versions) {
+  const at = (x) => String(x.approvedAt ?? '');
+  return [...versions].sort((a, b) => (at(a) === at(b) ? b.settingVersionId - a.settingVersionId : at(a) < at(b) ? 1 : -1))[0] ?? null;
+}
+
 /** approvedLabel: 지금 쓰는 버전(시 도로과가 승인한 가장 최근 버전)의 이름. 대시보드 응답은 버전 하나만 줘서 getDashboard가 설정 목록에서 찾아 넘긴다. */
 export function adaptDashboard(d, approvedLabel = null) {
   return {
@@ -77,10 +83,13 @@ export function createOpsApi(request) {
       let approved = null;
       if (c && !c.pending) approved = c.label ?? String(c.id);
       else if (c) {
-        // 승인 대기 버전이 있으면 대시보드가 그것만 준다. 지금 쓰는 버전은 설정 목록에서 가장 최근 '승인'을 찾는다.
+        // 승인 대기 버전이 있으면 대시보드가 그것만 준다. 지금 쓰는 버전은 설정 목록에서 찾는다.
+        // 같은 종류(가중치·기준값·우선 확인 조건)끼리만 비교하고, 서버 대시보드처럼 승인 시각이 가장 늦은 것을 고른다.
         try {
-          const v = await request(`/api/settings/versions?${new URLSearchParams({ status: '승인', limit: '1' })}`);
-          const top = v.versions?.[0];
+          const q = new URLSearchParams({ status: '승인', limit: '500' });
+          if (c.kind) q.set('kind', c.kind);
+          const v = await request(`/api/settings/versions?${q}`);
+          const top = latestApproved(v.versions || []);
           approved = top ? top.versionLabel ?? String(top.settingVersionId) : null;
         } catch {
           approved = null; // 목록을 못 받아도 대시보드는 뜨고 이 칸만 '-'
