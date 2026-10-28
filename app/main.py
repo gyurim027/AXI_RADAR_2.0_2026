@@ -27,6 +27,7 @@ ROUTER_MODULES = [
     ("APPROVALS", "app.api.approvals_api"),    # /api/approvals I-07 (진규)
     ("SETTINGS", "app.api.settings_api"),      # /api/settings/versions I-02 조회 (진규)
     ("STANDARDS", "app.api.standards_api"),   # /api/standards  법령·업무 기준: A-11·A-12·F-05 (은경)
+    ("DATA-ISSUES", "app.api.data_issues_api"),
     ("AI-07", "app.api.ai07_explain_api"),    # /api/ai07  근거 설명문 (진이)
     ("AI-10", "app.api.ai10_review_api"),     # /api/ai10  조치 제안 검토 (대환)
     ("C-09", "app.api.c09_upload_api"),       # /api/c09   민원 파일 등록 (규림, W07-01)
