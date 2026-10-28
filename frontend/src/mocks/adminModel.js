@@ -150,7 +150,7 @@ export function versionList() {
     if (reqId) {
       const decided = s.proposals[reqId];
       if (decided) {
-        status = decided.result === '승인' ? '승인됨' : '돌려받음';
+        status = decided.result === '승인' ? '승인됨' : '반려';
         returnedReason = decided.result === '반려' ? decided.reason : null;
       } else if (req || v.version === 'v1.3') {
         status = '승인 대기';
@@ -201,7 +201,7 @@ export function deptDrafts() {
   return DEPT_DRAFTS.filter((d) => {
     const req = a.requests.filter((r) => r.kind === 'dept' && r.draftId === d.id).slice(-1)[0];
     if (!req) return true;
-    return s.proposals[req.id]?.result === '반려'; // 돌려받으면 다시 보인다
+    return s.proposals[req.id]?.result === '반려'; // 반려되면 다시 보인다
   });
 }
 export function regulations() {
@@ -233,7 +233,7 @@ export function approvalRows() {
       proposer: p.proposerLabel || OPERATOR_LABEL,
       at: p.at || '2026-11-03',
       approver: decided ? decided.by || '박사례 (성남시 도로과 도로관리팀)' : '-',
-      result: decided ? (decided.result === '승인' ? '승인' : '돌려받음') : '승인 대기',
+      result: decided ? (decided.result === '승인' ? '승인' : '반려') : '승인 대기',
       reason: decided?.reason || '-',
       decidedAt: decided?.at || null,
       ref: p.ref,

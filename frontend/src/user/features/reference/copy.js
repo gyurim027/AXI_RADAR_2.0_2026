@@ -10,14 +10,14 @@ export const APPROVAL = {
   compareTitle: (kind, version) => (kind === '산정 기준' ? `산정 기준 ${version} 변경 제안` : `${kind} 수정 제안`),
   changeRow: (field, from, to, type) => (type === 'weight' ? `${field} 분야 반영 비율 ${from} → ${to}` : `${field} ${from} → ${to}`),
   impact: (top, changed) => `상위 ${top}곳 중 ${changed}곳이 바뀝니다.`,
-  reject: '돌려보내기',
+  reject: '반려하기',
   approve: '승인하기',
   approveLabel: (kind, version) => (kind === '산정 기준' ? `산정 기준 ${version} 제안 승인하기` : `${kind} 수정 제안 승인하기`),
-  rejectReasonLabel: '돌려보내는 사유',
+  rejectReasonLabel: '반려 사유',
   reasonTooLong: '검토 의견은 255자까지 적을 수 있습니다. 내용을 줄여 주세요.', // ERR-22
-  rejectReasonError: '돌려보내는 사유를 적어 주세요. RADAR 운영팀이 사유를 보고 다시 고칩니다.',
-  rejectSend: '돌려보내기', // 흐름 U-66의 선 이름 (K-19)
-  closeLabel: '돌려보내는 사유 입력 닫기', // 명세에 없는 닫기 버튼 (확인 필요)
+  rejectReasonError: '반려 사유를 적어 주세요. RADAR 운영팀이 사유를 보고 다시 고칩니다.',
+  rejectSend: '반려하기', // 흐름 U-66의 선 이름 (K-19)
+  closeLabel: '반려 사유 입력 닫기', // 명세에 없는 닫기 버튼 (확인 필요)
 };
 
 export const DATA = {

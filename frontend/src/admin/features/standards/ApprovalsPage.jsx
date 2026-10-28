@@ -11,7 +11,7 @@ import Toolbar from '../../components/Toolbar.jsx';
 import { APPROVALS } from './copy.js';
 import styles from './Standards.module.css';
 
-const RESULT_TONE = { '승인 대기': 'info', 승인: 'success', 돌려받음: 'danger' };
+const RESULT_TONE = { '승인 대기': 'info', 승인: 'success', 반려: 'danger' };
 
 /** 이력 줄에서 가는 곳: 산정 기준은 그 버전의 상세(AD-10), 담당 부서 표는 AD-11 */
 function target(r) {
@@ -100,7 +100,7 @@ export default function ApprovalsPage() {
                   render: (r) => (
                     <span>
                       {r.reason}
-                      {r.result === '돌려받음' ? (
+                      {r.result === '반려' ? (
                         <>
                           {' '}
                           <Link to={target(r)} className={styles.back} style={{ marginBottom: 0 }}>

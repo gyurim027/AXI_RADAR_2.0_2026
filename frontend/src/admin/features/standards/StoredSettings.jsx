@@ -24,7 +24,7 @@ export function StoredSettingsList(){
   const approved=useAsync(()=>listStoredSettings({status:'승인',limit:500}),[]);
   const currentIds=new Set(['가중치','기준값','우선 확인 조건'].map(k=>latestApproved((approved.data?.versions||[]).filter(v=>v.settingKind===k))?.settingVersionId).filter(id=>id!==undefined));
   return <div>
-    <PageHeader title="산정 기준" subtitle="저장된 설정과 제안·승인·반려 기록을 조회합니다. 승인 상태는 실제 계산에 사용됐다는 뜻이 아닙니다."/>
+    <PageHeader title="산정 기준" subtitle="저장된 설정과 제안·승인·반려 기록을 조회합니다."/>
     <Toolbar actions={<Button onClick={state.reload}>새로고침</Button>}>
       <SelectInput label="설정 종류" value={kind} onChange={v=>{setKind(v);setOffset(0);}} options={[{value:'',label:'전체'},'가중치','기준값','우선 확인 조건']}/>
       <SelectInput label="처리 상태" value={status} onChange={v=>{setStatus(v);setOffset(0);}} options={[{value:'',label:'전체'},'제안','승인',{value:'돌려보냄',label:'반려'}]}/>

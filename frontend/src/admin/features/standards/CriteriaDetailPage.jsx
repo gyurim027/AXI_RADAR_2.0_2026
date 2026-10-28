@@ -198,7 +198,7 @@ function Detail({ data, reload }) {
       </Link>
       <PageHeader title={DETAIL.title(meta.version)} subtitle={DETAIL.subtitle} meta={<Badge tone={VERSION_TONE[meta.status]}>{meta.status}</Badge>} />
       <p className={styles.meta}>{DETAIL.run(meta.run)}</p>
-      {meta.status === '돌려받음' && meta.returnedReason ? (
+      {meta.status === '반려' && meta.returnedReason ? (
         <div style={{ marginTop: 16 }}>
           <Banner tone="warning">{DETAIL.returned(meta.returnedReason)}</Banner>
         </div>

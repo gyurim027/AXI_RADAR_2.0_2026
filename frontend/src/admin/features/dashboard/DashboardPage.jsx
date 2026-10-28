@@ -116,7 +116,7 @@ function Body({ data }) {
         <span aria-hidden="true">·</span>
         <Metric before="승인 " value={data.approvals?.approved} after="" to="/admin/standards/approvals?result=승인" />
         <span aria-hidden="true">·</span>
-        <Metric before="돌려받음 " value={data.approvals?.returned} after="" to="/admin/standards/approvals?result=돌려받음" />
+        <Metric before="반려 " value={data.approvals?.returned} after="" to="/admin/standards/approvals?result=반려" />
       </div>
     </StatCard>
   );

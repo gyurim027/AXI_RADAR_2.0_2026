@@ -142,7 +142,7 @@ export function listAdminNotifications() {
         id: `ap-${r.id}`,
         kind: 'approval',
         date: (r.decidedAt || r.at).slice(0, 10).replaceAll('-', '.'),
-        text: r.result === '승인' ? `${name} 제안이 승인되었습니다. 다음 산정부터 사용할 수 있습니다.` : `${name} 제안이 돌려보내졌습니다. 사유를 확인해 주세요.`,
+        text: r.result === '승인' ? `${name} 제안이 승인되었습니다. 다음 산정부터 사용할 수 있습니다.` : `${name} 제안이 반려되었습니다. 사유를 확인해 주세요.`,
       });
     });
   return rows
@@ -240,7 +240,7 @@ export function getDashboard({ runId }) {
     approvals: {
       pending: approvals.filter((r) => r.result === '승인 대기').length,
       approved: approvals.filter((r) => r.result === '승인').length,
-      returned: approvals.filter((r) => r.result === '돌려받음').length,
+      returned: approvals.filter((r) => r.result === '반려').length,
     },
     regulations: regulations().filter((r) => !r.seen && !r.pending).length,
     // 지금 쓰는 버전은 시 도로과가 승인한 가장 최근 버전이다 (AD-01 6-1)
@@ -625,7 +625,7 @@ export function getVersion({ version }) {
   const cur = versionValues(version);
   const prev = meta.base ? versionValues(meta.base) : cur;
   return {
-    meta: { ...meta, editable: meta.status === '작성 중' || meta.status === '돌려받음' },
+    meta: { ...meta, editable: meta.status === '작성 중' || meta.status === '반려' },
     indicators: INDICATORS.map((i) => ({ id: i.id, field: i.field, name: i.name, source: INDICATOR_SOURCE[i.field] || '-', valueState: INDICATOR_STATE[i.id] || '값 있음', current: cur.weights[i.id], previous: prev.weights[i.id] })),
     thresholds: THRESHOLDS.map((t) => ({ id: t.id, name: t.name, unit: t.unit, current: cur.thresholds[t.id], previous: prev.thresholds[t.id] })),
     conditions: cur.conditions.map((c) => ({ ...c, previous: (prev.conditions.find((p) => p.id === c.id) || null) })),
@@ -658,7 +658,7 @@ export function saveVersionDraft({ version, values: raw }) {
   const values = cleanValues(raw);
   requireOperator();
   const meta = versionList().find((v) => v.version === version);
-  if (!meta || !(meta.status === '작성 중' || meta.status === '돌려받음')) throw new ApiError('forbidden', '고칠 수 없는 버전입니다.');
+  if (!meta || !(meta.status === '작성 중' || meta.status === '반려')) throw new ApiError('forbidden', '고칠 수 없는 버전입니다.');
   const a = adminState();
   a.versionEdits[version] = structuredClone(values);
   stamp();
@@ -677,7 +677,7 @@ export function requestVersionApproval({ version, values: raw, reason }) {
   const values = cleanValues(raw);
   if (!String(reason || '').trim()) return { ok: false, code: 'reasonRequired' };
   const meta = versionList().find((v) => v.version === version);
-  if (!meta || !(meta.status === '작성 중' || meta.status === '돌려받음')) throw new ApiError('forbidden', '요청할 수 없는 버전입니다.');
+  if (!meta || !(meta.status === '작성 중' || meta.status === '반려')) throw new ApiError('forbidden', '요청할 수 없는 버전입니다.');
   const a = adminState();
   const prev = meta.base ? versionValues(meta.base) : versionValues(version);
   a.versionEdits[version] = structuredClone(values);

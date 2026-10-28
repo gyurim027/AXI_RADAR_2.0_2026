@@ -98,14 +98,14 @@ test('I-07 기존 화면과 실제 API 어댑터의 DOM 상호작용', { skip: !
           assert.match(document.body.textContent, /검토할 설정 원문/);
           assert.ok(!calls.some(([path]) => path.endsWith('/preview')));
         } else if (scenario === 'reject_reason') {
-          await click(findText('돌려보내기'));
+          await click(findText('반려하기'));
           await click(findText('보내기'));
           assert.match(document.body.textContent, /사유를 적어/);
           assert.ok(!calls.some(([path]) => path.endsWith('/review')));
           const input = document.querySelector('[role="dialog"] input');
           await fill(input, '근거 보완 요청'); await click(findText('보내기'));
-          await waitFor(() => /제안을 돌려보냈습니다/.test(document.body.textContent));
-          assert.match(document.body.textContent, /제안을 돌려보냈습니다/);
+          await waitFor(() => /제안을 반려했습니다/.test(document.body.textContent));
+          assert.match(document.body.textContent, /제안을 반려했습니다/);
         } else {
           const buttonText = scenario === 'retry_approved' ? '반영 다시 시도' : '승인하기';
           await waitFor(() => findText(buttonText) && !findText(buttonText).disabled);

@@ -721,7 +721,7 @@ export function decideProposal({ id, approve, reason }) {
     at: isoDate(),
     by: `${peopleOf(user.id).name} (${user.org})`,
   };
-  logAccess(user, '승인', `${id} ${approve ? '승인' : '돌려보내기'}`, approve ? '-' : String(reason).trim());
+  logAccess(user, '승인', `${id} ${approve ? '승인' : '반려'}`, approve ? '-' : String(reason).trim());
   s.changeLog.push({ at: new Date().toISOString(), actor: user.org, kind: approve ? '제안 승인' : '제안 반려', gid: id });
   saveState();
   return { ok: true };
