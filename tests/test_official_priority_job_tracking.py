@@ -13,13 +13,22 @@ class MemoryStore:
         self.run_id = run_id
         self.started = []
         self.finished = []
+        self.status = "RUNNING"
+        self.ref_table = None
+        self.ref_id = None
+        self.fail_finish = False
 
     def start(self, *args):
         self.started.append(args)
         return self.run_id
 
     def finish(self, *args):
+        if self.fail_finish:
+            raise RuntimeError("SIMULATED_FINISH_DB_FAILURE")
         self.finished.append(args)
+        self.status = args[1]
+        self.ref_table = args[-2]
+        self.ref_id = args[-1]
 
     def log(self, *args):
         pass
@@ -41,6 +50,12 @@ def prepare(tmp_path, monkeypatch, store, run_function):
     def fake_read(sql, params=None):
         if "COUNT(*)" in sql:
             return [{"n": 1}]
+        if "FROM job_run WHERE job_run_id=" in sql:
+            return [{
+                "status": store.status,
+                "ref_table": store.ref_table,
+                "ref_id": store.ref_id,
+            }]
         return [{"ID_gid": "g1"}]
 
     monkeypatch.setattr(command.db, "read_only", fake_read)
@@ -132,3 +147,28 @@ def test_invalid_write_result_is_rejected(tmp_path, monkeypatch, result):
         command.main()
 
     assert store.finished[0][1] == job_run.FAILURE
+
+
+def test_finish_failure_does_not_report_success(tmp_path, monkeypatch):
+    store = MemoryStore()
+    store.fail_finish = True
+    prepare(tmp_path, monkeypatch, store, lambda **kw: written_result())
+
+    with pytest.raises(RuntimeError, match="DO_NOT_RERUN"):
+        command.main()
+
+
+def test_wrong_run_reference_blocks_success(tmp_path, monkeypatch):
+    store = MemoryStore()
+    prepare(tmp_path, monkeypatch, store, lambda **kw: written_result())
+
+    real_finish = store.finish
+
+    def wrong_finish(*args):
+        real_finish(*args)
+        store.ref_id = "999"
+
+    store.finish = wrong_finish
+
+    with pytest.raises(RuntimeError, match="JOB_NOT_FINALIZED_DO_NOT_RERUN"):
+        command.main()

@@ -9,7 +9,7 @@ from datetime import date
 import json
 from pathlib import Path
 
-from app.core import db
+from app.core import db, job_run
 from app.core.job_run import track
 from app.services.scoring.operational_scoring import run_from_live_rows
 
@@ -65,6 +65,25 @@ def main():
 
         job.ref("priority_run", result["run_id"])
         job.rows(result["candidate_count"])
+
+    # The official result may already be committed. Never retry automatically.
+    try:
+        recorded = db.read_only(
+            "SELECT status, ref_table, ref_id FROM job_run WHERE job_run_id=%s",
+            (job.run_id,),
+        )
+    except Exception as exc:
+        raise RuntimeError(
+            "OFFICIAL_RESULT_SAVED_JOB_VERIFICATION_FAILED_DO_NOT_RERUN"
+        ) from exc
+
+    if (len(recorded) != 1
+            or recorded[0].get("status") != job_run.SUCCESS
+            or recorded[0].get("ref_table") != "priority_run"
+            or str(recorded[0].get("ref_id")) != str(result["run_id"])):
+        raise RuntimeError(
+            "OFFICIAL_RESULT_SAVED_JOB_NOT_FINALIZED_DO_NOT_RERUN"
+        )
 
     print(json.dumps(result,ensure_ascii=False,sort_keys=True,default=str))
 
