@@ -63,7 +63,7 @@ test('알림 메일 저장 표가 없으면 { ok:false, code:"tableMissing" }', 
 });
 
 test('대시보드: 서버가 모르는 칸(null)은 그대로 두고, 없는 묶음만 채운다', async () => {
-  const api = apiWith(async () => response({
+  const api = apiWith(async (u) => u.includes('/api/settings/versions') ? response({ versions: [{ settingVersionId: 11, versionLabel: '가중치 v2', approvalStatus: '승인' }] }) : response({
     run: { id: 3, name: null, status: null },
     next: { key: 'checks', text: '검사에서 걸린 자료 1301건을 고쳐 주세요.', to: '/admin/data/checks', toLabel: '검사 결과' },
     data: { stale: null, missing: null, unscheduled: null, total: null },
@@ -76,7 +76,9 @@ test('대시보드: 서버가 모르는 칸(null)은 그대로 두고, 없는 �
   assert.equal(d.run.name, null);
   assert.equal(d.data.stale, null);
   assert.deepEqual(d.checks, { fix: 1301, reference: 3147 });
-  assert.equal(d.criteria.id, 12);
+  assert.equal(d.criteria.targetId, 12);
+  assert.equal(d.criteria.pending, '가중치 v3');
+  assert.equal(d.criteria.approved, '가중치 v2'); // 승인 대기가 있으면 지금 쓰는 버전은 설정 목록에서 찾는다
   assert.equal(d.approvals, null);
   assert.equal(d.next.toLabel, '검사 결과');
 });
@@ -145,4 +147,19 @@ test('규정 변경 확인은 POST /changes/{id}/seen', async () => {
   const api = apiWith(async (u, o) => { seen = [u, o.method]; return response({ ok: true }); });
   await api.markRegulationSeen({ id: 2 });
   assert.deepEqual(seen, ['http://localhost:8000/api/standards/changes/2/seen', 'POST']);
+});
+
+test('대시보드 산정 기준: 승인 대기가 없으면 대시보드의 버전이 지금 쓰는 버전이고 목록은 받지 않는다', async () => {
+  const urls = [];
+  const api = apiWith(async (u) => { urls.push(u); return response({ run: null, next: null, data: {}, runs: {}, criteria: { id: 11, label: '가중치 v2', pending: false } }); });
+  const d = await api.getDashboard();
+  assert.deepEqual(d.criteria, { approved: '가중치 v2', pending: null, targetId: 11 });
+  assert.equal(urls.length, 1);
+});
+
+test('대시보드 산정 기준: 설정 목록을 못 받아도 대시보드는 뜨고 지금 쓰는 버전만 비어 있다', async () => {
+  const api = apiWith(async (u) => u.includes('/api/settings/versions') ? response({ error: { status: 500, code: 'x', message: 'x' } }, 500) : response({ run: null, next: null, data: {}, runs: {}, criteria: { id: 12, label: '가중치 v3', pending: true } }));
+  const d = await api.getDashboard();
+  assert.equal(d.criteria.approved, null);
+  assert.equal(d.criteria.pending, '가중치 v3');
 });

@@ -128,11 +128,10 @@ function Body({ data }) {
     </StatCard>
   );
   // 링크는 승인 대기 버전 상세로, 없으면 지금 쓰는 버전 상세로 간다 (AD-01 6-1)
-  // 서버는 버전 하나만 준다: 승인 대기가 있으면 그 버전, 없으면 지금 쓰는 버전 (label이 있으면 서버 모양)
+  // 지금 쓰는 버전 · 승인 대기 버전 (AD-01 6-1). 링크는 승인 대기 버전이 있으면 그 버전, 없으면 지금 쓰는 버전이다.
   const c = data.criteria;
-  const fromServer = Boolean(c && 'label' in c);
-  const criteriaPending = fromServer ? c.pending : c?.pending;
-  const criteriaTarget = fromServer ? c.id : c?.pending || c?.approved;
+  const criteriaPending = c?.pending;
+  const criteriaTarget = c?.targetId ?? (c?.pending || c?.approved);
   const criteriaCard = (
     <StatCard
       key="criteria"
@@ -143,7 +142,7 @@ function Body({ data }) {
       more={DASH.more.criteria}
     >
       <div className={styles.metrics}>
-        <span>{fromServer ? DASH.criteriaOne(c.label, c.pending, c.at) : DASH.criteriaLine(c?.approved, c?.pending)}</span>
+        <span>{DASH.criteriaLine(c?.approved, c?.pending)}</span>
       </div>
     </StatCard>
   );

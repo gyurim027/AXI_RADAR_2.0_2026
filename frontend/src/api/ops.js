@@ -12,7 +12,8 @@ const dotDate = (iso) => (iso ? String(iso).slice(0, 10).replaceAll('-', '.') : 
 const dotDateTime = (iso) => (iso ? `${dotDate(iso)} ${String(iso).slice(11, 16)}`.trim() : null);
 
 /** 서버가 모르는 칸은 null로 온다. 화면이 '-'로 보이게 그대로 두고, 없는 묶음만 빈 값으로 채운다. */
-export function adaptDashboard(d) {
+/** approvedLabel: 지금 쓰는 버전(시 도로과가 승인한 가장 최근 버전)의 이름. 대시보드 응답은 버전 하나만 줘서 getDashboard가 설정 목록에서 찾아 넘긴다. */
+export function adaptDashboard(d, approvedLabel = null) {
   return {
     run: { id: d.run?.id ?? null, name: d.run?.name ?? null, status: d.run?.status ?? null },
     next: { key: d.next?.key ?? 'none', text: d.next?.text ?? null, to: d.next?.to ?? null, toLabel: d.next?.toLabel ?? null },
@@ -21,7 +22,8 @@ export function adaptDashboard(d) {
     runs: { days: d.runs?.days ?? 30, success: d.runs?.success ?? 0, failure: d.runs?.failure ?? 0, warning: d.runs?.warning ?? 0 },
     approvals: d.approvals ?? null,
     regulations: d.regulations ?? null,
-    criteria: d.criteria ?? null,
+    // 정의서 AD-01 6-1: 지금 쓰는 버전 · 승인 대기 버전. 링크는 승인 대기 버전이 있으면 그 버전, 없으면 지금 쓰는 버전이다.
+    criteria: d.criteria ? { approved: approvedLabel, pending: d.criteria.pending ? d.criteria.label ?? String(d.criteria.id) : null, targetId: d.criteria.id } : null,
   };
 }
 
@@ -70,7 +72,21 @@ export function createOpsApi(request) {
       }
     },
     async getDashboard() {
-      return adaptDashboard(await request('/api/ops/dashboard'));
+      const d = await request('/api/ops/dashboard');
+      const c = d.criteria;
+      let approved = null;
+      if (c && !c.pending) approved = c.label ?? String(c.id);
+      else if (c) {
+        // 승인 대기 버전이 있으면 대시보드가 그것만 준다. 지금 쓰는 버전은 설정 목록에서 가장 최근 '승인'을 찾는다.
+        try {
+          const v = await request(`/api/settings/versions?${new URLSearchParams({ status: '승인', limit: '1' })}`);
+          const top = v.versions?.[0];
+          approved = top ? top.versionLabel ?? String(top.settingVersionId) : null;
+        } catch {
+          approved = null; // 목록을 못 받아도 대시보드는 뜨고 이 칸만 '-'
+        }
+      }
+      return adaptDashboard(d, approved);
     },
     /** 목록 줄에는 로그가 없다. 펼칠 때 getExecution으로 한 건을 불러 채운다. */
     async listExecutions({ days = 30, status = '전체' } = {}) {
