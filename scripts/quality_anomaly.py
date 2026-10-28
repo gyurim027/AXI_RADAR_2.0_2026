@@ -174,5 +174,5 @@ if __name__ == "__main__":
         low.to_csv(C.OUT_DIR / "a06_complaint_accuracy_low.csv", index=False, encoding="utf-8-sig")
     pd.set_option("display.width", 200)
     print(S.pivot_table(index="표", columns="검사", values="건수", fill_value=0).to_string())
-    print(f"\n저장: out/a06_flags.csv ({len(F):,}건), out/a06_summary.csv"
-          + (f", out/a06_complaint_accuracy_low.csv (민원 {len(low):,}건 '낮음' 표시)" if low is not None else ""))
+    print(f"\n저장: {C.OUT_DIR / 'a06_flags.csv'} ({len(F):,}건), {C.OUT_DIR / 'a06_summary.csv'}"
+          + (f", {C.OUT_DIR / 'a06_complaint_accuracy_low.csv'} (민원 {len(low):,}건 '낮음' 표시 목록 — DB에는 아직 반영 안 함)" if low is not None else ""))
