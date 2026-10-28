@@ -17,6 +17,7 @@ dependencies = [
     "rank-bm25>=0.2.2",         # AI-05 검색
     "kiwipiepy>=0.20",          # AI-05 한국어 형태소
     "openpyxl>=3.1",            # C-09 민원 파일(xlsx) 읽기 (규림, W07-01) · W05-06 정답 목록 xlsx
+    "pandas>=2",                # 산정(scoring)·검사 문제 목록(quality)·격자(grid)가 서버에서 씀 — 기본 설치 (10/28)
 ]
 
 # 필요한 사람만 설치하는 선택 묶음 (예: uv sync --extra ai03)
