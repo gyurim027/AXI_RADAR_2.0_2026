@@ -43,7 +43,7 @@ def main(argv=None) -> int:
     args = ap.parse_args(argv)
     OUT.mkdir(parents=True, exist_ok=True)
 
-    with track("산정", "격자 EXT_ 열 다시 채우기", module="B-02") as job:
+    with track("집계", "격자 EXT_ 열 다시 채우기", module="B-02") as job:
         ext, ng = compute(), compute_ng()
         r05, r06 = compare_with_current(ext), compare_ng_with_current(ng)
         diff05 = {c: v["diff"] for c, v in r05.items() if v["diff"]}
