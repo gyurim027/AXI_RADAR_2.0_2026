@@ -13,7 +13,7 @@ export const DASH = {
   regTitle: '규정 변경',
   criteriaTitle: '산정 기준',
   // 카드 오른쪽 위 상태와 아래 '보러 가기' 링크 (UX 고도화 A-1)
-  state: { ok: '정상', check: '확인 필요', fail: '실패 있음', wait: '승인 대기 있음', none: '대기 없음', current: '사용 중', unknown: '-' },
+  state: { ok: '정상', check: '확인 필요', fail: '실패 있음', wait: '승인 대기 있음', none: '대기 없음', current: '현재 버전', unknown: '-' },
   more: {
     data: '자료 목록 보러 가기',
     runs: '실행 기록 보러 가기',

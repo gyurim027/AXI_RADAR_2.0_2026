@@ -18,7 +18,7 @@ export function latestApproved(versions) {
   return [...versions].sort((a, b) => (at(a) === at(b) ? b.settingVersionId - a.settingVersionId : at(a) < at(b) ? 1 : -1))[0] ?? null;
 }
 
-/** approvedLabel: 지금 쓰는 버전(시 도로과가 승인한 가장 최근 버전)의 이름. 대시보드 응답은 버전 하나만 줘서 getDashboard가 설정 목록에서 찾아 넘긴다. */
+/** approvedLabel: 현재 버전(시 도로과가 승인한 가장 최근 버전)의 이름. 대시보드 응답은 버전 하나만 줘서 getDashboard가 설정 목록에서 찾아 넘긴다. */
 export function adaptDashboard(d, approvedLabel = null) {
   return {
     run: { id: d.run?.id ?? null, name: d.run?.name ?? null, status: d.run?.status ?? null },
@@ -28,7 +28,7 @@ export function adaptDashboard(d, approvedLabel = null) {
     runs: { days: d.runs?.days ?? 30, success: d.runs?.success ?? 0, failure: d.runs?.failure ?? 0, warning: d.runs?.warning ?? 0 },
     approvals: d.approvals ?? null,
     regulations: d.regulations ?? null,
-    // 정의서 AD-01 6-1: 지금 쓰는 버전 · 승인 대기 버전. 링크는 승인 대기 버전이 있으면 그 버전, 없으면 지금 쓰는 버전이다.
+    // 정의서 AD-01 6-1: 현재 버전 · 승인 대기 버전. 링크는 승인 대기 버전이 있으면 그 버전, 없으면 현재 버전이다.
     criteria: d.criteria ? { approved: approvedLabel, pending: d.criteria.pending ? d.criteria.label ?? String(d.criteria.id) : null, targetId: d.criteria.id } : null,
   };
 }
@@ -83,7 +83,7 @@ export function createOpsApi(request) {
       let approved = null;
       if (c && !c.pending) approved = c.label ?? String(c.id);
       else if (c) {
-        // 승인 대기 버전이 있으면 대시보드가 그것만 준다. 지금 쓰는 버전은 설정 목록에서 찾는다.
+        // 승인 대기 버전이 있으면 대시보드가 그것만 준다. 현재 버전은 설정 목록에서 찾는다.
         // 같은 종류(가중치·기준값·우선 확인 조건)끼리만 비교하고, 서버 대시보드처럼 승인 시각이 가장 늦은 것을 고른다.
         try {
           const q = new URLSearchParams({ status: '승인', limit: '500' });

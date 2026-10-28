@@ -243,7 +243,7 @@ export function getDashboard({ runId }) {
       returned: approvals.filter((r) => r.result === '반려').length,
     },
     regulations: regulations().filter((r) => !r.seen && !r.pending).length,
-    // 지금 쓰는 버전은 시 도로과가 승인한 가장 최근 버전이다 (AD-01 6-1)
+    // 현재 버전은 시 도로과가 승인한 가장 최근 버전이다 (AD-01 6-1)
     criteria: {
       approved: versionList().filter((v) => v.status === '승인됨').slice(-1)[0]?.version || null,
       pending: versionList().find((v) => v.status === '승인 대기')?.version || null,

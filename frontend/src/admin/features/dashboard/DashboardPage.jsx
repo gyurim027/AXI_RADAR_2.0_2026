@@ -127,8 +127,8 @@ function Body({ data }) {
       </div>
     </StatCard>
   );
-  // 링크는 승인 대기 버전 상세로, 없으면 지금 쓰는 버전 상세로 간다 (AD-01 6-1)
-  // 지금 쓰는 버전 · 승인 대기 버전 (AD-01 6-1). 링크는 승인 대기 버전이 있으면 그 버전, 없으면 지금 쓰는 버전이다.
+  // 링크는 승인 대기 버전 상세로, 없으면 현재 버전 상세로 간다 (AD-01 6-1)
+  // 현재 버전 · 승인 대기 버전 (AD-01 6-1). 링크는 승인 대기 버전이 있으면 그 버전, 없으면 현재 버전이다.
   const c = data.criteria;
   const criteriaPending = c?.pending;
   const criteriaTarget = c?.targetId ?? (c?.pending || c?.approved);
