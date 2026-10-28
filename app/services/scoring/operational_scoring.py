@@ -107,7 +107,12 @@ def assemble_official_score(*, grid_rows: list[dict], reviewed_rows: list[dict],
             'indicator_contributions':{k:(None if pd.isna(v) else round(float(v),6)) for k,v in contributions.iloc[i].items()},
             'unevaluated_reasons':{k:str(states.iloc[i][k]) for k in FEATURES if states.iloc[i][k]!='RECORD_VALUE'},
             'confidence_grade':grade,
-            'score_excluding_accidents':round(float(without),4)}
+            'score_excluding_accidents':round(float(without),4),
+            'exclusion_reasons': [],
+            # Net effect relative to identical inputs scored without the complaint signal.
+            # This value can be negative for independent/inside_hazard modes.
+            'complaint_contribution':round(float(final.iloc[i])-float(score.iloc[i]),6),
+            'policy_version':policy.label}
     return tuple(candidates),evidence
 
 

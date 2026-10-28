@@ -10,7 +10,7 @@ from decimal import Decimal
 from hashlib import sha256
 import json
 
-from app.services.priority.details import FIELDS, encode_evidence, store_evidence
+from app.services.priority.details import FIELDS, encode_evidence, store_evidence, cleanup_uncommitted_evidence
 from app.services.scoring.production_writer import OfficialBatch, ProductionBlocked, plan
 
 
@@ -22,7 +22,7 @@ def _validate_evidence(batch: OfficialBatch, evidence_by_gid: dict) -> None:
         raise ProductionBlocked('DETAIL_GRID_SET_MISMATCH')
     for gid, detail in evidence_by_gid.items():
         if not isinstance(detail, dict) or set(detail) != set(FIELDS):
-            raise ProductionBlocked('DETAIL_FIVE_FIELDS_REQUIRED')
+            raise ProductionBlocked('DETAIL_EIGHT_FIELDS_REQUIRED')
         if not isinstance(detail['domain_scores'], dict) or not detail['domain_scores']:
             raise ProductionBlocked('DETAIL_DOMAIN_SCORES_MISSING')
         if not isinstance(detail['indicator_contributions'], dict) or not detail['indicator_contributions']:
@@ -33,6 +33,14 @@ def _validate_evidence(batch: OfficialBatch, evidence_by_gid: dict) -> None:
             raise ProductionBlocked('DETAIL_CONFIDENCE_MISSING')
         if detail['score_excluding_accidents'] is None:
             raise ProductionBlocked('DETAIL_ACCIDENT_EXCLUDED_SCORE_MISSING')
+        if not isinstance(detail['exclusion_reasons'], (list, dict)):
+            raise ProductionBlocked('DETAIL_EXCLUSION_REASONS_MISSING')
+        if detail['complaint_contribution'] is None:
+            raise ProductionBlocked('DETAIL_COMPLAINT_CONTRIBUTION_MISSING')
+        if not isinstance(detail['policy_version'], str) or not detail['policy_version'].strip():
+            raise ProductionBlocked('DETAIL_POLICY_VERSION_MISSING')
+        if detail['policy_version'] != batch.rule_version:
+            raise ProductionBlocked('DETAIL_POLICY_VERSION_MISMATCH')
         try:
             encode_evidence(1, gid, detail)  # format preflight; real run_id assigned in transaction
         except (ValueError, TypeError, OverflowError) as exc:
@@ -41,7 +49,7 @@ def _validate_evidence(batch: OfficialBatch, evidence_by_gid: dict) -> None:
 
 def write_approved_batch(batch: OfficialBatch, *, explicit_db_write_approval: bool,
                          evidence_by_gid: dict | None = None, connection_factory=None) -> dict:
-    """Write one approved run + candidates + all 5 evidence types atomically.
+    """Write an approved run, candidate pointers, and all 8 evidence fields.
 
     Fail closed if sidecar evidence is missing. No DDL, no action (82) fabrication.
     `explicit_db_write_approval` is a per-batch human gate, not proof that an
@@ -60,6 +68,7 @@ def write_approved_batch(batch: OfficialBatch, *, explicit_db_write_approval: bo
         connection_factory = raw_connection
 
     con = connection_factory()
+    created_evidence = []
     try:
         with con.cursor() as cur:
             cur.execute('SELECT setting_version_id, version_label, content_ref, approval_status, approved_at '
@@ -106,7 +115,8 @@ def write_approved_batch(batch: OfficialBatch, *, explicit_db_write_approval: bo
                              row['complaint_cnt'], row['complaint_cnt_excl_low'],
                              row.get('cond_result_yn'), row.get('cond_hazard_yn'),
                              row.get('cond_exposure_yn'), row.get('cond_vulnerable_yn'),
-                             row.get('matched_roles'), store_evidence(run_id, row['gid'], evidence_by_gid[row['gid']])))
+                             row.get('matched_roles'), store_evidence(run_id, row['gid'], evidence_by_gid[row['gid']],
+                                on_created=lambda path, digest: created_evidence.append((path, digest)))))
 
             cur.execute('SELECT COUNT(*) AS n FROM priority_candidate WHERE run_id=%s', (run_id,))
             actual = int(cur.fetchall()[0]['n'])
@@ -120,7 +130,10 @@ def write_approved_batch(batch: OfficialBatch, *, explicit_db_write_approval: bo
         return {'run_id': run_id, 'candidate_count': actual, 'evidence_count': detail_count,
                 'fingerprint': metadata['fingerprint'], 'status': 'WRITTEN'}
     except Exception:
-        con.rollback()
+        try:
+            con.rollback()
+        finally:
+            cleanup_uncommitted_evidence(created_evidence)
         raise
     finally:
         con.close()
