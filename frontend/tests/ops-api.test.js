@@ -107,3 +107,42 @@ test('다시 실행 오류 4가지는 { ok:false, code }로 바꾸고, 그 밖�
   assert.deepEqual(await ok.rerunExecution({ id: 7 }), { ok: true });
   assert.equal(seen[1].method, 'POST');
 });
+
+test('알림: 서버가 주는 실패 알림 목록을 그대로 쓰고, 읽음은 POST로 보낸다', async () => {
+  const seen = [];
+  const api = apiWith(async (u, o) => { seen.push([u, o?.method]); return u.endsWith('/read') ? response({ ok: true }) : response({ notifications: [{ id: 5, kind: 'failure', runId: 9, date: '2026.10.27', text: 'A-11 실행이 실패했습니다.', read: false }] }); });
+  const rows = await api.listNotifications();
+  assert.equal(rows[0].id, 5);
+  assert.equal(rows[0].read, false);
+  await api.markNotificationRead({ id: 5 });
+  assert.deepEqual(seen[1], ['http://localhost:8000/api/ops/notifications/5/read', 'POST']);
+});
+
+test('담당 부서 표: 현재 표만 오고 수정안은 null이다 (수정안 API 없음)', async () => {
+  const api = apiWith(async () => response({ jurisdiction: [{ id: 'JUR-01', problem: '보도 파손', dept: '수정구: 건설과', related: '-', status: '확인됨', basis: '조례', depts: [{ gu_name: '수정구' }] }] }));
+  const d = await api.getDept();
+  assert.equal(d.current[0].id, 'JUR-01');
+  assert.equal('depts' in d.current[0], false);
+  assert.equal(d.drafts, null);
+});
+
+test('규정 변경: 날짜를 YYYY.MM.DD로 바꾸고 관할 코드에 문제 유형·담당 부서를 붙이고 최근 순으로 센다', async () => {
+  const api = apiWith(async (u) => u.includes('/changes')
+    ? response({ changes: [
+      { id: 1, kind: '법령', name: '도로교통법', where: '제32조', date: '2026-09-01', before: 'a', after: 'b', juris: ['JUR-01', 'JUR-99'], criteria: [], detectedAt: '2026-10-27T09:05', seen: false },
+      { id: 2, kind: '조례', name: '사무위임 조례', where: '별표 1', date: '2026-10-20', before: 'c', after: 'd', juris: [], criteria: [], detectedAt: null, seen: true }] })
+    : response({ jurisdiction: [{ id: 'JUR-01', problem: '보도 파손', dept: '수정구: 건설과' }] }));
+  const rows = await api.listRegulationChanges();
+  assert.deepEqual(rows.map((r) => r.id), [2, 1]);
+  assert.equal(rows[1].date, '2026.09.01');
+  assert.equal(rows[1].detected, '2026.10.27 09:05');
+  assert.deepEqual(rows[1].jurRows, [{ id: 'JUR-01', problem: '보도 파손', dept: '수정구: 건설과' }, { id: 'JUR-99', problem: '-', dept: '-' }]);
+  assert.equal(rows[0].detected, null);
+});
+
+test('규정 변경 확인은 POST /changes/{id}/seen', async () => {
+  let seen;
+  const api = apiWith(async (u, o) => { seen = [u, o.method]; return response({ ok: true }); });
+  await api.markRegulationSeen({ id: 2 });
+  assert.deepEqual(seen, ['http://localhost:8000/api/standards/changes/2/seen', 'POST']);
+});

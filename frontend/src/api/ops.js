@@ -8,6 +8,9 @@ const CREATE_CODES = { gu_required: 'guRequired', required: 'required', duplicat
 const STATUS_CODES = { self_change: 'selfChange', account_not_found: 'notFound' };
 const RERUN_CODES = { not_failed: 'notFailed', rerun_not_supported: 'notSupported', rerun_input_missing: 'notSupported', already_running: 'alreadyRunning' };
 
+const dotDate = (iso) => (iso ? String(iso).slice(0, 10).replaceAll('-', '.') : null);
+const dotDateTime = (iso) => (iso ? `${dotDate(iso)} ${String(iso).slice(11, 16)}`.trim() : null);
+
 /** 서버가 모르는 칸은 null로 온다. 화면이 '-'로 보이게 그대로 두고, 없는 묶음만 빈 값으로 채운다. */
 export function adaptDashboard(d) {
   return {
@@ -78,6 +81,42 @@ export function createOpsApi(request) {
     },
     getExecution({ id }) {
       return request(`/api/ops/runs/${encodeURIComponent(id)}`);
+    },
+    /** 서버는 실패 알림만 준다 (알림 4종 중 나머지 3종은 서버 API가 없다). */
+    async listNotifications() {
+      const d = await request('/api/ops/notifications');
+      return d.notifications || [];
+    },
+    markNotificationRead({ id }) {
+      return request(`/api/ops/notifications/${encodeURIComponent(id)}/read`, { method: 'POST' });
+    },
+    /** 담당 부서 표: 현재 표만 온다. 수정안 목록·근거 원문 API는 아직 없어 drafts는 null이다. */
+    async getDept() {
+      const d = await request('/api/standards/jurisdiction');
+      return { current: (d.jurisdiction || []).map(({ id, problem, dept, related, status, basis }) => ({ id, problem, dept, related, status, basis })), drafts: null };
+    },
+    /** 규정 변경: 변경 목록에 관할 코드별 문제 유형·담당 부서를 붙인다(담당 부서 표를 같이 받아 잇는다). */
+    async listRegulationChanges() {
+      const [c, j] = await Promise.all([request('/api/standards/changes'), request('/api/standards/jurisdiction')]);
+      const jur = new Map((j.jurisdiction || []).map((x) => [x.id, x]));
+      return (c.changes || [])
+        .map((r) => ({
+          id: r.id,
+          kind: r.kind,
+          name: r.name,
+          where: r.where,
+          date: dotDate(r.date),
+          before: r.before,
+          after: r.after,
+          detected: dotDateTime(r.detectedAt),
+          seen: r.seen,
+          juris: r.juris || [],
+          jurRows: (r.juris || []).map((id) => ({ id, problem: jur.get(id)?.problem || '-', dept: jur.get(id)?.dept || '-' })),
+        }))
+        .sort((x, y) => (x.date === y.date ? 0 : !x.date ? 1 : !y.date ? -1 : x.date < y.date ? 1 : -1));
+    },
+    markRegulationSeen({ id }) {
+      return request(`/api/standards/changes/${encodeURIComponent(id)}/seen`, { method: 'POST' });
     },
     async rerunExecution({ id }) {
       try {

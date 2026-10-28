@@ -57,6 +57,7 @@ export const DEPT = {
   currentHead: ['관할 ID', '문제 유형', '1차 해결 부서', '유관 부서', '확인 상태', '근거'],
   currentCaption: '현재 담당 부서 표',
   draftTitle: '수정안 (AI가 만든 초안)',
+  draftsNotConnected: '수정안은 아직 서버에서 받을 수 없습니다. 수정안을 서버에 올리는 기능은 있지만, 올린 수정안을 불러오는 기능이 아직 없습니다.', // 제안 문구: 정의서 AD-11에 없음
   draftRow: (problem, from, to) => `${problem} · ${from} → ${to}`,
   draftBasis: (basis) => `근거 조문: ${basis}`,
   viewArticle: '근거 원문 보기',
