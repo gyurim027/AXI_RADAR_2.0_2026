@@ -14,6 +14,7 @@
 | `scripts/grid_rebuild_ext.py` | EXT_ 다시 채우기 → `--apply`로 DB 반영 (은경) |
 | `scripts/grid_complaint_count.py` | C-07 격자별 민원 수 (`complaint_cnt` · `complaint_cnt_excl_low`) |
 | `scripts/grid_road_type.py` | F-02 도로 종류 (링크별 · 격자별, 88 관할표 이름 · 노선) |
+| `scripts/grid_facility_road.py` | F-02 시설-도로 연결: 시설 8종 좌표 → 가장 가까운 링크 (30m 이내 연결 · 30~100m 거리 기준 초과 · 100m 이내 없음은 링크 미확인), 애매하면 '확인 필요'(다른 도로가 비슷한 거리 · 같은 등급의 다른 도로가 비슷한 거리 · 고속도로 · 도로 종류 다름)와 '우선 확인 대상' 표시 (부서는 F-01이 정함) |
 | `app/services/quality/issue_format.py` | A-05·A-06·A-08 공통 15칸 문제 목록 (진이님과 맞춤) |
 | `scripts/quality_anomaly.py` | A-06 성남 밖·좌표 범위·gid 불일치·구 불일치(행정동 경계)·민원 날짜 |
 | `scripts/quality_same_facility.py` | A-08 내용이 같은 행 · 같은 이름·같은 자리 · 같은 자리·다른 이름 |
@@ -27,6 +28,7 @@ uv run python -m scripts.grid_build_feature --compare               # 05 107/107
 uv run python -m scripts.grid_build_feature --csv <v2.1 CSV 폴더> --ai03 <AI-03 update 폴더>   # AI-03 반영 전후
 uv run python -m scripts.grid_complaint_count
 uv run python -m scripts.grid_road_type
+uv run python -m scripts.grid_facility_road                          # --max 30 --far 100 --gap 10 --same-gap 10
 uv run python -m scripts.quality_anomaly
 uv run python -m scripts.quality_same_facility
 ```
@@ -42,4 +44,4 @@ DB가 열리기 전에는 모든 스크립트에 `--csv <v2.1 통합테이블 CS
 
 ## 남은 것
 
-DB 반영(05·06·78) 순서: 83열 → `grid_rebuild_ext --apply` → 83 road_hazard → 07~10 판정 → 진규님 알림 · C-07 회차(run_id) 넣는 방식(진규) · F-02 시설-도로 연결(대환) · 문제 목록 표(`data_issue`) 만들기(운영자 화면 때) · 포트홀 탐지 범위(B-07, 83에 운행 범위가 있으면)
+DB 반영(05·06·78) 순서: 83열 → `grid_rebuild_ext --apply` → 83 road_hazard → 07~10 판정 → 진규님 알림 · C-07 회차(run_id) 넣는 방식(진규) · 문제 목록 표(`data_issue`) 만들기(운영자 화면 때) · 포트홀 탐지 범위(B-07, 83에 운행 범위가 있으면)
