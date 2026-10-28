@@ -47,7 +47,7 @@ class PriorityRepository:
         base = ("FROM priority_candidate c LEFT JOIN grid_feature f ON f.ID_gid = c.gid WHERE " + " AND ".join(where))
         total = db.read_only("SELECT COUNT(*) AS n " + base, args)
         rows = db.read_only(
-            "SELECT " + ", ".join("c." + k for k in CANDIDATE_COLS) + f", {_GU} AS gu, f.`ID_중심위도` AS center_lat, f.`ID_중심경도` AS center_lon " + base +
+            "SELECT " + ", ".join("c." + k for k in CANDIDATE_COLS) + f", {_GU} AS gu, f.id_center_lat AS center_lat, f.id_center_lon AS center_lon " + base +
             " ORDER BY c.rank_no IS NULL, c.rank_no, c.gid LIMIT %s OFFSET %s", [*args, limit, offset])
         return rows, int(total[0]["n"]) if total else 0
 
