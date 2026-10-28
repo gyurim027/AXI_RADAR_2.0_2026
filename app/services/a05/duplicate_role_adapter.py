@@ -54,6 +54,9 @@ def attach_duplicate_roles(items, roles):
             copied["representative_src_id"] = (
                 role["representative_src_id"] if role else None
             )
+            copied["duplicate_role_status"] = (
+                "verified" if role else "unavailable"
+            )
 
         result.append(copied)
 
