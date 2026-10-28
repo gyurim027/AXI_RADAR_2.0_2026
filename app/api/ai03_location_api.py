@@ -1,6 +1,7 @@
 """AI-03 좌표 결과 조회 API (79 src_complaint ← 05 grid_feature, SQL v2.1). 주소: /api/ai03/...
 
 GET /api/ai03/low-complaints?gu=&limit=&offset=   좌표 정확도 '낮음' 민원 목록 (화면 AD-04 낮음 민원·지도)
+GET /api/ai03/unlocated?limit=                    위치 미확인 현황: 표별 좌표 확보 + 단속 건수 상위 N곳 (화면 AD-04 위치 미확인 탭, 운영자만)
 
 지키는 것
 - 읽기만 한다. 좌표는 AI-03 좌표 반영 단계가 79에 쓴다 (빈 좌표 행만, dry-run 뒤 한 거래).
@@ -19,9 +20,11 @@ from pymysql import MySQLError
 
 from app.core import access_audit as audit
 from app.core import db
-from app.core.auth import GU_LIST, allowed_gus, check_gu, current_user
+from app.core.auth import GU_LIST, allowed_gus, check_gu, current_user, require_roles
 from app.core.responses import ApiError
 from app.services.ai03.low_complaints import LowComplaintRepository, get_repository
+from app.services.ai03.unlocated import TOP_TABLE, UnlocatedRepository
+from app.services.ai03.unlocated import get_repository as get_unlocated_repository
 
 router = APIRouter(prefix="/api/ai03", tags=["AI-03 좌표 결과 조회 (79)"])
 
@@ -83,3 +86,25 @@ def low_complaints(request: Request, gu: str | None = None, limit: int = Query(2
     except MySQLError:
         raise ApiError(503, "db_read_failed", "낮음 민원 목록을 불러오지 못했습니다.")      # ERR-11 (연결·쿼리 오류 내용은 안 내보낸다)
     return {"total": total, "limit": limit, "offset": offset, "complaints": [_row(r) for r in rows]}
+
+
+def _rate(missing: int, total: int) -> float:
+    return round(missing / total * 100, 1) if total else 0.0
+
+
+@router.get("/unlocated", dependencies=[Depends(require_roles("operator"))])
+def unlocated(limit: int = Query(20, ge=1, le=100), repo: UnlocatedRepository = Depends(get_unlocated_repository)):
+    """위치 미확인 탭: (a) 표별 좌표 확보 현황 (b) 좌표가 빈 단속장소 중 단속 건수 상위 N곳 + 전체 건수('전체 n곳 중 N곳'용).
+    운영자만 본다. 건수와 단속장소 이름·단속 건수만 내보내고 좌표 값은 내보내지 않는다."""
+    try:
+        coverage = repo.coverage()
+        items = repo.top_missing(limit)
+    except db.DbNotConfigured:
+        raise ApiError(503, "db_not_configured", "서버 설정이 필요합니다.")                   # 12_오류 케이스 ERR-13
+    except MySQLError:
+        raise ApiError(503, "db_read_failed", "위치 미확인 현황을 불러오지 못했습니다.")      # ERR-11 (연결·쿼리 오류 내용은 안 내보낸다)
+    total_missing = next((c["missing_rows"] for c in coverage if c["table"] == TOP_TABLE), 0)
+    return {"coverage": [{**c, "missing_rate": _rate(c["missing_rows"], c["total_rows"])} for c in coverage],
+            "top": {"table": TOP_TABLE, "limit": limit, "total_missing": total_missing,
+                    "items": [{"row_key": f"row_id={r['row_id']}", "name": r.get("enforce_place"),
+                               "enforce_cnt": r.get("enforce_cnt")} for r in items]}}
