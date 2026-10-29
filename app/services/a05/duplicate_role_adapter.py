@@ -1,38 +1,13 @@
-"""A-05 중복 행의 대표·사본 정보를 읽기 전용으로 연결한다."""
+﻿"""A-05 DB 중복 검사 결과의 대표·사본 표시용 변환 함수."""
 
-import csv
-from pathlib import Path
+import re
 
-ROLE_FILE = Path(__file__).with_name("duplicate_role_map.csv")
-
-
-def load_duplicate_roles():
-    """검증된 역할 정보 CSV를 읽어 행 식별자별로 정리한다."""
-    if not ROLE_FILE.is_file():
-        return {}
-
-    with ROLE_FILE.open(encoding="utf-8-sig", newline="") as file:
-        rows = list(csv.DictReader(file))
-
-    roles = {}
-
-    for row in rows:
-        key = (row["table_name"], row["row_key"])
-
-        if key in roles:
-            raise ValueError(f"Duplicate role key: {key}")
-
-        roles[key] = {
-            "duplicate_role": row["duplicate_role"],
-            "duplicate_group_id": row["duplicate_group_id"],
-            "representative_src_id": row["representative_src_id"],
-        }
-
-    return roles
+GROUP_PATTERN = re.compile(r"중복 후보 PK:\s*([0-9,\s]+)\.")
+ROW_PATTERN = re.compile(r"src_id=(\d+)")
 
 
-def attach_duplicate_roles(items, roles):
-    """원본 응답을 변경하지 않고 A-05 중복 오류에 역할 정보를 붙인다."""
+def attach_duplicate_roles(items, roles=None):
+    """DB SELECT 결과에 표시 정보만 추가한다. 원본 및 DB 수정 없음."""
     result = []
 
     for item in items:
@@ -42,21 +17,41 @@ def attach_duplicate_roles(items, roles):
             item.get("check_fn") == "A-05"
             and item.get("error_code") == "A05_DUPLICATE_ROW"
         ):
-            key = (item.get("table_name"), item.get("row_key"))
-            role = roles.get(key)
+            copied["review_classification"] = "pending_review"
+            copied["review_label"] = "확인 필요(참고)"
+            copied["blocking"] = False
 
-            copied["duplicate_role"] = (
-                role["duplicate_role"] if role else None
-            )
-            copied["duplicate_group_id"] = (
-                role["duplicate_group_id"] if role else None
-            )
-            copied["representative_src_id"] = (
-                role["representative_src_id"] if role else None
-            )
-            copied["duplicate_role_status"] = (
-                "verified" if role else "unavailable"
-            )
+            copied["duplicate_role"] = None
+            copied["duplicate_group_id"] = None
+            copied["representative_src_id"] = None
+            copied["duplicate_role_status"] = "unavailable"
+
+            row_match = ROW_PATTERN.fullmatch(str(item.get("row_key") or ""))
+            group_match = GROUP_PATTERN.search(str(item.get("reason") or ""))
+
+            if row_match and group_match and item.get("table_name"):
+                members = [
+                    int(value.strip())
+                    for value in group_match.group(1).split(",")
+                ]
+                pk = int(row_match.group(1))
+
+                if (
+                    len(members) > 1
+                    and len(set(members)) == len(members)
+                    and pk in members
+                ):
+                    representative = min(members)
+                    table = item["table_name"]
+
+                    copied["duplicate_role"] = (
+                        "대표" if pk == representative else "중복 사본"
+                    )
+                    copied["duplicate_group_id"] = (
+                        f"A05_DUP:{table}:{representative}"
+                    )
+                    copied["representative_src_id"] = str(representative)
+                    copied["duplicate_role_status"] = "matched_db_reason"
 
         result.append(copied)
 
