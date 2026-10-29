@@ -74,6 +74,20 @@ export const CHECKS = {
   lowTitle: '위치 낮음 민원',
   lowClose: '위치 낮음 민원 창 닫기',
   failedArea: '검사 결과',
+  // 서버 모드(AI-03 위치 결과). 문구는 제안이다.
+  tabNotConnected: '이 탭은 아직 서버와 연결되지 않았습니다.',
+  coverageTitle: '표별 좌표 확보 현황',
+  coverageCaption: '표별 좌표 확보 현황',
+  coverageHead: ['표', '전체 행 수', '좌표 없는 행 수', '좌표 없는 비율'],
+  topTitle: '좌표가 없는 단속장소',
+  topNote: '단속 건수가 많은 순서로 보여 줍니다.',
+  topCaption: '좌표가 없는 단속장소 상위 목록',
+  topHead: ['단속장소', '단속 건수'],
+  topFoot: (total, shown) => `전체 ${total}곳 중 ${shown}곳`,
+  lowUnit: '건',
+  lowNoteServer: '위치 정확도가 낮은 민원도 격자 민원 수에 포함했습니다.', // K-2 앞 문장. 순위 비교는 서버에 없어 뺐다
+  lowHead: ['접수일', '구', '동', '찾은 방법'],
+  lowPartial: (shown, total) => `전체 ${total}건 중 ${shown}건을 보여 줍니다.`,
 };
 
 export const CLASSIFY = {

@@ -4,8 +4,13 @@ import * as server from '../mocks/adminServer.js';
 import { COMPLAINT_DATA_ID } from '../mocks/adminData.js';
 import { backendRequest, opsBackendEnabled } from './backend.js';
 import { createOpsApi } from './ops.js';
+import { createChecksApi } from './checks.js';
 
 const ops = createOpsApi(backendRequest);
+const checks = createChecksApi(backendRequest);
+/** 서버 모드에서만 쓴다: 검사 결과 화면의 위치 미확인 현황과 낮음 민원 */
+export const getUnlocated = checks.getUnlocated;
+export const listLowComplaints = checks.listLowComplaints;
 
 export const getViewAsLabel = () => server.viewAsLabel();
 export const listAdminRuns = mockCall('admin.listAdminRuns', (arg) => server.listAdminRuns(arg));

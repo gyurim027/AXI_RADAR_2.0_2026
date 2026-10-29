@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getChecks, listLowLocation } from '../../../api/admin.js';
+import { opsBackendEnabled } from '../../../api/backend.js';
 import { useAsync } from '../../../shared/hooks/useAsync.js';
 import Button from '../../components/Button.jsx';
 import DataTable from '../../components/DataTable.jsx';
@@ -10,13 +11,19 @@ import PageHeader from '../../components/PageHeader.jsx';
 import Panel from '../../components/Panel.jsx';
 import { EmptyState } from '../../components/States.jsx';
 import Tabs from '../../components/Tabs.jsx';
+import ServerChecks from './ServerChecks.jsx';
 import { CHECKS } from './copy.js';
 import styles from './Data.module.css';
 
 const KEYS = ['format', 'value', 'location', 'group'];
 
-/** AD-04 검사 결과 (유형 B): 탭 + 표. 자동으로 고치거나 지우지 않는다. 같은 데이터를 고른 채로 업로드를 연다. */
+/** AD-04 검사 결과. 서버 모드에서는 서버에 연결된 부분(위치 미확인·낮음 민원)만 보인다. */
 export default function ChecksPage() {
+  return opsBackendEnabled ? <ServerChecks /> : <MockChecksPage />;
+}
+
+/** AD-04 검사 결과 (유형 B): 탭 + 표. 자동으로 고치거나 지우지 않는다. 같은 데이터를 고른 채로 업로드를 연다. */
+function MockChecksPage() {
   const navigate = useNavigate();
   const [tab, setTab] = useState('format');
   const [lowOpen, setLowOpen] = useState(false);
