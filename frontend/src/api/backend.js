@@ -7,6 +7,8 @@ export const i07BackendEnabled = on(import.meta.env?.VITE_I07_API);
 export const settingsBackendEnabled = on(import.meta.env?.VITE_SETTINGS_API);
 // 계정 관리·접속 기록·알림 설정(I-01·I-03·I-04) 실제 연결. 켜면 RADAR 운영자 로그인과 그 세 화면만 서버를 쓴다.
 export const opsBackendEnabled = on(import.meta.env?.VITE_OPS_API);
+// G-03만 명시적으로 개발 연결한다. 기존 mockCall의 전역 차단 범위를 확장하지 않는다.
+export const g03BackendEnabled = import.meta.env?.VITE_G03_API === 'true';
 export const backendAuthEnabled = i07BackendEnabled || settingsBackendEnabled || opsBackendEnabled;
 
 /** 서버 연결 모드에서 로그인 뒤 처음 여는 화면 */

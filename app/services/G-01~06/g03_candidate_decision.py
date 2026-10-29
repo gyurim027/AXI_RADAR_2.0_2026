@@ -40,6 +40,7 @@ class DecisionRequest:
     actor_ref: str
     actor_role: str
     actor_gu: str
+    reason_text: str | None = None
 
 
 def record_candidate_decision(*, request: DecisionRequest,
@@ -80,6 +81,11 @@ def record_candidate_decision(*, request: DecisionRequest,
             raise G03Error('사유 목록에 없는 선택값입니다.')
     elif q.reason_code is not None and q.reason_code not in allowed_reason_codes:
         raise G03Error('사유 목록에 없는 선택값입니다.')
+    if q.reason_code == '기타':
+        if not isinstance(q.reason_text, str) or not q.reason_text.strip() or len(q.reason_text.strip()) > 100:
+            raise G03Error('기타 사유는 1~100자로 입력해야 합니다.')
+    elif q.reason_text is not None:
+        raise G03Error('기타 선택이 아닌 경우 기타 사유를 보낼 수 없습니다.')
     candidate = candidate_reader.find(q.run_id, q.gid)
     if not candidate or candidate.get('run_id') != q.run_id or candidate.get('gid') != q.gid:
         raise G03Error('해당 회차의 후보가 아닙니다.')
@@ -90,6 +96,7 @@ def record_candidate_decision(*, request: DecisionRequest,
     rec = {
         'run_id': q.run_id, 'gid': q.gid, 'gu': q.actor_gu,
         'decision': q.decision, 'reason_code': q.reason_code,
+        'reason_text': q.reason_text.strip() if q.reason_text is not None else None,
         'memo': q.memo.strip(), 'weight_version': q.weight_version.strip(),
         'actor_ref': q.actor_ref.strip(),
         'decided_at': datetime.now(timezone.utc).isoformat(),
