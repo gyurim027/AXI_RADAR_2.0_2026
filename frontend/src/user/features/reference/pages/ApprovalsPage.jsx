@@ -53,7 +53,7 @@ export default function ApprovalsPage() {
 
   return (
     <div>
-      <PageHeader title={APPROVAL.title} subtitle={i07BackendEnabled ? '제안 내용을 확인하고 승인하거나 돌려보냅니다. 승인 기록과 담당 부서 표 반영 결과는 따로 확인합니다.' : APPROVAL.subtitle} />
+      <PageHeader title={APPROVAL.title} subtitle={i07BackendEnabled ? '제안 내용을 확인하고 승인하거나 반려합니다. 승인 기록과 담당 부서 표 반영 결과는 따로 확인합니다.' : APPROVAL.subtitle} />
       {notice ? <p role={notice.error ? 'alert' : 'status'}>{notice.message}</p> : null}
       <div className={`${styles.split} ${selected ? styles.splitOpen : ''}`}>
         <section className={styles.card} aria-label="제안 목록">
@@ -87,7 +87,7 @@ export default function ApprovalsPage() {
       </div>
       {rejecting && selected ? <RejectModal onClose={() => { if (!busy) setRejecting(false); }} onSend={async (reason) => {
         const r = await decideProposal({ id: selected.id, approve: false, reason });
-        if (r.ok) { setRejecting(false); setSelectedId(null); setNotice({ message: '제안을 돌려보냈습니다.' }); reload(); }
+        if (r.ok) { setRejecting(false); setSelectedId(null); setNotice({ message: '제안을 반려했습니다.' }); reload(); }
         return r;
       }} /> : null}
     </div>

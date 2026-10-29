@@ -9,8 +9,8 @@ const ops = createOpsApi(backendRequest);
 
 export const getViewAsLabel = () => server.viewAsLabel();
 export const listAdminRuns = mockCall('admin.listAdminRuns', (arg) => server.listAdminRuns(arg));
-export const listAdminNotifications = mockCall('admin.listAdminNotifications', (arg) => server.listAdminNotifications(arg));
-export const markAdminNotificationRead = mockCall('admin.markAdminNotificationRead', (arg) => server.markAdminNotificationRead(arg));
+export const listAdminNotifications = opsBackendEnabled ? ops.listNotifications : mockCall('admin.listAdminNotifications', (arg) => server.listAdminNotifications(arg));
+export const markAdminNotificationRead = opsBackendEnabled ? ops.markNotificationRead : mockCall('admin.markAdminNotificationRead', (arg) => server.markAdminNotificationRead(arg));
 export const listViewAsOptions = mockCall('admin.listViewAsOptions', (arg) => server.listViewAsOptions(arg));
 export const startViewAs = mockCall('admin.startViewAs', (arg) => server.startViewAs(arg));
 export const stopViewAs = mockCall('admin.stopViewAs', (arg) => server.stopViewAs(arg));
@@ -48,11 +48,11 @@ export const getVersion = mockCall('admin.getVersion', (arg) => server.getVersio
 export const saveVersionDraft = mockCall('admin.saveVersionDraft', (arg) => server.saveVersionDraft(arg));
 export const previewChange = mockCall('admin.previewChange', (arg) => server.previewChange(arg));
 export const requestVersionApproval = mockCall('admin.requestVersionApproval', (arg) => server.requestVersionApproval(arg));
-export const getDept = mockCall('admin.getDept', (arg) => server.getDept(arg));
+export const getDept = opsBackendEnabled ? ops.getDept : mockCall('admin.getDept', (arg) => server.getDept(arg));
 export const getArticle = mockCall('admin.getArticle', (arg) => server.getArticle(arg));
 export const requestDeptApproval = mockCall('admin.requestDeptApproval', (arg) => server.requestDeptApproval(arg));
-export const listRegulationChanges = mockCall('admin.listRegulationChanges', (arg) => server.listRegulationChanges(arg));
-export const markRegulationSeen = mockCall('admin.markRegulationSeen', (arg) => server.markRegulationSeen(arg));
+export const listRegulationChanges = opsBackendEnabled ? ops.listRegulationChanges : mockCall('admin.listRegulationChanges', (arg) => server.listRegulationChanges(arg));
+export const markRegulationSeen = opsBackendEnabled ? ops.markRegulationSeen : mockCall('admin.markRegulationSeen', (arg) => server.markRegulationSeen(arg));
 export const getActionTable = mockCall('admin.getActionTable', (arg) => server.getActionTable(arg));
 export const saveActionRow = mockCall('admin.saveActionRow', (arg) => server.saveActionRow(arg));
 export const getDraftArticle = mockCall('admin.getDraftArticle', (arg) => server.getDraftArticle(arg));

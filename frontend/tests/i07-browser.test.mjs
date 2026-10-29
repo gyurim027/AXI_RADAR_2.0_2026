@@ -112,13 +112,13 @@ test('I-07 실제 브라우저 화면', {skip: !enabled, timeout: 120000}, async
             assert.ok(overflow.scroll<=overflow.width+1,`horizontal overflow: ${JSON.stringify(overflow)}`);
             if(scenario==='preview_1024'||scenario==='preview_1280') return;
             if(scenario==='reject') {
-              await page.getByRole('button',{name:'돌려보내기',exact:true}).click();
+              await page.getByRole('button',{name:'반려하기',exact:true}).click();
               const modal=page.getByRole('dialog');await modal.getByRole('button',{name:'보내기',exact:true}).click();
               await modal.getByText(/사유를 적어/).waitFor();
               assert.equal(calls.filter(c=>c.path.endsWith('/review')).length,0);
               await modal.locator('input').fill('근거 보완 요청');
               await modal.getByRole('button',{name:'보내기',exact:true}).click();
-              await page.getByText('제안을 돌려보냈습니다.').waitFor();
+              await page.getByText('제안을 반려했습니다.').waitFor();
               assert.deepEqual(calls.find(c=>c.path.endsWith('/review')).body,{decision:'돌려보냄',reviewComment:'근거 보완 요청'});
             } else {
               await approve.click();

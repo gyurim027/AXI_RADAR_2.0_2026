@@ -94,10 +94,11 @@ export default function LoginPage() {
   };
 
   // DEV-QUICK-LOGIN 시작 (배포 전에 지운다)
+  // 아이디와 비밀번호만 채운다. 로그인은 로그인 버튼으로 직접 누른다.
   const quickLogin = (id, pw) => {
     setLoginId(id);
     setPassword(pw);
-    if (pw) login(id, pw);
+    setError('');
   };
   // DEV-QUICK-LOGIN 끝
 

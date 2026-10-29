@@ -13,7 +13,7 @@ const ACCOUNTS = [
 ];
 
 /**
- * 누르면 아이디와 비밀번호를 채우고 바로 로그인한다. 개발 화면에서만 보인다.
+ * 누르면 아이디와 비밀번호를 채운다. 로그인은 로그인 버튼으로 직접 누른다. 개발 화면에서만 보인다.
  * 비밀번호: 가짜 서버(연습용)는 고정값, 서버에 붙었을 때는 frontend/.env.local의 VITE_DEV_LOGIN_PASSWORD.
  * 이 값은 저장소에 올리지 않는다(.env.local은 git에 올라가지 않는다). 배포 환경에는 넣지 않는다.
  */
@@ -31,7 +31,7 @@ export default function DevQuickLogin({ onPick, disabled }) {
         ))}
       </div>
       {backendAuthEnabled && !password ? (
-        <p className={styles.hint}>서버 로그인 비밀번호가 없어 아이디만 채웁니다. frontend/.env.local에 VITE_DEV_LOGIN_PASSWORD를 넣으면 바로 로그인됩니다.</p>
+        <p className={styles.hint}>서버 로그인 비밀번호가 없어 아이디만 채웁니다. frontend/.env.local에 VITE_DEV_LOGIN_PASSWORD를 넣으면 비밀번호도 채워집니다.</p>
       ) : null}
     </section>
   );

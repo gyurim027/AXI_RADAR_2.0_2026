@@ -63,7 +63,7 @@ test('알림 메일 저장 표가 없으면 { ok:false, code:"tableMissing" }', 
 });
 
 test('대시보드: 서버가 모르는 칸(null)은 그대로 두고, 없는 묶음만 채운다', async () => {
-  const api = apiWith(async () => response({
+  const api = apiWith(async (u) => u.includes('/api/settings/versions') ? response({ versions: [{ settingVersionId: 11, versionLabel: '가중치 v2', approvalStatus: '승인', approvedAt: '2026-10-01T09:00:00' }] }) : response({
     run: { id: 3, name: null, status: null },
     next: { key: 'checks', text: '검사에서 걸린 자료 1301건을 고쳐 주세요.', to: '/admin/data/checks', toLabel: '검사 결과' },
     data: { stale: null, missing: null, unscheduled: null, total: null },
@@ -76,7 +76,9 @@ test('대시보드: 서버가 모르는 칸(null)은 그대로 두고, 없는 �
   assert.equal(d.run.name, null);
   assert.equal(d.data.stale, null);
   assert.deepEqual(d.checks, { fix: 1301, reference: 3147 });
-  assert.equal(d.criteria.id, 12);
+  assert.equal(d.criteria.targetId, 12);
+  assert.equal(d.criteria.pending, '가중치 v3');
+  assert.equal(d.criteria.approved, '가중치 v2'); // 승인 대기가 있으면 지금 쓰는 버전은 설정 목록에서 찾는다
   assert.equal(d.approvals, null);
   assert.equal(d.next.toLabel, '검사 결과');
 });
@@ -106,4 +108,75 @@ test('다시 실행 오류 4가지는 { ok:false, code }로 바꾸고, 그 밖�
   const ok = apiWith(async (...a) => { seen = a; return response({ ok: true, rerunOf: 7 }, 202); });
   assert.deepEqual(await ok.rerunExecution({ id: 7 }), { ok: true });
   assert.equal(seen[1].method, 'POST');
+});
+
+test('알림: 서버가 주는 실패 알림 목록을 그대로 쓰고, 읽음은 POST로 보낸다', async () => {
+  const seen = [];
+  const api = apiWith(async (u, o) => { seen.push([u, o?.method]); return u.endsWith('/read') ? response({ ok: true }) : response({ notifications: [{ id: 5, kind: 'failure', runId: 9, date: '2026.10.27', text: 'A-11 실행이 실패했습니다.', read: false }] }); });
+  const rows = await api.listNotifications();
+  assert.equal(rows[0].id, 5);
+  assert.equal(rows[0].read, false);
+  await api.markNotificationRead({ id: 5 });
+  assert.deepEqual(seen[1], ['http://localhost:8000/api/ops/notifications/5/read', 'POST']);
+});
+
+test('담당 부서 표: 현재 표만 오고 수정안은 null이다 (수정안 API 없음)', async () => {
+  const api = apiWith(async () => response({ jurisdiction: [{ id: 'JUR-01', problem: '보도 파손', dept: '수정구: 건설과', related: '-', status: '확인됨', basis: '조례', depts: [{ gu_name: '수정구' }] }] }));
+  const d = await api.getDept();
+  assert.equal(d.current[0].id, 'JUR-01');
+  assert.equal('depts' in d.current[0], false);
+  assert.equal(d.drafts, null);
+});
+
+test('규정 변경: 날짜를 YYYY.MM.DD로 바꾸고 관할 코드에 문제 유형·담당 부서를 붙이고 최근 순으로 센다', async () => {
+  const api = apiWith(async (u) => u.includes('/changes')
+    ? response({ changes: [
+      { id: 1, kind: '법령', name: '도로교통법', where: '제32조', date: '2026-09-01', before: 'a', after: 'b', juris: ['JUR-01', 'JUR-99'], criteria: [], detectedAt: '2026-10-27T09:05', seen: false },
+      { id: 2, kind: '조례', name: '사무위임 조례', where: '별표 1', date: '2026-10-20', before: 'c', after: 'd', juris: [], criteria: [], detectedAt: null, seen: true }] })
+    : response({ jurisdiction: [{ id: 'JUR-01', problem: '보도 파손', dept: '수정구: 건설과' }] }));
+  const rows = await api.listRegulationChanges();
+  assert.deepEqual(rows.map((r) => r.id), [2, 1]);
+  assert.equal(rows[1].date, '2026.09.01');
+  assert.equal(rows[1].detected, '2026.10.27 09:05');
+  assert.deepEqual(rows[1].jurRows, [{ id: 'JUR-01', problem: '보도 파손', dept: '수정구: 건설과' }, { id: 'JUR-99', problem: '-', dept: '-' }]);
+  assert.equal(rows[0].detected, null);
+});
+
+test('규정 변경 확인은 POST /changes/{id}/seen', async () => {
+  let seen;
+  const api = apiWith(async (u, o) => { seen = [u, o.method]; return response({ ok: true }); });
+  await api.markRegulationSeen({ id: 2 });
+  assert.deepEqual(seen, ['http://localhost:8000/api/standards/changes/2/seen', 'POST']);
+});
+
+test('대시보드 산정 기준: 승인 대기가 없으면 대시보드의 버전이 지금 쓰는 버전이고 목록은 받지 않는다', async () => {
+  const urls = [];
+  const api = apiWith(async (u) => { urls.push(u); return response({ run: null, next: null, data: {}, runs: {}, criteria: { id: 11, label: '가중치 v2', pending: false } }); });
+  const d = await api.getDashboard();
+  assert.deepEqual(d.criteria, { approved: '가중치 v2', pending: null, targetId: 11 });
+  assert.equal(urls.length, 1);
+});
+
+test('대시보드 산정 기준: 설정 목록을 못 받아도 대시보드는 뜨고 지금 쓰는 버전만 비어 있다', async () => {
+  const api = apiWith(async (u) => u.includes('/api/settings/versions') ? response({ error: { status: 500, code: 'x', message: 'x' } }, 500) : response({ run: null, next: null, data: {}, runs: {}, criteria: { id: 12, label: '가중치 v3', pending: true } }));
+  const d = await api.getDashboard();
+  assert.equal(d.criteria.approved, null);
+  assert.equal(d.criteria.pending, '가중치 v3');
+});
+
+test('대시보드 산정 기준: 승인 시각이 가장 늦은 것을 지금 쓰는 버전으로 보고(번호가 아니라), 같은 종류로만 찾는다', async () => {
+  const urls = [];
+  const api = apiWith(async (u) => {
+    urls.push(u);
+    return u.includes('/api/settings/versions')
+      ? response({ versions: [
+        { settingVersionId: 14, versionLabel: '가중치 v4', approvedAt: '2026-10-05T09:00:00' },
+        { settingVersionId: 13, versionLabel: '가중치 v3', approvedAt: '2026-10-20T09:00:00' },
+        { settingVersionId: 12, versionLabel: '가중치 v2', approvedAt: null }] })
+      : response({ run: null, next: null, data: {}, runs: {}, criteria: { id: 15, kind: '가중치', label: '가중치 v5', pending: true } });
+  });
+  const d = await api.getDashboard();
+  assert.equal(d.criteria.approved, '가중치 v3'); // 번호는 v4가 크지만 승인은 v3가 나중
+  assert.equal(d.criteria.pending, '가중치 v5');
+  assert.ok(urls[1].includes('kind=%EA%B0%80%EC%A4%91%EC%B9%98'), urls[1]);
 });

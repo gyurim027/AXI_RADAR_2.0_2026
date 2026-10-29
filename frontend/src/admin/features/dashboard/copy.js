@@ -13,7 +13,7 @@ export const DASH = {
   regTitle: '규정 변경',
   criteriaTitle: '산정 기준',
   // 카드 오른쪽 위 상태와 아래 '보러 가기' 링크 (UX 고도화 A-1)
-  state: { ok: '정상', check: '확인 필요', fail: '실패 있음', wait: '승인 대기 있음', none: '대기 없음', current: '사용 중', unknown: '-' },
+  state: { ok: '정상', check: '확인 필요', fail: '실패 있음', wait: '승인 대기 있음', none: '대기 없음', current: '현재 버전', unknown: '-' },
   more: {
     data: '자료 목록 보러 가기',
     runs: '실행 기록 보러 가기',
@@ -23,8 +23,8 @@ export const DASH = {
     checks: '검사 결과 보러 가기',
   },
   checksTitle: '자료 검사', // 제안 문구: 정의서 AD-01에 이 카드 이름이 없다
-  criteriaOne: (label, pending, at) => `${pending ? '승인 대기' : '지금 쓰는 버전'} ${label || '-'}${at ? ` · ${at}` : ''}`,
-  criteriaLine: (approved, pending) => `지금 쓰는 버전 ${approved || '-'}${pending ? ` · 승인 대기 ${pending}` : ''}`,
+  criteriaCurrent: '현재 버전',
+  criteriaPending: '승인 대기',
   runsEmpty: '아직 실행한 기록이 없습니다. 회차 목록에서 산정을 시작해 주세요.', // E-4
   failed: '대시보드를 불러오지 못했습니다.',
 };

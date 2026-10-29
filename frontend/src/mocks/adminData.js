@@ -322,7 +322,7 @@ export const ADMIN_REGULATIONS = [
 // ------------------------------------------------------------------ 승인 이력 (AD-14)
 export const SEED_APPROVALS = [
   { id: 'ap-1', target: '산정 기준', version: 'v1.2', proposer: OPERATOR_LABEL, at: '2026-08-28', approver: '박사례 (성남시 도로과 도로관리팀)', result: '승인', reason: '-', ref: { kind: 'criteria', version: 'v1.2' } },
-  { id: 'ap-2', target: '담당 부서 표', version: '-', proposer: OPERATOR_LABEL, at: '2026-06-20', approver: '박사례 (성남시 도로과 도로관리팀)', result: '돌려받음', reason: '근거 조문 확인 필요', ref: { kind: 'dept', draftId: 'dd0' } },
+  { id: 'ap-2', target: '담당 부서 표', version: '-', proposer: OPERATOR_LABEL, at: '2026-06-20', approver: '박사례 (성남시 도로과 도로관리팀)', result: '반려', reason: '근거 조문 확인 필요', ref: { kind: 'dept', draftId: 'dd0' } },
   { id: 'ap-3', target: '산정 기준', version: 'v1.1', proposer: OPERATOR_LABEL, at: '2025-11-18', approver: '박사례 (성남시 도로과 도로관리팀)', result: '승인', reason: '-', ref: { kind: 'criteria', version: 'v1.1' } },
 ];
 

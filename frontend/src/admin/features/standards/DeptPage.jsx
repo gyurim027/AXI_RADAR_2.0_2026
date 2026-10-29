@@ -53,7 +53,9 @@ export default function DeptPage() {
               </Panel>
               <Panel title={DEPT.draftTitle}>
                 {done ? <Banner tone="success">{DEPT.requested}</Banner> : null}
-                {d.drafts.length === 0 ? (
+                {d.drafts === null ? (
+                  <EmptyState text={DEPT.draftsNotConnected} />
+                ) : d.drafts.length === 0 ? (
                   <EmptyState text={DEPT.empty} />
                 ) : (
                   d.drafts.map((draft) => (
@@ -70,7 +72,7 @@ export default function DeptPage() {
                     />
                   ))
                 )}
-                <p className={styles.note}>{DEPT.note}</p>
+                {d.drafts === null ? null : <p className={styles.note}>{DEPT.note}</p>}
               </Panel>
             </div>
             {article ? (

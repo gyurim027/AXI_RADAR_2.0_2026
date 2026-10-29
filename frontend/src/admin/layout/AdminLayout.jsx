@@ -4,6 +4,7 @@ import { useAdmin } from '../AdminProvider.jsx';
 import { Banner } from '../components/Panel.jsx';
 import { onActionError } from '../utils/actionError.js';
 import { ADMIN_COPY } from '../copy.js';
+import AdminNotifications from './AdminNotifications.jsx';
 import AdminTopBar from './AdminTopBar.jsx';
 import SectionNav from './SectionNav.jsx';
 import styles from './AdminLayout.module.css';
@@ -31,9 +32,11 @@ function SettingsLayout(){
         {opsBackendEnabled?<NavLink className={topStyles.tab} to="/admin" end>대시보드</NavLink>:null}
         {opsBackendEnabled?<NavLink className={topStyles.tab} to="/admin/runs/log">실행 기록</NavLink>:null}
         {settingsBackendEnabled?<NavLink className={topStyles.tab} to="/admin/standards/criteria">산정 기준</NavLink>:null}
+        {opsBackendEnabled?<NavLink className={topStyles.tab} to="/admin/standards/dept">담당 부서 표</NavLink>:null}
+        {opsBackendEnabled?<NavLink className={topStyles.tab} to="/admin/standards/regulations">규정 변경</NavLink>:null}
         {opsBackendEnabled?[['/admin/settings/accounts','계정'],['/admin/settings/access','접속 기록'],['/admin/settings/alerts','알림 설정']].map(([to,label])=><NavLink key={to} className={topStyles.tab} to={to}>{label}</NavLink>):null}
       </nav>
-      <div className={topStyles.tools}><span>{user.org}</span><button className={topStyles.logout} onClick={signOut}>로그아웃</button></div>
+      <div className={topStyles.tools}>{opsBackendEnabled?<AdminNotifications/>:null}<span>{user.org}</span><button className={topStyles.logout} onClick={signOut}>로그아웃</button></div>
     </header></div>
     <main id="admin-main" className={styles.main} tabIndex={-1}><div className={styles.content}>{banner?<div style={{marginBottom:16}}><Banner tone="danger">{banner}</Banner></div>:null}<Outlet/></div></main>
   </div>;
