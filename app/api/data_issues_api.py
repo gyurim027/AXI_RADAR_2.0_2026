@@ -6,7 +6,6 @@ from app.core import db
 from app.core.auth import require_roles
 from app.services.a05.duplicate_role_adapter import (
     attach_duplicate_roles,
-    load_duplicate_roles,
 )
 
 router = APIRouter(
@@ -74,8 +73,7 @@ def list_data_issues(
         and row.get("error_code") == "A05_DUPLICATE_ROW"
         for row in rows
     ):
-        roles = load_duplicate_roles()
-        rows = attach_duplicate_roles(rows, roles)
+        rows = attach_duplicate_roles(rows)
 
     return {
         "total": int(count_rows[0]["cnt"]),
@@ -86,9 +84,9 @@ def list_data_issues(
         "source": "data_issue",
         "db_written": False,
         "duplicate_role_source": (
-            "local_snapshot"
+            "db_reason"
             if any(
-                row.get("duplicate_role_status") == "verified"
+                row.get("duplicate_role_status") == "matched_db_reason"
                 for row in rows
             )
             else "unavailable"
