@@ -358,6 +358,16 @@ class OpsApiTests(unittest.TestCase):
         closed = {x["kind"]: x for x in self.c.get("/api/ops/notifications", headers=h).json()["notifications"]}
         self.assertEqual(closed["staleData"]["status"], "해결됨")
 
+    def test_checks_classify(self):
+        """10/29 정리: A-05 중복 의심은 참고로, A-05 좌표 범위는 A-06과 겹쳐 세지 않음 → 공용 DB 숫자 그대로 (fix 0 · 참고 4,425)"""
+        rows = [{"check_fn": "A-05", "error_code": "A05_COORD_RANGE", "n": 29},
+                {"check_fn": "A-05", "error_code": "A05_DUPLICATE_ROW", "n": 1272},
+                {"check_fn": "A-06", "error_code": "A06_OUT_OF_GRID", "n": 1946},
+                {"check_fn": "A-08", "error_code": "A08_SAME_CONTENT", "n": 1207}]
+        self.assertEqual(ops_repo.OpsRepository.classify_checks(rows), {"fix": 0, "reference": 4425, "total": 4425})
+        rows.append({"check_fn": "A-05", "error_code": "A05_EMPTY_REQUIRED", "n": 3})      # 다른 A-05(빈칸·형식)는 그대로 고칠 오류
+        self.assertEqual(ops_repo.OpsRepository.classify_checks(rows)["fix"], 3)
+
     def test_alert_plan_text(self):
         p = alerts.plan([], [], [{"setting_version_id": 3, "setting_kind": "가중치", "version_label": "v2",
                                   "approval_status": "승인"}])

@@ -21,7 +21,7 @@
 |---|---|---|
 | run | 77 priority_run 가장 최근 회차 (v2.2 칸: 민원 기간·표본 완료) | `name`·`status`는 null — 77에 회차 이름·상태 칸이 없음 (D-10은 아직 개발용 메모리 저장) |
 | next | v0.5.4 AD-01 1-1 순서. ① 빠진 자료 → missing("빠진 자료 N종을 올려 주세요.") ② 미확인 검사 오류 중 고칠 수 있는 것(A-05) → checks("검사에서 걸린 자료 N건을 고쳐 주세요.", 검사 결과 화면) ③ 85 가장 최근 '산정' 실행: 실행 중 → running · 실패 → failed · 회차·산정 기록 없음 → calc | 검토 중으로 열기 · 3개 구 확정 기다림은 77 회차 상태 칸이 생기면 (D-10, 대환) |
-| checks | 92 data_issue에서 review_status가 NULL(= 미확인, 칸 설명)인 수 (SQL v2.3). `fix` = check_fn A-05(형식·빈칸·중복, 고쳐서 다시 올림) · `reference` = 그 밖(A-06 이상한 값·A-08 같은 시설 의심 — 기능정의서 1-2 "고치지 않고 표시만") · `unreviewed` = 합. 다음 할 일은 `fix`만 봄 (10/27 세은 제안) | 목업은 형식·값 검사 결과 수. 화면에서 `reference`는 '확인 필요(참고)'로 따로 보임. 92가 없는 DB면 null + notes |
+| checks | 92 data_issue에서 review_status가 NULL(= 미확인, 칸 설명)인 수 (SQL v2.3). `fix` = check_fn A-05(형식·빈칸·중복, 고쳐서 다시 올림) · `reference` = 그 밖(A-06 이상한 값·A-08 같은 시설 의심 — 기능정의서 1-2 "고치지 않고 표시만") · `unreviewed` = 합. 다음 할 일은 `fix`만 봄 (10/27 세은 제안). 10/29 규림·세은·진이 정리(진이 `/api/data-issues`와 같은 기준): A-05 중 `A05_DUPLICATE_ROW`(중복 의심)는 `reference`로, `A05_COORD_RANGE`(좌표 범위)는 A-06에 같은 오류가 있어 세지 않음 → 공용 DB fix 0 · reference 4,425 | 목업은 형식·값 검사 결과 수. 화면에서 `reference`는 '확인 필요(참고)'로 따로 보임. 92가 없는 DB면 null + notes |
 | data | 56 source_list + 84 data_upload (SQL v2.3) — 아래 '자료 최신 여부 규칙' | 목업에 없는 unscheduled(일정 미설정)·total(56 전체 자료 수)도 줌. v2.2 DB면 모두 null + notes |
 | runs | 85 job_run 최근 days일 | 목업에 없는 running·skipped도 줌 |
 | approvals | 62 setting_version 올해: 제안 → pending · 승인 → approved · 돌려보냄 → returned | 목업 이름 '승인 대기'·'돌려받음' = DB '제안'·'돌려보냄' |
