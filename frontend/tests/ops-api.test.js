@@ -120,12 +120,33 @@ test('알림: 서버가 주는 실패 알림 목록을 그대로 쓰고, 읽음�
   assert.deepEqual(seen[1], ['http://localhost:8000/api/ops/notifications/5/read', 'POST']);
 });
 
-test('담당 부서 표: 현재 표만 오고 수정안은 null이다 (수정안 API 없음)', async () => {
-  const api = apiWith(async () => response({ jurisdiction: [{ id: 'JUR-01', problem: '보도 파손', dept: '수정구: 건설과', related: '-', status: '확인됨', basis: '조례', depts: [{ gu_name: '수정구' }] }] }));
+test('담당 부서 표: 현재 표와 승인을 요청한 수정안(상태·반려 사유·관련 규정 변경)을 함께 받는다', async () => {
+  const api = apiWith(async (u) => u.includes('/drafts')
+    ? response({ drafts: [{ id: 21, label: 'x', status: '돌려보냄', statusLabel: '반려', reviewComment: '근거 조문 확인 필요', jurId: 'JUR-05', problem: '가로등 문제', from: '구', to: '시 도로과', basis: '사무위임 조례 별표 1', basisQuery: '사무위임 조례 별표 1', changes: [{ id: 3, name: '조례', where: '별표 1', date: '2026-10-01', before: 'a', after: 'b' }] }] })
+    : response({ jurisdiction: [{ id: 'JUR-01', problem: '보도 파손', dept: '수정구: 건설과', related: '-', status: '확인됨', basis: '조례', depts: [{ gu_name: '수정구' }] }] }));
   const d = await api.getDept();
   assert.equal(d.current[0].id, 'JUR-01');
   assert.equal('depts' in d.current[0], false);
+  assert.equal(d.sent, true);
+  assert.equal(d.drafts[0].statusLabel, '반려');
+  assert.equal(d.drafts[0].reviewComment, '근거 조문 확인 필요');
+  assert.equal(d.drafts[0].changes[0].date, '2026.10.01');
+});
+
+test('담당 부서 표: 수정안 목록을 못 받으면 drafts는 null이고 현재 표는 그대로 온다', async () => {
+  const api = apiWith(async (u) => u.includes('/drafts') ? response({ error: { status: 404, code: 'x', message: 'x' } }, 404) : response({ jurisdiction: [{ id: 'JUR-01', problem: 'p', dept: 'd', related: '-', status: '확인됨', basis: 'b' }] }));
+  const d = await api.getDept();
+  assert.equal(d.current.length, 1);
   assert.equal(d.drafts, null);
+});
+
+test('수정안 근거 원문 찾기는 AI-05 검색을 근거 이름으로 한 번 부른다', async () => {
+  let url;
+  const api = apiWith(async (u) => { url = u; return response({ route: '검색', result: '찾음', items: [{ cite: '조례 별표 1', quote: '원문', status: '시행 중' }] }); });
+  const r = await api.searchLaw('성남시 사무위임 조례 별표 1');
+  assert.equal(r.items[0].quote, '원문');
+  assert.ok(url.startsWith('http://localhost:8000/api/ai05/search?q='), url);
+  assert.ok(url.includes('k=3'));
 });
 
 test('규정 변경: 날짜를 YYYY.MM.DD로 바꾸고 관할 코드에 문제 유형·담당 부서를 붙이고 최근 순으로 센다', async () => {
