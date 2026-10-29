@@ -57,7 +57,13 @@ export const DEPT = {
   currentHead: ['관할 ID', '문제 유형', '1차 해결 부서', '유관 부서', '확인 상태', '근거'],
   currentCaption: '현재 담당 부서 표',
   draftTitle: '수정안 (AI가 만든 초안)',
-  draftsNotConnected: '수정안은 아직 서버에서 받을 수 없습니다. 수정안을 서버에 올리는 기능은 있지만, 올린 수정안을 불러오는 기능이 아직 없습니다.', // 제안 문구: 정의서 AD-11에 없음
+  // 서버 모드: 명령으로 올려 시 도로과에 승인을 요청한 수정안을 읽기만 한다(정의서 AD-11 1-2와 다름, 안 X). 문구는 제안.
+  sentTitle: '승인을 요청한 수정안',
+  sentEmpty: '승인을 요청한 수정안이 없습니다.',
+  draftsNotConnected: '승인을 요청한 수정안을 불러오지 못했습니다.',
+  returnedReason: (reason) => `반려 사유: ${reason}`,
+  relatedChanges: '관련 규정 변경',
+  heldText: '보유 원문',
   draftRow: (problem, from, to) => `${problem} · ${from} → ${to}`,
   draftBasis: (basis) => `근거 조문: ${basis}`,
   viewArticle: '근거 원문 보기',

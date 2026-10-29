@@ -5,6 +5,8 @@ import { Banner } from '../components/Panel.jsx';
 import { onActionError } from '../utils/actionError.js';
 import { ADMIN_COPY } from '../copy.js';
 import AdminNotifications from './AdminNotifications.jsx';
+import { EmptyState } from '../components/States.jsx';
+import { isOpenInServerMode } from '../serverRoutes.js';
 import AdminTopBar from './AdminTopBar.jsx';
 import SectionNav from './SectionNav.jsx';
 import styles from './AdminLayout.module.css';
@@ -38,7 +40,7 @@ function SettingsLayout(){
       </nav>
       <div className={topStyles.tools}>{opsBackendEnabled?<AdminNotifications/>:null}<span>{user.org}</span><button className={topStyles.logout} onClick={signOut}>로그아웃</button></div>
     </header></div>
-    <main id="admin-main" className={styles.main} tabIndex={-1}><div className={styles.content}>{banner?<div style={{marginBottom:16}}><Banner tone="danger">{banner}</Banner></div>:null}<Outlet/></div></main>
+    <main id="admin-main" className={styles.main} tabIndex={-1}><div className={styles.content}>{banner?<div style={{marginBottom:16}}><Banner tone="danger">{banner}</Banner></div>:null}{isOpenInServerMode(pathname)?<Outlet/>:<div role="status"><EmptyState text="이 화면은 아직 서버와 연결되지 않았습니다."/></div>}</div></main>
   </div>;
 }
 

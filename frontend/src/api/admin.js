@@ -49,6 +49,8 @@ export const saveVersionDraft = mockCall('admin.saveVersionDraft', (arg) => serv
 export const previewChange = mockCall('admin.previewChange', (arg) => server.previewChange(arg));
 export const requestVersionApproval = mockCall('admin.requestVersionApproval', (arg) => server.requestVersionApproval(arg));
 export const getDept = opsBackendEnabled ? ops.getDept : mockCall('admin.getDept', (arg) => server.getDept(arg));
+/** 서버 모드에서만 쓴다: 수정안 근거 원문 찾기 */
+export const searchLawText = opsBackendEnabled ? ops.searchLaw : () => Promise.resolve({ result: '보유 원문에서 못 찾음', items: [] });
 export const getArticle = mockCall('admin.getArticle', (arg) => server.getArticle(arg));
 export const requestDeptApproval = mockCall('admin.requestDeptApproval', (arg) => server.requestDeptApproval(arg));
 export const listRegulationChanges = opsBackendEnabled ? ops.listRegulationChanges : mockCall('admin.listRegulationChanges', (arg) => server.listRegulationChanges(arg));

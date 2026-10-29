@@ -23,7 +23,9 @@ export default function AdminNotifications() {
   const ref = useRef(null);
   const { data, reload, failed } = useAsync(() => listAdminNotifications(), [user.id]);
   const items = data || [];
-  const unread = items.filter((n) => !n.read).length;
+  // 원인이 풀려 서버가 닫은 알림('해결됨')은 안 읽은 수에 세지 않는다.
+  const isNew = (n) => !n.read && n.status !== '해결됨';
+  const unread = items.filter(isNew).length;
   const copy = ADMIN_COPY.notifications;
 
   useEffect(() => {
@@ -66,7 +68,7 @@ export default function AdminNotifications() {
             <ul className={styles.list}>
               {items.map((n) => (
                 <li key={n.id}>
-                  <button type="button" className={`${styles.item} ${n.read ? '' : styles.unread}`} onClick={() => go(n)}>
+                  <button type="button" className={`${styles.item} ${isNew(n) ? styles.unread : ''}`} onClick={() => go(n)}>
                     {`${n.text} · ${n.date}`}
                   </button>
                 </li>

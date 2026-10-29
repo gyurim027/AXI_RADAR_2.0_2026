@@ -18,6 +18,15 @@ export function latestApproved(versions) {
   return [...versions].sort((a, b) => (at(a) === at(b) ? b.settingVersionId - a.settingVersionId : at(a) < at(b) ? 1 : -1))[0] ?? null;
 }
 
+/** 서버 수정안 한 줄. 상태 글자(statusLabel)는 서버가 화면 말(승인 대기·승인·반려)로 준다. */
+export function adaptDraft(x) {
+  return {
+    id: x.id, label: x.label, status: x.status, statusLabel: x.statusLabel, reviewComment: x.reviewComment ?? null,
+    jurId: x.jurId, problem: x.problem, from: x.from, to: x.to, basis: x.basis, basisQuery: x.basisQuery,
+    changes: (x.changes || []).map((c) => ({ id: c.id, name: c.name, where: c.where, date: dotDate(c.date), before: c.before, after: c.after })),
+  };
+}
+
 /** approvedLabel: 현재 버전(시 도로과가 승인한 가장 최근 버전)의 이름. 대시보드 응답은 버전 하나만 줘서 getDashboard가 설정 목록에서 찾아 넘긴다. */
 export function adaptDashboard(d, approvedLabel = null) {
   return {
@@ -117,8 +126,16 @@ export function createOpsApi(request) {
     },
     /** 담당 부서 표: 현재 표만 온다. 수정안 목록·근거 원문 API는 아직 없어 drafts는 null이다. */
     async getDept() {
-      const d = await request('/api/standards/jurisdiction');
-      return { current: (d.jurisdiction || []).map(({ id, problem, dept, related, status, basis }) => ({ id, problem, dept, related, status, basis })), drafts: null };
+      const [d, dr] = await Promise.all([request('/api/standards/jurisdiction'), request('/api/standards/drafts').catch(() => null)]);
+      return {
+        current: (d.jurisdiction || []).map(({ id, problem, dept, related, status, basis }) => ({ id, problem, dept, related, status, basis })),
+        drafts: dr ? (dr.drafts || []).map(adaptDraft) : null, // 승인을 요청한 수정안(읽기 전용). 못 받으면 null
+        sent: true,
+      };
+    },
+    /** 담당 부서 표 수정안의 근거 원문 찾기 (AI-05가 가진 법령·지침 원문) */
+    searchLaw(q) {
+      return request(`/api/ai05/search?${new URLSearchParams({ q, k: '3' })}`);
     },
     /** 규정 변경: 변경 목록에 관할 코드별 문제 유형·담당 부서를 붙인다(담당 부서 표를 같이 받아 잇는다). */
     async listRegulationChanges() {
