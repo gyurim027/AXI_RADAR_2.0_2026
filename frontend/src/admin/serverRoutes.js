@@ -6,6 +6,7 @@ const OPEN = [
   opsBackendEnabled && /^\/admin\/settings\/(?:accounts|access|alerts)\/?$/,
   opsBackendEnabled && /^\/admin\/?$/, // 대시보드 (AD-01)
   opsBackendEnabled && /^\/admin\/runs\/log\/?$/, // 실행 기록 (AD-07)
+  opsBackendEnabled && /^\/admin\/data\/checks\/?$/, // 검사 결과 (AD-04)
   opsBackendEnabled && /^\/admin\/standards\/(?:dept|regulations)\/?$/, // 담당 부서 표 (AD-11), 규정 변경 (AD-12)
 ].filter(Boolean);
 

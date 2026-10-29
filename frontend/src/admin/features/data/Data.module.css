@@ -87,6 +87,11 @@
   color: var(--radar-admin-semantic-color-text-link);
   text-underline-offset: 3px;
 }
+.panelFoot {
+  padding: var(--space-12) var(--space-24);
+  font-size: var(--a-fs-sm);
+  color: var(--radar-admin-semantic-color-text-secondary);
+}
 .note {
   margin-top: var(--a-s2);
   font-size: var(--a-fs-sm);
