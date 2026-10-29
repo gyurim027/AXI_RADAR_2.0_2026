@@ -1,6 +1,6 @@
 import { mockCall } from './client.js';
 import * as server from '../mocks/server.js';
-import { backendRequest, g03BackendEnabled, BackendError } from './backend.js';
+import { backendRequest, g03BackendEnabled, g06BackendEnabled, BackendError } from './backend.js';
 
 export const listCandidates = mockCall('candidates', (arg) => server.listCandidates(arg));
 export const getCandidateDetail = mockCall('candidateDetail', (arg) => server.getCandidateDetail(arg));
@@ -38,7 +38,23 @@ export async function saveDecision({ runId, gid, decision, reasonKey, reasonText
 }
 
 export const setDept = mockCall('setDept', (arg) => server.setDept(arg));
-export const getConfirmSummary = mockCall('confirmSummary', (arg) => server.getConfirmSummary(arg));
-export const confirmGu = mockCall('confirmGu', (arg) => server.confirmGu(arg));
+const mockConfirmSummary = mockCall('confirmSummary', (arg) => server.getConfirmSummary(arg));
+const mockConfirmGu = mockCall('confirmGu', (arg) => server.confirmGu(arg));
+
+/** G-06 개발용 구별 확정 요약. 운영 DB의 확정 상태가 아니다. */
+export async function getConfirmSummary({ runId }) {
+  if (!g06BackendEnabled) return mockConfirmSummary({ runId });
+  return backendRequest(`/api/g06/runs/${encodeURIComponent(runId)}/districts/me/confirmation`);
+}
+
+/** 기존 화면의 확인 클릭 이후에만 호출한다. 미결정 후보가 있으면 재확인 플래그가 필요하다. */
+export async function confirmGu({ runId, reconfirmUndecided = false }) {
+  if (!g06BackendEnabled) return mockConfirmGu({ runId });
+  const result = await backendRequest(`/api/g06/runs/${encodeURIComponent(runId)}/districts/me/confirmation`, {
+    method: 'POST',
+    body: { explicitly_confirmed: true, reconfirm_undecided: reconfirmUndecided === true },
+  });
+  return { gu: result.result.gu, done: result.result.district_finalized, date: null };
+}
 export const getGuCompare = mockCall('guCompare', (arg) => server.getGuCompare(arg));
 export const logComplaintPointView = mockCall('pointView', (arg) => server.viewComplaintPoints(arg));

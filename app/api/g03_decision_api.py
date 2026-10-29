@@ -114,7 +114,12 @@ def create_candidate_decision(
         actor_role="구 도로관리팀", actor_gu=gu,
         reason_text=body.reason_text,
     )
-    with _lock:
+    # G-06 확정 메모리와 동일한 잠금을 사용한다. G-06도 G-03 → G-06 순서로 잠근다.
+    # 운영 DB의 확정 상태를 의미하지는 않는다.
+    _g06_api = import_module("app.api.g06_finalize_api")
+    with _lock, _g06_api._lock:
+        if _g06_api._store.round_finalized(run_id) or _g06_api._store.get(run_id, gu):
+            raise HTTPException(409, "이미 확정된 구 또는 회차에는 결정을 추가할 수 없습니다")
         try:
             record = _g03.record_candidate_decision(
                 request=req, candidate_reader=_OneCandidateReader(candidate),

@@ -9,6 +9,7 @@ export const settingsBackendEnabled = on(import.meta.env?.VITE_SETTINGS_API);
 export const opsBackendEnabled = on(import.meta.env?.VITE_OPS_API);
 // G-03만 명시적으로 개발 연결한다. 기존 mockCall의 전역 차단 범위를 확장하지 않는다.
 export const g03BackendEnabled = import.meta.env?.VITE_G03_API === 'true';
+export const g06BackendEnabled = import.meta.env?.VITE_G06_API === 'true';
 export const backendAuthEnabled = i07BackendEnabled || settingsBackendEnabled || opsBackendEnabled;
 
 /** 서버 연결 모드에서 로그인 뒤 처음 여는 화면 */
