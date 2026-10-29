@@ -138,6 +138,21 @@ def proposal_text(draft: dict) -> str:
     return s if len(s) <= 255 else s[:254] + "…"
 
 
+_TEXT = re.compile(r"^(?P<jur_id>\S+) (?P<problem>.*?): (?P<from>.*?) → (?P<to>.*?) \(근거 (?P<basis>.*)\)$")
+
+
+def parse_proposal_text(text: str | None) -> dict:
+    """proposal_text가 만든 한 줄 → {jur_id, problem, from, to, basis}. 꼴이 다르거나 255자에서 잘렸으면 맞는 칸만 (나머지 None)."""
+    out = {"jur_id": None, "problem": None, "from": None, "to": None, "basis": None}
+    t = (text or "").strip()
+    m = _TEXT.match(t)
+    if m:
+        return {k: (v.strip() or None) for k, v in m.groupdict().items()}
+    if t:
+        out["jur_id"] = t.split(" ", 1)[0] if t.split(" ", 1)[0].startswith("JUR-") else None
+    return out
+
+
 def submit(draft: dict, proposed_by: int, label: str | None = None) -> int:
     """확인을 마친 수정안을 62 setting_version에 '제안'으로 올린다 (SQL v2.1 자동 번호). 승인·돌려보내기는 I-07(진규)."""
     from app.services.standards.repository import get_repository

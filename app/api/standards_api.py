@@ -3,6 +3,9 @@
 GET  /api/standards/jurisdiction          담당 부서 표 (87 + 88) — 어드민 '담당 부서 표' 화면 (목업 JURISDICTION 모양)
 GET  /api/standards/changes?unseen=true   규정 변경 목록 (89) — 어드민 '규정 변경' 화면 (목업 ADMIN_REGULATIONS 모양)
 POST /api/standards/changes/{id}/seen     규정 변경 확인 (seen_at · seen_by)
+GET  /api/standards/drafts?limit=50       올린 담당 부서 표 수정안 목록 (62 '담당 부서 표') — 상태(승인 대기·승인·반려) +
+                                          같은 표 줄에 걸린 규정 변경(89)의 원문 앞부분(before·after, 최대 500자) +
+                                          basisQuery(근거 이름) → 화면에서 원문 전체는 GET /api/ai05/search?q=… 로 찾음 (10/28)
 POST /api/standards/drafts                담당 부서 표 수정안 올리기 → 62 setting_version '제안' (승인은 I-07)
     {"jurId": "JUR-05", "problem": "가로등·보안등 문제", "from": "…", "to": "…", "basis": "성남시 사무위임 조례 별표 1"}
 
@@ -17,7 +20,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from app.core import access_audit as audit
 from app.core.auth import require_roles
 from app.core.responses import ApiError
-from app.services.standards.dept_draft import check_draft, submit
+from app.services.standards.dept_draft import check_draft, parse_proposal_text, submit
 from app.services.standards.repository import StandardsRepository, get_repository
 from app.services.standards import rerun_hooks  # noqa: F401  서버가 켜질 때 A-11·A-12 '다시 실행'(I-06) 등록
 
@@ -77,3 +80,33 @@ def submit_draft(body: DraftBody, request: Request, user: dict = Depends(operato
     sv_id = submit(draft, user["user_id"], body.label)
     audit.record(request, user, audit.SETTING_CHANGE, key=f"담당 부서 표 수정안 {body.jur_id}", reason="담당 부서 표 수정안 제안")
     return {"ok": True, "setting_version_id": sv_id, "status": "제안"}
+
+
+STATUS_LABEL = {"제안": "승인 대기", "승인": "승인", "돌려보냄": "반려"}     # 화면 말 (DB 값은 그대로)
+
+
+def _iso(v, spec="minutes"):
+    return v.isoformat(timespec=spec) if hasattr(v, "hour") else (v.isoformat() if v else None)
+
+
+@router.get("/drafts")
+def drafts(limit: int = Query(50, ge=1, le=200), _u: dict = Depends(operator),
+           repo: StandardsRepository = Depends(get_repository)):
+    """올린 수정안 + 근거 원문 앞부분 (AD-11). 근거 원문 전체는 보관하지 않는다 — basisQuery로 AI-05 검색을 부르면 보유 원문에서 찾음."""
+    out, cache = [], {}
+    for d in repo.list_drafts(limit):
+        p = parse_proposal_text(d.get("content_ref"))
+        jur = p["jur_id"]
+        if jur and jur not in cache:
+            cache[jur] = [{"id": c["standard_change_id"], "kind": c["change_kind"], "name": c["doc_name"],
+                           "where": c.get("where_text"), "change": c["change_type"],
+                           "date": c["effective_date"].isoformat() if c.get("effective_date") else None,
+                           "before": c.get("before_text"), "after": c.get("after_text")}
+                          for c in repo.changes_for_jur(jur)]
+        out.append({"id": d["setting_version_id"], "label": d.get("version_label"), "text": d.get("content_ref"),
+                    "status": d.get("approval_status"), "status_label": STATUS_LABEL.get(d.get("approval_status"), d.get("approval_status")),
+                    "proposed_at": _iso(d.get("proposed_at")), "decided_at": _iso(d.get("approved_at")),
+                    "review_comment": d.get("review_comment"),
+                    "jur_id": jur, "problem": p["problem"], "from": p["from"], "to": p["to"], "basis": p["basis"],
+                    "basis_query": p["basis"], "changes": cache.get(jur, [])})
+    return {"drafts": out}
