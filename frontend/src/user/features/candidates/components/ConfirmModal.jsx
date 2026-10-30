@@ -19,7 +19,7 @@ import styles from './ConfirmModal.module.css';
  */
 export default function ConfirmModal({ runId, role, onClose, onConfirmed, onFailed }) {
   const { data, failed, reload, loading } = useAsync(() => getConfirmSummary({ runId }), [runId]);
-  const [stage, setStage] = useState('ask'); // ask | done
+  const [stage, setStage] = useState('ask'); // ask | reconfirm | done
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const navigate = useNavigate();
@@ -28,7 +28,7 @@ export default function ConfirmModal({ runId, role, onClose, onConfirmed, onFail
     setBusy(true);
     setErr('');
     try {
-      await confirmGu({ runId });
+      await confirmGu({ runId, reconfirmUndecided: data?.counts?.none > 0 && stage === 'reconfirm' });
       setStage('done');
       onConfirmed();
     } catch {
@@ -90,6 +90,12 @@ export default function ConfirmModal({ runId, role, onClose, onConfirmed, onFail
       ) : (
         <div className={styles.body}>
           <p className={styles.sub}>{CONFIRM.sub(gu)}</p>
+          {stage === 'reconfirm' ? (
+            <p className={styles.warn} role="alert">
+              <Icon name="warning" size={18} />
+              <span>미결정 후보 {data.counts.none}건이 남아 있습니다. 이 상태로 {gu} 점검 대상을 확정할지 다시 확인해 주세요. 확정 후에는 결정을 변경할 수 없습니다.</span>
+            </p>
+          ) : null}
           <p className={`${styles.numbers} num`}>{CONFIRM.numbers(data.counts)}</p>
           {data.counts.none > 0 ? (
             <p className={styles.warn} role="alert">
@@ -103,11 +109,14 @@ export default function ConfirmModal({ runId, role, onClose, onConfirmed, onFail
             </p>
           ) : null}
           <div className={styles.actions}>
-            <Button variant="soft" onClick={onClose}>
-              {CONFIRM.more}
+            <Button variant="soft" onClick={stage === 'reconfirm' ? () => setStage('ask') : onClose}>
+              {stage === 'reconfirm' ? '이전으로' : CONFIRM.more}
             </Button>
-            <Button onClick={doConfirm} loading={busy}>
-              {CONFIRM.confirm}
+            <Button
+              onClick={stage === 'ask' && data.counts.none > 0 ? () => setStage('reconfirm') : doConfirm}
+              loading={busy}
+            >
+              {stage === 'reconfirm' ? '미결정 상태로 확정' : CONFIRM.confirm}
             </Button>
           </div>
         </div>

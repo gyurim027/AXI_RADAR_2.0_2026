@@ -138,13 +138,16 @@ def decide(rid, reviewer, decision, note='', acknowledge=False, store=STORE, *, 
             raise ValueError('승인 취소 사유(--note)를 입력해야 합니다.')
         item['review_status'], item['approved'] = 'pending', False
         item['approved_at'] = None
-    item['reviewer'] = reviewer.strip()
+        item['reviewer'] = reviewer.strip()
     record(item, decision, reviewer.strip(), note)
+
     if decision == 'approve':
         item['events'][-1]['evidence_source'] = evidence_source.strip()
         item['events'][-1]['evidence_checked_by_reviewer'] = True
-    atomic_save(store, data)
+        item['events'][-1]['findings_acknowledged'] = bool(acknowledge)
+        item['events'][-1]['finding_count_at_decision'] = len(item['findings'])
 
+    atomic_save(store, data)
 
 def cli():
     parser = argparse.ArgumentParser(description='AI-10 개발용 오프라인 운영자 검토 (DB 미연결)')

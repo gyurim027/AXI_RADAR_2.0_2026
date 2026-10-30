@@ -33,6 +33,8 @@ ROUTER_MODULES = [
     ("C-09", "app.api.c09_upload_api"),       # /api/c09   민원 파일 등록 (규림, W07-01)
     ("C-08", "app.api.c08_review_api"),       # /api/c08   분류 검수 (규림)
     ("AI-03", "app.api.ai03_location_api"),   # /api/ai03  좌표 결과 조회: 낮음 민원 목록 (세은, A-07·C-06)
+    ("G-03", "app.api.g03_decision_api"),     # /api/g03   후보 결정 저장·조회 (대환)
+    ("G-06", "app.api.g06_finalize_api"),     # /api/g06   구별·회차 확정 (대환)
     # 새 기능은 여기에 한 줄: ("AI-03", "app.api.ai03_xxx_api"), ("ENGINE", "app.api.engine_xxx_api") …
 ]
 

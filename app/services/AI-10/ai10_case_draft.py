@@ -233,5 +233,10 @@ def generate_case_draft(case: CaseInput, *, generator: Callable[[str], dict | st
         raw=generator(prompt)
     output=CaseDraftOutput.model_validate_json(raw) if isinstance(raw,str) else CaseDraftOutput.model_validate(raw)
     output=validate_case_draft(output,case)
+    from importlib import import_module
+    collect_review_signals = import_module(
+        "app.services.AI-10.ai10_case_review_signals"
+    ).collect_review_signals
+    payload["review_findings"] = collect_review_signals(case, output)
     payload['draft']=output.model_dump()
     return payload

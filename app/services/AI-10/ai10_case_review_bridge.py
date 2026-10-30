@@ -32,6 +32,22 @@ def stage_case_draft(result: dict, store: Path) -> str:
     note = draft.get('review_note')
     if not isinstance(sentence, str) or not sentence.strip() or not isinstance(note, str) or not note.strip():
         raise CaseReviewBridgeError('초안 문장 또는 운영자 확인 메모가 비어 있습니다.')
+    if 'review_findings' not in result:
+        raise CaseReviewBridgeError('검토 신호 정보가 없는 생성 결과입니다.')
+
+    findings = result['review_findings']
+    if not isinstance(findings, list):
+        raise CaseReviewBridgeError('검토 신호 목록 형식이 올바르지 않습니다.')
+
+    for finding in findings:
+        if not isinstance(finding, dict) or not all(
+            isinstance(finding.get(key), str) and finding[key].strip()
+            for key in ('code', 'category', 'detail')
+        ):
+            raise CaseReviewBridgeError('검토 신호 항목의 필수 정보가 누락됐습니다.')
+
+
+
     rid = 'DEVCASE:' + reference
     store = Path(store)
     if store.exists():
@@ -45,7 +61,7 @@ def stage_case_draft(result: dict, store: Path) -> str:
     data['items'][rid] = {
         'rule_id': rid, 'source_draft_template': sentence.strip(),
         'edited_template': sentence.strip(), 'review_note': note.strip(),
-        'findings': [], 'review_status': 'pending', 'approved': False,
+        'findings': findings, 'review_status': 'pending', 'approved': False,
         'reviewer': None, 'approved_at': None, 'revision': 0, 'events': [],
         'development_only': True,
         'db_item_id': None,

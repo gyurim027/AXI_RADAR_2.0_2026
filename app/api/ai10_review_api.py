@@ -252,6 +252,13 @@ def create_router(store: Path = STORE) -> APIRouter:
         """개발용 JSON을 사용하지 않고 DB에 승인 결과를 저장한다."""
         protect_db_write()
 
+        # Server-side review provenance is not connected to DB approval.
+        # Never trust client-supplied findings flags for approval.
+        raise HTTPException(
+            status_code=403,
+            detail="DB approval blocked: review source not verified",
+        )
+
         if payload.has_findings and not payload.acknowledge_findings:
             raise HTTPException(
                 status_code=400,
