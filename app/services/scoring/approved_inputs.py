@@ -101,3 +101,14 @@ def aggregate_reviewed_complaints(rows: list[dict], *, start: date, end: date,
             state[gid]['repeat_count']+=1
         dates.add(dt)
     return [state[gid] for gid in sorted(state)]
+
+
+def read_approved_policy_document(setting: dict, evidence_dir: str) -> dict:
+    """Read an approved 62 policy by immutable digest; never infer approval."""
+    load_approved_policy(setting,evidence_dir)  # approval, hash, weight checks
+    ref=setting['content_ref']
+    raw=(Path(evidence_dir).resolve()/'policies'/(ref[7:]+'.json')).read_bytes()
+    data=json.loads(raw.decode('utf-8-sig'))
+    if not isinstance(data,dict) or not isinstance(data.get('policy'),dict):
+        raise InputBlocked('APPROVED_POLICY_DOCUMENT_INCOMPLETE')
+    return data

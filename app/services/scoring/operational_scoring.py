@@ -11,10 +11,12 @@ import json
 import pandas as pd
 import numpy as np
 
-from app.services.scoring.approved_inputs import InputBlocked, aggregate_reviewed_complaints, load_approved_policy
+from app.services.scoring.approved_inputs import InputBlocked, aggregate_reviewed_complaints, load_approved_policy, read_approved_policy_document
 from app.services.scoring.calculation import Policy, FEATURES, DOMAINS, calculate, normalize, rank_scores
 from app.services.scoring.official_pipeline import OfficialInputs, run_official_pipeline
 from app.services.scoring.b02_policy_contract import validate_policy_document
+from app.services.scoring.setting_links import prepare_references
+from app.services.scoring.d05_conditions import evaluate_d05, validate_d05_rule, verify_d05_persisted_conditions
 
 
 def assemble_official_score(*, grid_rows: list[dict], reviewed_rows: list[dict],
@@ -26,7 +28,10 @@ def assemble_official_score(*, grid_rows: list[dict], reviewed_rows: list[dict],
     """
     if not isinstance(policy_document, dict):
         raise InputBlocked('POLICY_DOCUMENT_REQUIRED')
-    validate_policy_document(policy_document, start=start, end=end)
+    # B02 v1 is immutable and internal-demo only. For a separately approved
+    # non-v1 policy, validation is against its own SHA-bound document and 62 row.
+    if policy_document.get('policy_authority') == 'RADAR_TEAM_INTERNAL_ONLY_NOT_SEONGNAM_CITY':
+        validate_policy_document(policy_document, start=start, end=end)
     score_config = policy_document.get('policy', policy_document)
     policy = Policy(**{k:score_config[k] for k in
                       ('label','normalization','observation','domain_weights','accident_reduce','missing')})
@@ -48,6 +53,9 @@ def assemble_official_score(*, grid_rows: list[dict], reviewed_rows: list[dict],
     minimum = policy_document['selection_min_score']
     if isinstance(minimum,bool) or not isinstance(minimum,(int,float)) or not 0 <= minimum <= 100:
         raise InputBlocked('INVALID_SELECTION_POLICY')
+    # D-05 thresholds must be present in the immutable, independently approved
+    # policy document. Existing 62/1 does not acquire approval by this change.
+    d05_rule = validate_d05_rule(policy_document.get('d05_rule'))
     if not grid_rows:
         raise InputBlocked('NO_GRID_DATA')
     grid=pd.DataFrame(grid_rows)
@@ -95,13 +103,14 @@ def assemble_official_score(*, grid_rows: list[dict], reviewed_rows: list[dict],
         grade='HIGH' if coverage>=float(bounds['high']) else ('MEDIUM' if coverage>=float(bounds['medium']) else 'LOW')
         score_value=round(float(final.iloc[i]),4)
         cnt=indexed.iloc[i]
+        d05 = evaluate_d05({k:(None if pd.isna(vals[k]) else float(vals[k]))
+                            for k in ('hazard','exposure','vulnerability')}, d05_rule)
         candidates.append({'gid':gid,'official_score':score_value,'rank_no':int(rank.rank_no.iloc[i]),
             'selected_yn':'Y' if score_value>=minimum else 'N',
             'complaint_cnt':int(cnt.relevant_count),'complaint_cnt_excl_low':int(cnt.count_excl_low),
             'calculation_status':'OFFICIAL','input_status':'VERIFIED_CLASSIFIED',
             'classification_status':'COMPLETE','source_kind':'HUMAN_CONFIRMED',
-            'cond_result_yn':None,'cond_hazard_yn':None,'cond_exposure_yn':None,
-            'cond_vulnerable_yn':None,'matched_roles':None,'note':None})
+            **d05,'note':None})
         evidence[gid]={
             'domain_scores':{k:(None if pd.isna(v) else round(float(v)*100,6)) for k,v in vals.items()},
             'indicator_contributions':{k:(None if pd.isna(v) else round(float(v),6)) for k,v in contributions.iloc[i].items()},
@@ -119,25 +128,48 @@ def assemble_official_score(*, grid_rows: list[dict], reviewed_rows: list[dict],
 def run_from_live_rows(*, setting_version_id:int, evidence_dir:str, build_id:str,
                        start:date,end:date,grid_rows:list[dict],reviewed_rows:list[dict],
                        authorized_by:str,approval_reference:str,explicit_db_write_approval:bool,
-                       read_only=None,connection_factory=None):
+                       read_only=None,connection_factory=None,
+                       weight_setting_version_id=None, threshold_setting_version_id=None,
+                       priority_condition_setting_version_id=None):
     if read_only is None:
         from app.core.db import read_only
-    settings=read_only('SELECT setting_version_id,setting_kind,version_label,content_ref,approval_status,approved_at '
+    settings=read_only('SELECT setting_version_id,setting_kind,version_label,content_ref,approval_status,approved_at,review_comment '
                        'FROM setting_version WHERE setting_version_id=%s',(setting_version_id,))
     if len(settings)!=1:raise InputBlocked('SETTING_NOT_FOUND')
     row=settings[0]
-    # B02 binds the exact team-approved values, immutable bytes and fixed period.
-    from app.services.scoring.b02_policy_contract import read_immutable_document
-    document, _b02_contract = read_immutable_document(evidence_dir, row)
-    validate_policy_document(document, start=start, end=end, setting=row, require_simulated_origin=True)
+    # B02/62-1 remains an internal demo. A different, genuinely approved 62
+    # row is read by its own SHA-256 and may define its own D05 thresholds.
+    if setting_version_id == 1:
+        from app.services.scoring.b02_policy_contract import read_immutable_document
+        document, _b02_contract = read_immutable_document(evidence_dir, row)
+        validate_policy_document(document, start=start, end=end, setting=row, require_simulated_origin=True)
+    else:
+        document = read_approved_policy_document(row, evidence_dir)
+        if document.get('policy_authority') == 'RADAR_TEAM_INTERNAL_ONLY_NOT_SEONGNAM_CITY':
+            raise InputBlocked('INTERNAL_DEMO_POLICY_CANNOT_BE_RELABELED')
+        if (document.get('input_period_start') != start.isoformat() or
+                document.get('input_period_end') != end.isoformat()):
+            raise InputBlocked('APPROVED_POLICY_PERIOD_MISMATCH')
+    references = prepare_references(read_only,
+        (weight_setting_version_id, threshold_setting_version_id, priority_condition_setting_version_id),
+        evidence_dir, document)
     policy=load_approved_policy(row,evidence_dir)
     digest=row['content_ref'][7:]
     candidates,evidence=assemble_official_score(grid_rows=grid_rows,reviewed_rows=reviewed_rows,
         start=start,end=end,policy_document=document)
+    # D-05 is not derivable from the score threshold or the D-06 confidence grade.
+    # The current scorer explicitly leaves these five 78 fields unset.
+    # Do not persist a misleading 'official' run until an approved D-05 rule
+    # is implemented and every candidate carries an evaluated condition result.
+    # D-05 explicitly permits UNKNOWN (NULL) when a normalized domain was
+    # not observed. Validate consistency instead of rejecting every NULL.
+    d05_rule = validate_d05_rule(document.get('d05_rule'))
+    for candidate in candidates:
+        verify_d05_persisted_conditions(candidate, d05_rule)
     result=run_official_pipeline(OfficialInputs(setting_version_id=setting_version_id,
         policy_evidence_dir=evidence_dir,build_id=build_id,start=start,end=end,
         gids=frozenset(r['ID_gid'] for r in grid_rows),reviewed_complaints=tuple(reviewed_rows),
         scored_candidates=candidates,evidence_by_gid=evidence,authorized_by=authorized_by,
-        approval_reference=approval_reference),explicit_db_write_approval=explicit_db_write_approval,
+        approval_reference=approval_reference, setting_references=references),explicit_db_write_approval=explicit_db_write_approval,
         read_only=read_only,connection_factory=connection_factory)
     return result

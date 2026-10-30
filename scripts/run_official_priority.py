@@ -18,6 +18,9 @@ def main():
     p=argparse.ArgumentParser()
     p.add_argument('--setting-id',type=int,required=True)
     p.add_argument('--policy-dir',required=True)
+    p.add_argument('--weight-setting-id',type=int,required=True)
+    p.add_argument('--threshold-setting-id',type=int,required=True)
+    p.add_argument('--priority-condition-setting-id',type=int,required=True)
     p.add_argument('--reviewed-json',required=True,help='Actual confirmed C-08 export: list[dict], no sampled/test-only rows')
     p.add_argument('--start',type=date.fromisoformat,required=True)
     p.add_argument('--end',type=date.fromisoformat,required=True)
@@ -30,6 +33,16 @@ def main():
         p.error('--commit-official is required to write; this command does not have a preview mode')
     if len(a.build_id)>30:
         p.error('build-id must fit priority_run.build_id VARCHAR(30)')
+    # Team baseline 62/1 is explicitly marked internal-demo simulation.
+    # Reject before creating an 85 job or attempting any 77/78 write.
+    if a.setting_id == 1:
+        p.error('SETTING_1_IS_INTERNAL_DEMO_ONLY: official 77/78 writes are prohibited')
+    from app.services.scoring.setting_links import links_enabled
+    if not links_enabled():
+        p.error('DB77_V24_ACTIVATION_REQUIRED')
+    refs=(a.weight_setting_id,a.threshold_setting_id,a.priority_condition_setting_id)
+    if len(set(refs))!=3 or any(i<=1 or i>9223372036854775807 for i in refs):
+        p.error('THREE_DISTINCT_NON_SIMULATED_SETTING_IDS_REQUIRED')
     path=Path(a.reviewed_json)
     if not path.is_file():p.error('Confirmed classification JSON not found: '+str(path))
     rows=json.loads(path.read_text(encoding='utf-8-sig'))
@@ -37,17 +50,29 @@ def main():
         p.error('Confirmed classification export must be a nonempty array')
     if any(r.get('scope') in ('TEST_ONLY_NOT_OFFICIAL','TYPE_ONLY_LOCAL_UNAUTHENTICATED') for r in rows):
         p.error('Test/pre-review data cannot be used as official input')
-    # The full applicable complaint population must be accounted for. A one-row
-    # review export cannot silently stand for 281k source records.
-    population = db.read_only(
-        'SELECT COUNT(*) AS n FROM src_complaint WHERE received_date BETWEEN %s AND %s',
-        (a.start, a.end))
-    expected = int(population[0]['n'])
-    in_scope = sum(1 for r in rows if a.start <= date.fromisoformat(str(r['received_date'])[:10]) <= a.end)
-    if in_scope != expected:
-        p.error(f'INCOMPLETE_HUMAN_REVIEW_POPULATION: exported={in_scope} source={expected}')
     # Source of truth: live existing 05 grid rows. Never read the isolated experiment SQLite.
     grids=db.read_only('SELECT * FROM grid_feature')
+    # Account for the FULL source population, but explicitly exclude rows with
+    # no valid grid ID. Mapped rows still require exact human-reviewed ID coverage.
+    from app.services.scoring.source_coverage import verify_coverage, CoverageBlocked
+    source_rows = db.read_only(
+        'SELECT complaint_id, gid FROM src_complaint WHERE received_date BETWEEN %s AND %s',
+        (a.start, a.end))
+    in_scope_rows = [r for r in rows if a.start <= date.fromisoformat(str(r['received_date'])[:10]) <= a.end]
+    if len(in_scope_rows) != len(rows):
+        p.error('REVIEW_EXPORT_CONTAINS_OUT_OF_PERIOD_ROWS')
+    try:
+        coverage = verify_coverage(source_rows, in_scope_rows,
+                                   {str(g['ID_gid']) for g in grids})
+    except CoverageBlocked as exc:
+        p.error(str(exc))
+    # This local audit record contains only counts and SHA-256 digests, no PII.
+    out_dir = Path('out')
+    out_dir.mkdir(exist_ok=True)
+    manifest = out_dir / 'RADAR_R01_공간매핑_제외계약.json'
+    manifest.write_text(json.dumps({'period_start':str(a.start),
+        'period_end':str(a.end), **coverage}, ensure_ascii=False,
+        indent=2)+'\n', encoding='utf-8')
     with track("\uC0B0\uC815", f"RADAR official priority scoring ({a.start}~{a.end})",
                module="ENGINE", triggered_by=None) as job:
         if job.run_id is None:
@@ -56,7 +81,10 @@ def main():
         result=run_from_live_rows(setting_version_id=a.setting_id,evidence_dir=a.policy_dir,
             build_id=a.build_id,start=a.start,end=a.end,grid_rows=grids,reviewed_rows=rows,
             authorized_by=a.authorized_by,approval_reference=a.approval_reference,
-            explicit_db_write_approval=True)
+            explicit_db_write_approval=True,
+            weight_setting_version_id=a.weight_setting_id,
+            threshold_setting_version_id=a.threshold_setting_id,
+            priority_condition_setting_version_id=a.priority_condition_setting_id)
 
         if (not isinstance(result, dict)
                 or result.get("status") != "WRITTEN"

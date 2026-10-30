@@ -8,8 +8,7 @@ GET /api/priority/runs/{run_id}/candidates/{gid}        격자 한 칸 결과 + 
 지키는 것
 - 읽기만 한다. 점수·순위·후보 선정은 진규 산정 기능이 77·78에 쓴다.
 - NULL은 NULL 그대로 내려보낸다. 점수가 없으면 score_status='미산출' (0점으로 바꾸지 않음).
-- 78 상세 5칸(분야별 점수·지표별 기여·미평가 사유·신뢰도·사고 제외 점수)은 아직 DB에 없다 (진규 추가안, v2.2 예정).
-  그 전까지는 details.stored=false 와 모두 null로 내려보낸다.
+- 78 상세 8개 항목은 DB 컬럼에서 읽는다. 없는 값은 NULL을 보존한다.
 - run_id는 숫자 (77 priority_run.run_id BIGINT). 글자면 422.
 """
 from __future__ import annotations
@@ -26,7 +25,7 @@ from app.services.priority.repository import PriorityRepository, get_repository
 router = APIRouter(prefix="/api/priority", tags=["우선순위 결과 조회 (77·78·82)"])
 
 DETAIL_NAMES = ("domain_scores", "indicator_contributions", "unevaluated_reasons", "confidence_grade",
-                "score_excluding_accidents")
+                "score_excluding_accidents", "exclusion_reasons", "complaint_contribution", "policy_version")
 
 
 def _iso(v):
@@ -44,6 +43,10 @@ def _cnt(v):
 def _run(r: dict) -> dict:
     out = {"run_id": r["run_id"], "build_id": r.get("build_id"), "rule_version": r.get("rule_version"),
            "created_at": _iso(r.get("created_at")), "note": r.get("note")}
+    out.update({k:r.get(k) for k in (
+        'weight_setting_version_id','threshold_setting_version_id',
+        'priority_condition_setting_version_id','setting_versions',
+        'setting_version_display','setting_links_status')})
     if "candidate_cnt" in r:
         out.update(candidate_cnt=_cnt(r["candidate_cnt"]), selected_cnt=_cnt(r.get("selected_cnt")),
                    scored_cnt=_cnt(r.get("scored_cnt")))
@@ -138,10 +141,7 @@ def run_evidence(run_id: int, gu: str | None = None,
                  selected: str | None = Query(None, pattern="^[YN]$"),
                  limit: int = Query(100, ge=1, le=500), offset: int = Query(0, ge=0),
                  user: dict = Depends(current_user), repo: PriorityRepository = Depends(get_repository)):
-    """Five evidence fields for a paged, authorized 78 population; read-only.
-
-    UNSTORED means no ev1 pointer, never five verified details. Broken ev1
-    pointers are reported as integrity failures, not silently converted to zero.
+    """Eight DB78 fields for an authorized page; no ev1 pointer or filesystem dependency.
     """
     run = repo.get_run(run_id)
     if not run:
@@ -155,29 +155,26 @@ def run_evidence(run_id: int, gu: str | None = None,
     missing = 0
     errors = 0
     for row in rows:
-        note = row.get("note") or ""
         item = {"run_id": run_id, "gid": row["gid"], "gu": row.get("gu"),
                 "score": _num(row.get("score")), "rank_no": row.get("rank_no")}
-        if not note.startswith("ev1:"):
-            item.update(evidence_status="UNSTORED", details={"stored": False, **{k: None for k in DETAIL_NAMES}})
-            missing += 1
-        else:
-            try:
-                details = read_evidence(db.read_only, run_id, row["gid"])
-                if not details.get("stored") or set(DETAIL_NAMES) - details.keys():
-                    raise ValueError("incomplete persisted evidence")
-                if any(details[k] is None for k in DETAIL_NAMES):
-                    raise ValueError("null persisted evidence field")
-            except (ValueError, OSError, KeyError, TypeError) as exc:
-                item.update(evidence_status="INTEGRITY_ERROR", details=None,
-                            evidence_error=type(exc).__name__)
-                errors += 1
-            else:
-                item.update(evidence_status="STORED_VERIFIED_SHA256", details=details)
+        try:
+            details = read_evidence(db.read_only, run_id, row["gid"])
+            if details.get('complete'):
+                item.update(evidence_status='STORED_DB78', details=details)
                 stored += 1
+            elif details.get('stored'):
+                item.update(evidence_status='PARTIAL_DB78', details=details)
+                missing += 1
+            else:
+                item.update(evidence_status='UNSTORED', details=details)
+                missing += 1
+        except (ValueError, OSError, KeyError, TypeError, RuntimeError) as exc:
+            item.update(evidence_status='INTEGRITY_ERROR', details=None,
+                        evidence_error=type(exc).__name__)
+            errors += 1
         results.append(item)
     return {"run": _run(run), "total": total, "limit": limit, "offset": offset,
-            "stored_verified": stored, "unstored": missing, "integrity_errors": errors,
+            "stored_verified": stored, "storage": "DB78", "verification_basis": "DB_VALUE_VALIDATION", "unstored": missing, "integrity_errors": errors,
             "official_policy_verified": False, "candidates": results}
 
 @router.get('/runs/{run_id}/actions')
@@ -286,9 +283,9 @@ def b10_decision_basis(run_id: int, gu: str | None = None,
         try:
             evidence = read_evidence(db.read_only, run_id, gid)
             if evidence.get('stored'):
-                status = 'STORED_VERIFIED_SHA256'
+                status = 'STORED_DB78' if evidence.get('complete') else 'PARTIAL_DB78'
                 details = evidence
-        except (ValueError, FileNotFoundError, RuntimeError, OSError, KeyError) as exc:
+        except (ValueError, FileNotFoundError, RuntimeError, OSError, KeyError, TypeError) as exc:
             status = 'INTEGRITY_OR_STORAGE_ERROR'
         selected_value = row.get('selected_yn')
         flags = {k: row.get(k) for k in
@@ -309,7 +306,7 @@ def b10_decision_basis(run_id: int, gu: str | None = None,
                 'evidence_status': status,
                 'confidence_grade': details.get('confidence_grade') if details else None,
                 'unevaluated_reasons': details.get('unevaluated_reasons') if details else None,
-                'source': '78_NOTE_SHA256_SIDECAR' if details else None,
+                'source': '78_STORED_DETAIL_COLUMNS' if details else None,
                 'independent_from_score': True,
             },
         })

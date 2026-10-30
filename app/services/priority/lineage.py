@@ -6,6 +6,7 @@ not proof of an approved source snapshot or the exact setting used for a run.
 from __future__ import annotations
 
 from app.core import db
+from app.services.scoring.setting_links import links_enabled, attach_run_versions
 
 
 def _cols(table: str, read_only):
@@ -22,18 +23,25 @@ def read_run_lineage(run_id: int, read_only=None) -> dict | None:
     if not rows:
         return None
     run = rows[0]
-    setting_cols = _cols('setting_version', reader)
-    required = {'setting_version_id','version_label','content_ref','approval_status','approved_at'}
-    if not required <= setting_cols:
-        setting = {'status':'SCHEMA_NOT_MATCHED','candidates':[], 'missing_columns':sorted(required-setting_cols)}
-    elif not run.get('rule_version'):
-        setting = {'status':'NO_RULE_VERSION','candidates':[]}
+    direct_mode = links_enabled()
+    if direct_mode:
+        run = attach_run_versions([run], reader, True)[0]
+        setting = {'status':'DIRECT_REFERENCE_LOOKUP', 'versions':run['setting_versions'],
+                   'match_basis':'77 explicit setting IDs -> 62 setting_version_id',
+                   'content_hash_verified_by_this_query':False}
     else:
-        found = reader("SELECT setting_version_id, version_label, content_ref, approval_status, approved_at "
-                       "FROM setting_version WHERE version_label=%s ORDER BY setting_version_id", (run['rule_version'],))
-        safe = [{k:r.get(k) for k in ('setting_version_id','version_label','content_ref','approval_status','approved_at')} for r in found]
-        setting = {'status':'ONE_VERSION_MATCH_UNVERIFIED' if len(safe)==1 else ('AMBIGUOUS_VERSION' if safe else 'NO_VERSION_MATCH'),
-                   'candidates':safe, 'match_basis':'77.rule_version = 62.version_label; NO_DIRECT_FK_OR_PER_RUN_POLICY_HASH'}
+        setting_cols = _cols('setting_version', reader)
+        required = {'setting_version_id','version_label','content_ref','approval_status','approved_at'}
+        if not required <= setting_cols:
+            setting = {'status':'SCHEMA_NOT_MATCHED','candidates':[], 'missing_columns':sorted(required-setting_cols)}
+        elif not run.get('rule_version'):
+            setting = {'status':'NO_RULE_VERSION','candidates':[]}
+        else:
+            found = reader("SELECT setting_version_id, version_label, content_ref, approval_status, approved_at "
+                           "FROM setting_version WHERE version_label=%s ORDER BY setting_version_id", (run['rule_version'],))
+            safe = [{k:r.get(k) for k in ('setting_version_id','version_label','content_ref','approval_status','approved_at')} for r in found]
+            setting = {'status':'ONE_VERSION_MATCH_UNVERIFIED' if len(safe)==1 else ('AMBIGUOUS_VERSION' if safe else 'NO_VERSION_MATCH'),
+                       'candidates':safe, 'match_basis':'77.rule_version = 62.version_label; NO_DIRECT_FK_OR_PER_RUN_POLICY_HASH'}
     build_cols = _cols('build_info', reader)
     if not build_cols:
         build = {'status':'BUILD_TABLE_OR_COLUMNS_MISSING', 'candidates':[]}
@@ -49,6 +57,8 @@ def read_run_lineage(run_id: int, read_only=None) -> dict | None:
                  'match_basis':'77.build_id = 59.build_info.build_id (string); NO_FOREIGN_KEY'}
     # Distinguish a valid value lookup from cryptographically attested provenance.
     return {'run_id':run['run_id'],'priority_run':run,'setting_version':setting,'build_info':build,
-            'end_to_end_verified':False,'evidence_status':'INDIRECT_LOOKUP_ONLY',
-            'verification_gaps':['NO_77_SETTING_VERSION_ID_FK','NO_VERIFIED_59_77_BUILD_SNAPSHOT_ATTESTATION',
-                                 'NO_PER_RUN_62_CONTENT_REF_SNAPSHOT'], 'db_writes':0}
+            'end_to_end_verified':False,'evidence_status':'DIRECT_SETTING_LOOKUP_BUILD_UNVERIFIED' if direct_mode else 'INDIRECT_LOOKUP_ONLY',
+            'verification_gaps':([] if direct_mode and all(run.get(f) is not None for f in
+                ('weight_setting_version_id','threshold_setting_version_id','priority_condition_setting_version_id'))
+                else ['NO_COMPLETE_77_SETTING_REFERENCES']) + ['NO_VERIFIED_59_77_BUILD_SNAPSHOT_ATTESTATION',
+                'NO_PER_RUN_62_CONTENT_REF_SNAPSHOT'], 'db_writes':0}
