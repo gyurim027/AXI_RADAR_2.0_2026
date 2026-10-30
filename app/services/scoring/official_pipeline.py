@@ -15,6 +15,8 @@ from app.services.scoring.approved_inputs import (
 )
 from app.services.scoring.production_writer import OfficialBatch, ProductionBlocked
 from app.services.scoring.mysql_writer import write_approved_batch
+from app.services.scoring.setting_links import prepare_references
+from app.services.scoring.approved_inputs import read_approved_policy_document
 
 
 def _sha(obj):
@@ -35,6 +37,7 @@ class OfficialInputs:
     evidence_by_gid: dict
     authorized_by: str
     approval_reference: str
+    setting_references: tuple = ()
 
 
 def run_official_pipeline(inputs: OfficialInputs, *, explicit_db_write_approval: bool,
@@ -64,6 +67,13 @@ def run_official_pipeline(inputs: OfficialInputs, *, explicit_db_write_approval:
         document, _ = read_immutable_document(inputs.policy_evidence_dir,scoped_setting)
         validate_policy_document(document,start=inputs.start,end=inputs.end,setting=scoped_setting,require_simulated_origin=True)
         if explicit_db_write_approval: raise InputBlocked('INTERNAL_DEMO_SIMULATION_CANNOT_WRITE_OFFICIAL_77_78')
+
+    # 세 FK는 실제 계산 문서와 대조한 참조만 허용한다.
+    document = read_approved_policy_document(setting, inputs.policy_evidence_dir)
+    ids = tuple(r.setting_version_id for r in inputs.setting_references)
+    verified = prepare_references(read_only, ids, inputs.policy_evidence_dir, document)
+    if verified != inputs.setting_references:
+        raise InputBlocked('SETTING_REFERENCES_CHANGED_DURING_CALCULATION')
 
     # C-07 output is generated only from explicitly human-confirmed input, not AI candidates.
     counts = aggregate_reviewed_complaints(list(inputs.reviewed_complaints),
@@ -111,6 +121,8 @@ def run_official_pipeline(inputs: OfficialInputs, *, explicit_db_write_approval:
         candidates=tuple(candidates),
         authorized_by=inputs.authorized_by,
         approval_reference=inputs.approval_reference,
+        setting_references=verified,
+        period_start=inputs.start, period_end=inputs.end,
     )
     written = write_approved_batch(batch,
         explicit_db_write_approval=explicit_db_write_approval,

@@ -6,6 +6,8 @@ record, not a row that the scorer may invent. No schema mutation.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import date
+from app.services.scoring.setting_links import validate_references, reference_identity, verify_reference_rows
 from decimal import Decimal, InvalidOperation
 from hashlib import sha256
 import json
@@ -28,6 +30,9 @@ class OfficialBatch:
     # Human-approved attestation is evidence *provided externally*, never inferred.
     authorized_by: str
     approval_reference: str
+    setting_references: tuple = ()
+    period_start: date | None = None
+    period_end: date | None = None
 
 
 def _nonempty(value, name):
@@ -37,6 +42,9 @@ def _nonempty(value, name):
 
 
 def validate_batch(batch: OfficialBatch):
+    validate_references(batch.setting_references)
+    if type(batch.period_start) is not date or type(batch.period_end) is not date or batch.period_start > batch.period_end:
+        raise ProductionBlocked("INVALID_RUN_PERIOD")
     for field in ('build_id', 'rule_version', 'setting_content_ref', 'input_digest',
                   'policy_digest', 'complaint_contract_digest', 'authorized_by', 'approval_reference'):
         _nonempty(getattr(batch, field), field.upper())
@@ -96,6 +104,8 @@ def plan(batch: OfficialBatch):
     validate_batch(batch)
     identity = {'build_id':batch.build_id, 'rule_version':batch.rule_version,
                 'setting_version_id':batch.setting_version_id,
+                'setting_references':reference_identity(batch.setting_references),
+                'period_start':batch.period_start.isoformat(), 'period_end':batch.period_end.isoformat(),
                 'input_digest':batch.input_digest, 'policy_digest':batch.policy_digest,
                 'complaint_contract_digest':batch.complaint_contract_digest,
                 'candidates':sorted(batch.candidates, key=lambda c:c['gid'])}
@@ -115,6 +125,11 @@ def inspect_dependencies(read_only, batch: OfficialBatch):
     if len(rows) != 1:
         raise ProductionBlocked('SETTING_NOT_FOUND')
     setting = rows[0]
+    linked = read_only('SELECT setting_version_id,setting_kind,content_ref,version_label,version_no,'
+                       'approval_status,approved_at FROM setting_version '
+                       'WHERE setting_version_id IN (%s,%s,%s)',
+                       tuple(r.setting_version_id for r in batch.setting_references))
+    verify_reference_rows(batch.setting_references, linked)
     if setting['content_ref'] != batch.setting_content_ref:
         raise ProductionBlocked('SETTING_CONTENT_MISMATCH')
     if setting.get('approval_status') not in ('승인', 'APPROVED') or setting.get('approved_at') is None:

@@ -126,7 +126,7 @@ def _unique_json_pairs(pairs):
     return result
 
 
-def read_evidence(read_only, run_id:int, gid:str) -> dict:
+def read_legacy_evidence(read_only, run_id:int, gid:str) -> dict:
     rows = read_only('SELECT note FROM priority_candidate WHERE run_id=%s AND gid=%s',(run_id,gid))
     if len(rows)!=1:
         raise ValueError('candidate evidence identity not found')
@@ -149,3 +149,9 @@ def read_evidence(read_only, run_id:int, gid:str) -> dict:
 def encode_evidence(run_id, gid, data):
     raw = _payload(run_id,gid,data)
     return raw.decode('utf-8'),hashlib.sha256(raw).hexdigest()
+
+
+def read_evidence(read_only, run_id, gid):
+    """Read eight stored DB78 fields; no filesystem fallback."""
+    from app.services.priority.db8_details import read_db_evidence
+    return read_db_evidence(read_only, run_id, gid)

@@ -7,9 +7,11 @@
 from __future__ import annotations
 
 from app.core import db
+from app.services.priority.db8_details import COLS as DB8_COLS, decode_db_row
+from app.services.scoring.setting_links import attach_run_versions
 
 CANDIDATE_COLS = ("run_id", "gid", "selected_yn", "score", "rank_no", "complaint_cnt", "complaint_cnt_excl_low",
-                  "cond_result_yn", "cond_hazard_yn", "cond_exposure_yn", "cond_vulnerable_yn", "matched_roles", "note")
+                  "cond_result_yn", "cond_hazard_yn", "cond_exposure_yn", "cond_vulnerable_yn", "matched_roles", "note") + DB8_COLS
 ACTION_COLS = ("item_id", "action_text", "dept_text", "basis_text", "created_at")
 
 _GU = "NULLIF(REPLACE(f.id_gu, '성남시 ', ''), '')"          # '성남시 분당구' → '분당구'
@@ -17,18 +19,19 @@ _GU = "NULLIF(REPLACE(f.id_gu, '성남시 ', ''), '')"          # '성남시 분
 
 class PriorityRepository:
     def list_runs(self, limit: int) -> list[dict]:
-        return db.read_only(
+        rows = db.read_only(
             "SELECT r.run_id, r.build_id, r.rule_version, r.created_at, r.note, "
             "COUNT(c.gid) AS candidate_cnt, SUM(c.selected_yn = 'Y') AS selected_cnt, "
             "SUM(c.score IS NOT NULL) AS scored_cnt "
             "FROM priority_run r LEFT JOIN priority_candidate c ON c.run_id = r.run_id "
             "GROUP BY r.run_id, r.build_id, r.rule_version, r.created_at, r.note "
             "ORDER BY r.created_at DESC, r.run_id DESC LIMIT %s", (limit,))
+        return attach_run_versions(rows, db.read_only)
 
     def get_run(self, run_id: int) -> dict | None:
         rows = db.read_only("SELECT run_id, build_id, rule_version, created_at, note FROM priority_run "
                             "WHERE run_id = %s", (run_id,))
-        return rows[0] if rows else None
+        return attach_run_versions(rows, db.read_only)[0] if rows else None
 
     def list_candidates(self, run_id: int, gus: list[str] | None, include_no_gu: bool, selected: str | None,
                         limit: int, offset: int) -> tuple[list[dict], int]:
@@ -47,8 +50,10 @@ class PriorityRepository:
         base = ("FROM priority_candidate c LEFT JOIN grid_feature f ON f.ID_gid = c.gid WHERE " + " AND ".join(where))
         total = db.read_only("SELECT COUNT(*) AS n " + base, args)
         rows = db.read_only(
-            "SELECT " + ", ".join("c." + k for k in CANDIDATE_COLS) + f", {_GU} AS gu, f.`ID_중심위도` AS center_lat, f.`ID_중심경도` AS center_lon " + base +
+            "SELECT " + ", ".join("c." + k for k in CANDIDATE_COLS) + f", {_GU} AS gu, f.id_center_lat AS center_lat, f.id_center_lon AS center_lon " + base +
             " ORDER BY c.rank_no IS NULL, c.rank_no, c.gid LIMIT %s OFFSET %s", [*args, limit, offset])
+        for row in rows:
+            row["details"] = decode_db_row(row)
         return rows, int(total[0]["n"]) if total else 0
 
     def get_candidate(self, run_id: int, gid: str) -> dict | None:
