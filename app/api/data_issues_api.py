@@ -4,6 +4,9 @@ from typing import Literal
 
 from app.core import db
 from app.core.auth import require_roles
+from app.services.a05.duplicate_role_adapter import (
+    attach_duplicate_roles,
+)
 
 router = APIRouter(
     prefix="/api/data-issues",
@@ -64,6 +67,14 @@ def list_data_issues(
     count_rows = db.read_only(count_sql, count_params)
     rows = db.read_only(rows_sql, rows_params)
 
+    # A-05 중복 행에만 검증된 대표·사본 정보를 추가
+    if any(
+        row.get("check_fn") == "A-05"
+        and row.get("error_code") == "A05_DUPLICATE_ROW"
+        for row in rows
+    ):
+        rows = attach_duplicate_roles(rows)
+
     return {
         "total": int(count_rows[0]["cnt"]),
         "check_fn": check_fn,
@@ -72,5 +83,19 @@ def list_data_issues(
         "items": rows,
         "source": "data_issue",
         "db_written": False,
+        "duplicate_role_source": (
+            "db_reason"
+            if any(
+                row.get("duplicate_role_status") == "matched_db_reason"
+                for row in rows
+            )
+            else "unavailable"
+            if any(
+                row.get("check_fn") == "A-05"
+                and row.get("error_code") == "A05_DUPLICATE_ROW"
+                for row in rows
+            )
+            else "not_applicable"
+        ),
     }
 
