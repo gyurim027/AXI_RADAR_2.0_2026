@@ -7,22 +7,44 @@
   margin-top: var(--space-32);
 }
 .h {
-  font-size: var(--fs-h3);
+  font-size: var(--fs-body); /* 위계 ② 블록 소제목 16px 굵게 */
   font-weight: var(--fw-bold);
 }
+/* 탭 맨 위 안내 한 줄: 14px 보조색 (위계 ③을 옅게) */
 .sub {
-  margin-top: var(--space-8);
+  font-size: var(--fs-small);
   color: var(--semantic-color-text-muted);
+}
+.h + .sub {
+  margin-top: var(--space-4);
 }
 .content {
   display: flex;
   flex-direction: column;
   gap: var(--space-16);
-  margin-top: var(--space-16);
+  margin-top: var(--space-12);
 }
 .numbers {
-  font-size: var(--fs-h3);
+  font-size: var(--fs-small);
+}
+/* 점검 필요도: 핵심 수치만 24px 굵게, 나머지는 14px */
+.score {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-8);
+}
+.scoreLabel {
+  font-size: var(--fs-small);
+  color: var(--semantic-color-text-muted);
+}
+.scoreValue {
+  font-size: var(--fs-h2);
   font-weight: var(--fw-bold);
+  color: var(--semantic-color-text-strong);
+}
+.scoreAux {
+  font-size: var(--fs-small);
 }
 .tagRow {
   display: flex;

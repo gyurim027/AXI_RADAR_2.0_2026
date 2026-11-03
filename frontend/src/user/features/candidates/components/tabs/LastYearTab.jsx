@@ -8,7 +8,6 @@ export default function LastYearTab({ detail }) {
   const warn = ly && (ly.decision === DECISION.EXCLUDE || ly.decision === DECISION.HOLD);
   return (
     <section>
-      <h3 className={styles.h}>{DRAWER.lastTitle}</h3>
       <p className={styles.sub}>{DRAWER.lastSub}</p>
       <div className={styles.content}>
         {ly ? (

@@ -68,13 +68,7 @@ function CandidateListPage() {
   const mapColRef = useRef(null);
   const splitRef = useRef(null);
   const split = useSplit();
-  const stackSections = useMemo(
-    () => [
-      { key: 'table', label: LIST.stackTable, ref: scrollRef },
-      { key: 'map', label: LIST.stackMap, ref: mapColRef },
-    ],
-    [],
-  );
+  const confirmRef = useRef(null);
 
   const list = useAsync(() => listCandidates({ runId: run.id, gu }), [run.id, gu, user.id, version]);
   const detail = useAsync(
@@ -186,6 +180,17 @@ function CandidateListPage() {
     );
   }
 
+  // 좁은 폭(쌓인 배치)의 앵커 탭. 확정 버튼이 있는 계정만 세 번째 탭을 둔다.
+  const hasConfirmTab = !!bar?.button;
+  const stackSections = useMemo(
+    () => [
+      { key: 'table', label: LIST.stackTable, ref: scrollRef, edge: 'top' },
+      { key: 'map', label: LIST.stackMap, ref: mapColRef },
+      ...(hasConfirmTab ? [{ key: 'confirm', label: LIST.stackConfirm, ref: confirmRef, edge: 'bottom' }] : []),
+    ],
+    [hasConfirmTab],
+  );
+
   const scope = city ? (gu === ALL_GU ? '3개 구 전체' : gu) : user.gu;
   const clearAll = () => changeFilters(EMPTY_FILTERS);
 
@@ -277,7 +282,7 @@ function CandidateListPage() {
           <PageFooterNote />
         </div>
 
-        {bar ? (
+        {bar && split.wide ? (
           <BottomBar scrollRef={scrollRef} message={bar.message} buttonLabel={bar.button} buttonVariant={bar.variant} onButton={() => setConfirmOpen(true)} />
         ) : null}
       </div>
@@ -337,6 +342,12 @@ function CandidateListPage() {
           />
         ) : null}
       </div>
+
+      {bar && !split.wide ? (
+        <div ref={confirmRef} className={styles.stackConfirm}>
+          <BottomBar scrollRef={scrollRef} message={bar.message} buttonLabel={bar.button} buttonVariant={bar.variant} onButton={() => setConfirmOpen(true)} />
+        </div>
+      ) : null}
 
       {deciding ? (
         <DecisionReasonModal

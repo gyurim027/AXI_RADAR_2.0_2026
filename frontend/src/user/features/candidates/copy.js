@@ -33,6 +33,7 @@ export const LIST = {
   stackTabsLabel: '점검 후보 표와 지도 이동',
   stackTable: '점검 후보 표',
   stackMap: '점검 후보 지도',
+  stackConfirm: '우선 점검 대상 확정',
   noGuNote: (n) => `구를 확인할 수 없어 목록에 없는 후보가 ${n}곳 있습니다.`, // 시 도로과 (구 미지정 후보, 결정 3-17)
   complaintLabel: '민원이 몰린 곳',
   complaintHelp: '같은 장소에 여러 해에 걸쳐 민원이 반복된 구역입니다.', // W-16
@@ -127,17 +128,19 @@ export const DRAWER = {
   next: '다음 후보 ▶',
   closeLabel: '상세 닫기', // 명세에 없는 닫기 버튼 (확인 필요)
   tabs: {
-    1: '① 순위 근거',
-    2: '② 조문',
-    3: '③ 담당 부서',
-    4: '④ 작년 결정',
-    5: '⑤ 결정 기록',
-    6: '⑥ 점검 요청',
+    1: '순위 근거',
+    2: '조문',
+    3: '담당 부서',
+    4: '작년 결정',
+    5: '결정 기록',
+    6: '점검 요청',
   },
 
   // 1-1 순위 근거
   basisTitle: '순위 근거',
   basisSub: '이 구역의 점검 순위에 영향을 준 근거입니다.',
+  scoreLabel: '점검 필요도',
+  scoreAux: (pct) => `성남시 내 상위 ${pct}%`,
   scoreLine: (score, pct) => `점검 필요도 ${score}점 · 성남시 내 상위 ${pct}%`,
   scoreHelp: '100점 만점이며, 점수가 높을수록 먼저 점검할 필요가 있습니다.', // W-6
   scoreHelpLabel: '점검 필요도 뜻 보기',

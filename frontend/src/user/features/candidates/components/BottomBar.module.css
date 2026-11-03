@@ -27,21 +27,21 @@
   }
 }
 
-@media (max-width: 1099px) {
-  .bar {
-    flex-wrap: wrap;
-    gap: var(--space-8);
-    padding: var(--space-8) var(--space-16);
-  }
-  .msg {
-    flex-basis: 100%;
-  }
-}
-
+/* 좁은 폭: 글 두 줄(둘째 문장이 아래로)과 오른쪽 끝, 높이 가운데의 버튼. 쌓인 배치에서는 지도 아래 맨 끝에 놓인다 */
 @media (max-width: 1099px) {
   .bar,
   .hidden {
     position: static;
     transform: none;
+  }
+  .bar {
+    gap: var(--space-12);
+    padding: var(--space-12) var(--space-16);
+  }
+  .rest {
+    display: block;
+  }
+  .btn {
+    align-self: center;
   }
 }

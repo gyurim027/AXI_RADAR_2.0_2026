@@ -167,3 +167,10 @@
   text-align: center;
   pointer-events: none;
 }
+
+/* 쌓인 배치: 지도 칸 높이(보이는 높이 − 막대)를 지도가 넘치지 않게 따른다 */
+@media (max-width: 1099px) {
+  .wrap {
+    min-height: 0;
+  }
+}

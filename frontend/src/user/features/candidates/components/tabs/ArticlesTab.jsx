@@ -8,7 +8,6 @@ export default function ArticlesTab({ detail }) {
   const [openId, setOpenId] = useState(null);
   return (
     <section>
-      <h3 className={styles.h}>{DRAWER.articleTitle}</h3>
       <p className={styles.sub}>{DRAWER.articleSub}</p>
       <div className={styles.content}>
         {detail.articles.length === 0 ? (

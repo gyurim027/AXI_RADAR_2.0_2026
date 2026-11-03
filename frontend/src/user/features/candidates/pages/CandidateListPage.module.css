@@ -101,8 +101,8 @@
   }
   .mapCol {
     flex: none;
-    height: clamp(360px, 70vh, 640px);
-    min-height: 360px;
+    height: max(300px, var(--stack-map-h, clamp(360px, 70vh, 640px)));
+    min-height: 300px;
   }
   /* 세로 스크롤은 분할 영역 하나만 쓴다. 표 카드는 높이를 풀고 안쪽은 가로로만 넘긴다 */
   .tableCard {
@@ -119,4 +119,9 @@
 .noGuNote {
   font-size: var(--fs-small);
   color: var(--semantic-color-text-muted);
+}
+
+/* 쌓인 배치에서 지도 아래 맨 끝에 놓이는 확정 바 */
+.stackConfirm {
+  flex: none;
 }

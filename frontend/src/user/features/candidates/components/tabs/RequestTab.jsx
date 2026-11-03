@@ -14,10 +14,6 @@ export default function RequestTab({ detail, onGoTab }) {
   if (!d.dept) {
     return (
       <section>
-        <h3 className={styles.h}>
-          {DRAWER.requestTitle}
-          <InfoHelp label={DRAWER.requestHelpLabel}>{DRAWER.requestHelp}</InfoHelp>
-        </h3>
         <div className={styles.content}>
           <p className={styles.err} role="alert">
             {DRAWER.needDept}
@@ -45,11 +41,10 @@ export default function RequestTab({ detail, onGoTab }) {
 
   return (
     <section>
-      <h3 className={styles.h}>
-          {DRAWER.requestTitle}
-          <InfoHelp label={DRAWER.requestHelpLabel}>{DRAWER.requestHelp}</InfoHelp>
-        </h3>
-      <p className={styles.sub}>{DRAWER.requestSub}</p>
+      <p className={styles.sub}>
+        {DRAWER.requestSub}
+        <InfoHelp label={DRAWER.requestHelpLabel}>{DRAWER.requestHelp}</InfoHelp>
+      </p>
       <div className={styles.content}>
         <p className={styles.reqText}>
           <Icon name="sparkle" size={16} className={styles.sparkle} />

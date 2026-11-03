@@ -28,7 +28,7 @@
   gap: var(--space-12);
 }
 .title {
-  font-size: var(--fs-body-lg);
+  font-size: var(--fs-h3); /* 위계 ① 서랍 제목 20px 굵게 */
   font-weight: var(--fw-bold);
 }
 .close {
@@ -69,13 +69,13 @@
 }
 .tab {
   flex: none;
-  height: var(--primitive-size-tab-row);
+  height: 36px;
   padding: 0 var(--space-12);
   border: 0;
   border-bottom: 2px solid transparent;
   background: none;
   color: var(--component-tab-inactive-fg);
-  font-size: var(--fs-body);
+  font-size: var(--fs-small);
   white-space: nowrap;
 }
 .tab:hover {
@@ -90,7 +90,8 @@
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding: var(--space-24);
+  padding: var(--space-20) var(--space-24) var(--space-24);
+  font-size: var(--fs-small); /* 위계 ③ 본문 14px */
 }
 
 @media (max-width: 1099px) {

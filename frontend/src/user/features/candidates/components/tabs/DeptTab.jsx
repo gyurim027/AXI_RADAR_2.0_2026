@@ -25,7 +25,6 @@ export default function DeptTab({ detail, onChanged }) {
 
   return (
     <section>
-      <h3 className={styles.h}>{DRAWER.deptTitle}</h3>
       <p className={styles.sub}>{d.canPickDept ? DRAWER.deptSubDistrict : DRAWER.deptSubCity}</p>
       <div className={styles.content}>
         {d.dept ? (

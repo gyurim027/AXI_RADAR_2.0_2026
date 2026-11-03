@@ -5,12 +5,12 @@ import { placeBubble } from './placeBubble.js';
 import styles from './FormControls.module.css';
 
 /** 라벨 + 선택(select). options는 문자열 목록 또는 { value, label } */
-export function SelectField({ label, labelExtra, value, onChange, options, placeholder, inline = true, disabled, id: idProp, 'aria-describedby': describedBy }) {
+export function SelectField({ label, hideLabel = false, labelExtra, value, onChange, options, placeholder, inline = true, disabled, id: idProp, 'aria-describedby': describedBy }) {
   const autoId = useId();
   const id = idProp || autoId;
   return (
     <div className={`${styles.field} ${inline ? styles.inline : ''}`}>
-      <label htmlFor={id} className={styles.label}>
+      <label htmlFor={id} className={hideLabel ? 'sr-only' : styles.label}>
         {label}
       </label>
       {labelExtra}
@@ -69,7 +69,7 @@ export function TextField({ label, value, onChange, maxLength, placeholder, type
  * 말풍선은 화면 맨 위 층(portal)에 그려 칸 안의 잘림을 피하고, 화면 가장자리에서 뒤집거나 민다.
  * text가 있으면 아이콘 옆에 글자를 붙여 여러 ⓘ가 나란히 있을 때 무엇인지 구분한다.
  */
-export function InfoHelp({ label = '도움말 보기', children, text }) {
+export function InfoHelp({ label = '도움말 보기', children, text, iconless = false }) {
   const [hover, setHover] = useState(false);
   const [focus, setFocus] = useState(false);
   const [pinned, setPinned] = useState(false);
@@ -151,13 +151,13 @@ export function InfoHelp({ label = '도움말 보기', children, text }) {
     >
       <button
         type="button"
-        className={`${styles.helpBtn} ${text ? styles.helpBtnText : ''}`}
+        className={`${styles.helpBtn} ${text ? styles.helpBtnText : ''} ${iconless ? styles.helpBtnPlain : ''}`}
         aria-expanded={open}
         aria-describedby={open ? id : undefined}
         aria-label={label}
         onClick={() => setPinned((v) => !v)}
       >
-        <Icon name="info" size={text ? 16 : 18} />
+        {iconless ? null : <Icon name="info" size={text ? 16 : 18} />}
         {text ? <span>{text}</span> : null}
       </button>
       {open

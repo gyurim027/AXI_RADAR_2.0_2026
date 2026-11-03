@@ -21,7 +21,6 @@ export default function DecisionTab({ detail, onChanged, onGoTab, onClose }) {
 
   return (
     <section>
-      <h3 className={styles.h}>{DRAWER.decisionTitle}</h3>
       {d.canDecide ? (
         <div className={styles.content}>
           <p className={styles.sub}>{DRAWER.decisionSub}</p>

@@ -52,12 +52,13 @@ export default function RankBasisTab({ detail }) {
   return (
     <div className={styles.section}>
       <section className={styles.block}>
-        <h3 className={styles.h}>{DRAWER.basisTitle}</h3>
         <p className={styles.sub}>{DRAWER.basisSub}</p>
         <div className={styles.content}>
           {d.score != null ? (
-            <p className={`${styles.numbers} num`}>
-              {DRAWER.scoreLine(d.score, d.cityPercent)}
+            <p className={`${styles.score} num`} aria-label={DRAWER.scoreLine(d.score, d.cityPercent)}>
+              <span className={styles.scoreLabel}>{DRAWER.scoreLabel}</span>
+              <span className={styles.scoreValue}>{`${d.score}점`}</span>
+              <span className={styles.scoreAux}>{DRAWER.scoreAux(d.cityPercent)}</span>
               <InfoHelp label={DRAWER.scoreHelpLabel}>{DRAWER.scoreHelp}</InfoHelp>
             </p>
           ) : null}

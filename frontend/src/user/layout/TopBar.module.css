@@ -97,9 +97,6 @@
   gap: var(--space-8);
   font-size: var(--fs-small);
 }
-.fixedLabel {
-  font-weight: var(--fw-medium);
-}
 .account {
   display: flex;
   align-items: center;

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { activeSection, singleFingerDragAllowed, wheelZoomAllowed } from '../src/user/features/candidates/stackNav.js';
+import { activeSection, scrollTarget, singleFingerDragAllowed, wheelZoomAllowed } from '../src/user/features/candidates/stackNav.js';
 
 test('협조 모드가 아니면 휠로 확대한다', () => {
   assert.equal(wheelZoomAllowed({ cooperative: false, ctrlKey: false, metaKey: false }), true);
@@ -23,4 +23,20 @@ test('보이는 높이가 더 큰 구역을 현재 구역으로 본다', () => {
   assert.equal(activeSection(sections, 0, 600), 'table');
   assert.equal(activeSection(sections, 500, 1100), 'map');
   assert.equal(activeSection([], 0, 600), null);
+});
+
+test('맨 위에서는 첫 구역, 맨 아래에서는 마지막 구역을 현재로 본다', () => {
+  const sections = [
+    { key: 'table', top: -500, bottom: 100 },
+    { key: 'map', top: 100, bottom: 700 },
+    { key: 'confirm', top: 700, bottom: 780 },
+  ];
+  assert.equal(activeSection(sections, 60, 600, { atTop: true }), 'table');
+  assert.equal(activeSection(sections, 60, 600, { atBottom: true }), 'confirm');
+  assert.equal(activeSection(sections, 60, 600), 'map');
+});
+test('탭을 누르면 맨 위, 지도 시작(막대 아래), 맨 아래로 이동한다', () => {
+  assert.equal(scrollTarget({ edge: 'top', sectionTop: 0, barHeight: 60, scrollHeight: 2000, clientHeight: 600 }), 0);
+  assert.equal(scrollTarget({ sectionTop: 900, barHeight: 60, scrollHeight: 2000, clientHeight: 600 }), 840);
+  assert.equal(scrollTarget({ edge: 'bottom', sectionTop: 1900, barHeight: 60, scrollHeight: 2000, clientHeight: 600 }), 1400);
 });
