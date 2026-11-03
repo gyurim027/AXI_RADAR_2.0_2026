@@ -14,7 +14,7 @@
   max-height: calc(100vh - 2 * var(--space-24));
   overflow: auto;
   padding: var(--component-modal-padding);
-  background: var(--component-modal-bg);
+  background: var(--semantic-gradient-wash-top), var(--component-modal-bg);
   border-radius: var(--component-modal-radius);
   outline: none;
 }

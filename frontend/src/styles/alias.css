@@ -18,8 +18,14 @@
   --fs-h3: var(--primitive-fontSize-h3);
   --fs-h2: var(--primitive-fontSize-h2);
   --fs-h1: var(--primitive-fontSize-h1);
+  /* 글자 역할 이름: 크기가 아니라 쓰임으로 부른다. 새 글자 크기는 만들지 않고 아래 일곱 단계(12·14·16·18·20·24·28)만 쓴다. */
+  --fs-lead: var(--primitive-fontSize-body-lg);
+  --fs-title: var(--primitive-fontSize-h3);
+  --fs-value: var(--primitive-fontSize-h2);
+  --fs-page: var(--primitive-fontSize-h1);
   --fw-regular: var(--primitive-fontWeight-regular);
   --fw-medium: var(--primitive-fontWeight-medium);
+  --fw-semibold: var(--primitive-fontWeight-semibold);
   --fw-bold: var(--primitive-fontWeight-bold);
   --lh-tight: var(--primitive-lineHeight-tight);
   --lh-normal: var(--primitive-lineHeight-normal);

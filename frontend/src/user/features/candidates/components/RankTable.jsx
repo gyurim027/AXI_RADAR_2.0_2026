@@ -2,23 +2,36 @@ import DataTable from '../../../components/DataTable.jsx';
 import Tag, { Badge } from '../../../components/Tag.jsx';
 import { COMMON } from '../../../../shared/copy/common.js';
 import { LIST } from '../copy.js';
+import { conditionChips } from '../chips.js';
 import DecisionMenu from './DecisionMenu.jsx';
 import styles from './RankTable.module.css';
 import { placeLabel } from '../../../../shared/utils/format.js';
 
 const RELI_TONE = { 높음: 'low', 보통: 'neutral', 낮음: 'mid' };
 
-/** 평가하지 못한 분야가 있는 후보에 회색 꼬리표를 붙인다. 조사 안 한 곳은 0으로 보이지 않는다 (CM-00 9번). */
-export function UnratedTags({ row }) {
-  if (!row.unratedCount) return null;
+/** 평가하지 못한 분야 설명. 칸 안 꼬리표 대신 '평가하지 못한 분야 수' 칸의 title로 보인다. */
+function unratedTitle(row) {
+  if (!row.unratedCount) return undefined;
+  const parts = [COMMON.unratedTag(row.unratedCount, row.unratedNames)];
+  if (row.notSurveyed.length) parts.push(COMMON.notSurveyedTag(row.notSurveyed.join(', ')));
+  return parts.join(' · ');
+}
+
+/** 먼저 볼 이유 꼬리표 한 줄. 이름은 짧게, 전체 이름은 title로 본다. */
+function ConditionChips({ row, conditionMap }) {
+  const { shown, hidden } = conditionChips(row, conditionMap);
+  if (!shown.length) return null;
   return (
-    <span className={styles.tags}>
-      <Tag tone="gray" small>
-        {COMMON.unratedTag(row.unratedCount, row.unratedNames)}
-      </Tag>
-      {row.notSurveyed.length ? (
-        <Tag tone="gray" small>
-          {COMMON.notSurveyedTag(row.notSurveyed.join(', '))}
+    <span className={styles.tags} role="group" aria-label={LIST.reasonLabel}>
+      <span className={styles.reason}>{LIST.reasonLabel}</span>
+      {shown.map((c) => (
+        <Tag key={c.id} tone={c.tone} small title={LIST.conditionTag(c.full)}>
+          {c.label}
+        </Tag>
+      ))}
+      {hidden.length ? (
+        <Tag tone="gray" small title={LIST.moreChipsTitle(hidden.map((c) => c.full))}>
+          {LIST.moreChips(hidden.length)}
         </Tag>
       ) : null}
     </span>
@@ -43,19 +56,8 @@ function columnsFor({ city, canDecide, conditionMap, onDecide }) {
         <span className={styles.cand}>
           <span className={styles.addr}>{r.address || (r.landmark ? '' : placeLabel(r))}</span>
           <span className={styles.landmark}>{r.landmark}</span>
-          {/* 우선 확인 조건에 맞은 후보는 먼저 볼 이유를 꼬리표로 보인다. 반영 비율은 상세에 있다 (W-7) */}
-          {r.conditions.filter((id) => conditionMap[id]).length > 0 ? (
-            <span className={styles.tags}>
-              {r.conditions
-                .filter((id) => conditionMap[id])
-                .map((id) => (
-                  <Tag key={id} tone="info" small>
-                    {LIST.conditionTag(conditionMap[id].name)}
-                  </Tag>
-                ))}
-            </span>
-          ) : null}
-          <UnratedTags row={r} />
+          {/* 우선 확인 조건에 맞은 후보는 먼저 볼 이유를 한 줄 꼬리표로 보인다. 개수는 3개까지, 나머지는 +N이다. 반영 비율은 상세에 있다 (W-7) */}
+          <ConditionChips row={r} conditionMap={conditionMap} />
         </span>
       ),
     },
@@ -84,7 +86,19 @@ function columnsFor({ city, canDecide, conditionMap, onDecide }) {
         </span>
       ),
     },
-    { key: 'unrated', header: '평가하지 못한 분야 수', width: 172, sortable: true, align: 'right', render: (r) => <span className="num">{r.unratedCount}</span> },
+    {
+      key: 'unrated',
+      header: '평가하지 못한 분야 수',
+      width: 172,
+      sortable: true,
+      align: 'right',
+      // 이름은 후보 칸 꼬리표 대신 여기서 title로 본다. 조사 안 한 곳은 0으로 보이지 않는다 (CM-00 9번).
+      render: (r) => (
+        <span className="num" title={unratedTitle(r)}>
+          {r.unratedCount}
+        </span>
+      ),
+    },
     {
       key: 'decision',
       header: '결정 상태',

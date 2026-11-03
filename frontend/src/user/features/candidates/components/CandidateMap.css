@@ -22,7 +22,7 @@
   border-radius: 8px;
   background: var(--semantic-color-bg-surface);
   color: var(--semantic-color-text);
-  font-size: 12px;
+  font-size: var(--fs-caption);
   box-shadow: none;
 }
 .rmap-range.leaflet-tooltip-bottom::before {
@@ -35,7 +35,7 @@
   border-radius: 8px;
   background: var(--semantic-color-bg-surface);
   color: var(--semantic-color-text);
-  font-size: 12px;
+  font-size: var(--fs-caption);
   box-shadow: none;
 }
 .rmap-point-wrap:focus-visible {
@@ -63,7 +63,7 @@
   position: absolute;
   left: 13px;
   top: -3px;
-  font-size: 11px;
+  font-size: var(--fs-caption);
   font-weight: 700;
   line-height: 1;
   color: var(--semantic-color-text);
@@ -79,7 +79,7 @@
   border-radius: 50%;
   background: var(--semantic-color-text);
   color: var(--semantic-color-bg-surface);
-  font-size: 12px;
+  font-size: var(--fs-caption);
   font-weight: 700;
   cursor: pointer;
 }

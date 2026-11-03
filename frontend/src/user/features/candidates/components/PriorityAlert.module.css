@@ -6,7 +6,7 @@
   margin: var(--space-8) var(--space-12);
   padding: var(--space-8) var(--space-16);
   border-radius: var(--radius-md);
-  background: var(--semantic-color-bg-subtle);
+  background: var(--semantic-gradient-wash), var(--semantic-color-bg-subtle);
 }
 .text {
   display: flex;

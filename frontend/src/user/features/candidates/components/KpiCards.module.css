@@ -19,7 +19,7 @@
   border-color: var(--semantic-color-primary-strong);
 }
 .on {
-  background: var(--semantic-color-primary-strong);
+  background: var(--semantic-gradient-accent), var(--semantic-color-primary-strong);
   border-color: var(--semantic-color-primary-strong);
   color: var(--semantic-color-on-primary-strong);
 }

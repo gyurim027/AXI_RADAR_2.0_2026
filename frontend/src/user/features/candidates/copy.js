@@ -44,6 +44,9 @@ export const LIST = {
   // 꼬리표에는 이유만 쓴다. 반영 비율은 상세의 ⓘ에 둔다 (W-7)
   decisionMenuLabel: '결정 상태 바꾸기', // 메뉴 버튼의 화면 읽기 이름 (US-01 1-4)
   conditionTag: (name) => `먼저 볼 이유: ${name}`,
+  reasonLabel: '먼저 볼 이유', // 꼬리표 줄 앞에 한 번만 쓴다
+  moreChips: (n) => `+${n}`,
+  moreChipsTitle: (names) => `먼저 볼 이유 더 보기: ${names.join(', ')}`,
   conditionRatioHelp: (name, ratio) => (ratio == null ? `${name}에 해당해 먼저 확인할 후보로 표시했습니다.` : `${name}의 반영 비율은 ${ratio}%입니다.`),
   conditionStateTitle: '우선 확인 조건 판정',
   conditionState: { Y: '충족', N: '미충족', NULL: '미평가', INVALID: '확인 필요' },
@@ -102,6 +105,17 @@ export const SUMMARY = {
   explanationFailed: '설명문을 만들지 못했습니다. 아래 근거를 직접 확인해 주세요.',
   rank: (rank) => `${rank}위`,
   title: (address, landmark) => `${address} · ${landmark}`,
+};
+
+// 표·지도 분할 (US-01 9-2)
+export const SPLIT = {
+  label: '표와 지도 비율 조절',
+  group: '표와 지도 보기 방식',
+  mapOnly: '지도만 보기',
+  tableOnly: '표만 보기',
+  reset: '표와 지도를 6 대 4로 보기',
+  resetShort: '6:4',
+  valueText: (mode, pct) => (mode === 'table' ? '표만 보는 중' : mode === 'map' ? '지도만 보는 중' : `표 ${pct}%, 지도 ${100 - pct}%`),
 };
 
 export const DRAWER = {

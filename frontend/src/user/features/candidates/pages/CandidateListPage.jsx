@@ -14,6 +14,8 @@ import { EmptyState, ErrorState, SkeletonRows, SkeletonBlock } from '../../../co
 import { LIST } from '../copy.js';
 import { EMPTY_FILTERS, activeTags, applyFilters, isPriority, sortRows } from '../filters.js';
 import BottomBar from '../components/BottomBar.jsx';
+import SplitHandle from '../components/SplitHandle.jsx';
+import useSplit from '../useSplit.js';
 import CandidateMap from '../components/CandidateMap.jsx';
 import { prefersReducedMotion } from '../components/mapUtils.js';
 import ConfirmModal from '../components/ConfirmModal.jsx';
@@ -63,6 +65,8 @@ function CandidateListPage() {
   const [deciding, setDeciding] = useState(null); // { gid, decision } 표에서 결정을 바꾸는 중
   const scrollRef = useRef(null);
   const mapColRef = useRef(null);
+  const splitRef = useRef(null);
+  const split = useSplit();
 
   const list = useAsync(() => listCandidates({ runId: run.id, gu }), [run.id, gu, user.id, version]);
   const detail = useAsync(
@@ -178,8 +182,12 @@ function CandidateListPage() {
   const clearAll = () => changeFilters(EMPTY_FILTERS);
 
   return (
-    <div className={styles.split}>
-      <div className={styles.left} ref={scrollRef}>
+    <div
+      className={`${styles.split} ${split.animating ? styles.animate : ''} ${split.dragging ? styles.dragging : ''}`}
+      style={split.style}
+      ref={splitRef}
+    >
+      <div className={`${styles.left} ${split.tableHidden ? styles.collapsed : ''}`} ref={scrollRef} inert={split.tableHidden}>
         <div className={styles.leftInner}>
           <PageHeader compact eyebrow={run.dataRange ? `${LIST.eyebrow(scope)} · ${LIST.dataBasis(dataYear(run.dataRange))}` : LIST.eyebrow(scope)} title={LIST.title} subtitle={city ? LIST.subtitleCity : LIST.subtitleDistrict}>
             {guide}
@@ -259,7 +267,9 @@ function CandidateListPage() {
         ) : null}
       </div>
 
-      <div className={styles.mapCol} ref={mapColRef}>
+      {split.wide ? <SplitHandle state={split.state} onChange={split.change} onDragState={split.setDragging} containerRef={splitRef} /> : null}
+
+      <div className={`${styles.mapCol} ${split.mapHidden ? styles.collapsed : ''}`} ref={mapColRef} inert={split.mapHidden}>
         <CandidateMap
           items={filtered}
           unrated={unrated}

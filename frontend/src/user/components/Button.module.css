@@ -14,11 +14,11 @@
   transition: background-color 0.15s;
 }
 .primary {
-  background: var(--component-button-bg);
+  background: var(--semantic-gradient-accent), var(--component-button-bg);
   color: var(--component-button-fg);
 }
 .primary:hover:not(:disabled) {
-  background: var(--component-button-hover-bg);
+  background: var(--semantic-gradient-accent-hover), var(--component-button-hover-bg);
 }
 .soft {
   background: var(--component-button-soft-bg);

@@ -47,6 +47,7 @@
   color: var(--component-topbar-menu-active-fg);
   font-weight: var(--fw-bold);
   border-bottom-color: var(--component-topbar-menu-indicator);
+  border-image: var(--semantic-gradient-accent-line) 1;
 }
 .dropdown {
   position: absolute;

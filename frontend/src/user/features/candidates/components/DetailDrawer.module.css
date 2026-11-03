@@ -18,6 +18,7 @@
 .head {
   flex: none;
   padding: var(--space-20) var(--space-24) 0;
+  background: var(--semantic-gradient-wash);
   border-bottom: 1px solid var(--semantic-color-border);
 }
 .titleRow {

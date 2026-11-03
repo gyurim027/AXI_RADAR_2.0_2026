@@ -84,9 +84,15 @@ export default function CandidateMap({ items, unrated, boundaries, ownGu, select
     map.setView([37.41, 127.13], 12);
     map.on('zoomend', () => setZoom(map.getZoom()));
     mapRef.current = map;
-    const ro = new ResizeObserver(() => map.invalidateSize());
+    // 분할 막대로 폭이 바뀌는 동안 호출이 몰리지 않게 프레임마다 한 번만 다시 잰다.
+    let frame = 0;
+    const ro = new ResizeObserver(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => map.invalidateSize());
+    });
     ro.observe(elRef.current);
     return () => {
+      cancelAnimationFrame(frame);
       ro.disconnect();
       map.remove();
       mapRef.current = null;
