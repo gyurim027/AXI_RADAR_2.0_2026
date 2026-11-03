@@ -22,6 +22,7 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, Query
 
 from app.core import rerun
+from app.services.scoring.engine_rerun import register_engine_rerun
 from app.core.auth import require_roles
 from app.core.job_run import STATUSES, KINDS
 from app.core.responses import ApiError
@@ -190,3 +191,7 @@ def read_notification(alert_id: int, user: dict = Depends(operator), repo: OpsRe
     if not repo.acknowledge(alert_id, user["user_id"]):
         raise ApiError(404, "notification_not_found", "알림을 찾을 수 없습니다")
     return {"ok": True}
+
+
+# Register the guarded ENGINE rerun handler when OPS API loads.
+register_engine_rerun()
