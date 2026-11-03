@@ -110,3 +110,110 @@ def drafts(limit: int = Query(50, ge=1, le=200), _u: dict = Depends(operator),
                     "jur_id": jur, "problem": p["problem"], "from": p["from"], "to": p["to"], "basis": p["basis"],
                     "basis_query": p["basis"], "changes": cache.get(jur, [])})
     return {"drafts": out}
+
+# F-01 source-to-jurisdiction preview. Read-only; no assignment or approval.
+# Register under the existing STANDARDS router; do not change app/main.py.
+from typing import Any
+from app.services.standards.f01_source_bridge import source_to_kinds, jurisdiction_candidates
+
+class F01PreviewBody(BaseModel):
+    gid: str = Field(min_length=1, max_length=100)
+    source_table: str = Field(min_length=1, max_length=80)
+    source_rows: list[dict[str, Any]] = Field(min_length=1, max_length=200)
+    gu: str | None = Field(default=None, max_length=100)
+
+
+@router.post("/f01/preview")
+def f01_preview(body: F01PreviewBody, _u: dict = Depends(operator),
+                repo: StandardsRepository = Depends(get_repository)):
+    """Source evidence supplied by caller -> advisory first department candidates.
+
+    DB87 and DB88 are read via the existing repository. No DB writes.
+    Caller-supplied rows are NOT independently verified against source tables.
+    DB88 conditional rows are blocked unless separately verified; this endpoint
+    deliberately does not accept a caller-controlled condition_verified flag.
+    """
+    try:
+        candidates, unresolved = source_to_kinds(
+            gid=body.gid, table=body.source_table, rows=body.source_rows
+        )
+    except ValueError as exc:
+        raise ApiError(400, "invalid_f01_source", str(exc)) from None
+
+    jurisdiction = repo.jurisdiction()
+    rules = [
+        {"jurisdiction_id": r["id"], "confirm_status": r.get("status"),
+         "basis": r.get("basis")}
+        for r in jurisdiction
+    ]
+    departments = [
+        {"jurisdiction_id": r["id"], **d}
+        for r in jurisdiction for d in r.get("depts") or []
+    ]
+    results = []
+    for candidate in candidates:
+        match = jurisdiction_candidates(candidate, rules, departments, gu=body.gu,
+                                        condition_verified=False)
+        results.append({"source_table": candidate.source_table,
+                        "source_id": candidate.source_id,
+                        "gid": candidate.gid,
+                        "problem_kind": candidate.kind,
+                        "evidence": candidate.evidence,
+                        "classification_basis": candidate.basis,
+                        **match})
+    return {
+        "status": "READ_ONLY_PREVIEW", "gid": body.gid,
+        "source_provenance": "CALLER_SUPPLIED_NOT_DB_VERIFIED",
+        "source_rows_received": len(body.source_rows),
+        "results": results, "unresolved": unresolved,
+        "department_finalized": False,
+        "db_writes": 0,
+    }
+
+
+# F-01 additional verified-source path. Only source records read from the
+# official database may use SOURCE_DB_VERIFIED. No caller-supplied row content.
+from app.services.standards.f01_verified_source import load_verified_f01_row
+
+class F01VerifiedSourceBody(BaseModel):
+    gid: str = Field(min_length=1, max_length=100)
+    source_table: str = Field(min_length=1, max_length=80)
+    source_id: str = Field(min_length=1, max_length=120)
+    gu: str | None = Field(default=None, max_length=100)
+
+
+@router.post("/f01/preview/verified-source")
+def f01_verified_source_preview(body: F01VerifiedSourceBody,
+                                _u: dict = Depends(operator),
+                                repo: StandardsRepository = Depends(get_repository)):
+    """Read a single row from an allowlisted original source table, then
+    classify and show advisory departments; never persist an assignment.
+    The claimed `gu` is an unverified filter and cannot establish jurisdiction.
+    """
+    try:
+        row = load_verified_f01_row(table=body.source_table, gid=body.gid,
+                                    source_id=body.source_id)
+        kinds, unresolved = source_to_kinds(gid=body.gid,
+                                            table=body.source_table, rows=[row])
+    except ValueError as exc:
+        raise ApiError(400, "invalid_f01_source", str(exc)) from None
+    jurisdiction = repo.jurisdiction()
+    rules = [{"jurisdiction_id": r["id"], "confirm_status": r.get("status"),
+              "basis": r.get("basis")} for r in jurisdiction]
+    departments = [{"jurisdiction_id": r["id"], **d}
+                   for r in jurisdiction for d in (r.get("depts") or [])]
+    results = []
+    for candidate in kinds:
+        # A client-supplied gu must not be treated as independently checked.
+        matched = jurisdiction_candidates(candidate, rules, departments,
+                                           gu=None, condition_verified=False)
+        results.append({"source_table": candidate.source_table,
+                        "source_id": candidate.source_id,
+                        "gid": candidate.gid, "problem_kind": candidate.kind,
+                        "evidence": candidate.evidence,
+                        "classification_basis": candidate.basis, **matched})
+    return {"status": "READ_ONLY_PREVIEW", "gid": body.gid,
+            "source_provenance": "SOURCE_DB_VERIFIED_ROW_ID_AND_GID",
+            "source_rows_received": 1, "results": results,
+            "unresolved": unresolved, "department_finalized": False,
+            "db_writes": 0}
