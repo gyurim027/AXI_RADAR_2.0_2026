@@ -274,3 +274,16 @@ test('서버 상태가 검토 중이어도 3개 구가 모두 확정했다는 �
   assert.equal(toRun({ run_id: 2, status: '검토 중' }, { finalized: false }).status, RUN_STATUS.REVIEW);
   assert.equal(toRun({ run_id: 2, status: '참고' }, { finalized: true }).status, '참고'); // 참고 회차는 확정하지 않는다
 });
+
+test('구가 비어 있는 후보 수: 시 도로과에는 세어 주고 구 결정 목록에서는 뺀다', () => {
+  const noGu = { ...cand('x', null, 40, 9), gu: null };
+  const list = toCandidateList({ run: run2, candidates: [cand('a', '수정구', 50, 1), noGu] }, { role: 'city' }, { gu: null, guList: GUS, allGu: ALL });
+  assert.equal(list.noGuCount, 1);
+  assert.equal(list.items.length, 1); // 구 없는 후보는 목록·집계에 넣지 않는다
+  assert.equal(list.counts.total, 1);
+});
+
+test('구 도로관리팀 응답에는 구 없는 후보가 없어 0이다', () => {
+  const list = toCandidateList({ run: run2, candidates: [cand('a', '수정구', 50, 1)] }, { role: 'district', gu: '수정구' }, { gu: null, guList: GUS, allGu: ALL });
+  assert.equal(list.noGuCount, 0);
+});

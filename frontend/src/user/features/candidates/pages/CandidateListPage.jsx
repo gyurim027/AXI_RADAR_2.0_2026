@@ -200,6 +200,12 @@ function CandidateListPage() {
             />
           </div>
 
+          {city && gu === ALL_GU && data?.noGuCount > 0 ? (
+            <p className={styles.noGuNote} role="status">
+              {LIST.noGuNote(data.noGuCount)}
+            </p>
+          ) : null}
+
           <section className={styles.tableCard} aria-label="점검 후보 목록">
             {!compare && data && conditions.length > 0 && (priorityCount > 0 || filters.priorityOnly) ? (
               <PriorityAlert

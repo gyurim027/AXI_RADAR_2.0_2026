@@ -176,6 +176,8 @@ export function toCandidateList(res, user, { gu, guList, allGu, decisions = null
   const rows = rated.map((c, i) => toRow(c, i + 1, cityTotal, c.rank_no || i + 1, cityTotal));
   const unrated = unratedList.map((c) => toRow(c, 0, cityTotal, 0, cityTotal));
   const wantGus = user.role === 'district' ? [user.gu] : gu && gu !== allGu ? [gu] : guList;
+  // 구가 비어 있는 후보는 서버가 시 도로과·운영자에게만 준다. 구 결정·확정에서는 빼고(DB도 세 구만 받는다), 시 도로과에는 몇 곳인지 알린다.
+  const noGuCount = user.role === 'district' ? 0 : all.filter((c) => !c.gu).length;
   // 구 안 순위는 보이는 범위(구 도로관리팀은 자기 구) 안에서 다시 매긴다
   const inScope = rows.filter((r) => r.gu && wantGus.includes(r.gu)).map((r, i, arr) => ({ ...r, rank: i + 1, tier: tierOf(i + 1, arr.length) }));
   // 결정 목록(G-03)이 없으면(null) 서버가 결정을 주지 않은 것이라 전부 '결정 전'으로 둔다.
@@ -198,6 +200,7 @@ export function toCandidateList(res, user, { gu, guList, allGu, decisions = null
     items: inScope,
     unrated: unrated.filter((r) => r.gu && wantGus.includes(r.gu)),
     counts,
+    noGuCount,
     conditions: PRIORITY_CONDITIONS,
     guBoundaries: [],
     // 서버가 값을 주지 않아 걸러도 항상 0건이 되는 필터. 없애지 않고 막아 둔다.

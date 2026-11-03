@@ -28,6 +28,7 @@ export const LIST = {
   zoneLabel: '보호구역',
   zoneOptions: ['보호구역 안', '보호구역 밖'],
   filterUnavailable: '아직 서버에서 값을 받지 못해 쓸 수 없습니다.',
+  noGuNote: (n) => `구를 확인할 수 없어 목록에 없는 후보가 ${n}곳 있습니다.`, // 시 도로과 (구 미지정 후보, 결정 3-17)
   complaintLabel: '민원이 몰린 곳',
   complaintHelp: '같은 장소에 여러 해에 걸쳐 민원이 반복된 구역입니다.', // W-16
   complaintHelpLabel: '민원이 몰린 곳 뜻 보기',
