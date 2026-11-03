@@ -40,11 +40,16 @@ export default function DataTable({
           {caption ? <caption className="sr-only">{caption}</caption> : null}
           <thead>
             <tr>
-              {columns.map((c, i) => (
-                <th key={c.key} scope="col" className={`${styles.th} ${expandable && i === 0 ? styles.expandHead : ''}`} style={c.width ? { width: c.width, minWidth: c.width } : undefined}>
+              {columns.map((c) => (
+                <th key={c.key} scope="col" className={styles.th} style={c.width ? { width: c.width, minWidth: c.width } : undefined}>
                   {c.header}
                 </th>
               ))}
+              {expandable ? (
+                <th scope="col" className={`${styles.th} ${styles.expandCol}`}>
+                  <span className="sr-only">펼치기</span>
+                </th>
+              ) : null}
             </tr>
           </thead>
           <tbody>
@@ -71,9 +76,14 @@ export default function DataTable({
                         : undefined
                     }
                   >
-                    {columns.map((c, i) => (
+                    {columns.map((c) => (
                       <td key={c.key} className={`${styles.td} ${c.align === 'right' ? styles.right : ''} ${c.first ? styles.first : ''} ${c.nowrap ? styles.nowrap : ''}`}>
-                        {expandable && i === 0 && canExpand?.(row) !== false ? (
+                        {c.render ? c.render(row) : row[c.key]}
+                      </td>
+                    ))}
+                    {expandable ? (
+                      <td className={`${styles.td} ${styles.expandCol}`}>
+                        {canExpand?.(row) !== false ? (
                           <button
                             type="button"
                             className={styles.chev}
@@ -86,16 +96,13 @@ export default function DataTable({
                           >
                             <Icon name={open ? 'chevronUp' : 'chevronDown'} size={16} />
                           </button>
-                        ) : expandable && i === 0 ? (
-                          <span className={styles.chev} aria-hidden="true" /> /* 펼칠 수 없는 행도 같은 자리를 비워 첫 열 글자가 한 줄로 맞는다 */
                         ) : null}
-                        {c.render ? c.render(row) : row[c.key]}
                       </td>
-                    ))}
+                    ) : null}
                   </tr>
                   {open ? (
                     <tr className={styles.expandedRow}>
-                      <td colSpan={columns.length} className={styles.expandedCell}>
+                      <td colSpan={columns.length + 1} className={styles.expandedCell}>
                         {renderExpanded(row)}
                       </td>
                     </tr>

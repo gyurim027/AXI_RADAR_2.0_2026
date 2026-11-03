@@ -101,7 +101,6 @@
   vertical-align: middle;
   width: var(--a-size-compact);
   height: var(--a-size-compact);
-  margin: calc(var(--a-s2) * -1) var(--a-s1) calc(var(--a-s2) * -1) calc(var(--a-s2) * -1);
   border: 0;
   border-radius: var(--a-radius-control);
   background: none;
@@ -133,10 +132,28 @@
   color: var(--radar-admin-semantic-color-text-secondary);
 }
 
-/* 펼침 화살표가 있는 표: 첫 열 머리 글자를 본문 글자와 같은 줄에 맞춘다 */
-.expandHead {
-  padding-left: calc(var(--radar-admin-component-table-cell-padding-x) + var(--a-size-compact) + var(--a-s1) - var(--a-s2));
+
+/* 펼침 버튼은 행의 오른쪽 끝 전용 칸에 둔다. 표가 가로로 넘쳐도 늘 보이게 고정한다 */
+.expandCol {
+  position: sticky;
+  right: 0;
+  width: 56px;
+  min-width: 56px;
+  padding-left: 0;
+  padding-right: var(--a-s2);
+  text-align: right;
+  background: var(--radar-admin-component-table-row-bg);
+  box-shadow: -8px 0 8px -8px rgb(24 26 27 / 0.12);
 }
-.compact .expandHead {
-  padding-left: calc(var(--radar-admin-component-table-cell-padding-x-compact) + var(--a-size-compact) + var(--a-s1) - var(--a-s2));
+.th.expandCol {
+  background: var(--radar-admin-component-table-head-bg);
+}
+tr:hover > .expandCol {
+  background: var(--radar-admin-component-table-row-hover-bg);
+}
+.open > .expandCol {
+  background: var(--radar-admin-component-table-row-expanded-bg);
+}
+.selected > .expandCol {
+  background: var(--radar-admin-component-table-row-selected-bg);
 }
