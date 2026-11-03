@@ -31,7 +31,7 @@ class RunValidationRequest(BaseModel):
 
     run_id: int = Field(..., gt=0)
     build_id: str = Field(..., min_length=1, max_length=30)
-    rule_version: str = Field(..., min_length=1, max_length=30)
+    rule_version: str = Field(..., min_length=1, max_length=128)
 
     period_start: date | None = None
     period_end: date | None = None

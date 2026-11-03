@@ -14,6 +14,8 @@ import DeptPage from './features/standards/DeptPage.jsx';
 import RegulationsPage from './features/standards/RegulationsPage.jsx';
 import LogPage from './features/runs/LogPage.jsx';
 import RunListPage from './features/runs/RunListPage.jsx';
+import ServerRunListPage from './features/runs/ServerRunListPage.jsx';
+import { opsBackendEnabled } from '../api/backend.js';
 import SchedulePage from './features/runs/SchedulePage.jsx';
 
 // handle.title: 브라우저 탭 제목
@@ -23,7 +25,7 @@ export const adminRoutes = [
   { path: 'data/upload', element: <UploadPage />, handle: { title: '자료 올리기' } },
   { path: 'data/checks', element: <ChecksPage />, handle: { title: '검사 결과' } },
   { path: 'data/classify', element: <ClassifyPage />, handle: { title: '민원 분류 검수' } },
-  { path: 'runs/list', element: <RunListPage />, handle: { title: '회차 목록' } },
+  { path: 'runs/list', element: opsBackendEnabled ? <ServerRunListPage /> : <RunListPage />, handle: { title: '회차 목록' } },
   { path: 'runs/log', element: <LogPage />, handle: { title: '실행 기록' } },
   { path: 'runs/schedule', element: <SchedulePage />, handle: { title: '실행 일정' } },
   { path: 'standards/criteria', element: <CriteriaListPage />, handle: { title: '산정 기준' } },
