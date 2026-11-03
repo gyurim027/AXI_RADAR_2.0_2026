@@ -147,7 +147,7 @@ export default function CandidateMap({ items, unrated, boundaries, ownGu, select
       rect.addTo(cells);
       if (isSel) {
         // 후보 범위 표시 (CM-00 4번): 고른 구역을 네모 영역으로 칠하고 근거 지점 수를 적는다
-        rect.bindTooltip(COMMON.rangeText(r.points.length), { permanent: true, direction: 'bottom', className: 'rmap-range', offset: [0, 4] }).openTooltip();
+        rect.bindTooltip(r.points ? COMMON.rangeText(r.points.length) : COMMON.rangeUnknown, { permanent: true, direction: 'bottom', className: 'rmap-range', offset: [0, 4] }).openTooltip();
       }
     });
     // 칸을 고르기 전에는 점을 그리지 않는다. 고른 칸의 근거 지점(■)과 민원 점(● ○)만 그린다 (US-01 1-5, ISS-036)
@@ -168,7 +168,7 @@ export default function CandidateMap({ items, unrated, boundaries, ownGu, select
       };
       const site = (p) => addMarker([p.lat, p.lon], pointIcon('site'), p.issue);
       const one = (p) => addMarker([p.lat, p.lon], pointIcon(pointKind(p), p.count), pointLabel(p));
-      sel.points.forEach(site);
+      (sel.points || []).forEach(site);
       const complaints = sel.complaintPoints || [];
       if (complaints.length > CLUSTER_LIMIT) {
         // 점이 많은 칸: 가까운 점을 숫자 원으로 묶는다. 누르거나 확대하면 나뉜다 (ISS-038)
@@ -314,7 +314,7 @@ export default function CandidateMap({ items, unrated, boundaries, ownGu, select
                 </li>
               ))}
             </ul>
-            {selCell ? (
+            {selCell?.points ? (
               <div className={styles.legendBasis}>
                 <p>{LIST.legendBasis(basisSummary(selCell))}</p>
                 <p aria-label={LIST.legendShapesLabel}>
@@ -331,7 +331,7 @@ export default function CandidateMap({ items, unrated, boundaries, ownGu, select
           </button>
         )}
       </div>
-      <p className={styles.credit}>{selCell?.complaintPoints?.length ? MAP_COORD_CREDIT : MAP_CREDIT}</p>
+      <p className={styles.credit}>{selCell ? MAP_COORD_CREDIT : MAP_CREDIT}</p>
     </div>
   );
 }

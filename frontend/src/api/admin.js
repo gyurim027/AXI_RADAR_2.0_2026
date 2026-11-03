@@ -2,7 +2,8 @@
 import { mockCall } from './client.js';
 import * as server from '../mocks/adminServer.js';
 import { COMPLAINT_DATA_ID } from '../mocks/adminData.js';
-import { backendRequest, opsBackendEnabled } from './backend.js';
+import { backendAuthEnabled, backendRequest, opsBackendEnabled, priorityBackendEnabled } from './backend.js';
+import { createPriorityApi, toAdminRun } from './priority.js';
 import { createOpsApi } from './ops.js';
 import { createChecksApi } from './checks.js';
 
@@ -14,7 +15,12 @@ export const listLowComplaints = checks.listLowComplaints;
 export const listIssues = checks.listIssues;
 
 export const getViewAsLabel = () => server.viewAsLabel();
-export const listAdminRuns = mockCall('admin.listAdminRuns', (arg) => server.listAdminRuns(arg));
+const priority = createPriorityApi(backendRequest);
+/** 서버 회차 목록을 쓰는가. 회차 만들기·산정 시작·열기 API는 서버에 아직 없다. */
+export const adminRunsFromServer = backendAuthEnabled && priorityBackendEnabled;
+export const listAdminRuns = adminRunsFromServer
+  ? async () => (await priority.listRuns()).map(toAdminRun)
+  : mockCall('admin.listAdminRuns', (arg) => server.listAdminRuns(arg));
 export const listAdminNotifications = opsBackendEnabled ? ops.listNotifications : mockCall('admin.listAdminNotifications', (arg) => server.listAdminNotifications(arg));
 export const markAdminNotificationRead = opsBackendEnabled ? ops.markNotificationRead : mockCall('admin.markAdminNotificationRead', (arg) => server.markAdminNotificationRead(arg));
 export const listViewAsOptions = mockCall('admin.listViewAsOptions', (arg) => server.listViewAsOptions(arg));

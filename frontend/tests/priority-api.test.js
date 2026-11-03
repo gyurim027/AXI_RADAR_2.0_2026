@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createBackendClient } from '../src/api/backend.js';
-import { createPriorityApi, toRun, toCandidateList, toCandidateDetail, toConditionRecord, cellBounds } from '../src/api/priority.js';
+import { createPriorityApi, toRun, toCandidateList, toCandidateDetail, toConditionRecord, toAdminRun, cellBounds } from '../src/api/priority.js';
 import { RUN_STATUS } from '../src/shared/constants.js';
 
 const response = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
@@ -207,4 +207,47 @@ test('점수 근거: 확정 회차에서 후보 수·우선 확인 후보 수·�
   assert.equal(r.dataCount, null); // 서버에 없는 값은 비워 둔다
   assert.equal(r.version, null);
   assert.equal(r.indicators.length, 9);
+});
+
+test('어드민 회차 한 줄: 서버가 주지 않는 값은 -로 두고 상태는 상태 정보 없음', () => {
+  const row = toAdminRun(toRun({ run_id: 2, name: null, kind: null, status: null, setting_version_display: null }));
+  assert.equal(row.id, '2');
+  assert.equal(row.name, '회차 2');
+  assert.equal(row.kindLabel, '연간');
+  assert.equal(row.status, RUN_STATUS.UNKNOWN);
+  assert.equal(row.version, '-');
+  assert.equal(row.created, '-');
+  assert.equal(row.review, '-');
+  assert.equal(row.period, '-');
+});
+
+test('어드민 회차 한 줄: 반기 참고와 검토 시작일', () => {
+  const row = toAdminRun(toRun({ run_id: 3, name: '2027 상반기 참고', kind: '반기 참고', status: '참고', opened_at: '2027-03-02T09:00:00' }));
+  assert.equal(row.kindLabel, '반기 참고');
+  assert.equal(row.status, '참고');
+  assert.equal(row.review, '2027.03.02');
+});
+
+test('서버가 근거 지점을 주지 않으면 0곳이 아니라 null이다', () => {
+  const list = toCandidateList({ run: run2, candidates: [cand('a', '수정구', 50, 1)] }, { role: 'city' }, { gu: null, guList: GUS, allGu: ALL });
+  const row = [...list.items, ...list.unrated][0];
+  assert.equal(row.points, null);
+  assert.equal(row.complaintPoints, null);
+});
+
+test('상세의 민원은 서버 건수를 쓰고, 위치가 정확하지 않은 건수는 두 건수의 차이다', () => {
+  const list = toCandidateList({ run: run2, candidates: [cand('a', '수정구', 50, 1)] }, { role: 'city' }, { gu: null, guList: GUS, allGu: ALL });
+  const d = toCandidateDetail({ ...cand('a', '수정구', 50, 1), complaint_cnt: 12, complaint_cnt_excl_low: 9 }, { list, user: { role: 'city' }, record: null });
+  assert.equal(d.complaint.has, true);
+  assert.equal(d.complaint.total, 12);
+  assert.equal(d.complaint.lowAccuracy, 3);
+  assert.deepEqual(d.complaint.types, []);
+  const none = toCandidateDetail({ ...cand('a', '수정구', 50, 1), complaint_cnt: null, complaint_cnt_excl_low: null }, { list, user: { role: 'city' }, record: null });
+  assert.equal(none.complaint.has, false);
+  assert.equal(none.complaint.lowAccuracy, 0);
+});
+
+test('서버 값이 없는 필터는 막을 목록으로 알린다', () => {
+  const list = toCandidateList({ run: run2, candidates: [cand('a', '수정구', 50, 1)] }, { role: 'city' }, { gu: null, guList: GUS, allGu: ALL });
+  assert.deepEqual(list.unavailableFilters, ['zone', 'complaint']);
 });

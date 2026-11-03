@@ -50,3 +50,15 @@ test('연습용 모드에서는 가짜 서버를 그대로 부른다', async () 
     assert.equal(await fn(), 'fake');
   } finally { await m.close(); }
 });
+
+test('서버 모드에서 어드민 회차 목록은 /admin/runs/list로 열리고 /admin/runs는 열리지 않는다', async () => {
+  const { createServer } = await import('vite');
+  const server = await createServer({ configFile: false, envFile: false, logLevel: 'silent', server: { middlewareMode: true }, appType: 'custom', define: { 'import.meta.env.VITE_API_BASE_URL': JSON.stringify('http://127.0.0.1:8000') } });
+  try {
+    const routes = await server.ssrLoadModule('/src/admin/serverRoutes.js');
+    assert.equal(routes.isOpenInServerMode('/admin/runs/list'), true);
+    assert.equal(routes.isOpenInServerMode('/admin/runs/list/'), true);
+    assert.equal(routes.isOpenInServerMode('/admin/runs'), false);
+    assert.equal(routes.isOpenInServerMode('/admin/runs/log'), true);
+  } finally { await server.close(); }
+});
