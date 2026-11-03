@@ -227,5 +227,6 @@ export const CONFIRM = {
   confirm: '우선 점검 대상 확정',
   doneTitle: (gu) => `${gu} 우선 점검 대상을 확정했습니다.`,
   doneNote: '관할 부서별 점검 요청서는 회차가 확정된 뒤에 만들 수 있습니다.',
+  doneNoteFinal: '3개 구가 모두 확정해 회차가 확정되었습니다. 관할 부서별 점검 요청서를 만들 수 있습니다.',
   doneButton: '관할 부서별 점검 요청서 만들기',
 };

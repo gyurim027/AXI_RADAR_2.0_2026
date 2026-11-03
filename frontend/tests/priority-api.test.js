@@ -168,15 +168,15 @@ test('결정 버튼은 구 도로관리팀 · 검토 중 회차 · 자기 구 �
 test('회차 상태: 서버가 상태를 주지 않아도 3개 구가 모두 확정했으면 확정이다', () => {
   assert.equal(toRun(run2, { finalized: true }).status, '확정');
   assert.equal(toRun(run2, { finalized: false }).status, '상태 정보 없음');
-  assert.equal(toRun({ ...run2, status: '검토 중' }, { finalized: true }).status, '검토 중'); // 서버 상태가 우선
+  assert.equal(toRun({ ...run2, status: '산정 중' }, { finalized: true }).status, '산정 중'); // 산정 중 회차는 서버 상태가 우선
 });
 
-test('회차 목록: 상태를 주지 않는 회차만 확정 여부를 묻는다', async () => {
+test('회차 목록: 상태가 없거나 검토 중인 회차만 확정 여부를 묻는다', async () => {
   const asked = [];
-  const api = apiWith(async () => response({ runs: [{ runId: 2 }, { runId: 3, status: '검토 중' }, { runId: 1 }] }));
+  const api = apiWith(async () => response({ runs: [{ runId: 2 }, { runId: 3, status: '검토 중' }, { runId: 4, status: '참고' }, { runId: 1 }] }));
   const runs = await api.listRuns({ finalizedOf: async (id) => { asked.push(id); return true; } });
-  assert.deepEqual(asked, [2]);
-  assert.deepEqual(runs.map((r) => [r.id, r.status]), [['2', '확정'], ['3', '검토 중']]);
+  assert.deepEqual(asked, [2, 3]);
+  assert.deepEqual(runs.map((r) => [r.id, r.status]), [['2', '확정'], ['3', '확정'], ['4', '참고']]);
 });
 
 test('후보 상세: 결정 기록과 결정 탭 표시', () => {
@@ -267,4 +267,10 @@ test('담당 부서가 null이면 서버가 준 이유(department_reason)를 보
   const d = toCandidateDetail({ ...cand('a', '수정구', 50, 1), department: null, department_status: '확인 필요', department_reason: '문제 유형 연결이 없습니다.' }, { list, user: { role: 'city' }, record: null });
   assert.equal(d.dept, null);
   assert.equal(d.deptReason, '문제 유형 연결이 없습니다.');
+});
+
+test('서버 상태가 검토 중이어도 3개 구가 모두 확정했다는 값이 있으면 확정으로 본다', () => {
+  assert.equal(toRun({ run_id: 2, status: '검토 중' }, { finalized: true }).status, RUN_STATUS.FINAL);
+  assert.equal(toRun({ run_id: 2, status: '검토 중' }, { finalized: false }).status, RUN_STATUS.REVIEW);
+  assert.equal(toRun({ run_id: 2, status: '참고' }, { finalized: true }).status, '참고'); // 참고 회차는 확정하지 않는다
 });

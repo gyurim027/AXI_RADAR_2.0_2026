@@ -329,6 +329,7 @@ function CandidateListPage() {
         <ConfirmModal
           runId={run.id}
           role={user.role}
+          finalized={run.status === RUN_STATUS.FINAL}
           onClose={() => setConfirmOpen(false)}
           onFailed={onChanged}
           onConfirmed={() => {

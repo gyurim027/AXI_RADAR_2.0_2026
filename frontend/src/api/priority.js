@@ -67,8 +67,9 @@ const round1 = (v) => Math.round(Number(v) * 10) / 10; // 점수는 소수 첫�
 export function toRun(r, { finalized = false } = {}) {
   const id = String(r.run_id);
   let status = STATUS_VALUES.has(r.status) ? r.status : RUN_STATUS.UNKNOWN;
-  // 서버가 상태를 주지 않을 때, 3개 구가 모두 확정했다는 서버 값(round_finalized)이 있으면 '확정'으로 본다.
-  if (status === RUN_STATUS.UNKNOWN && finalized) status = RUN_STATUS.FINAL;
+  // 3개 구가 모두 확정했다는 서버 값(G-06 round_finalized)이 있으면 '확정'으로 본다.
+  // 서버가 상태를 주지 않을 때뿐 아니라 '검토 중'일 때도 그렇다. 회차 운영 API(D-10)는 열기(검토 중·참고)만 저장하고 '확정'으로 바꾸는 곳이 없다.
+  if ((status === RUN_STATUS.UNKNOWN || status === RUN_STATUS.REVIEW) && finalized) status = RUN_STATUS.FINAL;
   // 개발 전용: 로컬에서 결정·확정 화면을 시험하려고 상태를 덮어쓴다. 개발 서버(DEV)에서만 읽고 배포 빌드에서는 무시한다.
   const devStatus = import.meta.env?.DEV ? import.meta.env?.VITE_DEV_RUN_STATUS : null;
   if (status === RUN_STATUS.UNKNOWN && STATUS_VALUES.has(devStatus)) status = devStatus;
@@ -320,7 +321,7 @@ export function createPriorityApi(rawRequest) {
       const runs = (d.runs || []).filter((r) => !PRESERVED_RUN_IDS.has(Number(r.run_id)));
       return Promise.all(
         runs.map(async (r) => {
-          const needs = !STATUS_VALUES.has(r.status) && typeof finalizedOf === 'function';
+          const needs = (!STATUS_VALUES.has(r.status) || r.status === RUN_STATUS.REVIEW) && typeof finalizedOf === 'function';
           return toRun(r, { finalized: needs ? await finalizedOf(r.run_id) : false });
         }),
       );
