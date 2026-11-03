@@ -8,6 +8,7 @@ import { LIST } from '../copy.js';
 import { addHatchPattern, mapColors, prefersReducedMotion, tierFill } from './mapUtils.js';
 import { CLUSTER_LIMIT, basisSummary, clusterIcon, clusterLabel, groupComplaintPoints, pointIcon, pointKind, pointLabel } from './mapPoints.js';
 import styles from './CandidateMap.module.css';
+import { placeLabel } from '../../../../shared/utils/format.js';
 
 // 성남시 둘레. 어두운 막이 지도를 움직여도 빈틈없이 덮고, 지도가 이 밖으로 나가지 않는다.
 const DIM_BOUNDS = [
@@ -284,7 +285,7 @@ export default function CandidateMap({ items, unrated, boundaries, ownGu, select
         화살표 키로 구역을 옮기고 Enter 키로 고릅니다. 더하기, 빼기 키로 확대하고 축소합니다. 모든 구역은 왼쪽 표에도 있습니다.
       </p>
       <p className="sr-only" aria-live="polite">
-        {focused ? `${focused.address} · ${focused.landmark}` : ''}
+        {focused ? placeLabel(focused) : ''}
       </p>
 
       {children}

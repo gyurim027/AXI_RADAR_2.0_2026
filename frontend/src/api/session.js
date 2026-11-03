@@ -1,6 +1,7 @@
 import { mockCall } from './client.js';
 import * as server from '../mocks/server.js';
-import { BackendError, backendRequest, backendAuthEnabled, readBackendSession, saveBackendSession, clearBackendSession } from './backend.js';
+import { BackendError, backendRequest, backendAuthEnabled, priorityBackendEnabled, readBackendSession, saveBackendSession, clearBackendSession } from './backend.js';
+import { createPriorityApi } from './priority.js';
 
 // 로그인 성공 여부는 서버 응답만으로 정한다. 어떤 화면이 서버에 연결됐는지는 화면이 정한다.
 
@@ -32,6 +33,9 @@ export const validateBackendSession = async () => {
   saveBackendSession({ ...readBackendSession(), user: data.user });
   return data.user;
 };
-export const listRuns = mockCall('runs', () => server.listRuns());
+const priority = createPriorityApi(backendRequest);
+const mockListRuns = mockCall('runs', () => server.listRuns());
+// 서버 연결 모드에서는 서버 회차를 쓴다. 서버가 없는 값(상태·이름)은 비워 두고 가짜로 채우지 않는다.
+export const listRuns = () => (backendAuthEnabled && priorityBackendEnabled ? priority.listRuns() : mockListRuns());
 export const listNotifications = mockCall('notifications', () => server.listNotifications());
 export const markNotificationRead = mockCall('notifications', (arg) => server.markNotificationRead(arg));

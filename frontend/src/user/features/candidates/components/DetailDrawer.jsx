@@ -12,6 +12,7 @@ import LastYearTab from './tabs/LastYearTab.jsx';
 import DecisionTab from './tabs/DecisionTab.jsx';
 import RequestTab from './tabs/RequestTab.jsx';
 import styles from './DetailDrawer.module.css';
+import { placeLabel } from '../../../../shared/utils/format.js';
 
 /** 탭 목록. ⑤는 검토 중 회차의 자기 구 후보에서만, ⑥은 우선 점검 대상으로 정한 자기 구 후보에서만 보인다 (US-03 0-1). */
 export function visibleTabs(detail) {
@@ -53,7 +54,7 @@ export default function DetailDrawer({ row, detail, loading, failed, errorCode, 
     <aside ref={ref} className={styles.drawer} tabIndex={-1} aria-label="후보 상세">
       <div className={styles.head}>
         <div className={styles.titleRow}>
-          <h2 className={styles.title}>{`${row.rank != null ? `${row.rank}위 · ` : ''}${row.address} · ${row.landmark}`}</h2>
+          <h2 className={styles.title}>{`${row.rank != null ? `${row.rank}위 · ` : ''}${placeLabel(row)}`}</h2>
           <button type="button" className={styles.close} onClick={onClose} aria-label={DRAWER.closeLabel}>
             <Icon name="close" size={20} />
           </button>
