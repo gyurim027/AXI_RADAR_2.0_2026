@@ -177,31 +177,57 @@ def get_candidate_decision(
 def list_run_decisions(
     run_id: int,
     user: dict = Depends(current_user),
+    repo: PriorityRepository = Depends(get_repository),
 ):
-    """Existing G-03 process-memory decisions (NOT operational DB decisions).
-
-    The frontend excludes legacy run 1; the server keeps read-only access.
-    District can only read its own district; city can read all three.
-    """
+    """G-03 결정 목록. 운영 회차 공개 조건 및 관할 권한 적용."""
     _guard()
-    if run_id <= 0:
-        raise HTTPException(422, "유효한 회차 번호가 필요합니다")
+
+    # 1회차는 프로토타입 회차이므로 운영 목록에서 제외한다.
+    if run_id <= 1:
+        raise HTTPException(404, "운영 가능한 회차가 없습니다")
+
+    # 존재하는 회차인지 확인한다.
+    if repo.get_run(run_id) is None:
+        raise HTTPException(404, "회차를 찾을 수 없습니다")
+
     role = user.get("role")
     if role not in {"district", "city"}:
-        raise HTTPException(403, "구 도로관리팀·시 도로과만 조회할 수 있습니다")
+        raise HTTPException(
+            403, "구 도로관리팀·시 도로과만 조회할 수 있습니다"
+        )
+
     if role == "district":
         permitted = set(allowed_gus(user))
         if not permitted:
             raise HTTPException(403, "담당 구를 확인할 수 없습니다")
     else:
         permitted = {"수정구", "중원구", "분당구"}
+
+    # /api/priority 결정 목록과 동일한 공개 조건을 적용한다.
+    from importlib import import_module
+
+    workflow = import_module(
+        "app.services.d10.d10_run_workflow_db"
+    )
+    metadata = workflow.metadata_for_runs([run_id]).get(run_id, {})
+
+    if (
+        metadata.get("kind") != "연간"
+        or metadata.get("status") not in {"검토 중", "확정"}
+    ):
+        raise HTTPException(404, "조회 가능한 운영 회차가 아닙니다")
+
     if _operational.enabled():
         try:
-            return _operational.list_decisions(run_id=run_id, user=user)
+            return _operational.list_decisions(
+                run_id=run_id, user=user
+            )
         except _operational.OperationalError as exc:
             raise HTTPException(exc.status, str(exc)) from exc
+
     with _lock:
         saved = _store.list_for_run(run_id)
+
     decisions = []
     for record in saved:
         if record.get("gu") not in permitted:

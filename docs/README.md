@@ -14,13 +14,13 @@ AI-10은 위험도 판정, 현장 사실 확정, 법령의 최종 해석 및 운
 
 | 경로 | 역할 |
 |---|---|
-| `app/services/AI-10/ai10_case_draft.py` | 판정 근거 기반 조치 제안 문장 초안 생성 |
-| `app/services/AI-10/eval_adapter.py` | 평가 입력을 AI-10 입력 형식으로 변환 |
-| `app/services/AI-10/ai10_assessment_db_reader.py` | 판정 테이블의 지정 레코드 조회 |
-| `app/services/AI-10/ai10_assessment_record_input.py` | 판정 레코드 기반 입력 구성 |
-| `app/services/AI-10/ai10_assessment_evidence_bridge.py` | 판정 필드와 명시적 출처 정보 연결 |
-| `app/services/AI-10/ai10_source_provenance.py` | SRC 식별자 및 출처 정보 검증 |
-| `app/services/AI-10/ai10_external_payload.py` | 외부 전송용 입력 구성 및 제한 |
+| `app/services/ai10/ai10_case_draft.py` | 판정 근거 기반 조치 제안 문장 초안 생성 |
+| `app/services/ai10/eval_adapter.py` | 평가 입력을 AI-10 입력 형식으로 변환 |
+| `app/services/ai10/ai10_assessment_db_reader.py` | 판정 테이블의 지정 레코드 조회 |
+| `app/services/ai10/ai10_assessment_record_input.py` | 판정 레코드 기반 입력 구성 |
+| `app/services/ai10/ai10_assessment_evidence_bridge.py` | 판정 필드와 명시적 출처 정보 연결 |
+| `app/services/ai10/ai10_source_provenance.py` | SRC 식별자 및 출처 정보 검증 |
+| `app/services/ai10/ai10_external_payload.py` | 외부 전송용 입력 구성 및 제한 |
 | `app/core/llm.py` | 공통 LLM 호출·응답 스키마 검사·재시도 |
 | `app/core/llm_tasks.toml` | LLM 작업별 모델·라우팅 설정 |
 | `app/api/ai10_review_api.py` | 운영자 검토·승인 관련 개발용 API |

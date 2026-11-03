@@ -6,6 +6,8 @@ proof that the hazard occurred at the named location. Missing values stay None.
 """
 from __future__ import annotations
 
+import logging
+
 from collections.abc import Callable, Sequence
 from typing import Any
 
@@ -68,7 +70,15 @@ def location_labels_for_gids(
     for start in range(0, len(unique), 250):
         chunk = unique[start:start + 250]
         args = tuple(chunk) * len(_SOURCES)
-        rows = read_only(_sql(len(chunk)), args)
+        try:
+            rows = read_only(_sql(len(chunk)), args)
+        except Exception:
+            # Address/landmark are optional enrichments. A query failure must
+            # not turn an otherwise valid candidate list into HTTP 500.
+            logging.getLogger(__name__).exception(
+                "Optional candidate location lookup failed; returning null labels"
+            )
+            return {}
         allowed = set(chunk)
         for row in rows:
             gid = row.get("gid")

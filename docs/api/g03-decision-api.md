@@ -1,6 +1,6 @@
 # G-03 후보 결정 API — 현재 구현 명세
 
-상태: **개발용 메모리 저장·조회 구현**. 운영 DB 저장 및 팀 공통 API 병합 전. 기준: `app/api/g03_decision_api.py`와 `app/services/G-01~06/g03_candidate_decision.py` (2026-10-29 확인).
+상태: **개발용 메모리 저장·조회 구현**. 운영 DB 저장 및 팀 공통 API 병합 전. 기준: `app/api/g03_decision_api.py`와 `app/services/g01_g06/g03_candidate_decision.py` (2026-10-29 확인).
 서버: 공용 FastAPI 라우터로 등록될 경우 공용 서버의 주소를 사용하며, 포트는 본 모듈에 지정되어 있지 않음. `app/main.py` 등록은 통합 담당자 작업.
 본문은 JSON, UTF-8. 외부 AI 호출 없음. `AI_G03_DEV_API_ENABLED=1` 및 `AI_G03_REASON_CODES` 설정이 필요함. **운영 DB 쓰기 없음**.
 사용 화면: **US-03 ⑤ 후보 결정**. 프론트 `saveDecision` 요청 키와의 매핑은 아직 미연결.
@@ -53,7 +53,7 @@ GET `/api/g03/runs/{run_id}/candidates/{gid}/decision`
 
 ## 4. 다른 저장 방식과 구분
 
-`app/services/G-01~06/g03_candidate_decision.py`의 `InMemoryDecisionStore` 기반 개발용 경로임. 운영용 DB 저장, 인증된 회차 확정 상태 확인, G-04 변경 이력 영속화는 연결되지 않음. `priority_candidate.selected_yn`은 산정 결과로, G-03 사람의 결정값이 아님. 현재 프론트 `saveDecision`의 `runId`, `reasonKey` 등과 이 API의 `run_id` 경로·`reason_code` 본문은 동일 계약으로 확인되지 않았음.
+`app/services/g01_g06/g03_candidate_decision.py`의 `InMemoryDecisionStore` 기반 개발용 경로임. 운영용 DB 저장, 인증된 회차 확정 상태 확인, G-04 변경 이력 영속화는 연결되지 않음. `priority_candidate.selected_yn`은 산정 결과로, G-03 사람의 결정값이 아님. 현재 프론트 `saveDecision`의 `runId`, `reasonKey` 등과 이 API의 `run_id` 경로·`reason_code` 본문은 동일 계약으로 확인되지 않았음.
 
 ## 5. 팀 통합 협의
 
