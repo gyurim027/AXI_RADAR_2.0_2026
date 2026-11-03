@@ -32,7 +32,7 @@
   max-width: 420px;
 }
 .task {
-  font-size: var(--a-fs-lg);
+  font-size: var(--a-fs-md); /* 16px: 회차 제목(20px)보다 한 단계 아래 */
   line-height: var(--a-lh-body);
   color: var(--radar-admin-semantic-color-text-primary);
 }
@@ -54,7 +54,7 @@
 }
 .section {
   margin: 0 0 var(--a-s3);
-  font-size: var(--a-fs-lg);
+  font-size: var(--a-fs-h3); /* 20px: 묶음 제목은 카드 제목(16px)보다 위 단계 */
   font-weight: var(--a-fw-semibold);
   color: var(--radar-admin-semantic-color-text-primary);
 }
@@ -70,6 +70,10 @@
 .card {
   min-width: 0;
   height: 100%;
+}
+/* 카드 제목은 16px: 묶음 제목(20px) 아래, 지표 숫자(24px)와 겹치지 않게 한 단계 낮춘다 */
+.card h2 {
+  font-size: var(--a-fs-md);
 }
 .cardBody {
   display: flex;
