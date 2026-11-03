@@ -3,6 +3,7 @@ import DataTable from '../../../components/DataTable.jsx';
 import Icon from '../../../components/Icon.jsx';
 import styles from './UnratedPanel.module.css';
 import { LIST } from '../copy.js';
+import { placeLabel } from '../../../../shared/utils/format.js';
 
 /**
  * 3 평가하지 못한 구역. 데이터 결측으로 평가 대상에서 제외된 곳이다(KPI 전체에 들어가지 않는다).
@@ -19,7 +20,7 @@ export default function UnratedPanel({ rows, city, open, onToggle, selectedId, o
       width: 210,
       render: (r) => (
         <span className={styles.name}>
-          <span className={styles.addr}>{r.address}</span>
+          <span className={styles.addr}>{r.address || (r.landmark ? '' : placeLabel(r))}</span>
           <span className={styles.landmark}>{r.landmark}</span>
         </span>
       ),

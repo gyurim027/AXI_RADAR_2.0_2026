@@ -6,7 +6,7 @@ export const APPROVAL = {
   subtitle: 'RADAR 운영팀이 올린 산정 기준·담당 부서 표 변경 제안입니다. 승인한 설정은 다음 산정부터 사용할 수 있습니다.',
   head: ['제안', '내용', '제안일'],
   proposalName: (kind, version) => (version ? `${kind} ${version}` : kind),
-  empty: '승인할 제안이 없습니다. 새 제안이 오면 알림으로 알려 드립니다.', // E-3
+  empty: '승인할 제안이 없습니다.', // E-3
   compareTitle: (kind, version) => (kind === '산정 기준' ? `산정 기준 ${version} 변경 제안` : `${kind} 수정 제안`),
   changeRow: (field, from, to, type) => (type === 'weight' ? `${field} 분야 반영 비율 ${from} → ${to}` : `${field} ${from} → ${to}`),
   impact: (top, changed) => `상위 ${top}곳 중 ${changed}곳이 바뀝니다.`,

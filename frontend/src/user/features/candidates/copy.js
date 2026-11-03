@@ -43,7 +43,11 @@ export const LIST = {
   // 꼬리표에는 이유만 쓴다. 반영 비율은 상세의 ⓘ에 둔다 (W-7)
   decisionMenuLabel: '결정 상태 바꾸기', // 메뉴 버튼의 화면 읽기 이름 (US-01 1-4)
   conditionTag: (name) => `먼저 볼 이유: ${name}`,
-  conditionRatioHelp: (name, ratio) => `${name}의 반영 비율은 ${ratio}%입니다.`,
+  conditionRatioHelp: (name, ratio) => (ratio == null ? `${name}에 해당해 먼저 확인할 후보로 표시했습니다.` : `${name}의 반영 비율은 ${ratio}%입니다.`),
+  conditionStateTitle: '우선 확인 조건 판정',
+  conditionState: { Y: '충족', N: '미충족', NULL: '미평가', INVALID: '확인 필요' },
+  conditionStateHelpLabel: '미평가 뜻 보기',
+  conditionStateHelp: '미평가는 판정에 필요한 자료가 없어 조건을 판정하지 못한 상태입니다. 충족하지 않은 것(미충족)과 다릅니다. 조건에 맞는지와 점검 후보로 선정됐는지는 서로 다른 값입니다.',
 
   // 2-3 순위 표
   tableCaption: '점검 후보 순위 표',
@@ -74,7 +78,7 @@ export const LIST = {
   evidenceHelp: '이 구역의 점검 순위를 높이는 데 영향을 준 주요 지점입니다.', // W-13
   evidenceHelpLabel: '근거 지점 뜻 보기',
   legendCluster: '숫자 원: 가까운 민원 묶음 (숫자는 건수)',
-  clusterNote: '이 칸에는 민원 점이 많아 가까운 점을 묶어 보입니다. 숫자는 민원 건수이고 지도를 확대하면 나뉩니다.',
+  clusterNote: '민원이 많은 곳은 건수로 모아 볼 수 있습니다. 지도를 확대하면 자세히 볼 수 있습니다.',
   mapLabel: '점검 후보 지도',
 
   // 3-1 구별 비교
@@ -122,10 +126,10 @@ export const DRAWER = {
   axisTag: (axes) => `주요 근거: ${axes}`,
   evidenceHead: ['근거 분야', '근거 자료', '값', '성남시 내 순위', '반영 비율', '기준일', '출처'],
   unratedTag: (name, reason) => `평가하지 못한 분야: ${name} (${reason})`,
-  unratedHelp: '자료가 없어 평가하지 못한 분야입니다. 0점으로 처리하지 않았습니다.', // W-8
+  unratedHelp: '자료가 없어 평가하지 못한 분야입니다. 위험이 없다는 뜻이 아니며 0점으로 처리하지 않았습니다.', // W-8
   unratedHelpLabel: '평가하지 못한 분야 뜻 보기',
-  reliabilityTag: (level, reason) => `자료 신뢰도 ${level} · ${reason}`,
-  reliabilityHelp: "자료의 최신성, 누락 여부, 근거 자료 수를 바탕으로 평가합니다. '낮음'은 현장 확인이 필요합니다.", // W-10
+  reliabilityTag: (level, reason) => (reason ? `자료 신뢰도 ${level} · ${reason}` : `자료 신뢰도 ${level}`),
+  reliabilityHelp: "지표 9개 중 평가할 수 있는 지표의 수로 구분합니다. 높음은 8개 이상, 보통은 6~7개, 낮음은 5개 이하입니다. 위험이 높고 낮은 정도가 아니라 자료를 평가할 수 있는 정도입니다. '낮음'은 현장 확인이 필요합니다.", // W-10, D-06
   reliabilityHelpLabel: '자료 신뢰도 뜻 보기',
   sidewalkHelp: '도면에서 잰 폭이라 실제로 걸을 수 있는 폭과 다를 수 있습니다.',
   sidewalkHelpLabel: '보도 값 도움말 보기',
@@ -133,8 +137,8 @@ export const DRAWER = {
   // 1-2 민원 신호
   complaintTitle: '민원',
   complaintLine: (types) => types.map((t) => `${t.type} ${t.count}건${t.recur ? ` (재발 ${t.recur})` : ''}`).join(' · '),
-  complaintLowAccuracy: (n) => `위치 정확도가 낮은 민원 ${n}건도 포함해 계산했습니다.`, // 낮음 민원도 격자 민원 수에 넣는다 (ISS-033, K-1)
-  complaintEmpty: '이번 점검 순위 계산에는 민원 자료를 사용하지 않았습니다. 다른 근거만으로 순위를 계산했습니다.', // K-6, US-03 1-2
+  complaintLowAccuracy: (n) => `위치를 대략만 알 수 있는 민원 ${n}건도 건수에 포함되어 있습니다.`, // 낮음 민원도 격자 민원 수에 넣는다 (ISS-033, K-1)
+  complaintEmpty: '이번 점검 순위에는 민원 자료가 포함되지 않았습니다. 다른 근거만으로 정해진 순위입니다.', // K-6, US-03 1-2
 
   // 2-1 조문
   articleTitle: '조문',
@@ -180,6 +184,7 @@ export const DRAWER = {
   otherLabel: '기타 사유', // 입력 칸의 이름 (스크린 리더용, 명세에 없는 말)
   memoLabel: '메모 (선택)',
   saveDecision: '결정 저장하기',
+  alreadyDecided: '이미 결정한 후보입니다. 지금은 결정을 바꿀 수 없습니다.',
   reasonRequired: '제외나 보류를 저장하려면 사유를 골라 주세요.',
   otherRequired: '기타 사유를 적어 주세요.',
   historyTitle: '결정 이력',
@@ -211,10 +216,10 @@ export const CONFIRM = {
   title: (gu) => `${gu} 우선 점검 대상을 확정할까요?`,
   sub: (gu) => `확정하면 ${gu} 결정은 더 고칠 수 없습니다.`,
   numbers: (c) => `결정 전 ${c.none}곳 · 우선 점검 대상 ${c.target}곳 · 보류 ${c.hold}곳 · 제외 ${c.exclude}곳`,
-  warning: (n) => `아직 결정하지 않은 후보가 ${n}곳 있습니다. 지금 확정하면 이 후보들은 결정 없이 남습니다.`,
+  warning: (n) => `아직 결정하지 않은 후보가 ${n}곳 있습니다. 지금 확정하면 이 후보들은 우선 점검 대상에 들어가지 않아 점검 요청서에 포함되지 않습니다.`,
   more: '후보 더 결정하기',
   confirm: '우선 점검 대상 확정',
   doneTitle: (gu) => `${gu} 우선 점검 대상을 확정했습니다.`,
-  doneNote: '이제 관할 부서별 점검 요청서를 만들 수 있습니다.',
+  doneNote: '관할 부서별 점검 요청서를 만들 수 있습니다.',
   doneButton: '관할 부서별 점검 요청서 만들기',
 };

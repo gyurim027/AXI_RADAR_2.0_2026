@@ -71,6 +71,16 @@ export default function RankBasisTab({ detail }) {
               ))}
             </div>
           ) : null}
+          {d.conditionStates ? (
+            <div className={styles.tagRow} aria-label={LIST.conditionStateTitle}>
+              {d.conditionStates.map((c) => (
+                <Tag key={c.id} tone={c.state === 'Y' ? 'info' : 'gray'} small>
+                  {`${c.name} ${LIST.conditionState[c.state]}`}
+                </Tag>
+              ))}
+              <InfoHelp label={LIST.conditionStateHelpLabel}>{LIST.conditionStateHelp}</InfoHelp>
+            </div>
+          ) : null}
           {axes ? <div className={styles.tagRow}><Tag tone="info">{DRAWER.axisTag(axes)}</Tag></div> : null}
           {d.explanation ? (
             <p className={styles.explain}>

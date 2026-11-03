@@ -29,6 +29,12 @@ export function reportFileName(runName, guLabel, reportName, ext) {
   return `RADAR_${clean(runName)}_${clean(guLabel)}_${clean(reportName)}.${ext}`;
 }
 
+/** 후보 위치 이름. 서버가 주소·대표 지점을 주지 않으면 격자 번호로 부른다(가짜 주소를 만들지 않는다). */
+export function placeLabel(r) {
+  const text = [r.address, r.landmark].filter(Boolean).join(' · ');
+  return text || `격자 ${r.gid}`;
+}
+
 /** 회차 이름에서 연도 (예: '2027 연간' → '2027') */
 export function runYear(runName) {
   const m = String(runName).match(/\d{4}/);
@@ -46,6 +52,7 @@ export function runNameWithoutRef(runName) {
  */
 export function runTitle(run, withNote = true) {
   const year = runYear(run.name);
+  if (!year) return run.name; // 서버가 이름을 주지 않은 회차('회차 2')
   if (run.kind === 'ref') {
     const rest = runNameWithoutRef(run.name).replace(/^\d{4}\s*/, '');
     return `${year}년 ${rest} 계산${withNote ? ' (참고용)' : ''}`.replace('  ', ' ');

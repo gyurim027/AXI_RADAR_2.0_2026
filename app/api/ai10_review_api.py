@@ -266,7 +266,7 @@ def create_router(store: Path = STORE) -> APIRouter:
             )
 
         module = importlib.import_module(
-            "app.services.AI-10.ai10_db_approval"
+            "app.services.ai10.ai10_db_approval"
         )
         try:
             return module.save_approved_template(
@@ -289,7 +289,7 @@ def create_router(store: Path = STORE) -> APIRouter:
     def show_approved_template_db(rule_id: str):
         """DB 81번에서 검토 완료된 조치 문장만 조회한다."""
         module = importlib.import_module(
-            "app.services.AI-10.ai10_db_approval"
+            "app.services.ai10.ai10_db_approval"
         )
         try:
             result = module.get_approved_template(rule_id)

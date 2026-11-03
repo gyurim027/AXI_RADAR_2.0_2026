@@ -51,7 +51,7 @@ def run_dept(input_text: str) -> str | None:
 def _case_module():
     """실제 프로젝트 배치 경로가 다른 경우 두 경로를 순서대로 확인합니다."""
     errors = []
-    for path in ("app.services.ai10_case_draft", "app.services.AI-10.ai10_case_draft"):
+    for path in ("app.services.ai10_case_draft", "app.services.ai10.ai10_case_draft"):
         try:
             return importlib.import_module(path)
         except ModuleNotFoundError as exc:
@@ -125,7 +125,7 @@ def run_structured_case(case_payload: dict, *, source_rows: list[dict] | None = 
         raise TypeError("구조화 입력은 dict이어야 합니다.")
     if source_rows is None:
         raise ValueError("DB 56 source_list 조회 결과가 없어 출처 검증 불가")
-    audit_evidence_sources = importlib.import_module("app.services.AI-10.ai10_source_provenance").audit_evidence_sources
+    audit_evidence_sources = importlib.import_module("app.services.ai10.ai10_source_provenance").audit_evidence_sources
     module = _case_module()
     case = module.CaseInput.model_validate(case_payload)
     report = audit_evidence_sources(case.evidence_items, source_rows)

@@ -63,7 +63,11 @@ export default function TopBar() {
             1년치를 계산한 점검 순위입니다. 반기 계산 결과는 참고용으로만 사용해주세요.
           </InfoHelp>
           <InfoHelp label="자료 기준 보기" align="right">
-            {`${dataYear(run.dataRange)}년 자료 기준 · 자료 기준일 ${run.dataRange} · 산정 기준 ${run.version} · 평가하지 못한 분야: ${run.unratedFields.join(', ')}`}
+            {[
+              run.dataRange ? `${dataYear(run.dataRange)}년 자료 기준 · 자료 기준일 ${run.dataRange}` : null,
+              run.version ? `산정 기준 ${run.version}` : null,
+              run.unratedFields?.length ? `평가하지 못한 분야: ${run.unratedFields.join(', ')}` : null,
+            ].filter(Boolean).join(' · ') || '서버에서 받은 자료 기준 정보가 아직 없습니다.'}
             <InfoHelp label="평가하지 못한 분야 뜻 보기" align="right">
               자료가 없어 평가하지 못한 분야입니다. 0점으로 처리하지 않았습니다.
             </InfoHelp>

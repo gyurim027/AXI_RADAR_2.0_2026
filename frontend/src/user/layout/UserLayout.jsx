@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Link, Outlet, useLocation, useMatches, useNavigate } from 'react-router-dom';
-import { backendAuthEnabled, i07BackendEnabled } from '../../api/backend.js';
+import { backendAuthEnabled, i07BackendEnabled, priorityBackendEnabled } from '../../api/backend.js';
+import { isUserOpenInServerMode } from '../serverRoutes.js';
 import NotConnected from '../components/NotConnected.jsx';
 import { ROLE } from '../../shared/constants.js';
 import { RUN_STATUS } from '../../shared/constants.js';
@@ -16,7 +17,7 @@ import bar from './TopBar.module.css';
 /** US-00 공통 상단 + 상태 띠 + 본문. 순위 안내는 각 화면 머리(PageHeader)가 보인다. */
 export default function UserLayout() {
   // 서버 연결 모드에서는 회차·가짜 데이터를 쓰지 않는 최소 틀만 쓴다. 연결된 화면(승인 대기)만 열고 나머지는 안내를 보인다.
-  if (backendAuthEnabled) return <ServerUserLayout />;
+  if (backendAuthEnabled && !priorityBackendEnabled) return <ServerUserLayout />;
   return <RunUserLayout />;
 }
 
@@ -46,6 +47,9 @@ function RunUserLayout() {
   const { run } = useRun();
   const { user } = useAuth();
   const matches = useMatches();
+  const { pathname } = useLocation();
+  // 서버 연결 모드에서 연결하지 않은 화면은 가짜 데이터 대신 안내를 보인다
+  const connected = !backendAuthEnabled || isUserOpenInServerMode(pathname);
   const edge = matches.some((m) => m.handle?.edgeToEdge); // 지도가 화면 끝까지 차는 화면
   const reading = matches.some((m) => m.handle?.reading); // 보고서·참고 자료: 본문 폭 하나
   const pageTitle = [...matches].reverse().find((m) => m.handle?.title)?.handle.title;
@@ -64,9 +68,9 @@ function RunUserLayout() {
       <TopBar />
       <SubNav />
       {run.status !== RUN_STATUS.REVIEW ? <StatusBand run={run} /> : null}
-      <main className={`${styles.main} ${edge ? styles.mainEdge : ''}`} id="main" tabIndex={-1}>
-        <div className={edge ? styles.edge : `${styles.content} ${reading ? styles.reading : ''}`}>
-          <Outlet />
+      <main className={`${styles.main} ${edge && connected ? styles.mainEdge : ''}`} id="main" tabIndex={-1}>
+        <div className={edge && connected ? styles.edge : `${styles.content} ${reading ? styles.reading : ''}`}>
+          {connected ? <Outlet /> : <NotConnected role={user.role} />}
         </div>
       </main>
     </div>

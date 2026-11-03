@@ -135,7 +135,7 @@ def prepare_references(reader, ids, evidence_dir, calculation_document):
         raise SettingLinksBlocked('DB77_V24_ACTIVATION_REQUIRED')
     if not isinstance(ids,tuple) or len(ids)!=3 or any(type(x) is not int or x<=0 for x in ids) or len(set(ids))!=3:
         raise SettingLinksBlocked('THREE_DISTINCT_SETTING_IDS_REQUIRED')
-    rows = reader('SELECT setting_version_id,setting_kind,content_ref,version_label,version_no,'
+    rows = reader('SELECT setting_version_id,setting_kind,content_ref,version_label,NULL AS version_no,'
                   'approval_status,approved_at FROM setting_version '
                   'WHERE setting_version_id IN (%s,%s,%s)',ids)
     by_id={r['setting_version_id']:r for r in rows}
@@ -152,7 +152,7 @@ def prepare_references(reader, ids, evidence_dir, calculation_document):
 def verify_locked_references(cur,refs):
     validate_references(refs)
     ids=tuple(r.setting_version_id for r in refs)
-    cur.execute('SELECT setting_version_id,setting_kind,content_ref,version_label,version_no,'
+    cur.execute('SELECT setting_version_id,setting_kind,content_ref,version_label,NULL AS version_no,'
                 'approval_status,approved_at FROM setting_version '
                 'WHERE setting_version_id IN (%s,%s,%s) ORDER BY setting_version_id FOR UPDATE',ids)
     verify_reference_rows(refs,cur.fetchall())
@@ -182,7 +182,7 @@ def attach_run_versions(rows, reader, enabled=None):
         links={r['run_id']:r for r in found}
         setting_ids=sorted({r.get(f) for r in found for f in FIELDS if r.get(f) is not None})
         if setting_ids:
-            found=reader('SELECT setting_version_id,setting_kind,version_label,version_no '
+            found=reader('SELECT setting_version_id,setting_kind,version_label,NULL AS version_no '
                          'FROM setting_version WHERE setting_version_id IN ('+
                          ','.join(['%s']*len(setting_ids))+')',tuple(setting_ids))
             settings={r['setting_version_id']:r for r in found}

@@ -1,6 +1,6 @@
 from importlib import import_module
 
-models = import_module("app.services.AI-10.ai10_case_draft")
+models = import_module("app.services.ai10.ai10_case_draft")
 CaseInput = models.CaseInput
 EvidenceItem = models.EvidenceItem
 

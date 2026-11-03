@@ -3,7 +3,7 @@ import { CONTACT_PHONE } from '../../../mocks/accounts.js';
 
 export const LOGIN_COPY = {
   title: 'RADAR 보도 점검 우선순위', // 1-1
-  subtitle: '성남시 보도 정기 점검의 우선순위를 제안하는 도구입니다. 받은 계정으로 로그인해 주세요.', // 1-2 (K-18)
+  subtitle: '성남시 보도 정기 점검의 우선순위를 제안하는 도구입니다. 로그인해 주세요.', // 1-2 (K-18)
   idLabel: '아이디', // 2-1
   pwLabel: '비밀번호', // 2-3
   submit: '로그인', // 2-5

@@ -181,7 +181,7 @@ function CandidateListPage() {
     <div className={styles.split}>
       <div className={styles.left} ref={scrollRef}>
         <div className={styles.leftInner}>
-          <PageHeader compact eyebrow={`${LIST.eyebrow(scope)} · ${LIST.dataBasis(dataYear(run.dataRange))}`} title={LIST.title} subtitle={city ? LIST.subtitleCity : LIST.subtitleDistrict}>
+          <PageHeader compact eyebrow={run.dataRange ? `${LIST.eyebrow(scope)} · ${LIST.dataBasis(dataYear(run.dataRange))}` : LIST.eyebrow(scope)} title={LIST.title} subtitle={city ? LIST.subtitleCity : LIST.subtitleDistrict}>
             {guide}
           </PageHeader>
 

@@ -35,7 +35,7 @@ function defaultRun(runs) {
 
 export function RunProvider({ children }) {
   const { user } = useAuth();
-  const { data, failed, reload } = useAsync(() => listRuns(), [user?.id]);
+  const { data, failed, loading, reload } = useAsync(() => listRuns(), [user?.id]);
   const [runId, setRunIdState] = useState(() => readSession('radar.runId'));
   const [guState, setGuState] = useState(() => readSession('radar.gu') || ALL_GU);
 
@@ -60,6 +60,8 @@ export function RunProvider({ children }) {
   );
 
   if (failed) return <ErrorState areaName="회차 목록" onRetry={reload} />;
+  // 서버 응답을 기다리는 동안 '열 수 있는 점검 해가 없다'는 안내가 잠깐 보이지 않게 한다
+  if (loading && !data) return <p role="status">회차를 불러오고 있습니다.</p>;
   // E-1 열 수 있는 점검 해가 아직 없다. 빈 화면 대신 이유와 다음 일을 알린다.
   if (!run) return <EmptyState text={COMMON.noCandidates} hint={COMMON.noCandidatesHint} />;
   return <RunContext.Provider value={value}>{children}</RunContext.Provider>;

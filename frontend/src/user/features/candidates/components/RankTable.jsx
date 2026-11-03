@@ -4,6 +4,7 @@ import { COMMON } from '../../../../shared/copy/common.js';
 import { LIST } from '../copy.js';
 import DecisionMenu from './DecisionMenu.jsx';
 import styles from './RankTable.module.css';
+import { placeLabel } from '../../../../shared/utils/format.js';
 
 const RELI_TONE = { 높음: 'low', 보통: 'neutral', 낮음: 'mid' };
 
@@ -40,7 +41,7 @@ function columnsFor({ city, canDecide, conditionMap, onDecide }) {
       sortable: true,
       render: (r) => (
         <span className={styles.cand}>
-          <span className={styles.addr}>{r.address}</span>
+          <span className={styles.addr}>{r.address || (r.landmark ? '' : placeLabel(r))}</span>
           <span className={styles.landmark}>{r.landmark}</span>
           {/* 우선 확인 조건에 맞은 후보는 먼저 볼 이유를 꼬리표로 보인다. 반영 비율은 상세에 있다 (W-7) */}
           {r.conditions.filter((id) => conditionMap[id]).length > 0 ? (
@@ -108,7 +109,7 @@ export default function RankTable({ rows, city, canDecide, conditionMap, onDecid
       getRowKey={(r) => r.gid}
       selectedKey={selectedId}
       onRowClick={(r) => onSelect(r.gid)}
-      rowLabel={(r) => `${r.rank}위 ${r.address} ${r.landmark}`}
+      rowLabel={(r) => `${r.rank}위 ${placeLabel(r)}`}
       sort={sort}
       onSort={onSort}
       rowTone={(r) => (r.tier === 'top' ? 'high' : null)}

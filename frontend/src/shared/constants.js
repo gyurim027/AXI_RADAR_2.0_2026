@@ -22,6 +22,7 @@ export const RUN_STATUS = {
   REVIEW: '검토 중',
   FINAL: '확정',
   REF: '참고',
+  UNKNOWN: '상태 정보 없음', // 서버가 회차 상태를 주지 않을 때. 가짜 상태를 만들지 않는다 (결정 기록 D-46)
 };
 
 export const RELIABILITY = ['높음', '보통', '낮음'];
