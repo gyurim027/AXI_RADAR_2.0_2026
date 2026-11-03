@@ -16,7 +16,7 @@ export default function StatusBand({ run }) {
           </Link>
         </>
       ) : (
-        <span>{`${runYear(run.name)}년 점검 대상이 확정되었습니다. 보기만 할 수 있습니다.`}</span>
+        <span>{`${runYear(run.name)}년 점검 대상이 확정되었습니다. 열람만 가능합니다.`}</span>
       )}
     </div>
   );
