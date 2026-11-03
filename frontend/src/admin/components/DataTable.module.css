@@ -43,7 +43,7 @@
   color: var(--radar-admin-component-table-head-text);
   font-size: var(--a-fs-sm);
   font-weight: var(--radar-admin-component-table-head-weight);
-  text-align: center;
+  text-align: left;
   white-space: nowrap;
 }
 .compact .th {
@@ -62,9 +62,6 @@
 .compact .td {
   height: var(--radar-admin-component-table-row-height-compact);
   padding: var(--a-s1) var(--radar-admin-component-table-cell-padding-x-compact);
-}
-.firstCenter .td:first-child {
-  text-align: center;
 }
 .right {
   font-variant-numeric: tabular-nums;

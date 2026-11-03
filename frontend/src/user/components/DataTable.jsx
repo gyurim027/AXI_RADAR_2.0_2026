@@ -1,11 +1,9 @@
-import { useRef } from 'react';
 import Icon from './Icon.jsx';
-import useFirstColumnCenter from '../../shared/hooks/useFirstColumnCenter.js';
 import styles from './DataTable.module.css';
 
 /**
  * 표 (디자인 시스템 11-3, 14장)
- * 정렬은 한 규칙이다: 머리 줄은 가운데, 나머지 칸은 왼쪽. 첫 열은 본문 칸이 모두 3자 이하(숫자만이면 길이 무관)일 때만 가운데다 (열마다 정하지 않는다).
+ * 정렬은 한 규칙이다: 머리 줄과 모든 칸(첫 열 포함)을 왼쪽에 맞춘다. 예외 없음 (열마다 정하지 않는다).
  * columns: { key, header, width, sticky, sortable, render(row) }
  *   - sticky 열은 앞쪽에 이어서 놓는다. width(px)가 필요하다.
  * 열이 넘치면 가로로 스크롤하고, 열을 숨기지 않는다.
@@ -27,8 +25,6 @@ export default function DataTable({
   rowLabel,
   fixed = false,
 }) {
-  const tbodyRef = useRef(null);
-  const firstCenter = useFirstColumnCenter(tbodyRef, rows);
   const lefts = columns.map((c, i) =>
     c.sticky ? columns.slice(0, i).reduce((sum, prev) => sum + (prev.sticky ? prev.width || 0 : 0), 0) : null,
   );
@@ -52,7 +48,7 @@ export default function DataTable({
             const style = {
               ...(fixed ? null : { width: c.width, minWidth: c.width }), // 고정 모드는 colgroup이 폭을 정한다
               left: lefts[i] ?? undefined,
-              textAlign: 'center',
+              textAlign: 'left',
             };
             return (
               <th
@@ -75,7 +71,7 @@ export default function DataTable({
           })}
         </tr>
       </thead>
-      <tbody ref={tbodyRef}>
+      <tbody>
         {rows.map((row) => {
           const key = getRowKey(row);
           const selected = selectedKey != null && key === selectedKey;
@@ -105,7 +101,7 @@ export default function DataTable({
                 <td
                   key={c.key}
                   className={`${styles.td} ${c.sticky ? styles.sticky : ''} ${c.stickyRight ? styles.stickyRight : ''} ${i === lastSticky ? styles.edge : ''}`}
-                  style={{ textAlign: i === 0 && firstCenter ? 'center' : 'left', left: lefts[i] ?? undefined, ...(fixed ? null : { width: c.width, minWidth: c.width }) }}
+                  style={{ textAlign: 'left', left: lefts[i] ?? undefined, ...(fixed ? null : { width: c.width, minWidth: c.width }) }}
                 >
                   {c.render ? c.render(row) : row[c.key]}
                 </td>
