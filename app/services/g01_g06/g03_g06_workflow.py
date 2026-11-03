@@ -6,11 +6,11 @@
 from copy import deepcopy
 from threading import RLock
 
-from app.services.g03_candidate_decision import (DecisionRequest, InMemoryDecisionStore,
+from app.services.g01_g06.g03_candidate_decision import (DecisionRequest, InMemoryDecisionStore,
     G03Error, record_candidate_decision)
-from app.services.g04_change_audit import ChangeRequest, prepare_change_event
-from app.services.g05_previous_year_compare import compare_previous_year
-from app.services.g06_round_finalize import (InMemoryFinalizeStore,
+from app.services.g01_g06.g04_change_audit import ChangeRequest, prepare_change_event
+from app.services.g01_g06.g05_previous_year_compare import compare_previous_year
+from app.services.g01_g06.g06_round_finalize import (InMemoryFinalizeStore,
     preview_district_finalization, finalize_district, DISTRICTS)
 
 
