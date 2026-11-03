@@ -100,3 +100,9 @@
     border-radius: 0;
   }
 }
+
+.locationNote {
+  margin-top: var(--space-4);
+  font-size: var(--fs-caption);
+  color: var(--semantic-color-text-muted);
+}

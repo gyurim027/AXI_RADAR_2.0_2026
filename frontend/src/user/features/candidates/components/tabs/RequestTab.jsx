@@ -31,7 +31,7 @@ export default function RequestTab({ detail, onGoTab }) {
   }
 
   const years = [...new Set(d.evidence.map((e) => `${e.basisYear}년`))].join(', ') || '기준일 미확인';
-  const text = DRAWER.requestText(d.dept.name, d.request?.content ?? '현장 확인', d.landmark, d.address, d.topEvidence.join(', '), years);
+  const text = DRAWER.requestText(d.dept.name, d.request?.content ?? '현장 확인', d.landmark, d.address, d.topEvidence.join(', '), years, `격자 ${d.gid}`);
 
   const copy = async () => {
     try {
