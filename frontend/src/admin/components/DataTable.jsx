@@ -40,8 +40,8 @@ export default function DataTable({
           {caption ? <caption className="sr-only">{caption}</caption> : null}
           <thead>
             <tr>
-              {columns.map((c) => (
-                <th key={c.key} scope="col" className={styles.th} style={c.width ? { width: c.width, minWidth: c.width } : undefined}>
+              {columns.map((c, i) => (
+                <th key={c.key} scope="col" className={`${styles.th} ${expandable && i === 0 ? styles.expandHead : ''}`} style={c.width ? { width: c.width, minWidth: c.width } : undefined}>
                   {c.header}
                 </th>
               ))}
@@ -86,6 +86,8 @@ export default function DataTable({
                           >
                             <Icon name={open ? 'chevronUp' : 'chevronDown'} size={16} />
                           </button>
+                        ) : expandable && i === 0 ? (
+                          <span className={styles.chev} aria-hidden="true" /> /* 펼칠 수 없는 행도 같은 자리를 비워 첫 열 글자가 한 줄로 맞는다 */
                         ) : null}
                         {c.render ? c.render(row) : row[c.key]}
                       </td>

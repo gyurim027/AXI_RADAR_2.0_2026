@@ -132,3 +132,11 @@
   font-size: var(--a-fs-sm);
   color: var(--radar-admin-semantic-color-text-secondary);
 }
+
+/* 펼침 화살표가 있는 표: 첫 열 머리 글자를 본문 글자와 같은 줄에 맞춘다 */
+.expandHead {
+  padding-left: calc(var(--radar-admin-component-table-cell-padding-x) + var(--a-size-compact) + var(--a-s1) - var(--a-s2));
+}
+.compact .expandHead {
+  padding-left: calc(var(--radar-admin-component-table-cell-padding-x-compact) + var(--a-size-compact) + var(--a-s1) - var(--a-s2));
+}

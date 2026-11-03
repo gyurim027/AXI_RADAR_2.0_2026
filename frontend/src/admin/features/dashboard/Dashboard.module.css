@@ -1,5 +1,18 @@
+/* 회차 요약: 왼쪽에 회차와 진행 단계, 오른쪽에 다음 할 일과 주된 버튼 한 개 */
 .next {
-  margin-bottom: var(--a-s6);
+  margin-bottom: var(--a-s8);
+}
+.next > div:last-child {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--a-s6);
+}
+.nextMain {
+  display: flex;
+  flex-direction: column;
+  gap: var(--a-s4);
 }
 .nextHead {
   display: flex;
@@ -11,73 +24,83 @@
   font-weight: var(--a-fw-semibold);
   line-height: var(--a-lh-heading);
 }
-.task {
-  margin-top: var(--a-s3);
-  font-size: var(--a-fs-lg);
-  color: var(--radar-admin-semantic-color-text-primary);
-}
-.link {
-  min-height: var(--a-size-compact);
-  display: inline-block;
-  margin-top: var(--a-s3);
-  font-size: var(--a-fs-md);
-  font-weight: var(--a-fw-medium);
-  color: var(--radar-admin-semantic-color-text-link);
-  text-underline-offset: 3px;
-}
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(var(--radar-admin-component-kpi-min-width), 1fr));
-  gap: var(--radar-admin-component-panel-gap);
-}
-.card {
-  min-width: 0;
-}
-.metrics {
+.nextTask {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: var(--a-s1);
-  margin-top: var(--a-s4);
-  font-size: var(--a-fs-sm); /* 라벨은 14px, 숫자는 24px로 위계를 나눈다 */
+  gap: var(--a-s3);
+  max-width: 420px;
+}
+.task {
+  font-size: var(--a-fs-lg);
+  line-height: var(--a-lh-body);
+  color: var(--radar-admin-semantic-color-text-primary);
+}
+/* 링크이지만 화면에서 가장 중요한 행동이라 주된 버튼 모양으로 보인다 */
+.goBtn {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--radar-admin-component-button-height);
+  padding: 0 var(--radar-admin-component-button-padding-x);
+  border-radius: var(--radar-admin-component-button-radius);
+  background: var(--radar-admin-component-button-primary-bg);
+  color: var(--radar-admin-component-button-primary-text);
+  font-size: var(--a-fs-sm);
+  font-weight: var(--a-fw-medium);
+  text-decoration: none;
+}
+.goBtn:hover {
+  background: var(--radar-admin-component-button-primary-hover);
+}
+.section {
+  margin: 0 0 var(--a-s3);
+  font-size: var(--a-fs-lg);
+  font-weight: var(--a-fw-semibold);
+  color: var(--radar-admin-semantic-color-text-primary);
+}
+.grid + .section {
+  margin-top: var(--a-s8);
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* 카드 제목이 줄바꿈되지 않는 폭, 카드가 한 장이어도 한 칸 폭을 지킨다 */
+  gap: var(--radar-admin-component-panel-gap);
+  align-items: stretch;
+}
+.card {
+  min-width: 0;
+  height: 100%;
+}
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--a-s4);
+  min-height: 112px;
+}
+.cardMain {
+  flex: 1;
+}
+.period {
+  margin: 0 0 var(--a-s2);
+  font-size: var(--a-fs-sm);
   color: var(--radar-admin-semantic-color-text-secondary);
 }
-.metric {
-  display: inline-flex;
-  align-items: baseline;
-  gap: var(--a-s1);
-  min-height: 40px;
-  padding: 0 var(--a-s1);
-  border-radius: var(--a-radius-control);
-  color: var(--radar-admin-semantic-color-text-primary);
-  text-decoration: none;
-  white-space: pre;
-}
-.metric:hover {
-  background: var(--radar-admin-semantic-color-bg-hover);
-}
-.value {
-  font-size: var(--radar-admin-component-kpi-value-size);
-  font-weight: var(--radar-admin-component-kpi-value-weight);
-  line-height: 1.2;
-  font-variant-numeric: tabular-nums;
-}
-/* 명세의 '·' 구분은 글자로만 있고, 화면에서는 줄로 나눈다 */
-.metrics > span[aria-hidden='true'] {
-  display: none;
+.metrics {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
 }
 .more {
   display: inline-flex;
   align-items: center;
+  align-self: flex-end;
   min-height: var(--a-size-compact);
-  margin-top: var(--a-s3);
   font-size: var(--a-fs-sm);
   font-weight: var(--a-fw-medium);
   color: var(--radar-admin-semantic-color-text-link);
   text-underline-offset: 3px;
 }
 .empty {
-  margin-top: var(--a-s4);
   font-size: var(--a-fs-md);
   color: var(--radar-admin-semantic-color-text-secondary);
 }
@@ -87,11 +110,16 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+@media (max-width: 767px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 
 /* 산정 기준 카드: 버전 이름이 길어도 한 줄로 줄이고(말줄임), 전체 이름은 마우스를 올리면 보인다 */
 .versions {
   display: grid;
-  gap: var(--a-s1);
+  gap: var(--a-s2);
   min-width: 0;
 }
 .version {
@@ -99,6 +127,7 @@
   gap: var(--a-s2);
   min-width: 0;
   margin: 0;
+  font-size: var(--a-fs-md);
 }
 .version > span:first-child {
   flex: none;

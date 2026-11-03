@@ -7,6 +7,8 @@ export const DASH = {
   runTitle: (name) => `${name || '-'} 회차`,
   next: (task) => `다음에 할 일: ${task}`,
   goto: (screen) => `${withEuro(screen)} 가기`,
+  todoTitle: '처리할 일',
+  baseTitle: '기준 현황',
   dataTitle: '자료 최신 여부',
   runsTitle: '최근 수집·산정 실행',
   approvalsTitle: '승인 현황',

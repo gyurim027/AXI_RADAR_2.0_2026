@@ -1,0 +1,47 @@
+.steps {
+  display: flex;
+  align-items: center;
+  gap: var(--a-s2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.step {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--a-s2);
+  color: var(--radar-admin-semantic-color-text-secondary);
+  font-size: var(--a-fs-sm);
+}
+.step + .step::before {
+  content: '';
+  width: 24px;
+  height: 1px;
+  margin-right: var(--a-s1);
+  background: var(--radar-admin-semantic-color-border-default);
+}
+.num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--radar-admin-semantic-color-border-default);
+  border-radius: 50%;
+  background: var(--radar-admin-semantic-color-bg-surface);
+  font-size: var(--a-fs-xs, 12px);
+  font-variant-numeric: tabular-nums;
+}
+.done .num {
+  border-color: var(--radar-admin-semantic-color-action);
+  color: var(--radar-admin-semantic-color-action);
+}
+.now {
+  color: var(--radar-admin-semantic-color-text-primary);
+  font-weight: var(--a-fw-semibold);
+}
+.now .num {
+  border-color: var(--radar-admin-semantic-color-action);
+  background: var(--radar-admin-semantic-color-action);
+  color: var(--radar-admin-semantic-color-bg-surface);
+}
