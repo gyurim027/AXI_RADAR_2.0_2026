@@ -362,7 +362,8 @@ export default function CandidateMap({ items, unrated, boundaries, ownGu, select
 
       <div className={styles.legendWrap}>
         {clustered ? <p className={styles.clusterNote}>{LIST.clusterNote}</p> : null}
-        {legendOpen ? (
+        {/* 격자를 고르면 점검 필요도 범례는 숨긴다. 근거 팝업·이 칸의 근거와 겹치기 때문이다 */}
+        {!selCell && legendOpen ? (
           <>
             <button type="button" className={styles.legendToggle} aria-expanded="true" aria-label={LIST.legendToggle(true)} onClick={() => setLegendOpen(false)}>
               <Icon name="chevronDown" size={18} />
@@ -375,22 +376,23 @@ export default function CandidateMap({ items, unrated, boundaries, ownGu, select
                 </li>
               ))}
             </ul>
-            {selCell?.points ? (
-              <div className={styles.legendBasis}>
-                <p>{LIST.legendBasis(basisSummary(selCell))}</p>
-                <p aria-label={LIST.legendShapesLabel}>
-                  {LIST.legendShapes}
-                  <InfoHelp label={LIST.evidenceHelpLabel}>{LIST.evidenceHelp}</InfoHelp>
-                </p>
-                {clustered ? <p>{LIST.legendCluster}</p> : null}
-              </div>
-            ) : null}
           </>
-        ) : (
+        ) : null}
+        {selCell?.points ? (
+          <div className={styles.legendBasis}>
+            <p>{LIST.legendBasis(basisSummary(selCell))}</p>
+            <p aria-label={LIST.legendShapesLabel}>
+              {LIST.legendShapes}
+              <InfoHelp label={LIST.evidenceHelpLabel}>{LIST.evidenceHelp}</InfoHelp>
+            </p>
+            {clustered ? <p>{LIST.legendCluster}</p> : null}
+          </div>
+        ) : null}
+        {!selCell && !legendOpen ? (
           <button type="button" className={styles.legendChip} aria-expanded="false" aria-label={LIST.legendToggle(false)} onClick={() => setLegendOpen(true)}>
             {LIST.legendChip}
           </button>
-        )}
+        ) : null}
       </div>
       <p className={styles.credit}>{selCell ? MAP_COORD_CREDIT : MAP_CREDIT}</p>
     </div>

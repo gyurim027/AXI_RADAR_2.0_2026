@@ -1,11 +1,12 @@
-import { Fragment } from 'react';
+import { Fragment, useRef } from 'react';
+import useFirstColumnCenter from '../../shared/hooks/useFirstColumnCenter.js';
 import Icon from '../../user/components/Icon.jsx';
 import { useDensity } from '../utils/density.js';
 import styles from './DataTable.module.css';
 
 /**
  * 어드민 표 (디자인 시스템 9-3, 10장)
- * 정렬은 한 규칙이다: 머리 줄과 첫 열은 가운데, 나머지 칸은 왼쪽. align: 'right'는 숫자 폭만 맞춘다.
+ * 정렬은 한 규칙이다: 머리 줄은 가운데, 나머지 칸은 왼쪽. 첫 열은 본문 칸이 모두 3자 이하(숫자만이면 길이 무관)일 때만 가운데다. align: 'right'는 숫자 폭만 맞춘다.
  * columns: { key, header, align('right'면 숫자 폭 맞춤), width, render(row), first(첫 열: 500 굵기), nowrap }
  * expandedKey / renderExpanded: 행을 누르면 그 행 아래에 칸이 열린다.
  * maxHeight: 긴 표는 안에서 스크롤하고 머리 줄을 고정한다.
@@ -28,6 +29,8 @@ export default function DataTable({
   selectedKey,
 }) {
   const density = useDensity();
+  const tbodyRef = useRef(null);
+  const firstCenter = useFirstColumnCenter(tbodyRef, rows);
   const dense = compact ?? density === 'compact';
   const expandable = typeof renderExpanded === 'function';
   const clickable = !!onRowClick;
@@ -36,7 +39,7 @@ export default function DataTable({
   return (
     <div className={styles.wrap}>
       <div className={styles.scroll} style={maxHeight ? { maxHeight } : undefined} tabIndex={0} role="region" aria-label={caption}>
-        <table className={`${styles.table} ${dense ? styles.compact : ''}`} style={total ? { minWidth: total } : undefined}>
+        <table className={`${styles.table} ${dense ? styles.compact : ''} ${firstCenter ? styles.firstCenter : ''}`} style={total ? { minWidth: total } : undefined}>
           {caption ? <caption className="sr-only">{caption}</caption> : null}
           <thead>
             <tr>
@@ -47,7 +50,7 @@ export default function DataTable({
               ))}
             </tr>
           </thead>
-          <tbody>
+          <tbody ref={tbodyRef}>
             {rows.map((row) => {
               const key = getRowKey(row);
               const open = expandable && expandedKey === key;

@@ -82,7 +82,8 @@
   padding: var(--space-12);
   border: 1px solid var(--semantic-color-border);
   border-radius: var(--radius-sm);
-  background: var(--semantic-color-bg-surface);
+  background: rgb(255 255 255 / 0.86); /* 2순위: 뒤의 지도가 비친다 */
+  color: var(--semantic-color-text-muted);
   font-size: var(--fs-caption);
 }
 .legend li {
@@ -130,7 +131,8 @@
   padding: var(--space-8) var(--space-12);
   border: 1px solid var(--semantic-color-border);
   border-radius: var(--radius-sm);
-  background: var(--semantic-color-bg-surface);
+  background: rgb(255 255 255 / 0.86); /* 2순위 */
+  color: var(--semantic-color-text-muted);
   font-size: var(--fs-caption);
   line-height: 1.5;
 }
@@ -143,7 +145,8 @@
   padding: var(--space-4) var(--space-8);
   border: 1px solid var(--semantic-color-border);
   border-radius: var(--radius-sm);
-  background: var(--semantic-color-bg-surface);
+  background: rgb(255 255 255 / 0.86); /* 2순위 */
+  color: var(--semantic-color-text-muted);
   font-size: var(--fs-caption);
   line-height: 1.5;
 }

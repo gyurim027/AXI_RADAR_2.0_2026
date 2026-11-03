@@ -13,6 +13,11 @@
   white-space: nowrap;
   transition: background-color 0.15s;
 }
+.sm {
+  height: var(--control-h-sm);
+  padding: 0 var(--space-16);
+  font-size: var(--fs-small);
+}
 .primary {
   background: var(--semantic-gradient-accent), var(--component-button-bg);
   color: var(--component-button-fg);

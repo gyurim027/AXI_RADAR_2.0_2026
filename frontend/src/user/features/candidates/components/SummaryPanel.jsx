@@ -59,7 +59,7 @@ export default function SummaryPanel({ row, detail, loading, onClose, onDetail }
             </p>
           )}
           <div className={styles.actions}>
-            <Button variant="soft" onClick={onDetail}>
+            <Button variant="soft" size="sm" onClick={onDetail}>
               {SUMMARY.detailButton}
             </Button>
           </div>

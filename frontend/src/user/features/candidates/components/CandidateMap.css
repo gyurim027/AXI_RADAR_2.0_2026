@@ -18,15 +18,18 @@
 }
 .rmap-range.leaflet-tooltip {
   padding: 4px 8px;
-  border: 1px solid var(--semantic-color-border);
+  border: 1px solid var(--semantic-color-text-strong);
   border-radius: 8px;
-  background: var(--semantic-color-bg-surface);
-  color: var(--semantic-color-text);
+  background: var(--semantic-color-text-strong); /* 격자 이름표: 어두운 바탕이라 팝업·범례(흰 바탕)와 구분된다 */
+  color: var(--semantic-color-bg-surface);
   font-size: var(--fs-caption);
   box-shadow: none;
 }
 .rmap-range.leaflet-tooltip-bottom::before {
-  border-bottom-color: var(--semantic-color-border);
+  border-bottom-color: var(--semantic-color-text-strong);
+}
+.rmap-range.leaflet-tooltip-top::before {
+  border-top-color: var(--semantic-color-text-strong);
 }
 
 .rmap-issue.leaflet-tooltip {
