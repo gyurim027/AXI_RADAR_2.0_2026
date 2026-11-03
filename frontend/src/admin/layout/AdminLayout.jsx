@@ -11,7 +11,7 @@ import AdminTopBar from './AdminTopBar.jsx';
 import SectionNav from './SectionNav.jsx';
 import styles from './AdminLayout.module.css';
 import topStyles from './AdminTopBar.module.css';
-import {settingsBackendEnabled,opsBackendEnabled,backendHome} from '../../api/backend.js';
+import {settingsBackendEnabled,opsBackendEnabled,priorityBackendEnabled,backendHome} from '../../api/backend.js';
 import {useAuth} from '../../app/providers/AuthProvider.jsx';
 
 /** AD-00 공통 상단 + 본문. 위 두 줄(상단 바, 보조 탐색)은 스크롤해도 맨 위에 고정한다 (디자인 시스템 6-1). */
@@ -33,6 +33,7 @@ function SettingsLayout(){
       <nav className={topStyles.nav} aria-label="설정 관리">
         {opsBackendEnabled?<NavLink className={topStyles.tab} to="/admin" end>대시보드</NavLink>:null}
         {opsBackendEnabled?<NavLink className={topStyles.tab} to="/admin/data/checks">검사 결과</NavLink>:null}
+        {priorityBackendEnabled?<NavLink className={topStyles.tab} to="/admin/runs/list">회차</NavLink>:null}
         {opsBackendEnabled?<NavLink className={topStyles.tab} to="/admin/runs/log">실행 기록</NavLink>:null}
         {settingsBackendEnabled?<NavLink className={topStyles.tab} to="/admin/standards/criteria">산정 기준</NavLink>:null}
         {opsBackendEnabled?<NavLink className={topStyles.tab} to="/admin/standards/dept">담당 부서 표</NavLink>:null}
