@@ -37,6 +37,17 @@
   color: var(--semantic-color-text);
   font-size: var(--fs-caption);
   box-shadow: none;
+  /* 긴 문구는 한 줄로 늘어나지 않고 줄을 바꾼다 */
+  width: max-content;
+  max-width: 220px;
+  white-space: normal;
+}
+/* 화살표 색을 테두리와 맞춘다 */
+.rmap-issue.leaflet-tooltip-top::before {
+  border-top-color: var(--component-map-outline);
+}
+.rmap-issue.leaflet-tooltip-bottom::before {
+  border-bottom-color: var(--component-map-outline);
 }
 .rmap-point-wrap:focus-visible {
   outline: 2px solid var(--semantic-color-focus-ring);

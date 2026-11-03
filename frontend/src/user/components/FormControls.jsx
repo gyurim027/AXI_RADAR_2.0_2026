@@ -1,5 +1,7 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Icon from './Icon.jsx';
+import { placeBubble } from './placeBubble.js';
 import styles from './FormControls.module.css';
 
 /** 라벨 + 선택(select). options는 문자열 목록 또는 { value, label } */
@@ -63,25 +65,45 @@ export function TextField({ label, value, onChange, maxLength, placeholder, type
 }
 
 /**
- * ⓘ 도움말. 마우스를 올리거나 키보드 포커스가 오면 보이고, 터치 화면에서는 누르면 보인다.
- * 터치로 열었을 때는 ×로 닫는다 (바깥을 누르거나 Esc로도 닫힌다).
+ * ⓘ 도움말. 마우스를 올리거나 키보드 포커스가 오면 보이고, 누르면 고정된다. 고정하면 ×나 Esc, 바깥 누르기로 닫는다.
+ * 말풍선은 화면 맨 위 층(portal)에 그려 칸 안의 잘림을 피하고, 화면 가장자리에서 뒤집거나 민다.
+ * text가 있으면 아이콘 옆에 글자를 붙여 여러 ⓘ가 나란히 있을 때 무엇인지 구분한다.
  */
-export function InfoHelp({ label = '도움말 보기', children, align = 'left' }) {
+export function InfoHelp({ label = '도움말 보기', children, text }) {
   const [hover, setHover] = useState(false);
   const [focus, setFocus] = useState(false);
-  const [pinned, setPinned] = useState(false); // 터치로 연 상태
+  const [pinned, setPinned] = useState(false);
+  const [pos, setPos] = useState(null);
   const id = useId();
   const ref = useRef(null);
-  const lastPointer = useRef('mouse');
+  const bodyRef = useRef(null);
+  const leaveTimer = useRef(0);
   const open = hover || focus || pinned;
+
+  const place = useCallback(() => {
+    if (!ref.current || !bodyRef.current) return;
+    const a = ref.current.getBoundingClientRect();
+    const b = bodyRef.current.getBoundingClientRect();
+    setPos(placeBubble({ top: a.top, bottom: a.bottom, left: a.left }, { width: b.width, height: b.height }, { width: window.innerWidth, height: window.innerHeight }));
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!open) return undefined;
+    place(); // 그리기 전에 자리를 정하므로 이전 자리가 잠깐 보이지 않는다
+    window.addEventListener('resize', place);
+    window.addEventListener('scroll', place, true);
+    return () => {
+      window.removeEventListener('resize', place);
+      window.removeEventListener('scroll', place, true);
+    };
+  }, [open, place]);
 
   useEffect(() => {
     if (!open) return undefined;
     const onDoc = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) {
-        setPinned(false);
-        setHover(false);
-      }
+      if (ref.current?.contains(e.target) || bodyRef.current?.contains(e.target)) return;
+      setPinned(false);
+      setHover(false);
     };
     const onKey = (e) => {
       if (e.key === 'Escape') {
@@ -98,6 +120,18 @@ export function InfoHelp({ label = '도움말 보기', children, align = 'left' 
     };
   }, [open]);
 
+  useEffect(() => () => clearTimeout(leaveTimer.current), []);
+
+  const enter = (e) => {
+    if (e.pointerType !== 'mouse') return;
+    clearTimeout(leaveTimer.current);
+    setHover(true);
+  };
+  // 아이콘에서 말풍선으로 건너가는 사이에 닫히지 않게 잠깐 기다린다.
+  const leave = (e) => {
+    if (e.pointerType !== 'mouse') return;
+    leaveTimer.current = setTimeout(() => setHover(false), 120);
+  };
   const close = () => {
     setPinned(false);
     setHover(false);
@@ -108,40 +142,45 @@ export function InfoHelp({ label = '도움말 보기', children, align = 'left' 
     <span
       ref={ref}
       className={styles.help}
-      onPointerEnter={(e) => e.pointerType === 'mouse' && setHover(true)}
-      onPointerLeave={(e) => e.pointerType === 'mouse' && setHover(false)}
+      onPointerEnter={enter}
+      onPointerLeave={leave}
       onFocusCapture={() => setFocus(true)}
       onBlurCapture={(e) => {
-        if (!ref.current?.contains(e.relatedTarget)) setFocus(false);
+        if (!ref.current?.contains(e.relatedTarget) && !bodyRef.current?.contains(e.relatedTarget)) setFocus(false);
       }}
     >
       <button
         type="button"
-        className={styles.helpBtn}
+        className={`${styles.helpBtn} ${text ? styles.helpBtnText : ''}`}
         aria-expanded={open}
         aria-describedby={open ? id : undefined}
         aria-label={label}
-        title={label}
-        onPointerDown={(e) => {
-          lastPointer.current = e.pointerType;
-        }}
-        onClick={() => {
-          // 마우스는 올리면 열리므로 누름으로 고정하지 않는다. 터치와 펜은 누르면 열고 닫는다.
-          if (lastPointer.current !== 'mouse') setPinned((v) => !v);
-        }}
+        onClick={() => setPinned((v) => !v)}
       >
-        <Icon name="info" size={18} />
+        <Icon name="info" size={text ? 16 : 18} />
+        {text ? <span>{text}</span> : null}
       </button>
-      {open ? (
-        <span id={id} role="note" className={`${styles.helpBody} ${align === 'right' ? styles.right : ''}`}>
-          {children}
-          {pinned ? (
-            <button type="button" className={styles.helpClose} aria-label="도움말 닫기" onClick={close}>
-              <Icon name="close" size={16} />
-            </button>
-          ) : null}
-        </span>
-      ) : null}
+      {open
+        ? createPortal(
+            <span
+              id={id}
+              ref={bodyRef}
+              role="note"
+              className={styles.helpBody}
+              style={pos ? { top: pos.top, left: pos.left } : { top: 0, left: 0, visibility: 'hidden' }}
+              onPointerEnter={enter}
+              onPointerLeave={leave}
+            >
+              {children}
+              {pinned ? (
+                <button type="button" className={styles.helpClose} aria-label="도움말 닫기" onClick={close}>
+                  <Icon name="close" size={16} />
+                </button>
+              ) : null}
+            </span>,
+            document.body,
+          )
+        : null}
     </span>
   );
 }

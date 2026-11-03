@@ -42,6 +42,15 @@
   gap: var(--space-4);
   transform: translateX(-50%);
 }
+.wrap[data-mode='map'] .btns {
+  left: 0;
+  transform: none;
+}
+.wrap[data-mode='table'] .btns {
+  right: 0;
+  left: auto;
+  transform: none;
+}
 .btn {
   display: inline-flex;
   align-items: center;

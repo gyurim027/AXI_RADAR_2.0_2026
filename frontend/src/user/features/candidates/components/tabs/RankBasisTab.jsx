@@ -64,11 +64,17 @@ export default function RankBasisTab({ detail }) {
           {d.conditions?.length ? (
             <div className={styles.tagRow}>
               {d.conditions.map((c) => (
-                <span key={c.id} className={styles.choice}>
-                  <Tag tone="info">{LIST.conditionTag(c.name)}</Tag>
-                  <InfoHelp label={`${c.name} 반영 비율 보기`}>{LIST.conditionRatioHelp(c.name, c.ratio)}</InfoHelp>
-                </span>
+                <Tag key={c.id} tone="info">
+                  {LIST.conditionTag(c.name)}
+                </Tag>
               ))}
+              <InfoHelp label={LIST.conditionRatioHelpLabel}>
+                {d.conditions.map((c) => (
+                  <span key={c.id} className={styles.helpLine}>
+                    {LIST.conditionRatioHelp(c.name, c.ratio)}
+                  </span>
+                ))}
+              </InfoHelp>
             </div>
           ) : null}
           {d.conditionStates ? (

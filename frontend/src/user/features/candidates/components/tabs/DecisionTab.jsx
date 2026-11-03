@@ -27,13 +27,17 @@ export default function DecisionTab({ detail, onChanged, onGoTab, onClose }) {
           <p className={styles.sub}>{DRAWER.decisionSub}</p>
           <div className={styles.choices} role="group" aria-label={DRAWER.decisionTitle}>
             {DRAWER.decisionChoices.map((c) => (
-              <span key={c} className={styles.choice}>
-                <Button variant={c === d.decision ? 'primary' : 'soft'} aria-pressed={c === d.decision} onClick={() => setChoice(c)}>
-                  {c}
-                </Button>
-                <InfoHelp label={DRAWER.decisionHelpLabel(c)}>{DRAWER.decisionHelp[c]}</InfoHelp>
-              </span>
+              <Button key={c} variant={c === d.decision ? 'primary' : 'soft'} aria-pressed={c === d.decision} onClick={() => setChoice(c)}>
+                {c}
+              </Button>
             ))}
+            <InfoHelp label={DRAWER.decisionHelpAllLabel}>
+              {DRAWER.decisionChoices.map((c) => (
+                <span key={c} className={styles.helpLine}>
+                  <b>{c}</b> {DRAWER.decisionHelp[c]}
+                </span>
+              ))}
+            </InfoHelp>
           </div>
         </div>
       ) : null}

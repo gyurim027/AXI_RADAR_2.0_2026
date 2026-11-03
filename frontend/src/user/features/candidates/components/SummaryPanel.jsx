@@ -12,7 +12,7 @@ import { placeLabel } from '../../../../shared/utils/format.js';
  */
 export default function SummaryPanel({ row, detail, loading, onClose, onDetail }) {
   return (
-    <section className={styles.panel} aria-label="후보 요약">
+    <section className={styles.panel} aria-label="후보 요약" data-summary-panel>
       <div className={styles.head}>
         <div className={styles.meta}>
           <Tag tone="neutral" small>

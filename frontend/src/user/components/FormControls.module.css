@@ -75,13 +75,18 @@
 .helpBtn:hover {
   background: var(--semantic-color-bg-subtle);
 }
+.helpBtnText {
+  width: auto;
+  gap: var(--space-4);
+  padding: 0 var(--space-8) 0 var(--space-4);
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-medium);
+}
 .helpBody {
-  position: absolute;
-  top: calc(100% - 2px); /* 아이콘에서 말풍선으로 마우스가 건너갈 때 끊기지 않게 붙인다 */
-  left: 0;
+  position: fixed; /* 화면 맨 위 층에 그려 칸 안에서 잘리지 않는다. 자리는 코드가 정한다 */
   z-index: var(--primitive-zIndex-toast);
   width: max-content;
-  max-width: 360px;
+  max-width: min(360px, calc(100vw - 32px));
   padding: var(--space-12) var(--space-16);
   border: 1px solid var(--semantic-color-border);
   border-radius: var(--radius-sm);
@@ -91,10 +96,6 @@
   font-weight: var(--fw-regular);
   color: var(--semantic-color-text);
   white-space: normal;
-}
-.right {
-  left: auto;
-  right: 0;
 }
 
 .helpClose {

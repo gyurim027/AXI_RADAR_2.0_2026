@@ -5,7 +5,7 @@
   justify-content: center;
   min-height: 100vh;
   padding: var(--space-32);
-  background: var(--semantic-gradient-login), var(--semantic-color-bg-shell);
+  background: var(--semantic-gradient-login), var(--primitive-color-lavender-100);
 }
 .card {
   display: flex;

@@ -46,7 +46,7 @@ export default function SplitHandle({ state, onChange, onDragState, containerRef
   ];
 
   return (
-    <div className={styles.wrap}>
+    <div className={styles.wrap} data-mode={state.mode}>
       <div
         className={styles.bar}
         role="separator"

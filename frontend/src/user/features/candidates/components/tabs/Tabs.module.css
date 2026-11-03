@@ -152,3 +152,11 @@
   font-weight: var(--fw-bold);
   color: var(--semantic-color-text-muted);
 }
+
+/* 한 ⓘ 말풍선 안에서 줄마다 하나씩 설명한다 */
+.helpLine {
+  display: block;
+}
+.helpLine + .helpLine {
+  margin-top: var(--space-4);
+}

@@ -47,6 +47,7 @@ export const LIST = {
   reasonLabel: '먼저 볼 이유', // 꼬리표 줄 앞에 한 번만 쓴다
   moreChips: (n) => `+${n}`,
   moreChipsTitle: (names) => `먼저 볼 이유 더 보기: ${names.join(', ')}`,
+  conditionRatioHelpLabel: '먼저 볼 이유 뜻 보기',
   conditionRatioHelp: (name, ratio) => (ratio == null ? `${name}에 해당해 먼저 확인할 후보로 표시했습니다.` : `${name}의 반영 비율은 ${ratio}%입니다.`),
   conditionStateTitle: '우선 확인 조건 판정',
   conditionState: { Y: '충족', N: '미충족', NULL: '미평가', INVALID: '확인 필요' },
@@ -187,6 +188,7 @@ export const DRAWER = {
     보류: '점검이 필요할 수 있지만, 올해는 대상 여부를 결정하지 않은 곳입니다.',
   },
   decisionHelpLabel: (c) => `${c} 뜻 보기`,
+  decisionHelpAllLabel: '결정 종류 뜻 보기',
   decisionChoices: ['우선 점검 대상', '제외', '보류'],
   reasonModalTitle: (decision) => `${decision} 사유`,
   reasonLabel: '결정 사유',

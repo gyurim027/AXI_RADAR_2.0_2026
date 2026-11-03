@@ -17,8 +17,6 @@
   color: var(--radar-admin-semantic-color-text-primary);
 }
 .link {
-  display: inline-flex;
-  align-items: center;
   min-height: var(--a-size-compact);
   display: inline-block;
   margin-top: var(--a-s3);
@@ -41,7 +39,7 @@
   align-items: flex-start;
   gap: var(--a-s1);
   margin-top: var(--a-s4);
-  font-size: var(--a-fs-md);
+  font-size: var(--a-fs-sm); /* 라벨은 14px, 숫자는 24px로 위계를 나눈다 */
   color: var(--radar-admin-semantic-color-text-secondary);
 }
 .metric {
@@ -93,18 +91,18 @@
 /* 산정 기준 카드: 버전 이름이 길어도 한 줄로 줄이고(말줄임), 전체 이름은 마우스를 올리면 보인다 */
 .versions {
   display: grid;
-  gap: var(--space-4);
+  gap: var(--a-s1);
   min-width: 0;
 }
 .version {
   display: flex;
-  gap: var(--space-8);
+  gap: var(--a-s2);
   min-width: 0;
   margin: 0;
 }
 .version > span:first-child {
   flex: none;
-  color: var(--semantic-color-text-muted, inherit);
+  color: var(--radar-admin-semantic-color-text-secondary);
 }
 .versionName {
   min-width: 0;

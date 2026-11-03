@@ -15,6 +15,7 @@ const DIM_BOUNDS = [
   [37.25, 126.95],
   [37.65, 127.35],
 ];
+const PANEL_MARGIN = 16; // 요약 카드가 지도 위에서 떨어진 거리 (--component-map-card-margin)
 const SELECT_ZOOM = 17; // 구역을 고르면 그 칸이 지도에 크게 보이도록 이 단계까지 확대한다 (US-01 1-5)
 
 /**
@@ -27,6 +28,7 @@ const SELECT_ZOOM = 17; // 구역을 고르면 그 칸이 지도에 크게 보�
 export default function CandidateMap({ items, unrated, boundaries, ownGu, selectedId, onSelect, fitKey, children }) {
   const elRef = useRef(null);
   const mapRef = useRef(null);
+  const viewBeforeRef = useRef(null); // 구역을 고르기 전 지도 보기
   const layersRef = useRef({ cells: null, points: null, bounds: null, focus: null });
   const rendererRef = useRef(null);
   const topRendererRef = useRef(null);
@@ -160,7 +162,9 @@ export default function CandidateMap({ items, unrated, boundaries, ownGu, select
     if (sel) {
       const addMarker = (latlng, icon, label, onClick) => {
         const m = L.marker(latlng, { icon, keyboard: true, title: label, alt: label });
-        m.bindTooltip(label, { direction: 'top', offset: [0, -6], className: 'rmap-issue' });
+        // 지도 위쪽 끝에서는 말풍선이 잘리지 않게 아래로 연다
+        const nearTop = map.latLngToContainerPoint(latlng).y < 72;
+        m.bindTooltip(label, { direction: nearTop ? 'bottom' : 'top', offset: [0, nearTop ? 6 : -6], className: 'rmap-issue' });
         m.on('add', () => {
           const el = m.getElement();
           if (!el) return;
@@ -198,15 +202,26 @@ export default function CandidateMap({ items, unrated, boundaries, ownGu, select
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fitKey]);
 
-  // 표에서 행을 고르면 지도가 그 구역으로 옮겨 간다
+  // 표에서 행을 고르면 지도가 그 구역으로 옮겨 간다. 고르기 전 보기는 기억해 두었다가, 선택을 풀면 그 보기로 돌아온다.
   useEffect(() => {
     const map = mapRef.current;
+    if (!map) return;
     const r = byId.get(selectedId);
-    if (!map || !r) return;
-    // 요약 패널이 지도 위쪽을 덮으므로, 고른 구역이 패널 아래에 오도록 중심을 조금 위로 옮긴다
+    if (!r) {
+      const before = viewBeforeRef.current;
+      if (before) {
+        viewBeforeRef.current = null;
+        map.flyTo(before.center, before.zoom, { animate: !prefersReducedMotion(), duration: 0.5 });
+      }
+      return;
+    }
+    if (!viewBeforeRef.current) viewBeforeRef.current = { center: map.getCenter(), zoom: map.getZoom() };
+    // 요약 패널이 지도 위쪽을 덮으므로, 고른 구역이 패널 아래 남은 면의 가운데에 오도록 중심을 패널 높이의 절반만큼 위로 옮긴다
     const z = Math.max(map.getZoom(), SELECT_ZOOM);
     const center = L.latLng((r.bounds[0][0] + r.bounds[1][0]) / 2, (r.bounds[0][1] + r.bounds[1][1]) / 2);
-    const target = map.unproject(map.project(center, z).subtract([0, map.getSize().y * 0.12]), z);
+    const panel = elRef.current?.parentElement?.querySelector('[data-summary-panel]');
+    const covered = panel ? panel.offsetHeight + PANEL_MARGIN : map.getSize().y * 0.24;
+    const target = map.unproject(map.project(center, z).subtract([0, covered / 2]), z);
     map.flyTo(target, z, { animate: !prefersReducedMotion(), duration: 0.5 });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedId]);
