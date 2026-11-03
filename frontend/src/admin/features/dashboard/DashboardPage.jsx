@@ -170,8 +170,14 @@ function Body({ data }) {
       <Panel className={styles.next} aria-label={DASH.runTitle(data.run.name)}>
         <div className={styles.nextMain}>
           <div className={styles.nextHead}>
-            <h2 className={styles.nextTitle}>{DASH.runTitle(data.run.name)}</h2>
-            <Badge tone={RUN_TONE[data.run.status]}>{data.run.status || '-'}</Badge>
+            {data.run.name ? (
+              <>
+                <h2 className={styles.nextTitle}>{DASH.runTitle(data.run.name)}</h2>
+                <Badge tone={RUN_TONE[data.run.status]}>{data.run.status || '-'}</Badge>
+              </>
+            ) : (
+              <h2 className={styles.nextTitle}>{DASH.noRun}</h2>
+            )}
           </div>
           {known3 ? <Stepper steps={RUN_STEPS} current={data.run.status} label="회차 진행 단계" /> : null}
         </div>

@@ -236,3 +236,33 @@
   font-size: var(--a-fs-md);
   font-weight: var(--a-fw-semibold);
 }
+
+/* 담당 부서 표: 긴 글은 3줄까지만 보이고, 행 오른쪽 끝 버튼으로 펼치면 전체가 나온다 */
+.clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: var(--a-lh-dense);
+}
+.fullList {
+  display: grid;
+  gap: var(--a-s3);
+  margin: 0;
+}
+.fullRow {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: var(--a-s4);
+}
+.fullRow dt {
+  font-size: var(--a-fs-sm);
+  font-weight: var(--a-fw-medium);
+  color: var(--radar-admin-semantic-color-text-secondary);
+}
+.fullRow dd {
+  margin: 0;
+  font-size: var(--a-fs-md);
+  line-height: var(--a-lh-body);
+  white-space: pre-line;
+}
