@@ -35,11 +35,10 @@ export default function AnnualReportPage() {
 
   const columns = [
     { key: 'dept', header: ANNUAL.head[0], render: (r) => r.dept },
-    { key: 'count', header: ANNUAL.head[1], align: 'right', render: (r) => <span className="num">{ANNUAL.rowCount(r.count)}</span> },
+    { key: 'count', header: ANNUAL.head[1], render: (r) => <span className="num">{ANNUAL.rowCount(r.count)}</span> },
     PREVIEW_ONLY ? null : {
       key: 'file',
       header: <span className="sr-only">부서별 내려받기</span>,
-      align: 'right',
       render: (r) => {
         const rowsOne = [ANNUAL.head, [r.dept, ANNUAL.rowCount(r.count)]];
         return (

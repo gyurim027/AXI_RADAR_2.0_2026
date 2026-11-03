@@ -22,8 +22,8 @@ export default function BasisPage() {
 
   const columns = [
     { key: 'gu', header: BASIS.head[0], render: (r) => r.gu },
-    { key: 'cand', header: BASIS.head[1], align: 'right', render: (r) => <span className="num">{BASIS.count(r.candidates)}</span> },
-    { key: 'target', header: BASIS.head[2], align: 'right', render: (r) => <span className="num">{BASIS.count(r.targets)}</span> },
+    { key: 'cand', header: BASIS.head[1], render: (r) => <span className="num">{BASIS.count(r.candidates)}</span> },
+    { key: 'target', header: BASIS.head[2], render: (r) => <span className="num">{BASIS.count(r.targets)}</span> },
     { key: 'basis', header: BASIS.head[3], render: (r) => r.basis },
   ];
   const draftEmpty = user.role === ROLE.CITY ? BASIS.draftEmptyCity : BASIS.draftEmptyDistrict;

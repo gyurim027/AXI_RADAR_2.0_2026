@@ -247,7 +247,7 @@
   --component-table-header-radius: var(--primitive-radius-sm);
   --component-table-row-border: var(--semantic-color-border-subtle);
   --component-table-row-high-bg: var(--semantic-color-risk-high-soft);
-  --component-table-cell-font-size: var(--primitive-fontSize-body);
+  --component-table-cell-font-size: var(--primitive-fontSize-small);
   --component-table-row-height: var(--semantic-density-comfortable-row);
   --component-table-head-height: var(--semantic-density-comfortable-head);
   --component-table-row-height-compact: var(--semantic-density-compact-row);

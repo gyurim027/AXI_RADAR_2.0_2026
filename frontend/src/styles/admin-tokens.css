@@ -248,7 +248,7 @@
   --radar-admin-component-table-head-height-compact: var(--radar-admin-primitive-size-head-row-compact);
   --radar-admin-component-table-cell-padding-x: var(--radar-admin-primitive-space-4);
   --radar-admin-component-table-cell-padding-x-compact: var(--radar-admin-primitive-space-3);
-  --radar-admin-component-table-font-size: var(--radar-admin-primitive-type-size-md);
+  --radar-admin-component-table-font-size: var(--radar-admin-primitive-type-size-sm);
   --radar-admin-component-table-font-size-compact: var(--radar-admin-primitive-type-size-sm);
   --radar-admin-component-table-head-z: var(--radar-admin-primitive-z-table-head);
   /* component / panel */

@@ -29,7 +29,7 @@ export default function ProtectionZonePage() {
   });
   const columns = [
     { key: 'label', header: PROTECTION.head[0], render: (r) => r.label },
-    { key: 'n', header: PROTECTION.head[1], align: 'right', render: (r) => <span className="num">{r.key === 'in' ? `${data.inside}곳` : `${data.outside}곳`}</span> },
+    { key: 'n', header: PROTECTION.head[1], render: (r) => <span className="num">{r.key === 'in' ? `${data.inside}곳` : `${data.outside}곳`}</span> },
   ];
 
   return (

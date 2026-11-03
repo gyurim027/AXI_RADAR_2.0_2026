@@ -10,8 +10,8 @@ export default function GuCompare({ rows, onBack }) {
   const pct = (v) => <span className="num">{`${v}%`}</span>;
   const columns = [
     { key: 'gu', header: H[0], render: (r) => r.gu },
-    { key: 'top', header: H[1], align: 'right', render: (r) => pct(r.topRatio) },
-    { key: 'acc', header: H[2], align: 'right', render: (r) => pct(r.accidentRatio) },
+    { key: 'top', header: H[1], render: (r) => pct(r.topRatio) },
+    { key: 'acc', header: H[2], render: (r) => pct(r.accidentRatio) },
     {
       key: 'before',
       header: (
@@ -19,7 +19,7 @@ export default function GuCompare({ rows, onBack }) {
           {H[3]}
           <InfoHelp label={LIST.compareBeforeHelpLabel}>{LIST.compareBeforeHelp}</InfoHelp>
         </span>
-      ), align: 'right', render: (r) => pct(r.beforeRatio) },
+      ), render: (r) => pct(r.beforeRatio) },
   ];
   return (
     <div className={styles.box}>

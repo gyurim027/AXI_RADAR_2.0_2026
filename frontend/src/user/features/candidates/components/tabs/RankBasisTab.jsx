@@ -30,8 +30,8 @@ export default function RankBasisTab({ detail }) {
         </span>
       ),
     },
-    { key: 'pos', header: H[3], width: 120, align: 'right', render: (e) => (e.pos != null ? `상위 ${e.pos}%` : '-') },
-    { key: 'ratio', header: H[4], width: 100, align: 'right', render: (e) => `${e.ratio}%` },
+    { key: 'pos', header: H[3], width: 120, render: (e) => (e.pos != null ? `상위 ${e.pos}%` : '-') },
+    { key: 'ratio', header: H[4], width: 100, render: (e) => `${e.ratio}%` },
     {
       key: 'basis',
       header: H[5],

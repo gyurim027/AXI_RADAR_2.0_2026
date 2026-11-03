@@ -41,7 +41,7 @@ function ConditionChips({ row, conditionMap }) {
 // 열 폭(px). 머리는 한 줄이라 이름이 긴 열은 폭을 넓힌다 (와이어프레임 2-3). 남는 폭은 후보 열이 받는다.
 function columnsFor({ city, canDecide, conditionMap, onDecide }) {
   const cols = [
-    { key: 'rank', header: '순위', width: 64, sticky: true, sortable: true, align: 'right', render: (r) => <span className="num">{r.rank}</span> },
+    { key: 'rank', header: '순위', width: 64, sticky: true, sortable: true, render: (r) => <span className="num">{r.rank}</span> },
   ];
   if (city) cols.push({ key: 'gu', header: '구', width: 64, sticky: true, sortable: true, render: (r) => r.gu });
   cols.push(
@@ -61,7 +61,7 @@ function columnsFor({ city, canDecide, conditionMap, onDecide }) {
         </span>
       ),
     },
-    { key: 'score', header: '점검 필요도', width: 112, sortable: true, align: 'right', render: (r) => <span className="num">{r.score}점</span> },
+    { key: 'score', header: '점검 필요도', width: 112, sortable: true, render: (r) => <span className="num">{r.score}점</span> },
     {
       key: 'obstacle',
       header: '주요 보행 방해요소',
@@ -74,7 +74,6 @@ function columnsFor({ city, canDecide, conditionMap, onDecide }) {
       header: '자료 신뢰도',
       width: 96,
       sortable: true,
-      align: 'center',
       render: (r) => (
         <span className={styles.reli}>
           <Badge tone={RELI_TONE[r.reliability]}>{r.reliability}</Badge>
@@ -91,7 +90,6 @@ function columnsFor({ city, canDecide, conditionMap, onDecide }) {
       header: '평가하지 못한 분야 수',
       width: 172,
       sortable: true,
-      align: 'right',
       // 이름은 후보 칸 꼬리표 대신 여기서 title로 본다. 조사 안 한 곳은 0으로 보이지 않는다 (CM-00 9번).
       render: (r) => (
         <span className="num" title={unratedTitle(r)}>
@@ -105,7 +103,6 @@ function columnsFor({ city, canDecide, conditionMap, onDecide }) {
       width: 128,
       stickyRight: true, // 가로 스크롤돼도 결정 상태 칸은 늘 보인다
       sortable: true,
-      align: 'center',
       // 도로관리팀 · 검토 중 · 구 확정 전에만 메뉴 버튼이다. 그 밖에는 글자만 보인다 (정의서 US-01 1-4, CM-00 10번).
       render: (r) => (canDecide && r.gu ? <DecisionMenu value={r.decision} label={LIST.decisionMenuLabel} onSelect={(d) => onDecide(r, d)} /> : r.decision),
     },
