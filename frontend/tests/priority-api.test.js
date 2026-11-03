@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createBackendClient } from '../src/api/backend.js';
-import { createPriorityApi, toRun, toCandidateList, toCandidateDetail, cellBounds } from '../src/api/priority.js';
+import { createPriorityApi, toRun, toCandidateList, toCandidateDetail, toConditionRecord, cellBounds } from '../src/api/priority.js';
 import { RUN_STATUS } from '../src/shared/constants.js';
 
 const response = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
@@ -187,4 +187,24 @@ test('후보 상세: 결정 기록과 결정 탭 표시', () => {
   assert.equal(d.showRequest, true);
   assert.equal(d.memo, '메모');
   assert.equal(d.canDecide, true);
+});
+
+test('점수 근거: 회차가 확정이 아니면 준비되지 않았다', () => {
+  const list = toCandidateList({ run: { ...run2, status: '검토 중' }, candidates: [cand('a', '수정구', 70, 1)] }, { role: 'city' }, { gu: null, guList: GUS, allGu: ALL });
+  const r = toConditionRecord(list);
+  assert.equal(r.ready, false);
+  assert.equal(r.server, true);
+});
+
+test('점수 근거: 확정 회차에서 후보 수·우선 확인 후보 수·분야별 미평가 후보 수를 센다', () => {
+  const withCond = (gid, result) => cand(gid, '수정구', 50, 1, { conditions: { result, hazard: result, exposure: 'N', vulnerable: null } });
+  const list = toCandidateList({ run: { ...run2, status: '확정' }, candidates: [withCond('a', 'Y'), withCond('b', 'N'), withCond('c', null)] }, { role: 'city' }, { gu: null, guList: GUS, allGu: ALL });
+  const r = toConditionRecord(list);
+  assert.equal(r.ready, true);
+  assert.equal(r.candidateCount, 3);
+  assert.equal(r.priorityCount, 1); // 종합이 충족인 후보만
+  assert.equal(r.unrated.find((u) => u.name === '노출').count, 3); // cand 기본값: 노출 지표 하나가 모두 비어 있음
+  assert.equal(r.dataCount, null); // 서버에 없는 값은 비워 둔다
+  assert.equal(r.version, null);
+  assert.equal(r.indicators.length, 9);
 });

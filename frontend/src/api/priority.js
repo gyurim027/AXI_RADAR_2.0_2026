@@ -259,6 +259,27 @@ export function toCandidateDetail(c, { list, user, record = null }) {
   };
 }
 
+/**
+ * 우선순위 점수 근거(US-07) 요약. 후보 목록에서 센다. 서버에 없는 값(사용한 자료 수)은 null이다.
+ * 3개 구가 모두 확정해 회차 상태가 '확정'일 때만 만들어진다(정의서 US-07).
+ */
+export function toConditionRecord(list) {
+  const run = list.run;
+  const rows = [...list.items, ...list.unrated];
+  const unrated = Object.values(DOMAIN_LABEL).map((name) => ({ name, count: rows.filter((r) => r.unratedNames.includes(name)).length }));
+  return {
+    server: true,
+    ready: run.status === RUN_STATUS.FINAL,
+    run,
+    version: run.version,
+    candidateCount: rows.length,
+    priorityCount: rows.filter((r) => r.conditions.length > 0).length,
+    unrated,
+    indicators: Object.values(INDICATORS).map((i) => ({ domain: DOMAIN_LABEL[i.domain], label: i.label })),
+    dataCount: null,
+  };
+}
+
 export function createPriorityApi(rawRequest) {
   const request = async (path, options) => snakeKeys(await rawRequest(path, options));
   let lastList = null;
