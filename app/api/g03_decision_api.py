@@ -90,7 +90,7 @@ def create_candidate_decision(
     """개발용 최초 결정만 기록. 재결정은 G-04, 운영 DB 저장은 별도."""
     _guard()
     codes = _validate_reason(body)
-    if run_id < 1 or not gid.strip():
+    if run_id <= 1 or not gid.strip():
         raise HTTPException(422, "유효한 회차와 격자 번호가 필요합니다")
     candidate = repo.get_candidate(run_id, gid)
     if candidate is None:
@@ -149,3 +149,55 @@ def get_candidate_decision(
     if record is None:
         raise HTTPException(404, "개발용 결정 기록이 없습니다")
     return {"record": record, "storage": "development_memory_only", "operational_saved": False}
+
+
+@router.get("/runs/{run_id}/decisions")
+def list_run_decisions(
+    run_id: int,
+    user: dict = Depends(current_user),
+):
+    """Existing G-03 process-memory decisions (NOT operational DB decisions).
+
+    The frontend excludes legacy run 1; the server keeps read-only access.
+    District can only read its own district; city can read all three.
+    """
+    _guard()
+    if run_id <= 0:
+        raise HTTPException(422, "유효한 회차 번호가 필요합니다")
+    role = user.get("role")
+    if role not in {"district", "city"}:
+        raise HTTPException(403, "구 도로관리팀·시 도로과만 조회할 수 있습니다")
+    if role == "district":
+        permitted = set(allowed_gus(user))
+        if not permitted:
+            raise HTTPException(403, "담당 구를 확인할 수 없습니다")
+    else:
+        permitted = {"수정구", "중원구", "분당구"}
+    with _lock:
+        saved = _store.list_for_run(run_id)
+    decisions = []
+    for record in saved:
+        if record.get("gu") not in permitted:
+            continue
+        value = record.get("decided_at")
+        if hasattr(value, "isoformat"):
+            value = value.isoformat()
+        elif value is not None and not isinstance(value, str):
+            value = None
+        reason = record.get("reason_code")
+        result = {
+            "gid": record["gid"],
+            "decision": record.get("decision"),
+            "reason_code": reason,
+            "decided_at": value,
+        }
+        if reason == "기타":
+            result["reason_text"] = record.get("reason_text")
+        decisions.append(result)
+    decisions.sort(key=lambda row: row["gid"])
+    return {
+        "run_id": run_id,
+        "decisions": decisions,
+        "storage": "development_memory_only",
+        "operational_saved": False,
+    }

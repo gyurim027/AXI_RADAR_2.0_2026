@@ -96,6 +96,8 @@ def preview_confirmation(run_id: int, user: dict = Depends(current_user),
 def confirm_district(run_id: int, body: ConfirmBody, user: dict = Depends(current_user),
                      repo: PriorityRepository = Depends(get_repository)):
     _guard()
+    if run_id <= 1:
+        raise HTTPException(409, "기존 1회차는 새로 확정할 수 없습니다")
     gu = _gu(user)
     candidates = _candidates(repo, run_id, gu)
     uid = user.get("user_id")

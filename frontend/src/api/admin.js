@@ -52,6 +52,21 @@ export const listAdminRuns = backendAuthEnabled
       });
     }
   : listMockAdminRuns;
+/** D-10: ?? ?? 2 ?? ?? (DB ?? ??) */
+export const getAdminRun = async (runId) => {
+  if (!backendAuthEnabled) {
+    throw new Error('?? ?? ????? ??? ? ? ????.');
+  }
+  if (String(runId) !== '2') {
+    throw new Error('1? ????? ?? 2? ? ? ????.');
+  }
+  const response = await backendRequest('/api/d10/runs/2');
+  if (String(response?.run?.runId) !== '2') {
+    throw new Error('D-10 ?? ?? ??? ???? ????.');
+  }
+  return response;
+};
+
 export const listAdminNotifications = opsBackendEnabled ? ops.listNotifications : mockCall('admin.listAdminNotifications', (arg) => server.listAdminNotifications(arg));
 export const markAdminNotificationRead = opsBackendEnabled ? ops.markNotificationRead : mockCall('admin.markAdminNotificationRead', (arg) => server.markAdminNotificationRead(arg));
 export const listViewAsOptions = mockCall('admin.listViewAsOptions', (arg) => server.listViewAsOptions(arg));
