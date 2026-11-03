@@ -20,16 +20,16 @@ _GU = "NULLIF(REPLACE(f.id_gu, '성남시 ', ''), '')"          # '성남시 분
 class PriorityRepository:
     def list_runs(self, limit: int) -> list[dict]:
         rows = db.read_only(
-            "SELECT r.run_id, r.build_id, r.rule_version, r.created_at, r.note, "
+            "SELECT r.run_id, r.build_id, r.rule_version, r.created_at, r.note, r.period_start, r.period_end, "
             "COUNT(c.gid) AS candidate_cnt, SUM(c.selected_yn = 'Y') AS selected_cnt, "
             "SUM(c.score IS NOT NULL) AS scored_cnt "
             "FROM priority_run r LEFT JOIN priority_candidate c ON c.run_id = r.run_id "
-            "GROUP BY r.run_id, r.build_id, r.rule_version, r.created_at, r.note "
+            "GROUP BY r.run_id, r.build_id, r.rule_version, r.created_at, r.note, r.period_start, r.period_end "
             "ORDER BY r.created_at DESC, r.run_id DESC LIMIT %s", (limit,))
         return attach_run_versions(rows, db.read_only)
 
     def get_run(self, run_id: int) -> dict | None:
-        rows = db.read_only("SELECT run_id, build_id, rule_version, created_at, note FROM priority_run "
+        rows = db.read_only("SELECT run_id, build_id, rule_version, created_at, note, period_start, period_end FROM priority_run "
                             "WHERE run_id = %s", (run_id,))
         return attach_run_versions(rows, db.read_only)[0] if rows else None
 
