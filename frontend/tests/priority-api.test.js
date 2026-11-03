@@ -80,7 +80,7 @@ test('후보 상세: 중심 좌표는 목록에서 받은 값을 쓰고, 담당 
   assert.deepEqual(detail.bounds, cellBounds(37.4, 127.1));
   assert.equal(detail.dept, null);
   assert.equal(detail.explanation, '요약 문장');
-  assert.equal(detail.evidence[0].item, '포트홀');
+  assert.equal(detail.evidence[0].item, '포트홀 탐지 건수'); // 근거 표에는 정식 표시 이름을 쓴다
   assert.equal(detail.canDecide, false);
 });
 
@@ -94,11 +94,11 @@ test('후보 목록·상세: 서버가 camelCase로 준 응답(지표 코드 키
   const api = apiWith(async (url) => {
     calls.push(url);
     if (url.includes('/candidates/')) {
-      return response({ runId: 2, gid: 'a', gu: '수정구', score: 50, rankNo: 1, matchedRoles: 'hazard', complaintCnt: 3,
+      return response({ runId: 2, gid: 'a', gu: '수정구', score: 50, rankNo: 1, conditions: { result: 'Y', hazard: 'Y', exposure: 'N', vulnerable: null }, complaintCnt: 3,
         details: { confidenceGrade: 'HIGH', indicatorContributions: { condPotholeDetectCnt: 20 }, unevaluatedReasons: {} },
         explanationContext: { summary: '요약' } });
     }
-    return response({ run: { runId: 2 }, total: 1, candidates: [{ runId: 2, gid: 'a', gu: '수정구', centerLat: 37.4, centerLon: 127.1, score: 50, rankNo: 1, matchedRoles: 'hazard',
+    return response({ run: { runId: 2 }, total: 1, candidates: [{ runId: 2, gid: 'a', gu: '수정구', centerLat: 37.4, centerLon: 127.1, score: 50, rankNo: 1, conditions: { result: 'Y', hazard: 'Y', exposure: 'N', vulnerable: null },
       details: { confidenceGrade: 'HIGH', indicatorContributions: { condPotholeDetectCnt: 20, condBlindSpotCnt: 5 }, unevaluatedReasons: { expBoardAlightDailyAvg: 'OUTSIDE_SURVEY_SCOPE' } } }] });
   });
   const user = { role: 'city', org: '시' };
@@ -108,10 +108,83 @@ test('후보 목록·상세: 서버가 camelCase로 준 응답(지표 코드 키
   assert.equal(list.items[0].reliability, '높음');
   assert.deepEqual(list.items[0].obstacleNames, ['포트홀', '사각지대']);
   assert.deepEqual(list.items[0].unratedNames, ['노출']);
-  assert.deepEqual(list.items[0].conditions, ['hazard']);
+  assert.deepEqual(list.items[0].conditions, ['result', 'hazard']);
   assert.ok(list.items[0].bounds);
   const detail = await api.getCandidateDetail({ runId: '2', gid: 'a', user });
-  assert.equal(detail.evidence[0].item, '포트홀');
+  assert.equal(detail.evidence[0].item, '포트홀 탐지 건수');
   assert.equal(detail.explanation, '요약');
   assert.deepEqual(detail.bounds, list.items[0].bounds);
+});
+
+test('우선 확인 조건: 4개를 Y·N·NULL로 구분하고 NULL을 미충족으로 바꾸지 않는다', () => {
+  const c = (conditions) => toCandidateList({ run: run2, candidates: [cand('a', '수정구', 50, 1, { conditions })] }, { role: 'city' }, { gu: null, guList: GUS, allGu: ALL }).items[0];
+  const row = c({ result: 'Y', hazard: 'Y', exposure: 'N', vulnerable: null });
+  assert.deepEqual(row.conditionStates.map((s) => [s.id, s.state]), [['result', 'Y'], ['hazard', 'Y'], ['exposure', 'N'], ['vulnerable', 'NULL']]);
+  assert.deepEqual(row.conditions, ['result', 'hazard']); // 맞은 조건만. 미평가는 맞은 것이 아니다
+  assert.deepEqual(c({ result: 'N', hazard: 'Y', exposure: null, vulnerable: 'N' }).conditions, []); // 종합이 Y가 아니면 우선 확인 후보가 아니다
+  assert.deepEqual(c({ result: null, hazard: null, exposure: null, vulnerable: null }).conditions, []);
+  assert.equal(c({ result: null }).conditionStates[0].state, 'NULL');
+});
+
+test('조건 충족과 후보 선정은 다른 값이다: 종합이 Y여도 선정 여부는 건드리지 않는다', () => {
+  const d = toCandidateList({ run: run2, candidates: [cand('a', '수정구', 10, 5, { conditions: { result: 'Y' }, selected_yn: 'N' })] }, { role: 'city' }, { gu: null, guList: GUS, allGu: ALL });
+  assert.equal(d.items[0].conditions.includes('result'), true);
+  assert.equal(d.items[0]._server.rankNo, 5);
+});
+
+test('미평가 사유: 뜻을 풀어 쓴다', () => {
+  const d = toCandidateList({ run: run2, candidates: [cand('a', '수정구', 50, 1, { details: { confidence_grade: 'LOW', indicator_contributions: {}, unevaluated_reasons: { exp_board_alight_daily_avg: 'NO_RECORD_COVERAGE_UNKNOWN', vul_zone_total: 'OUTSIDE_SURVEY_SCOPE' } } })] }, { role: 'city' }, { gu: null, guList: GUS, allGu: ALL });
+  const detail = toCandidateDetail({ ...cand('a', '수정구', 50, 1), details: { confidence_grade: 'LOW', indicator_contributions: {}, unevaluated_reasons: { exp_board_alight_daily_avg: 'NO_RECORD_COVERAGE_UNKNOWN', vul_zone_total: 'OUTSIDE_SURVEY_SCOPE' } } }, { list: d, user: {} });
+  assert.deepEqual(detail.unrated.map((u) => [u.name, u.reason]), [['노출', '탐지 기록이 없고 관측 범위를 확인할 수 없음'], ['취약', '장애물 조사 범위 밖']]);
+  assert.equal(detail.reliability, '낮음');
+});
+
+const dist = { role: 'district', gu: '수정구', org: '수정구 도로관리팀' };
+const open_ = { ...run2, status: '검토 중' };
+const list2 = (user, extra = {}, candidates = [cand('a', '수정구', 70, 1), cand('b', '수정구', 60, 2), cand('c', '수정구', 50, 3)]) =>
+  toCandidateList({ run: open_, candidates }, user, { gu: null, guList: GUS, allGu: ALL, ...extra });
+
+test('결정 목록: 서버가 준 결정을 후보에 합치고 결정 현황 숫자를 센다', () => {
+  const d = list2(dist, { myConfirm: { gu: '수정구', done: false, date: null }, decisions: [{ gid: 'a', decision: '우선 점검 대상' }, { gid: 'b', decision: '보류', reason_code: '추가 확인 필요' }] });
+  assert.deepEqual(d.items.map((r) => [r.gid, r.decision]), [['a', '우선 점검 대상'], ['b', '보류'], ['c', '결정 전']]);
+  assert.deepEqual(d.counts, { total: 3, none: 1, target: 1, exclude: 0, hold: 1 });
+});
+
+test('결정 목록이 없으면(null) 전부 결정 전이다', () => {
+  const d = list2(dist, { decisions: null });
+  assert.equal(d.counts.none, 3);
+});
+
+test('결정 버튼은 구 도로관리팀 · 검토 중 회차 · 자기 구 확정 전에만 열린다', () => {
+  const ok = { myConfirm: { gu: '수정구', done: false, date: null } };
+  assert.equal(list2(dist, ok).canDecide, true);
+  assert.equal(list2(dist, { myConfirm: { gu: '수정구', done: true, date: null } }).canDecide, false); // 이미 확정
+  assert.equal(list2({ ...dist, readOnly: true }, ok).canDecide, false); // 보기 전용
+  assert.equal(list2({ role: 'city' }, ok).canDecide, false); // 시 도로과는 결정하지 않는다
+  const unknown = toCandidateList({ run: run2, candidates: [cand('a', '수정구', 70, 1)] }, dist, { gu: null, guList: GUS, allGu: ALL, myConfirm: ok.myConfirm });
+  assert.equal(unknown.canDecide, false); // 상태 정보 없음
+});
+
+test('회차 상태: 서버가 상태를 주지 않아도 3개 구가 모두 확정했으면 확정이다', () => {
+  assert.equal(toRun(run2, { finalized: true }).status, '확정');
+  assert.equal(toRun(run2, { finalized: false }).status, '상태 정보 없음');
+  assert.equal(toRun({ ...run2, status: '검토 중' }, { finalized: true }).status, '검토 중'); // 서버 상태가 우선
+});
+
+test('회차 목록: 상태를 주지 않는 회차만 확정 여부를 묻는다', async () => {
+  const asked = [];
+  const api = apiWith(async () => response({ runs: [{ runId: 2 }, { runId: 3, status: '검토 중' }, { runId: 1 }] }));
+  const runs = await api.listRuns({ finalizedOf: async (id) => { asked.push(id); return true; } });
+  assert.deepEqual(asked, [2]);
+  assert.deepEqual(runs.map((r) => [r.id, r.status]), [['2', '확정'], ['3', '검토 중']]);
+});
+
+test('후보 상세: 결정 기록과 결정 탭 표시', () => {
+  const list = list2(dist, { myConfirm: { gu: '수정구', done: false, date: null } });
+  const d = toCandidateDetail(cand('a', '수정구', 70, 1), { list, user: dist, record: { decision: '우선 점검 대상', memo: '메모' } });
+  assert.equal(d.decision, '우선 점검 대상');
+  assert.equal(d.showDecisionTab, true);
+  assert.equal(d.showRequest, true);
+  assert.equal(d.memo, '메모');
+  assert.equal(d.canDecide, true);
 });

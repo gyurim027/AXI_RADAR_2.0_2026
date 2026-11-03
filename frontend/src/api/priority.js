@@ -4,7 +4,8 @@
 import { DECISION, RUN_STATUS } from '../shared/constants.js';
 import { snakeKeys } from './caseKeys.js';
 
-// 보존 대상 회차(기존 1회차). 서버가 목록에서 거르면 이 줄을 지운다 (결정 기록 D-46).
+// 기존 1회차는 보존 대상이다(진규님 확정 2026-11-03). 서버는 조회를 유지하고 신규 결정·확정을 거절한다.
+// 일반 사용자 화면과 시연에서는 제외한다. 기본은 2회차이며, 2회차를 못 불러와도 1회차로 자동 전환하지 않는다.
 const PRESERVED_RUN_IDS = new Set([1]);
 
 // 격자 한 칸은 250m다 (DB 01_grid_cell 이웃 중심 간격: 위도 0.0022535°, 경도 0.002825°).
@@ -19,34 +20,57 @@ export function cellBounds(lat, lon) {
 }
 
 // 점수 모델 지표 9개 → 화면 이름·분야 (우선순위 로직 문서 5호, 2026-10-28)
+// name은 목록의 '주요 보행 방해요소'에 쓰는 짧은 이름, label은 근거 표의 정식 표시 이름이다(진규님 최종 표시 기준, 공용 DB grid_feature 컬럼 설명과 대조).
 export const INDICATORS = {
-  res_fatal_accident_cnt: { name: '사망 사고', domain: 'accident' },
-  res_hotspot_cnt: { name: '사고 다발지', domain: 'accident' },
-  res_ped_hotspot_cnt: { name: '보행자 사고 다발지', domain: 'accident' },
-  cond_blind_spot_cnt: { name: '사각지대', domain: 'hazard' },
-  cond_obstacle_cnt: { name: '보행 장애물', domain: 'hazard' },
-  cond_pothole_detect_cnt: { name: '포트홀', domain: 'hazard' },
-  cond_delineator_detect_cnt: { name: '시선유도시설', domain: 'hazard' },
-  exp_board_alight_daily_avg: { name: '대중교통 이용', domain: 'exposure' },
-  vul_zone_total: { name: '보호구역 등', domain: 'vulnerability' },
+  res_fatal_accident_cnt: { name: '사망사고', label: '격자 내 사망사고 건수', domain: 'accident' },
+  res_hotspot_cnt: { name: '사고다발지', label: '격자와 겹치는 사고다발지 자료 행 수', domain: 'accident' },
+  res_ped_hotspot_cnt: { name: '보행자 사고다발지', label: '보행자 사망·중상 다발지 지점 수', domain: 'accident' },
+  cond_blind_spot_cnt: { name: '사각지대', label: '우회전 사각지대 수', domain: 'hazard' },
+  cond_obstacle_cnt: { name: '보행 방해물', label: '적치물 등 보행 장애물 수', domain: 'hazard' },
+  cond_pothole_detect_cnt: { name: '포트홀', label: '포트홀 탐지 건수', domain: 'hazard' },
+  cond_delineator_detect_cnt: { name: '시선유도시설', label: '파손 시선유도봉 탐지 건수', domain: 'hazard' },
+  exp_board_alight_daily_avg: { name: '승하차량', label: '격자 내 정류소 일평균 승하차량 합계(보행량 대체 지표)', domain: 'exposure' },
+  vul_zone_total: { name: '보호구역', label: '격자와 겹치는 보호구역 수', domain: 'vulnerability' },
 };
 export const DOMAIN_LABEL = { accident: '사고', hazard: '위험', exposure: '노출', vulnerability: '취약' };
 const RELIABILITY = { HIGH: '높음', MEDIUM: '보통', LOW: '낮음' };
-const UNEVALUATED = { OUTSIDE_SURVEY_SCOPE: '조사 안 함', NO_RECORD_COVERAGE_UNKNOWN: '기록 없음' };
-// 우선 확인 조건: 점수 모델은 위험·노출·취약 세 분야로 판정한다. 화면 이름은 기획에서 정하기 전까지 분야 이름을 쓴다.
+// 미평가 사유는 위험이 없다는 뜻이 아니다. 0점으로 처리하지 않는다(진규님 2026-11-03).
+const UNEVALUATED = {
+  OUTSIDE_SURVEY_SCOPE: '장애물 조사 범위 밖',
+  NO_RECORD_COVERAGE_UNKNOWN: '탐지 기록이 없고 관측 범위를 확인할 수 없음',
+};
+// 우선 확인 조건은 종합·위험·노출·취약 4개다(진규님 확인). 값은 Y(충족)·N(미충족)·NULL(미평가)이고, NULL을 N으로 바꾸지 않는다.
+// 종합이 Y인 후보가 '우선 확인 조건에 맞는 후보'다. 조건 충족 여부는 후보 선정 여부와 다른 값이다.
 export const PRIORITY_CONDITIONS = [
+  { id: 'result', name: '종합 조건', ratio: null },
   { id: 'hazard', name: '위험 조건', ratio: null },
   { id: 'exposure', name: '노출 조건', ratio: null },
-  { id: 'vulnerability', name: '취약 조건', ratio: null },
+  { id: 'vulnerable', name: '취약 조건', ratio: null },
 ];
+const conditionValue = (v) => (v === 'Y' || v === 'N' ? v : v == null ? 'NULL' : 'INVALID');
+/** 후보의 조건 4개 상태. 화면은 NULL을 '미평가'로 보인다. */
+export function conditionStates(conditions) {
+  return PRIORITY_CONDITIONS.map((c) => ({ id: c.id, name: c.name, state: conditionValue(conditions?.[c.id]) }));
+}
+/** 우선 확인 조건에 맞는 후보(종합 Y)의 맞은 조건 번호. 맞지 않으면 빈 목록이다. */
+function matchedConditionIds(conditions) {
+  if (conditionValue(conditions?.result) !== 'Y') return [];
+  return PRIORITY_CONDITIONS.filter((c) => conditionValue(conditions?.[c.id]) === 'Y').map((c) => c.id);
+}
 const STATUS_VALUES = new Set(Object.values(RUN_STATUS));
+const DECISION_VALUES = new Set([DECISION.TARGET, DECISION.EXCLUDE, DECISION.HOLD]);
 const num = (v) => (v == null ? null : Number(v));
 const round1 = (v) => Math.round(Number(v) * 10) / 10; // 점수는 소수 첫째 자리까지 보인다(순서는 서버 원래 값으로 매긴다)
 
 /** 서버 회차 한 건 → 화면 회차. 상태·이름·종류가 서버에 없으면 '상태 정보 없음'·'회차 N'으로 둔다(가짜 상태를 만들지 않는다). */
-export function toRun(r) {
+export function toRun(r, { finalized = false } = {}) {
   const id = String(r.run_id);
-  const status = STATUS_VALUES.has(r.status) ? r.status : RUN_STATUS.UNKNOWN;
+  let status = STATUS_VALUES.has(r.status) ? r.status : RUN_STATUS.UNKNOWN;
+  // 서버가 상태를 주지 않을 때, 3개 구가 모두 확정했다는 서버 값(round_finalized)이 있으면 '확정'으로 본다.
+  if (status === RUN_STATUS.UNKNOWN && finalized) status = RUN_STATUS.FINAL;
+  // 개발 전용: 로컬에서 결정·확정 화면을 시험하려고 상태를 덮어쓴다. 개발 서버(DEV)에서만 읽고 배포 빌드에서는 무시한다.
+  const devStatus = import.meta.env?.DEV ? import.meta.env?.VITE_DEV_RUN_STATUS : null;
+  if (status === RUN_STATUS.UNKNOWN && STATUS_VALUES.has(devStatus)) status = devStatus;
   return {
     id,
     name: r.name || `회차 ${r.run_id}`,
@@ -88,7 +112,6 @@ function toRow(c, rank, scopeTotal, cityRank, cityTotal) {
   const tierRatio = rated ? rank / scopeTotal : 1;
   const tier = !rated ? 'unrated' : tierRatio <= 0.1 ? 'top' : tierRatio <= 0.3 ? 'mid' : 'rest';
   const { unrated, obstacles } = splitDomains(c.details);
-  const matched = String(c.matched_roles || '').split(',').filter(Boolean);
   const hasCenter = c.center_lat != null && c.center_lon != null;
   return {
     gid: c.gid,
@@ -109,7 +132,8 @@ function toRow(c, rank, scopeTotal, cityRank, cityTotal) {
     collected: [],
     missing: [],
     decision: DECISION.NONE, // 결정 목록 API가 서버에 없어 전부 '결정 전'으로 보인다
-    conditions: matched,
+    conditions: matchedConditionIds(c.conditions),
+    conditionStates: conditionStates(c.conditions),
     inProtectionZone: false,
     complaintFlag: null,
     recur: false,
@@ -122,8 +146,8 @@ function toRow(c, rank, scopeTotal, cityRank, cityTotal) {
 }
 
 /** 후보 목록 응답 → 화면 목록 */
-export function toCandidateList(res, user, { gu, guList, allGu }) {
-  const run = toRun(res.run);
+export function toCandidateList(res, user, { gu, guList, allGu, decisions = null, myConfirm = null, finalized = false }) {
+  const run = toRun(res.run, { finalized });
   const all = res.candidates || [];
   const rated = all.filter((c) => c.score != null).sort((a, b) => Number(b.score) - Number(a.score) || (a.rank_no ?? 1e9) - (b.rank_no ?? 1e9));
   const unratedList = all.filter((c) => c.score == null);
@@ -133,7 +157,20 @@ export function toCandidateList(res, user, { gu, guList, allGu }) {
   const wantGus = user.role === 'district' ? [user.gu] : gu && gu !== allGu ? [gu] : guList;
   // 구 안 순위는 보이는 범위(구 도로관리팀은 자기 구) 안에서 다시 매긴다
   const inScope = rows.filter((r) => r.gu && wantGus.includes(r.gu)).map((r, i, arr) => ({ ...r, rank: i + 1, tier: tierOf(i + 1, arr.length) }));
-  const counts = { total: inScope.length, none: inScope.length, target: 0, exclude: 0, hold: 0 };
+  // 결정 목록(G-03)이 없으면(null) 서버가 결정을 주지 않은 것이라 전부 '결정 전'으로 둔다.
+  const byGid = new Map((decisions || []).map((d) => [d.gid, d]));
+  inScope.forEach((r) => {
+    const d = byGid.get(r.gid);
+    if (d && DECISION_VALUES.has(d.decision)) r.decision = d.decision;
+  });
+  const counts = { total: inScope.length, none: 0, target: 0, exclude: 0, hold: 0 };
+  inScope.forEach((r) => {
+    if (r.decision === DECISION.TARGET) counts.target++;
+    else if (r.decision === DECISION.EXCLUDE) counts.exclude++;
+    else if (r.decision === DECISION.HOLD) counts.hold++;
+    else counts.none++;
+  });
+  const reviewing = run.status === RUN_STATUS.REVIEW;
   return {
     run,
     guScope: user.role === 'district' ? user.gu : gu || allGu,
@@ -143,8 +180,9 @@ export function toCandidateList(res, user, { gu, guList, allGu }) {
     conditions: PRIORITY_CONDITIONS,
     guBoundaries: [],
     obstacleOptions: Object.values(INDICATORS).filter((i) => i.domain === 'hazard').map((i) => i.name),
-    myConfirm: null,
-    canDecide: false,
+    myConfirm: user.role === 'district' ? myConfirm : null,
+    // 결정 버튼: 구 도로관리팀 · 검토 중 회차 · 자기 구를 아직 확정하기 전 (CM-00 10번)
+    canDecide: user.role === 'district' && !user.readOnly && reviewing && !!myConfirm && !myConfirm.done,
     _all: all,
   };
 }
@@ -155,7 +193,7 @@ function tierOf(rank, total) {
 }
 
 /** 후보 상세 응답 → 화면 상세. 중심 좌표는 상세에 없어 목록에서 받은 값을 쓴다. */
-export function toCandidateDetail(c, { list, user }) {
+export function toCandidateDetail(c, { list, user, record = null }) {
   const row = list?.items?.find((r) => r.gid === c.gid) || list?.unrated?.find((r) => r.gid === c.gid) || null;
   const d = c.details || {};
   const contributions = d.indicator_contributions || {};
@@ -165,7 +203,7 @@ export function toCandidateDetail(c, { list, user }) {
     .sort((a, b) => Number(contributions[b]) - Number(contributions[a]))
     .map((code) => ({
       field: DOMAIN_LABEL[INDICATORS[code].domain],
-      item: INDICATORS[code].name,
+      item: INDICATORS[code].label,
       value: `기여 ${Number(contributions[code]).toFixed(1)}점`,
       pos: null,
       ratio: total ? Math.round((Number(contributions[code]) / total) * 100) : 0,
@@ -176,7 +214,7 @@ export function toCandidateDetail(c, { list, user }) {
     }));
   const { unrated, obstacles } = splitDomains(d);
   const summary = c.explanation_context?.summary;
-  const conditions = String(c.matched_roles || '').split(',').filter(Boolean).map((id) => PRIORITY_CONDITIONS.find((p) => p.id === id)).filter(Boolean);
+  const conditions = matchedConditionIds(c.conditions).map((id) => PRIORITY_CONDITIONS.find((p) => p.id === id)).filter(Boolean);
   const dept = c.department && c.department.name ? { name: c.department.name, contact: null, status: c.department.confidence || null } : null;
   return {
     run: list?.run || null,
@@ -188,7 +226,7 @@ export function toCandidateDetail(c, { list, user }) {
     address: null,
     landmark: null,
     score: c.score != null ? round1(c.score) : null,
-    decision: DECISION.NONE,
+    decision: record && DECISION_VALUES.has(record.decision) ? record.decision : DECISION.NONE,
     explanation: typeof summary === 'string' ? summary : '',
     evidence,
     topEvidence: evidence.slice(0, 3).map((e) => `${e.item} ${e.value}`),
@@ -196,6 +234,7 @@ export function toCandidateDetail(c, { list, user }) {
     reliability: RELIABILITY[d.confidence_grade] || null,
     reliabilityReason: '',
     conditions,
+    conditionStates: conditionStates(c.conditions),
     unrated,
     obstacles,
     complaint: { has: c.complaint_cnt != null, total: c.complaint_cnt ?? 0, types: [], recur: 0 },
@@ -205,15 +244,15 @@ export function toCandidateDetail(c, { list, user }) {
     deptOptions: [],
     lastYear: null,
     history: [],
-    reasonText: '',
-    memo: '',
+    reasonText: record ? record.reason_text || record.reason_code || '' : '',
+    memo: record?.memo || '',
     bounds: row?.bounds || null,
     points: [],
-    canDecide: false,
-    showDecisionTab: false,
+    canDecide: !!list?.canDecide,
+    showDecisionTab: user?.role === 'district' && !user?.readOnly && list?.run?.status === RUN_STATUS.REVIEW,
     canPickDept: false,
-    showRequest: false,
-    confirmedByGu: false,
+    showRequest: user?.role === 'district' && record?.decision === DECISION.TARGET,
+    confirmedByGu: !!list?.myConfirm?.done,
     problems: [],
     request: null,
     org: user?.org || '',
@@ -225,18 +264,25 @@ export function createPriorityApi(rawRequest) {
   let lastList = null;
   return {
     /** 회차 목록. 보존 대상 회차는 뺀다. */
-    async listRuns() {
+    /** finalizedOf(runId) → 3개 구가 모두 확정했는가(서버 값). 상태를 주지 않는 서버에서만 쓴다. */
+    async listRuns({ finalizedOf } = {}) {
       const d = await request('/api/priority/runs');
-      return (d.runs || []).filter((r) => !PRESERVED_RUN_IDS.has(Number(r.run_id))).map(toRun);
+      const runs = (d.runs || []).filter((r) => !PRESERVED_RUN_IDS.has(Number(r.run_id)));
+      return Promise.all(
+        runs.map(async (r) => {
+          const needs = !STATUS_VALUES.has(r.status) && typeof finalizedOf === 'function';
+          return toRun(r, { finalized: needs ? await finalizedOf(r.run_id) : false });
+        }),
+      );
     },
-    async listCandidates({ runId, gu, user, guList, allGu }) {
+    async listCandidates({ runId, gu, user, guList, allGu, decisions, myConfirm, finalized }) {
       const res = await request(`/api/priority/runs/${encodeURIComponent(runId)}/candidates?limit=3000`);
-      lastList = toCandidateList(res, user, { gu, guList, allGu });
+      lastList = toCandidateList(res, user, { gu, guList, allGu, decisions, myConfirm, finalized });
       return lastList;
     },
-    async getCandidateDetail({ runId, gid, user }) {
+    async getCandidateDetail({ runId, gid, user, record }) {
       const c = await request(`/api/priority/runs/${encodeURIComponent(runId)}/candidates/${encodeURIComponent(gid)}`);
-      return toCandidateDetail(c, { list: lastList, user });
+      return toCandidateDetail(c, { list: lastList, user, record });
     },
   };
 }
