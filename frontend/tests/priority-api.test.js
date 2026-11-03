@@ -251,3 +251,20 @@ test('서버 값이 없는 필터는 막을 목록으로 알린다', () => {
   const list = toCandidateList({ run: run2, candidates: [cand('a', '수정구', 50, 1)] }, { role: 'city' }, { gu: null, guList: GUS, allGu: ALL });
   assert.deepEqual(list.unavailableFilters, ['zone', 'complaint']);
 });
+
+test('후보 응답의 주소·대표 지점은 표기 규칙을 거쳐 보인다(D-59)', () => {
+  const cand1 = { ...cand('a', '수정구', 50, 1), address: '성남시 수정구 신흥동 1', landmark: '해님 어린이집', address_source: '어린이집·유치원', landmark_source: '어린이집·유치원' };
+  const list = toCandidateList({ run: run2, candidates: [cand1] }, { role: 'city' }, { gu: null, guList: GUS, allGu: ALL });
+  const row = [...list.items, ...list.unrated][0];
+  assert.equal(row.address, '성남시 수정구 신흥동 1');
+  assert.equal(row.landmark, '어린이집 인근');
+  const d = toCandidateDetail(cand1, { list, user: { role: 'city' }, record: null });
+  assert.equal(d.landmark, '어린이집 인근');
+});
+
+test('담당 부서가 null이면 서버가 준 이유(department_reason)를 보인다', () => {
+  const list = toCandidateList({ run: run2, candidates: [cand('a', '수정구', 50, 1)] }, { role: 'city' }, { gu: null, guList: GUS, allGu: ALL });
+  const d = toCandidateDetail({ ...cand('a', '수정구', 50, 1), department: null, department_status: '확인 필요', department_reason: '문제 유형 연결이 없습니다.' }, { list, user: { role: 'city' }, record: null });
+  assert.equal(d.dept, null);
+  assert.equal(d.deptReason, '문제 유형 연결이 없습니다.');
+});

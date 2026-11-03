@@ -3,6 +3,7 @@
 // 서버에 값이 생기면(회차 상태·주소·담당 부서 등) 이 파일만 고치면 된다. 문서: 작업파일/261103/배포준비_빠진기능_점검.
 import { DECISION, RUN_STATUS } from '../shared/constants.js';
 import { snakeKeys } from './caseKeys.js';
+import { toLocation } from './locationLabel.js';
 
 // 기존 1회차는 보존 대상이다(진규님 확정 2026-11-03). 서버는 조회를 유지하고 신규 결정·확정을 거절한다.
 // 일반 사용자 화면과 시연에서는 제외한다. 기본은 2회차이며, 2회차를 못 불러와도 1회차로 자동 전환하지 않는다.
@@ -137,8 +138,7 @@ function toRow(c, rank, scopeTotal, cityRank, cityTotal) {
     gid: c.gid,
     rank: rated ? rank : null,
     gu: c.gu || null,
-    address: null, // 서버 응답에 없음(대환님 요청 중)
-    landmark: null,
+    ...toLocation(c), // 주소·대표 지점은 같은 격자에 연결된 시설 자료의 참고 값이다(D-59). 없으면 null
     score: rated ? round1(c.score) : null,
     tier,
     obstacleMain: obstacles[0] || '-',
@@ -245,8 +245,7 @@ export function toCandidateDetail(c, { list, user, record = null }) {
     cityRank: c.rank_no ?? null,
     cityPercent: row?.cityPercent ?? null,
     gu: c.gu || null,
-    address: null,
-    landmark: null,
+    ...toLocation(c),
     score: c.score != null ? round1(c.score) : null,
     decision: record && DECISION_VALUES.has(record.decision) ? record.decision : DECISION.NONE,
     explanation: typeof summary === 'string' ? summary : '',
@@ -269,7 +268,8 @@ export function toCandidateDetail(c, { list, user, record = null }) {
     },
     articles: [],
     dept,
-    deptReason: c.department?.reason || '',
+    // 판정이 없으면 서버가 department를 null로 주고 이유(department_reason)를 따로 준다
+    deptReason: c.department?.reason || c.department_reason || '',
     deptOptions: [],
     lastYear: null,
     history: [],
