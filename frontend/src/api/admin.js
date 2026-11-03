@@ -2,7 +2,7 @@
 import { mockCall } from './client.js';
 import * as server from '../mocks/adminServer.js';
 import { COMPLAINT_DATA_ID } from '../mocks/adminData.js';
-import { backendRequest, backendAuthEnabled, opsBackendEnabled } from './backend.js';
+import { backendRequest, opsBackendEnabled } from './backend.js';
 import { createOpsApi } from './ops.js';
 import { createChecksApi } from './checks.js';
 
@@ -14,59 +14,7 @@ export const listLowComplaints = checks.listLowComplaints;
 export const listIssues = checks.listIssues;
 
 export const getViewAsLabel = () => server.viewAsLabel();
-const listMockAdminRuns = mockCall('admin.listAdminRuns', (arg) => server.listAdminRuns(arg));
-
-export const listAdminRuns = backendAuthEnabled
-  ? async () => {
-      const response = await backendRequest('/api/d10/runs');
-
-      if (!Array.isArray(response?.runs)) {
-        throw new Error('D-10 회차 목록 응답 형식이 올바르지 않습니다.');
-      }
-
-      return response.runs.map((run) => {
-        const start = run.periodStart ?? null;
-        const end = run.periodEnd ?? null;
-
-        return {
-          id: String(run.runId),
-          runId: run.runId,
-          name: `실행회차 ${run.runId}`,
-          kind: null,
-          kindLabel: '유형 정보 없음',
-          status: '상태 정보 없음',
-          version: '-',
-          period: start && end ? `${start} ~ ${end}` : '기간 정보 없음',
-          created: run.createdAt ? String(run.createdAt).slice(0, 10) : '-',
-          review: '-',
-          complaintPeriod: {
-            start: start ?? '',
-            end: end ?? '',
-          },
-          calcDone: null,
-          ran: null,
-          readOnly: true,
-          buildId: run.buildId,
-          ruleVersion: run.ruleVersion,
-        };
-      });
-    }
-  : listMockAdminRuns;
-/** D-10: ?? ?? 2 ?? ?? (DB ?? ??) */
-export const getAdminRun = async (runId) => {
-  if (!backendAuthEnabled) {
-    throw new Error('?? ?? ????? ??? ? ? ????.');
-  }
-  if (String(runId) !== '2') {
-    throw new Error('1? ????? ?? 2? ? ? ????.');
-  }
-  const response = await backendRequest('/api/d10/runs/2');
-  if (String(response?.run?.runId) !== '2') {
-    throw new Error('D-10 ?? ?? ??? ???? ????.');
-  }
-  return response;
-};
-
+export const listAdminRuns = mockCall('admin.listAdminRuns', (arg) => server.listAdminRuns(arg));
 export const listAdminNotifications = opsBackendEnabled ? ops.listNotifications : mockCall('admin.listAdminNotifications', (arg) => server.listAdminNotifications(arg));
 export const markAdminNotificationRead = opsBackendEnabled ? ops.markNotificationRead : mockCall('admin.markAdminNotificationRead', (arg) => server.markAdminNotificationRead(arg));
 export const listViewAsOptions = mockCall('admin.listViewAsOptions', (arg) => server.listViewAsOptions(arg));

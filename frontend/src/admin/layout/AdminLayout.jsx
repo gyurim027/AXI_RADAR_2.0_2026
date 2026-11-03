@@ -33,7 +33,6 @@ function SettingsLayout(){
       <nav className={topStyles.nav} aria-label="설정 관리">
         {opsBackendEnabled?<NavLink className={topStyles.tab} to="/admin" end>대시보드</NavLink>:null}
         {opsBackendEnabled?<NavLink className={topStyles.tab} to="/admin/data/checks">검사 결과</NavLink>:null}
-        {opsBackendEnabled?<NavLink className={topStyles.tab} to="/admin/runs/list">실행 기록</NavLink>:null}
         {opsBackendEnabled?<NavLink className={topStyles.tab} to="/admin/runs/log">실행 기록</NavLink>:null}
         {settingsBackendEnabled?<NavLink className={topStyles.tab} to="/admin/standards/criteria">산정 기준</NavLink>:null}
         {opsBackendEnabled?<NavLink className={topStyles.tab} to="/admin/standards/dept">담당 부서 표</NavLink>:null}
