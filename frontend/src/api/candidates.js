@@ -1,9 +1,20 @@
 import { mockCall } from './client.js';
 import * as server from '../mocks/server.js';
-import { backendRequest, g03BackendEnabled, g06BackendEnabled, BackendError } from './backend.js';
+import { backendRequest, backendAuthEnabled, priorityBackendEnabled, g03BackendEnabled, g06BackendEnabled, BackendError } from './backend.js';
+import { createPriorityApi } from './priority.js';
+import { getCurrentUser } from './session.js';
+import { ALL_GU, GU_LIST } from '../shared/constants.js';
 
-export const listCandidates = mockCall('candidates', (arg) => server.listCandidates(arg));
-export const getCandidateDetail = mockCall('candidateDetail', (arg) => server.getCandidateDetail(arg));
+const priority = createPriorityApi(backendRequest);
+const serverMode = () => backendAuthEnabled && priorityBackendEnabled;
+const mockListCandidates = mockCall('candidates', (arg) => server.listCandidates(arg));
+const mockGetCandidateDetail = mockCall('candidateDetail', (arg) => server.getCandidateDetail(arg));
+
+/** 점검 후보 목록. 서버 연결 모드에서는 점수·순위 모델 결과를 쓴다. */
+export const listCandidates = (arg) =>
+  serverMode() ? priority.listCandidates({ ...arg, user: getCurrentUser(), guList: GU_LIST, allGu: ALL_GU }) : mockListCandidates(arg);
+export const getCandidateDetail = (arg) =>
+  serverMode() ? priority.getCandidateDetail({ ...arg, user: getCurrentUser() }) : mockGetCandidateDetail(arg);
 
 const mockSaveDecision = mockCall('saveDecision', (arg) => server.saveDecision(arg));
 const REASONS = {

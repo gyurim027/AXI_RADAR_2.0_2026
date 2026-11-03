@@ -4,6 +4,7 @@ import Tag from '../../../components/Tag.jsx';
 import { SkeletonBlock } from '../../../components/States.jsx';
 import { SUMMARY } from '../copy.js';
 import styles from './SummaryPanel.module.css';
+import { placeLabel } from '../../../../shared/utils/format.js';
 
 /**
  * 5-1 근거 팝업(US-02 요약 패널). 격자를 누르면 지도 위쪽에 뜬다. ×를 누르면 닫히고 목록 선택이 풀린다.
@@ -23,7 +24,7 @@ export default function SummaryPanel({ row, detail, loading, onClose, onDetail }
           <Icon name="close" size={22} />
         </button>
       </div>
-      <h2 className={styles.title}>{SUMMARY.title(row.address, row.landmark)}</h2>
+      <h2 className={styles.title}>{placeLabel(row)}</h2>
 
       {loading || !detail ? (
         <div className={styles.skel}>
