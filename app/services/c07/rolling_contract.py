@@ -8,6 +8,7 @@ from __future__ import annotations
 from collections import defaultdict
 from datetime import date, datetime
 from hashlib import sha256
+from app.services.scoring.approved_inputs import classification_decision
 import json
 
 class ComplaintContractError(ValueError):
@@ -56,8 +57,9 @@ def build_contract(source_rows, grid_gids, *, earliest=date(2021, 1, 1), through
     by_gid = {gid: {'gid': gid, 'complaint_cnt': 0, 'complaint_cnt_excl_low': 0,
                     'reviewed_relevant_count': 0, 'reviewed_relevant_excl_low': 0,
                     'reviewed_count': 0, 'unreviewed_count': 0,
-                    'repeat_relevant_count': 0, 'classification_status': 'COMPLETE'} for gid in gids}
-    monthly = defaultdict(lambda: {'total': 0, 'mapped': 0, 'unmapped': 0, 'reviewed': 0, 'unreviewed': 0})
+                    'repeat_relevant_count': 0, 'relevant_count': 0, 'count_excl_low': 0,
+                    'unresolved_count': 0, 'classification_status': 'COMPLETE'} for gid in gids}
+    monthly = defaultdict(lambda: {'total': 0, 'mapped': 0, 'unmapped': 0, 'reviewed': 0, 'unreviewed': 0, 'classified': 0, 'unresolved': 0})
     scoped = []
     for day, record in normalized:
         if day < earliest or day > last:
@@ -72,9 +74,11 @@ def build_contract(source_rows, grid_gids, *, earliest=date(2021, 1, 1), through
         rel = str(record.get('relevance') or '').strip()
         status = str(record.get('review_status') or '').strip().upper()
         # Only an independent reviewer confirmation is evidence for scored related/irrelevant.
-        confirmed = status == 'CONFIRMED' and rel in {'Y', 'N'}
+        confirmed = status == 'CONFIRMED' and rel in {'Y', 'N', '보행안전 관련', '비관련'}
+        decision = classification_decision(record)
+        bucket['classified' if decision is not None else 'unresolved'] += 1
         bucket['reviewed' if confirmed else 'unreviewed'] += 1
-        scoped.append((day, str(record['complaint_id']), gid, rel, confirmed, record))
+        scoped.append((day, str(record['complaint_id']), gid, decision, confirmed, record))
         if not matched:
             continue
         target = by_gid[gid]
@@ -82,20 +86,26 @@ def build_contract(source_rows, grid_gids, *, earliest=date(2021, 1, 1), through
         low = str(record.get('coord_accuracy') or '').strip() == '낮음'
         if not low:
             target['complaint_cnt_excl_low'] += 1
+        if decision == 'Y' and record.get('ped_type'):
+            target['relevant_count'] += 1
+            if not low:
+                target['count_excl_low'] += 1
         if confirmed:
             target['reviewed_count'] += 1
-            if rel == 'Y':
+            if decision == 'Y':
                 target['reviewed_relevant_count'] += 1
                 if not low:
                     target['reviewed_relevant_excl_low'] += 1
         else:
             target['unreviewed_count'] += 1
+        if decision is None or (decision == 'Y' and not record.get('ped_type')):
+            target['unresolved_count'] += 1
             target['classification_status'] = 'INCOMPLETE'
     seen_type_dates = defaultdict(set)
     for day, cid, gid, rel, confirmed, record in sorted(scoped, key=lambda x:(x[0],x[1])):
-        if gid not in mapped or not confirmed or rel != 'Y':
+        if gid not in mapped or rel != 'Y':
             continue
-        kind = str(record.get('ped_type') or record.get('report_type_raw') or '').strip()
+        kind = str(record.get('ped_type') or '').strip()
         if not kind:
             # Do not infer a repeat without a validated type.
             continue
@@ -108,7 +118,7 @@ def build_contract(source_rows, grid_gids, *, earliest=date(2021, 1, 1), through
     manifest = {'period_start': str(earliest), 'period_end': str(last),
                 'source_row_count': len(records), 'scoped_row_count': len(scoped),
                 'gid_count': len(gids), 'monthly_source': months,
-                'classification_policy': 'HUMAN_CONFIRMED_ONLY',
+                'classification_policy': 'CONFIRMED_OVERRIDE_OR_ACCEPTED_AI_RULE',
                 'repeat_rule': 'distinct_received_dates_per_gid_type',
                 'raw_counts_not_official_relevance': True}
     manifest['sha256'] = sha256(json.dumps(manifest, ensure_ascii=False, sort_keys=True,

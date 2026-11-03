@@ -52,14 +52,19 @@ def _validate_evidence(batch: OfficialBatch, evidence_by_gid: dict) -> None:
 
 
 def write_approved_batch(batch: OfficialBatch, *, explicit_db_write_approval: bool,
-                         evidence_by_gid: dict | None = None, connection_factory=None) -> dict:
-    """Write an approved run and all eight DB78 detail fields atomically.
+                         evidence_by_gid: dict | None = None, connection_factory=None, existing_run_id: int | None = None) -> dict:
+    """Write all eight DB78 detail fields for an existing D-10 run atomically.
 
     Fail closed if DB78 detail columns or values are missing. No DDL, no action (82) fabrication.
     `explicit_db_write_approval` is a per-batch human gate, not proof that an
     externally supplied approval record is authentic; upstream verification is
     mandatory. The approved setting row is independently checked under lock.
     """
+    if type(existing_run_id) is not int or existing_run_id <= 0:
+        raise ProductionBlocked('D10_EXISTING_RUN_ID_REQUIRED')
+    # Existing run 1 is retained for historical reads only, never for new official writes.
+    if existing_run_id == 1:
+        raise ProductionBlocked('LEGACY_RUN1_OFFICIAL_WRITE_BLOCKED')
     if explicit_db_write_approval is not True:
         raise ProductionBlocked('EXPLICIT_DB_WRITE_APPROVAL_REQUIRED')
     if batch.setting_version_id == 1:
@@ -78,6 +83,17 @@ def write_approved_batch(batch: OfficialBatch, *, explicit_db_write_approval: bo
     con = connection_factory()
     try:
         with con.cursor() as cur:
+            native_mode = batch.build_id.startswith('db59:')
+            if native_mode:
+                from app.services.scoring.input_builds import _begin
+                _begin(cur)
+                from app.services.scoring.input_builds import verify_execution_build
+                try:
+                    proof=verify_execution_build(cur,build_id=batch.build_id,policy_sha256=batch.policy_digest,
+                        setting_ids=tuple(r.setting_version_id for r in batch.setting_references),
+                        start=batch.period_start,end=batch.period_end)
+                except ValueError as exc:
+                    raise ProductionBlocked('NATIVE_BUILD_EXECUTION_NOT_VERIFIED:'+str(exc)) from exc
             verify_locked_references(cur, batch.setting_references)
             cur.execute('SELECT setting_version_id, version_label, content_ref, approval_status, approved_at '
                         'FROM setting_version WHERE setting_version_id=%s FOR UPDATE',
@@ -103,18 +119,39 @@ def write_approved_batch(batch: OfficialBatch, *, explicit_db_write_approval: bo
                 if len(cur.fetchall()) != 1:
                     raise ProductionBlocked('GRID_ID_MISSING')
 
-            token = 'official:' + metadata['fingerprint']
-            cur.execute('SELECT run_id FROM priority_run WHERE note=%s FOR UPDATE', (token,))
-            if cur.fetchall():
-                raise ProductionBlocked('DUPLICATE_OFFICIAL_BATCH')
-            cur.execute('INSERT INTO priority_run (build_id,rule_version,created_at,note,'
-                        'period_start,period_end,'+','.join(SETTING_FIELDS)+') '
-                        'VALUES (%s,%s,NOW(),%s,%s,%s,%s,%s,%s)',
-                        (batch.build_id, batch.rule_version, token, batch.period_start,batch.period_end,
-                         *(r.setting_version_id for r in batch.setting_references)))
-            run_id = cur.lastrowid
-            if not isinstance(run_id, int) or run_id <= 0:
-                raise ProductionBlocked('RUN_ID_NOT_GENERATED')
+            # D-10 owns run creation. Never invent or allocate a run in the scorer.
+            run_id = existing_run_id
+            cur.execute('SELECT run_id,build_id,rule_version,note,period_start,period_end,'+
+                        ','.join(SETTING_FIELDS)+' FROM priority_run WHERE run_id=%s FOR UPDATE',
+                        (run_id,))
+            existing = cur.fetchall()
+            if len(existing) != 1:
+                raise ProductionBlocked('D10_RUN_NOT_FOUND')
+            saved_run = existing[0]
+            if batch.source_audit_sha256 is not None:
+                from app.services.scoring.source_audit_lineage import source_audit_note
+                if saved_run.get('note') != source_audit_note(batch.source_audit_sha256):
+                    raise ProductionBlocked('D10_RUN_SOURCE_AUDIT_MISMATCH')
+            if saved_run.get('build_id') != batch.build_id or saved_run.get('rule_version') != batch.rule_version:
+                raise ProductionBlocked('D10_RUN_BUILD_OR_RULE_MISMATCH')
+            if saved_run.get('period_start') != batch.period_start or saved_run.get('period_end') != batch.period_end:
+                raise ProductionBlocked('D10_RUN_PERIOD_MISMATCH')
+            if tuple(saved_run.get(f) for f in SETTING_FIELDS) != tuple(r.setting_version_id for r in batch.setting_references):
+                raise ProductionBlocked('D10_RUN_SETTING_MISMATCH')
+            if native_mode:
+                if batch.source_audit_sha256 != proof['source_audit_sha256']:
+                    raise ProductionBlocked('NATIVE_BATCH_AUDIT_MISMATCH')
+                counts={r['gid']:r for r in proof['counts_by_gid']}
+                if set(counts)!={r['gid'] for r in batch.candidates}:
+                    raise ProductionBlocked('NATIVE_BATCH_GRID_POPULATION_MISMATCH')
+                for candidate in batch.candidates:
+                    actual=counts[candidate['gid']]
+                    if (candidate['complaint_cnt']!=actual['relevant_count'] or
+                            candidate['complaint_cnt_excl_low']!=actual['count_excl_low']):
+                        raise ProductionBlocked('NATIVE_BATCH_COMPLAINT_COUNTS_MISMATCH')
+            cur.execute('SELECT COUNT(*) AS n FROM priority_candidate WHERE run_id=%s FOR UPDATE', (run_id,))
+            if int(cur.fetchall()[0]['n']) != 0:
+                raise ProductionBlocked('D10_RUN_ALREADY_HAS_CANDIDATES')
 
             for row in batch.candidates:
                 if row.get('note') not in (None, ''):
