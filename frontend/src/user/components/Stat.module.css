@@ -1,0 +1,61 @@
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.labelRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+.label {
+  font-size: var(--fs-caption);
+  color: var(--semantic-color-text-muted);
+}
+.valueRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+.value {
+  font-size: var(--fs-h3);
+  font-weight: var(--fw-bold);
+  line-height: 1.2;
+  color: var(--semantic-color-text-strong);
+}
+.unit {
+  margin-left: 2px;
+  font-size: var(--fs-small);
+  font-weight: var(--fw-medium);
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 var(--space-8);
+  border: 1px solid var(--semantic-color-band-border);
+  border-radius: var(--radius-full);
+  background: var(--semantic-color-bg-surface);
+  font-size: var(--fs-caption);
+  color: var(--semantic-color-primary-strong);
+}
+.track {
+  height: 6px;
+  margin-top: var(--space-4);
+  border-radius: var(--radius-full);
+  background: var(--semantic-color-bg-surface);
+  overflow: hidden;
+}
+.fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+}
+.top {
+  background: var(--component-map-level-3);
+}
+.mid {
+  background: var(--component-map-level-2);
+}
+.rest {
+  background: var(--component-map-level-1);
+}

@@ -1,3 +1,5 @@
+import Callout from '../../../../components/Callout.jsx';
+import Card from '../../../../components/Card.jsx';
 import { DECISION } from '../../../../../shared/constants.js';
 import { DRAWER } from '../../copy.js';
 import styles from './Tabs.module.css';
@@ -12,8 +14,10 @@ export default function LastYearTab({ detail }) {
       <div className={styles.content}>
         {ly ? (
           <>
-            <p className={`${styles.notice} ${warn ? styles.noticeWarn : ''}`}>{DRAWER.lastNotice(ly.runName, ly.decision)}</p>
-            <p>{DRAWER.lastReason(ly.reason, ly.memo)}</p>
+            <Callout tone={warn ? 'warn' : 'info'}>{DRAWER.lastNotice(ly.runName, ly.decision)}</Callout>
+            <Card variant="subtle">
+              <p>{DRAWER.lastReason(ly.reason, ly.memo)}</p>
+            </Card>
           </>
         ) : (
           <p className={styles.muted}>{DRAWER.lastEmpty}</p>

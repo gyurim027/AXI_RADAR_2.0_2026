@@ -193,7 +193,7 @@ export default function CandidateMap({ items, unrated, boundaries, ownGu, select
       rect.addTo(cells);
       if (isSel) {
         // 후보 범위 표시 (CM-00 4번): 고른 구역을 네모 영역으로 칠하고 근거 지점 수를 적는다
-        rect.bindTooltip(r.points ? COMMON.rangeText(r.points.length) : COMMON.rangeUnknown, { permanent: true, direction: 'bottom', className: 'rmap-range', offset: [0, 4] }).openTooltip();
+        // 근거 지점 수(범위 표시)는 격자 옆 이름표 대신 오른쪽 아래 '이 칸의 근거' 상자 맨 위에 적는다(근거 팝업·상자와 겹치지 않게)
       }
     });
     // 칸을 고르기 전에는 점을 그리지 않는다. 고른 칸의 근거 지점(■)과 민원 점(● ○)만 그린다 (US-01 1-5, ISS-036)
@@ -382,14 +382,19 @@ export default function CandidateMap({ items, unrated, boundaries, ownGu, select
             </ul>
           </>
         ) : null}
-        {selCell?.points ? (
+        {selCell ? (
           <div className={styles.legendBasis}>
-            <p>{LIST.legendBasis(basisSummary(selCell))}</p>
-            <p aria-label={LIST.legendShapesLabel}>
-              {LIST.legendShapes}
-              <InfoHelp label={LIST.evidenceHelpLabel}>{LIST.evidenceHelp}</InfoHelp>
-            </p>
-            {clustered ? <p>{LIST.legendCluster}</p> : null}
+            <p className={styles.basisCount}>{selCell.points ? COMMON.rangeText(selCell.points.length) : COMMON.rangeUnknown}</p>
+            {selCell.points ? (
+              <>
+                <p>{LIST.legendBasis(basisSummary(selCell))}</p>
+                <p aria-label={LIST.legendShapesLabel}>
+                  {LIST.legendShapes}
+                  <InfoHelp label={LIST.evidenceHelpLabel}>{LIST.evidenceHelp}</InfoHelp>
+                </p>
+                {clustered ? <p>{LIST.legendCluster}</p> : null}
+              </>
+            ) : null}
           </div>
         ) : null}
         {!selCell && !legendOpen ? (

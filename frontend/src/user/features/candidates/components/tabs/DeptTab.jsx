@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Tag from '../../../../components/Tag.jsx';
+import Card from '../../../../components/Card.jsx';
 import { SelectField } from '../../../../components/FormControls.jsx';
 import { setDept } from '../../../../../api/candidates.js';
 import { DEPT_STATUS } from '../../../../../shared/constants.js';
@@ -27,6 +28,7 @@ export default function DeptTab({ detail, onChanged }) {
     <section>
       <p className={styles.sub}>{d.canPickDept ? DRAWER.deptSubDistrict : DRAWER.deptSubCity}</p>
       <div className={styles.content}>
+        <Card title={DRAWER.deptTitle}>
         {d.dept ? (
           <p>{`${d.dept.name} · ${d.dept.contact} · ${d.dept.status}`}</p>
         ) : (
@@ -51,6 +53,7 @@ export default function DeptTab({ detail, onChanged }) {
             {error}
           </p>
         ) : null}
+        </Card>
       </div>
     </section>
   );

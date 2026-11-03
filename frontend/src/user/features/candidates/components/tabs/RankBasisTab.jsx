@@ -1,5 +1,8 @@
 import Tag from '../../../../components/Tag.jsx';
-import Icon from '../../../../components/Icon.jsx';
+import Card from '../../../../components/Card.jsx';
+import Stat from '../../../../components/Stat.jsx';
+import Callout from '../../../../components/Callout.jsx';
+import KeyList from '../../../../components/KeyList.jsx';
 import DataTable from '../../../../components/DataTable.jsx';
 import { InfoHelp } from '../../../../components/FormControls.jsx';
 import { COMMON } from '../../../../../shared/copy/common.js';
@@ -49,23 +52,27 @@ export default function RankBasisTab({ detail }) {
     ? COMMON.complaintSummary(d.complaint.total, d.complaint.types.map((t) => `${t.type} ${t.count}`).join(', '), d.complaint.recur)
     : undefined;
 
+  const tier = d.score >= 70 ? 'top' : d.score >= 50 ? 'mid' : 'rest';
+
   return (
     <div className={styles.section}>
-      <section className={styles.block}>
-        <p className={styles.sub}>{DRAWER.basisSub}</p>
-        <div className={styles.content}>
-          {d.score != null ? (
-            <p className={`${styles.score} num`} aria-label={DRAWER.scoreLine(d.score, d.cityPercent)}>
-              <span className={styles.scoreLabel}>{DRAWER.scoreLabel}</span>
-              <span className={styles.scoreValue}>{`${d.score}점`}</span>
-              <span className={styles.scoreAux}>{DRAWER.scoreAux(d.cityPercent)}</span>
-              <InfoHelp label={DRAWER.scoreHelpLabel}>{DRAWER.scoreHelp}</InfoHelp>
-            </p>
-          ) : null}
+      <p className={styles.sub}>{DRAWER.basisSub}</p>
+
+      {d.score != null ? (
+        <Card variant="soft">
+          <Stat
+            label={DRAWER.scoreLabel}
+            aside={<InfoHelp label={DRAWER.scoreHelpLabel}>{DRAWER.scoreHelp}</InfoHelp>}
+            value={d.score}
+            unit="점"
+            chip={DRAWER.scoreAux(d.cityPercent)}
+            meter={d.score}
+            tone={tier}
+          />
           {d.conditions?.length ? (
             <div className={styles.tagRow}>
               {d.conditions.map((c) => (
-                <Tag key={c.id} tone="info">
+                <Tag key={c.id} tone="info" small>
                   {LIST.conditionTag(c.name)}
                 </Tag>
               ))}
@@ -88,59 +95,57 @@ export default function RankBasisTab({ detail }) {
               <InfoHelp label={LIST.conditionStateHelpLabel}>{LIST.conditionStateHelp}</InfoHelp>
             </div>
           ) : null}
-          {axes ? <div className={styles.tagRow}><Tag tone="info">{DRAWER.axisTag(axes)}</Tag></div> : null}
-          {d.explanation ? (
-            <p className={styles.explain}>
-              <Icon name="sparkle" size={16} className={styles.sparkle} />
-              {d.explanation}
-            </p>
-          ) : (
-            <p className={styles.fail}>설명문을 만들지 못했습니다. 아래 근거를 직접 확인해 주세요.</p>
-          )}
-          {d.topEvidence?.length ? (
-            <>
-              <p className={styles.keyTitle}>핵심 근거</p>
-              <ul className={styles.keyList}>
-                {d.topEvidence.map((e, i) => (
-                  <li key={`${i}-${e}`}>{e}</li>
-                ))}
-              </ul>
-            </>
-          ) : null}
-          {d.evidence.length ? (
-            <div className={styles.tableWrap}>
-              <DataTable caption="순위 근거" columns={columns} rows={d.evidence} getRowKey={(e) => `${e.field}-${e.item}`} minWidth={990} />
+          {axes ? (
+            <div className={styles.tagRow}>
+              <Tag tone="info" small>{DRAWER.axisTag(axes)}</Tag>
             </div>
-          ) : (
-            <p className={styles.muted}>{COMMON.noEvidence}</p>
-          )}
-          <div className={styles.tagRow}>
-            {d.unrated.map((u) => (
-              <Tag key={u.name} tone="gray">
-                {DRAWER.unratedTag(u.name, u.reason)}
-              </Tag>
-            ))}
-            {d.unrated.length ? <InfoHelp label={DRAWER.unratedHelpLabel}>{DRAWER.unratedHelp}</InfoHelp> : null}
-            <Tag tone={d.reliability === '낮음' ? 'mid' : 'gray'}>{DRAWER.reliabilityTag(d.reliability, d.reliabilityReason)}</Tag>
-            <InfoHelp label={DRAWER.reliabilityHelpLabel}>{DRAWER.reliabilityHelp}</InfoHelp>
-          </div>
-          <MiniMap bounds={d.bounds} points={d.points} tier={d.score >= 70 ? 'top' : d.score >= 50 ? 'mid' : 'rest'} />
-        </div>
-      </section>
+          ) : null}
+        </Card>
+      ) : null}
 
-      <section className={styles.block} aria-label={complaintAria}>
-        <h3 className={styles.h}>{DRAWER.complaintTitle}</h3>
-        <div className={styles.content}>
-          {!d.complaint.has ? (
-            <p className={styles.muted}>{DRAWER.complaintEmpty}</p>
-          ) : (
-            <>
-              <p>{d.complaint.types.length ? DRAWER.complaintLine(d.complaint.types) : DRAWER.complaintTotal(d.complaint.total)}</p>
-              {d.complaint.lowAccuracy > 0 ? <p className={styles.muted}>{DRAWER.complaintLowAccuracy(d.complaint.lowAccuracy)}</p> : null}
-            </>
-          )}
+      {d.explanation ? <Callout tone="ai">{d.explanation}</Callout> : <p className={styles.fail}>설명문을 만들지 못했습니다. 아래 근거를 직접 확인해 주세요.</p>}
+
+      {d.topEvidence?.length ? (
+        <Card title="핵심 근거">
+          <KeyList items={d.topEvidence} />
+        </Card>
+      ) : null}
+
+      <Card title="근거 자료">
+        {d.evidence.length ? (
+          <div className={styles.tableWrap}>
+            <DataTable caption="순위 근거" columns={columns} rows={d.evidence} getRowKey={(e) => `${e.field}-${e.item}`} minWidth={990} />
+          </div>
+        ) : (
+          <p className={styles.muted}>{COMMON.noEvidence}</p>
+        )}
+      </Card>
+
+      <Card variant="subtle" title="자료 상태">
+        <div className={styles.tagRow}>
+          {d.unrated.map((u) => (
+            <Tag key={u.name} tone="gray">
+              {DRAWER.unratedTag(u.name, u.reason)}
+            </Tag>
+          ))}
+          {d.unrated.length ? <InfoHelp label={DRAWER.unratedHelpLabel}>{DRAWER.unratedHelp}</InfoHelp> : null}
+          <Tag tone={d.reliability === '낮음' ? 'mid' : 'gray'}>{DRAWER.reliabilityTag(d.reliability, d.reliabilityReason)}</Tag>
+          <InfoHelp label={DRAWER.reliabilityHelpLabel}>{DRAWER.reliabilityHelp}</InfoHelp>
         </div>
-      </section>
+      </Card>
+
+      <MiniMap bounds={d.bounds} points={d.points} tier={tier} />
+
+      <Card title={DRAWER.complaintTitle} aria-label={complaintAria}>
+        {!d.complaint.has ? (
+          <p className={styles.muted}>{DRAWER.complaintEmpty}</p>
+        ) : (
+          <>
+            <p>{d.complaint.types.length ? DRAWER.complaintLine(d.complaint.types) : DRAWER.complaintTotal(d.complaint.total)}</p>
+            {d.complaint.lowAccuracy > 0 ? <p className={styles.muted}>{DRAWER.complaintLowAccuracy(d.complaint.lowAccuracy)}</p> : null}
+          </>
+        )}
+      </Card>
     </div>
   );
 }

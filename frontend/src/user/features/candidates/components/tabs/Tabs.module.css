@@ -24,35 +24,10 @@
   gap: var(--space-16);
   margin-top: var(--space-12);
 }
-.numbers {
-  font-size: var(--fs-small);
-}
 /* 점검 필요도: 핵심 수치만 24px 굵게, 나머지는 14px */
-.score {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--space-8);
-}
-.scoreLabel {
-  font-size: var(--fs-small);
-  color: var(--semantic-color-text-muted);
-}
-.scoreValue {
-  font-size: var(--fs-h2);
-  font-weight: var(--fw-bold);
-  color: var(--semantic-color-text-strong);
-}
-.scoreAux {
-  font-size: var(--fs-small);
-}
 .tagRow {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-8);
-}
-.explain {
-  display: flex;
   gap: var(--space-8);
 }
 .sparkle {
@@ -105,18 +80,6 @@
   align-items: center;
   gap: var(--space-8);
 }
-.notice {
-  padding: var(--space-12) var(--space-16);
-  border-radius: var(--radius-md);
-  background: var(--semantic-color-bg-info-soft);
-  border: 1px solid var(--semantic-color-band-border);
-}
-.noticeWarn {
-  background: var(--semantic-color-risk-mid-soft);
-  border-color: var(--semantic-color-risk-mid-line);
-  color: var(--semantic-color-risk-mid);
-  font-weight: var(--fw-medium);
-}
 .choices {
   display: flex;
   flex-wrap: wrap;
@@ -131,14 +94,6 @@
   padding: var(--space-8) 0;
   border-bottom: 1px solid var(--semantic-color-border-subtle);
   font-size: var(--fs-small);
-}
-.reqText {
-  display: flex;
-  gap: var(--space-8);
-  padding: var(--space-16);
-  border: 1px solid var(--semantic-color-border-card);
-  border-radius: var(--radius-md);
-  background: var(--semantic-color-bg-shell);
 }
 .actionRow {
   display: flex;
@@ -160,19 +115,6 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-4);
-}
-.keyList {
-  list-style: disc;
-  margin: 0;
-  padding-left: var(--space-20, 20px);
-  display: grid;
-  gap: var(--space-4);
-}
-.keyTitle {
-  margin-top: var(--space-8);
-  font-size: var(--fs-small);
-  font-weight: var(--fw-bold);
-  color: var(--semantic-color-text-muted);
 }
 
 /* 한 ⓘ 말풍선 안에서 줄마다 하나씩 설명한다 */

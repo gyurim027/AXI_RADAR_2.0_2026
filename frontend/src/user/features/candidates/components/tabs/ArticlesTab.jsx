@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Tag from '../../../../components/Tag.jsx';
+import Card from '../../../../components/Card.jsx';
 import { DRAWER } from '../../copy.js';
 import styles from './Tabs.module.css';
 
@@ -16,6 +17,7 @@ export default function ArticlesTab({ detail }) {
           <ul className={styles.list}>
             {detail.articles.map((a) => (
               <li key={a.id}>
+                <Card>
                 <div className={styles.articleRow}>
                   <button type="button" className={styles.linkBtn} aria-expanded={openId === a.id} onClick={() => setOpenId(openId === a.id ? null : a.id)}>
                     {a.name}
@@ -30,6 +32,7 @@ export default function ArticlesTab({ detail }) {
                   ) : null}
                 </div>
                 {openId === a.id ? <p className={styles.articleBody}>{a.body}</p> : null}
+                </Card>
               </li>
             ))}
           </ul>

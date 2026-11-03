@@ -174,3 +174,9 @@
     min-height: 0;
   }
 }
+
+/* 근거 지점 수: 상자 안에서 가장 먼저 읽히도록 굵게 */
+.basisCount {
+  color: var(--semantic-color-text);
+  font-weight: var(--fw-bold);
+}

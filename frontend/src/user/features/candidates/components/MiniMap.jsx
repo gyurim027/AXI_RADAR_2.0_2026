@@ -6,7 +6,7 @@ import { pointIcon } from './mapPoints.js';
 import { COMMON } from '../../../../shared/copy/common.js';
 import styles from './MiniMap.module.css';
 
-/** ① 순위 근거 아래 확대 지도 (높이 240px). 이 구역과 근거 지점만 보인다. */
+/** 순위 근거 아래 확대 지도 (높이 176px). 이 구역과 근거 지점만 보인다. */
 export default function MiniMap({ bounds, points, tier = 'rest' }) {
   const ref = useRef(null);
   useEffect(() => {
@@ -34,7 +34,7 @@ export default function MiniMap({ bounds, points, tier = 'rest' }) {
   return (
     <figure className={styles.fig}>
       <div ref={ref} className={styles.map} role="img" aria-label={points ? COMMON.rangeText(points.length) : COMMON.rangeUnknown} />
-      <figcaption className={styles.cap}>{points ? COMMON.rangeText(points.length) : COMMON.rangeUnknown}</figcaption>
+      <figcaption className={styles.tag}>{points ? COMMON.rangeText(points.length) : COMMON.rangeUnknown}</figcaption>
     </figure>
   );
 }

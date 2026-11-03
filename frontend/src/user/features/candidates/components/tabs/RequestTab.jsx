@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import Button from '../../../../components/Button.jsx';
 import Icon from '../../../../components/Icon.jsx';
+import Card from '../../../../components/Card.jsx';
+import Callout from '../../../../components/Callout.jsx';
 import Tag from '../../../../components/Tag.jsx';
 import { InfoHelp } from '../../../../components/FormControls.jsx';
 import { DRAWER } from '../../copy.js';
@@ -46,10 +48,7 @@ export default function RequestTab({ detail, onGoTab }) {
         <InfoHelp label={DRAWER.requestHelpLabel}>{DRAWER.requestHelp}</InfoHelp>
       </p>
       <div className={styles.content}>
-        <p className={styles.reqText}>
-          <Icon name="sparkle" size={16} className={styles.sparkle} />
-          <span>{text}</span>
-        </p>
+        <Callout tone="ai">{text}</Callout>
         <div className={styles.right} style={{ justifyContent: 'flex-end' }}>
           {copied ? (
             <span role="status" className={styles.muted}>
@@ -61,9 +60,7 @@ export default function RequestTab({ detail, onGoTab }) {
           </Button>
         </div>
 
-        <h4 className={styles.h} style={{ fontSize: 'var(--fs-body-lg)' }}>
-          {DRAWER.actionTitle}
-        </h4>
+        <Card title={DRAWER.actionTitle}>
         <ul className={styles.list}>
           {d.problems.map((p) => (
             <li key={p.key} className={styles.actionRow}>
@@ -81,6 +78,7 @@ export default function RequestTab({ detail, onGoTab }) {
             </li>
           ))}
         </ul>
+        </Card>
       </div>
     </section>
   );
