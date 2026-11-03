@@ -125,7 +125,7 @@ def inspect_dependencies(read_only, batch: OfficialBatch):
     if len(rows) != 1:
         raise ProductionBlocked('SETTING_NOT_FOUND')
     setting = rows[0]
-    linked = read_only('SELECT setting_version_id,setting_kind,content_ref,version_label,version_no,'
+    linked = read_only('SELECT setting_version_id,setting_kind,content_ref,version_label,NULL AS version_no,'
                        'approval_status,approved_at FROM setting_version '
                        'WHERE setting_version_id IN (%s,%s,%s)',
                        tuple(r.setting_version_id for r in batch.setting_references))
