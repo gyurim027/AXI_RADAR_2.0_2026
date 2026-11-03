@@ -8,9 +8,9 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from app.core.auth import require_roles
 from app.core.responses import ApiError
 
-_repo = import_module("app.services.D-10.d10_run_readonly")
-_contract = import_module("app.services.D-10.d10_run_contract")
-_workflow = import_module("app.services.D-10.d10_run_workflow_db")
+_repo = import_module("app.services.d10.d10_run_readonly")
+_contract = import_module("app.services.d10.d10_run_contract")
+_workflow = import_module("app.services.d10.d10_run_workflow_db")
 router = APIRouter(prefix="/api/d10", tags=["D-10 회차 조회·기간 검증 (읽기 전용)"])
 operator = require_roles("operator")
 

@@ -12,7 +12,7 @@ from app.core.auth import require_roles
 from app.core.responses import ApiError
 
 _d10 = import_module(
-    "app.services.D-10.d10_run_create"
+    "app.services.d10.d10_run_create"
 )
 
 router = APIRouter(

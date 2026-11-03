@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field
 from app.core.auth import allowed_gus, current_user
 from app.services.priority.repository import PriorityRepository, get_repository
 
-_g03 = import_module("app.services.G-01~06.g03_candidate_decision")
+_g03 = import_module("app.services.g01_g06.g03_candidate_decision")
 _store = _g03.InMemoryDecisionStore()
 _lock = RLock()
 

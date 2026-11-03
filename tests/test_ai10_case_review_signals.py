@@ -5,7 +5,7 @@ import pytest
 
 
 signals = importlib.import_module(
-    "app.services.AI-10.ai10_case_review_signals"
+    "app.services.ai10.ai10_case_review_signals"
 )
 
 

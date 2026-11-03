@@ -118,8 +118,8 @@ def department_reference(
 def runs(limit: int = Query(50, ge=1, le=500), user: dict = Depends(current_user),
          repo: PriorityRepository = Depends(get_repository)):
     from importlib import import_module
-    _contract = import_module("app.services.D-10.d10_run_contract")
-    _workflow = import_module("app.services.D-10.d10_run_workflow_db")
+    _contract = import_module("app.services.d10.d10_run_contract")
+    _workflow = import_module("app.services.d10.d10_run_workflow_db")
     rows = [_run(r) for r in repo.list_runs(limit)]
     metadata = _workflow.metadata_for_runs([int(r["run_id"]) for r in rows])
     return {"runs": _contract.visible_run_rows(
@@ -167,7 +167,7 @@ def district_decisions(
     # Match D-10 public visibility. Unknown/unopened/half-year runs are not
     # exposed to nonoperators by the decision-list endpoint either.
     if user.get("role") != "operator":
-        workflow = import_module("app.services.D-10.d10_run_workflow_db")
+        workflow = import_module("app.services.d10.d10_run_workflow_db")
         metadata = workflow.metadata_for_runs([run_id]).get(run_id, {})
         if metadata.get('kind') != '연간' or metadata.get('status') not in {'검토 중', '확정'}:
             raise ApiError(404, "run_not_found", "조회 가능한 운영 회차가 아닙니다")

@@ -2,5 +2,5 @@
 from pathlib import Path
 
 _services_dir = Path(__file__).resolve().parent
-for _feature_dir in ("AI-10", "D-10", "F-01,03,04", "G-01~06"):
+for _feature_dir in ("ai10", "d10", "f01_f03_f04", "g01_g06"):
     __path__.append(str(_services_dir / _feature_dir))

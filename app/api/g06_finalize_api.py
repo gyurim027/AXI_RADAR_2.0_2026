@@ -15,7 +15,7 @@ from pydantic import BaseModel
 from app.core.auth import current_user
 from app.services.priority.repository import PriorityRepository, get_repository
 
-_g06 = import_module("app.services.G-01~06.g06_round_finalize")
+_g06 = import_module("app.services.g01_g06.g06_round_finalize")
 _g03_api = import_module("app.api.g03_decision_api")
 _store = _g06.InMemoryFinalizeStore()
 _lock = RLock()

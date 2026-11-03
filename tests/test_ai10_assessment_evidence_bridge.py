@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-BASE = Path(__file__).resolve().parents[1] / "app/services/AI-10"
+BASE = Path(__file__).resolve().parents[1] / "app/services/ai10"
 
 
 def load_module(name: str, filename: str):
@@ -25,7 +25,7 @@ provenance = load_module("provenance_test", "ai10_source_provenance.py")
 def stub_bridge_provenance(monkeypatch):
     # bridge.importlib만 임시 대체한다. 전역 importlib.import_module은 변경하지 않는다.
     def load_provenance(name, package=None):
-        if name == "app.services.AI-10.ai10_source_provenance":
+        if name == "app.services.ai10.ai10_source_provenance":
             return provenance
         return importlib.import_module(name, package=package)
 
