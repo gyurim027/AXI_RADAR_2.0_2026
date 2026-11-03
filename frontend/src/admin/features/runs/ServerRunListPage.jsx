@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getAdminRun, listAdminRuns } from '../../../api/admin.js';
@@ -14,17 +15,84 @@ const L = {
 
 const tdStyle = { padding: 12, borderBottom: '1px solid #ddd' };
 
+function RunTwoDetail({ onClose }) {
+  const [state, setState] = useState({
+    detail: null,
+    error: '',
+    loading: true,
+  });
+
+  useEffect(() => {
+    let active = true;
+
+    getAdminRun(2)
+      .then((data) => {
+        if (active) {
+          setState({
+            detail: data,
+            error: '',
+            loading: false,
+          });
+        }
+      })
+      .catch((err) => {
+        if (active) {
+          setState({
+            detail: null,
+            error: err.message || '회차 상세 조회에 실패했습니다.',
+            loading: false,
+          });
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const opened = state.detail?.run;
+  const period = opened?.periodStart && opened?.periodEnd
+    ? `${opened.periodStart} ~ ${opened.periodEnd}`
+    : '기간 정보 없음';
+
+  return (
+    <section
+      aria-label="선택한 회차"
+      style={{ marginTop: 24, padding: 16, border: '1px solid #bbb' }}
+    >
+      <button type="button" onClick={onClose}>닫기</button>
+
+      {state.loading && (
+        <p role="status">회차 2 상세 정보를 불러오는 중입니다.</p>
+      )}
+
+      {state.error && <p role="alert">{state.error}</p>}
+
+      {opened && !state.loading && (
+        <>
+          <h2>실행회차 {opened.runId}</h2>
+          <p>자료 기간: {period}</p>
+          <p>빌드: {opened.buildId ?? '-'}</p>
+          <p>규칙 버전: {opened.ruleVersion ?? '-'}</p>
+          <p>운영 상태: 확인할 수 없음 (DB77에 상태 컬럼 없음)</p>
+          <p>후보 선정값은 운영자의 최종 결정이 아닙니다.</p>
+          <p>회차 선택 정보는 현재 페이지 주소의 runId=2에 유지됩니다.</p>
+        </>
+      )}
+    </section>
+  );
+}
+
 export default function ServerRunListPage() {
   const [rows, setRows] = useState(null);
   const [listError, setListError] = useState('');
-  const [detail, setDetail] = useState(null);
-  const [detailError, setDetailError] = useState('');
-  const [detailLoading, setDetailLoading] = useState(false);
   const [params, setParams] = useSearchParams();
+
   const selectedId = params.get('runId');
 
   useEffect(() => {
     let active = true;
+
     listAdminRuns()
       .then((data) => {
         if (active) setRows(data);
@@ -32,32 +100,11 @@ export default function ServerRunListPage() {
       .catch((err) => {
         if (active) setListError(err.message || L.failed);
       });
-    return () => { active = false; };
-  }, []);
 
-  useEffect(() => {
-    if (selectedId !== '2') {
-      setDetail(null);
-      setDetailError(selectedId ? '1차 배포에서는 회차 2만 열 수 있습니다.' : '');
-      setDetailLoading(false);
-      return;
-    }
-    let active = true;
-    setDetail(null);
-    setDetailError('');
-    setDetailLoading(true);
-    getAdminRun(2)
-      .then((data) => {
-        if (active) setDetail(data);
-      })
-      .catch((err) => {
-        if (active) setDetailError(err.message || '회차 상세 조회에 실패했습니다.');
-      })
-      .finally(() => {
-        if (active) setDetailLoading(false);
-      });
-    return () => { active = false; };
-  }, [selectedId]);
+    return () => {
+      active = false;
+    };
+  }, []);
 
   function openRunTwo() {
     const next = new URLSearchParams(params);
@@ -70,11 +117,6 @@ export default function ServerRunListPage() {
     next.delete('runId');
     setParams(next);
   }
-
-  const opened = detail?.run;
-  const period = opened?.periodStart && opened?.periodEnd
-    ? `${opened.periodStart} ~ ${opened.periodEnd}`
-    : '기간 정보 없음';
 
   return (
     <section>
@@ -109,7 +151,10 @@ export default function ServerRunListPage() {
                   <td style={tdStyle}>
                     <button
                       type="button"
-                      disabled={String(run.runId) !== '2' || (selectedId === '2' && detailLoading)}
+                      disabled={
+                        String(run.runId) !== '2' ||
+                        selectedId === '2'
+                      }
                       onClick={openRunTwo}
                       aria-label={`${run.name} 열기`}
                     >
@@ -123,22 +168,17 @@ export default function ServerRunListPage() {
         </div>
       )}
 
-      {selectedId && (
-        <section aria-label="선택한 회차" style={{ marginTop: 24, padding: 16, border: '1px solid #bbb' }}>
+      {selectedId === '2' && (
+        <RunTwoDetail onClose={closeDetail} />
+      )}
+
+      {selectedId && selectedId !== '2' && (
+        <section
+          aria-label="선택한 회차"
+          style={{ marginTop: 24, padding: 16, border: '1px solid #bbb' }}
+        >
           <button type="button" onClick={closeDetail}>닫기</button>
-          {detailLoading && <p role="status">회차 2 상세 정보를 불러오는 중입니다.</p>}
-          {detailError && <p role="alert">{detailError}</p>}
-          {opened && !detailLoading && (
-            <>
-              <h2>실행회차 {opened.runId}</h2>
-              <p>자료 기간: {period}</p>
-              <p>빌드: {opened.buildId ?? '-'}</p>
-              <p>규칙 버전: {opened.ruleVersion ?? '-'}</p>
-              <p>운영 상태: 확인할 수 없음 (DB77에 상태 컬럼 없음)</p>
-              <p>후보 선정값은 운영자의 최종 결정이 아닙니다.</p>
-              <p>회차 선택 정보는 현재 페이지 주소의 runId=2에 유지됩니다.</p>
-            </>
-          )}
+          <p role="alert">1차 배포에서는 회차 2만 열 수 있습니다.</p>
         </section>
       )}
     </section>
