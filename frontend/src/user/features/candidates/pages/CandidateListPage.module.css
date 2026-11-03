@@ -101,11 +101,18 @@
   }
   .mapCol {
     flex: none;
-    height: min(60vh, 560px);
-    min-height: 420px;
+    height: clamp(360px, 70vh, 640px);
+    min-height: 360px;
   }
+  /* 세로 스크롤은 분할 영역 하나만 쓴다. 표 카드는 높이를 풀고 안쪽은 가로로만 넘긴다 */
   .tableCard {
-    height: clamp(360px, 60vh, 640px);
+    height: auto;
+    overflow: visible;
+  }
+  .scroll {
+    flex: none;
+    overflow-x: auto;
+    overflow-y: visible;
   }
 }
 

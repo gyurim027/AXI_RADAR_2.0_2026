@@ -5,6 +5,7 @@ import Icon from '../../../components/Icon.jsx';
 import { InfoHelp } from '../../../components/FormControls.jsx';
 import { COMMON, MAP_COORD_CREDIT, MAP_CREDIT } from '../../../../shared/copy/common.js';
 import { LIST } from '../copy.js';
+import { singleFingerDragAllowed, wheelZoomAllowed } from '../stackNav.js';
 import { addHatchPattern, mapColors, prefersReducedMotion, tierFill } from './mapUtils.js';
 import { CLUSTER_LIMIT, basisSummary, clusterIcon, clusterLabel, groupComplaintPoints, pointIcon, pointKind, pointLabel } from './mapPoints.js';
 import styles from './CandidateMap.module.css';
@@ -25,7 +26,9 @@ const SELECT_ZOOM = 17; // 구역을 고르면 그 칸이 지도에 크게 보�
  * - 키보드: 지도에 포커스가 있으면 화살표로 구역을 옮기고 Enter로 고르고 +, -로 확대·축소
  * 지도 바탕 타일은 쓰지 않는다(지도 서비스 미정, 수치지형도 원본은 국외 반출 금지).
  */
-export default function CandidateMap({ items, unrated, boundaries, ownGu, selectedId, onSelect, fitKey, children }) {
+export default function CandidateMap({ items, unrated, boundaries, ownGu, selectedId, onSelect, fitKey, cooperative = false, children }) {
+  const coopRef = useRef(cooperative);
+  const [coopHint, setCoopHint] = useState(null); // 'wheel' | 'touch'
   const elRef = useRef(null);
   const mapRef = useRef(null);
   const viewBeforeRef = useRef(null); // 구역을 고르기 전 지도 보기
@@ -84,6 +87,24 @@ export default function CandidateMap({ items, unrated, boundaries, ownGu, select
       focus: L.layerGroup().addTo(map),
     };
     map.setView([37.41, 127.13], 12);
+    // 쌓인 배치(협조 모드): 지도 위 휠은 페이지를 스크롤하고, Ctrl(⌘)+휠일 때만 확대한다. 터치는 두 손가락만 지도를 움직인다.
+    const box = map.getContainer();
+    let hintTimer = 0;
+    const showHint = (kind) => {
+      setCoopHint(kind);
+      clearTimeout(hintTimer);
+      hintTimer = setTimeout(() => setCoopHint(null), 1800);
+    };
+    const onWheel = (e) => {
+      if (wheelZoomAllowed({ cooperative: coopRef.current, ctrlKey: e.ctrlKey, metaKey: e.metaKey })) return;
+      e.stopPropagation(); // Leaflet의 휠 확대로 가지 않게 막는다. 페이지는 그대로 스크롤된다.
+      showHint('wheel');
+    };
+    const onTouch = (e) => {
+      if (coopRef.current && e.touches.length === 1 && window.matchMedia('(pointer: coarse)').matches) showHint('touch');
+    };
+    box.addEventListener('wheel', onWheel, { capture: true, passive: true });
+    box.addEventListener('touchstart', onTouch, { passive: true });
     map.on('zoomend', () => setZoom(map.getZoom()));
     mapRef.current = map;
     // 분할 막대로 폭이 바뀌는 동안 호출이 몰리지 않게 프레임마다 한 번만 다시 잰다.
@@ -95,11 +116,24 @@ export default function CandidateMap({ items, unrated, boundaries, ownGu, select
     ro.observe(elRef.current);
     return () => {
       cancelAnimationFrame(frame);
+      clearTimeout(hintTimer);
+      box.removeEventListener('wheel', onWheel, { capture: true });
+      box.removeEventListener('touchstart', onTouch);
       ro.disconnect();
       map.remove();
       mapRef.current = null;
     };
   }, []);
+
+  // 협조 모드가 바뀌면(폭이 1100px을 넘나들면) 한 손가락 끌기를 켜고 끈다
+  useEffect(() => {
+    coopRef.current = cooperative;
+    const map = mapRef.current;
+    if (!map) return;
+    const coarse = window.matchMedia('(pointer: coarse)').matches;
+    if (singleFingerDragAllowed({ cooperative, coarse })) map.dragging.enable();
+    else map.dragging.disable();
+  }, [cooperative]);
 
   // 구 경계. 도로관리팀은 자기 구 밖을 흐리게 보인다 (US-01 1-5)
   useEffect(() => {
@@ -310,6 +344,12 @@ export default function CandidateMap({ items, unrated, boundaries, ownGu, select
       </p>
 
       {children}
+
+      {coopHint ? (
+        <p className={styles.coopHint} role="status">
+          {coopHint === 'wheel' ? LIST.mapCoopWheel : LIST.mapCoopTouch}
+        </p>
+      ) : null}
 
       <div className={styles.zoom}>
         <button type="button" aria-label="지도 확대" onClick={() => mapRef.current?.zoomIn()}>

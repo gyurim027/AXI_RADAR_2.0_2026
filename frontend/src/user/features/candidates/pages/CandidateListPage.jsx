@@ -17,6 +17,7 @@ import BottomBar from '../components/BottomBar.jsx';
 import SplitHandle from '../components/SplitHandle.jsx';
 import useSplit from '../useSplit.js';
 import CandidateMap from '../components/CandidateMap.jsx';
+import StackTabs from '../components/StackTabs.jsx';
 import { prefersReducedMotion } from '../components/mapUtils.js';
 import ConfirmModal from '../components/ConfirmModal.jsx';
 import DecisionReasonModal from '../components/DecisionReasonModal.jsx';
@@ -67,6 +68,13 @@ function CandidateListPage() {
   const mapColRef = useRef(null);
   const splitRef = useRef(null);
   const split = useSplit();
+  const stackSections = useMemo(
+    () => [
+      { key: 'table', label: LIST.stackTable, ref: scrollRef },
+      { key: 'map', label: LIST.stackMap, ref: mapColRef },
+    ],
+    [],
+  );
 
   const list = useAsync(() => listCandidates({ runId: run.id, gu }), [run.id, gu, user.id, version]);
   const detail = useAsync(
@@ -187,6 +195,7 @@ function CandidateListPage() {
       style={split.style}
       ref={splitRef}
     >
+      {split.wide ? null : <StackTabs label={LIST.stackTabsLabel} sections={stackSections} containerRef={splitRef} />}
       <div className={`${styles.left} ${split.tableHidden ? styles.collapsed : ''}`} ref={scrollRef} inert={split.tableHidden}>
         <div className={styles.leftInner}>
           <PageHeader compact eyebrow={run.dataRange ? `${LIST.eyebrow(scope)} · ${LIST.dataBasis(dataYear(run.dataRange))}` : LIST.eyebrow(scope)} title={LIST.title} subtitle={city ? LIST.subtitleCity : LIST.subtitleDistrict}>
@@ -284,6 +293,7 @@ function CandidateListPage() {
           selectedId={selectedId}
           onSelect={select}
           fitKey={`${run.id}:${gu}:${data ? 'ready' : 'wait'}`}
+          cooperative={!split.wide}
         >
           {list.failed ? (
             <div className={styles.mapMsg}>

@@ -147,3 +147,20 @@
   font-size: var(--fs-caption);
   line-height: 1.5;
 }
+
+/* 쌓인 배치에서 지도 확대 방법을 잠깐 알린다 */
+.coopHint {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: var(--component-map-control-z);
+  transform: translate(-50%, -50%);
+  max-width: calc(100% - 2 * var(--space-16));
+  padding: var(--space-8) var(--space-12);
+  border-radius: var(--radius-md);
+  background: var(--semantic-color-text-strong);
+  color: var(--semantic-color-bg-surface);
+  font-size: var(--fs-small);
+  text-align: center;
+  pointer-events: none;
+}
