@@ -15,7 +15,7 @@
   /* semantic: 전체 바탕. 두 모서리에만 옅게 번지고 글자가 놓이는 가운데는 거의 그대로다. */
   --semantic-gradient-shell:
     radial-gradient(70% 60% at 0% 0%, rgb(218 220 250 / 0.35), transparent 70%),
-    radial-gradient(60% 55% at 100% 100%, rgb(191 217 245 / 0.3), transparent 70%);
+    radial-gradient(60% 55% at 100% 100%, rgb(191 217 245 / 0.25), transparent 70%);
   /* semantic: 로그인 바탕. 글자는 흰 카드 안에만 있어 더 진하게 쓴다. 바탕색은 쓰는 쪽에서 마지막 겹에 둔다(색은 마지막 겹에만 쓸 수 있다). */
   --semantic-gradient-login:
     radial-gradient(60% 70% at 12% 8%, var(--primitive-color-lavender-300) 0%, transparent 62%),
@@ -27,6 +27,8 @@
   /* semantic: 강조(선택된 카드, 주 버튼, 탭 밑줄). 위 글자는 흰색이고 모든 지점이 4.5:1을 넘는다. */
   --semantic-gradient-accent: linear-gradient(135deg, var(--semantic-color-accent-title-from), var(--semantic-color-accent-title-to));
   --semantic-gradient-accent-hover: linear-gradient(135deg, #3B00A8, #1F57C9);
+  /* 그라디언트 위(전체 바탕)에 바로 놓는 파란 글자. primary-strong은 가장 진한 곳에서 4.5:1에 못 미쳐 한 단계 진하게 쓴다. */
+  --semantic-color-primary-on-tint: #1F57C9;
   --semantic-gradient-accent-line: linear-gradient(90deg, var(--semantic-color-accent-title-from), var(--semantic-color-accent-title-to));
 }
 

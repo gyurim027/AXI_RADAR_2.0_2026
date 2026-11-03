@@ -9,7 +9,7 @@
   margin-bottom: var(--space-4);
   font-size: var(--fs-small);
   font-weight: var(--fw-bold);
-  color: var(--semantic-color-primary-strong);
+  color: var(--semantic-color-primary-on-tint);
 }
 .title {
   font-size: var(--fs-h1);
@@ -42,7 +42,7 @@
   white-space: normal;
   font-size: var(--fs-small);
   font-weight: var(--fw-bold);
-  color: var(--semantic-color-primary-strong);
+  color: var(--semantic-color-primary-on-tint);
 }
 .compact .subtitle {
   margin-top: var(--space-4);

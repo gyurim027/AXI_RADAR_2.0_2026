@@ -111,11 +111,6 @@ export const SUMMARY = {
 // 표·지도 분할 (US-01 9-2)
 export const SPLIT = {
   label: '표와 지도 비율 조절',
-  group: '표와 지도 보기 방식',
-  mapOnly: '지도만 보기',
-  tableOnly: '표만 보기',
-  reset: '표와 지도를 6 대 4로 보기',
-  resetShort: '6:4',
   valueText: (mode, pct) => (mode === 'table' ? '표만 보는 중' : mode === 'map' ? '지도만 보는 중' : `표 ${pct}%, 지도 ${100 - pct}%`),
 };
 

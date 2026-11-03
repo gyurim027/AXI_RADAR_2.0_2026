@@ -1,12 +1,11 @@
 import { useRef } from 'react';
-import Icon from '../../../components/Icon.jsx';
 import { SPLIT } from '../copy.js';
 import { DEFAULT_STATE, nextByKey, resolveRatio } from '../split.js';
 import styles from './SplitHandle.module.css';
 
 /**
- * 표와 지도 사이의 분할 막대. 끌거나 방향키로 비율을 바꾸고, 단추로 한쪽만 볼 수 있다.
- * 막대는 윈도 스플리터(separator) 모양이고 단추는 막대 밖 형제다.
+ * 표와 지도 사이의 분할 막대. 끌거나 방향키로 비율을 바꾼다. 한쪽 한도를 넘겨 끌면 그쪽이 접히고,
+ * 접힌 쪽은 막대를 반대로 끌거나 두 번 눌러 되돌린다. 막대는 윈도 스플리터(separator) 모양이다.
  */
 export default function SplitHandle({ state, onChange, onDragState, containerRef }) {
   const drag = useRef(null);
@@ -39,12 +38,6 @@ export default function SplitHandle({ state, onChange, onDragState, containerRef
     onChange(next, { animate: true });
   };
 
-  const modes = [
-    { id: 'map', label: SPLIT.mapOnly, icon: 'chevronLeft' },
-    { id: 'split', label: SPLIT.reset, text: SPLIT.resetShort },
-    { id: 'table', label: SPLIT.tableOnly, icon: 'chevronRight' },
-  ];
-
   return (
     <div className={styles.wrap} data-mode={state.mode}>
       <div
@@ -56,6 +49,7 @@ export default function SplitHandle({ state, onChange, onDragState, containerRef
         aria-valuemax={100}
         aria-valuenow={pct}
         aria-valuetext={SPLIT.valueText(state.mode, pct)}
+        aria-keyshortcuts="ArrowLeft ArrowRight Home End Enter"
         tabIndex={0}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
@@ -64,21 +58,6 @@ export default function SplitHandle({ state, onChange, onDragState, containerRef
         onKeyDown={onKeyDown}
         onDoubleClick={() => onChange(DEFAULT_STATE, { animate: true })}
       />
-      <div className={styles.btns} role="group" aria-label={SPLIT.group}>
-        {modes.map((m) => (
-          <button
-            key={m.id}
-            type="button"
-            className={`${styles.btn} ${state.mode === m.id ? styles.on : ''}`}
-            aria-pressed={state.mode === m.id}
-            aria-label={m.label}
-            title={m.label}
-            onClick={() => onChange(m.id === 'split' ? DEFAULT_STATE : { mode: m.id, ratio: state.ratio }, { animate: true })}
-          >
-            {m.icon ? <Icon name={m.icon} size={16} /> : <span aria-hidden="true">{m.text}</span>}
-          </button>
-        ))}
-      </div>
     </div>
   );
 }
