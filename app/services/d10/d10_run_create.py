@@ -44,7 +44,7 @@ def validate_run_input(q: RunCreateInput) -> dict[str, Any]:
             or len(value.strip()) > max_length
         ):
             raise D10RunError(
-                f"{name}? 1~{max_length}? ?????? ???."
+                f"{name}은 1~{max_length}자 문자열이어야 합니다."
             )
 
     for value in (q.period_start, q.period_end):
