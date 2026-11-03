@@ -60,6 +60,15 @@
 .chip:hover {
   background: var(--semantic-color-bg-subtle);
 }
+.chip:disabled {
+  background: var(--semantic-color-bg-subtle);
+  color: var(--semantic-color-text-muted);
+  cursor: not-allowed;
+}
+.unavailable {
+  font-size: var(--fs-small);
+  color: var(--semantic-color-text-muted);
+}
 .chipOn {
   border-color: var(--semantic-color-primary-strong);
   background: var(--semantic-color-primary-soft);

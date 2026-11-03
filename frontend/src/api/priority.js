@@ -87,6 +87,26 @@ export function toRun(r, { finalized = false } = {}) {
   };
 }
 
+/** 어드민 회차 목록의 한 줄. 서버가 주지 않는 값(생성일·검토 시작일·민원 기간)은 '-'로 두고 가짜로 채우지 않는다. */
+export function toAdminRun(run) {
+  return {
+    id: run.id,
+    name: run.name,
+    kind: run.kind === 'ref' ? '반기 참고' : '연간',
+    kindLabel: run.kind === 'ref' ? '반기 참고' : '연간',
+    status: run.status,
+    version: run.version || '-',
+    created: '-',
+    review: run.openedAt ? String(run.openedAt).slice(0, 10).replaceAll('-', '.') : '-',
+    period: '-',
+    complaintPeriod: null,
+    calcDone: false,
+    ran: false,
+    running: false,
+    unratedFields: [],
+  };
+}
+
 const percentLabel = (rank, total) => Math.max(1, Math.ceil((rank / total) * 100));
 
 function splitDomains(details) {
@@ -138,8 +158,8 @@ function toRow(c, rank, scopeTotal, cityRank, cityTotal) {
     complaintFlag: null,
     recur: false,
     bounds: hasCenter ? cellBounds(num(c.center_lat), num(c.center_lon)) : null,
-    points: [],
-    complaintPoints: [],
+    points: null, // 서버가 근거 지점을 주지 않으면 0곳이 아니라 모르는 값이다(null)
+    complaintPoints: null,
     cityPercent: rated && cityRank ? percentLabel(cityRank, cityTotal) : null,
     _server: { rankNo: c.rank_no ?? null, complaintCnt: c.complaint_cnt ?? null },
   };
@@ -179,6 +199,8 @@ export function toCandidateList(res, user, { gu, guList, allGu, decisions = null
     counts,
     conditions: PRIORITY_CONDITIONS,
     guBoundaries: [],
+    // 서버가 값을 주지 않아 걸러도 항상 0건이 되는 필터. 없애지 않고 막아 둔다.
+    unavailableFilters: ['zone', 'complaint'],
     obstacleOptions: Object.values(INDICATORS).filter((i) => i.domain === 'hazard').map((i) => i.name),
     myConfirm: user.role === 'district' ? myConfirm : null,
     // 결정 버튼: 구 도로관리팀 · 검토 중 회차 · 자기 구를 아직 확정하기 전 (CM-00 10번)
@@ -237,7 +259,14 @@ export function toCandidateDetail(c, { list, user, record = null }) {
     conditionStates: conditionStates(c.conditions),
     unrated,
     obstacles,
-    complaint: { has: c.complaint_cnt != null, total: c.complaint_cnt ?? 0, types: [], recur: 0 },
+    // 유형별 건수·재발은 서버가 주지 않아 비워 두고(types), 전체 건수만 보인다. 위치가 정확하지 않은 민원 수는 두 건수의 차이다.
+    complaint: {
+      has: c.complaint_cnt != null,
+      total: c.complaint_cnt ?? 0,
+      lowAccuracy: c.complaint_cnt != null && c.complaint_cnt_excl_low != null ? Math.max(0, c.complaint_cnt - c.complaint_cnt_excl_low) : 0,
+      types: [],
+      recur: 0,
+    },
     articles: [],
     dept,
     deptReason: c.department?.reason || '',
@@ -247,7 +276,7 @@ export function toCandidateDetail(c, { list, user, record = null }) {
     reasonText: record ? record.reason_text || record.reason_code || '' : '',
     memo: record?.memo || '',
     bounds: row?.bounds || null,
-    points: [],
+    points: null,
     canDecide: !!list?.canDecide,
     showDecisionTab: user?.role === 'district' && !user?.readOnly && list?.run?.status === RUN_STATUS.REVIEW,
     canPickDept: false,

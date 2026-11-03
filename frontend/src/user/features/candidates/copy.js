@@ -27,6 +27,7 @@ export const LIST = {
   reliabilityLabel: '자료 신뢰도',
   zoneLabel: '보호구역',
   zoneOptions: ['보호구역 안', '보호구역 밖'],
+  filterUnavailable: '아직 서버에서 값을 받지 못해 쓸 수 없습니다.',
   complaintLabel: '민원이 몰린 곳',
   complaintHelp: '같은 장소에 여러 해에 걸쳐 민원이 반복된 구역입니다.', // W-16
   complaintHelpLabel: '민원이 몰린 곳 뜻 보기',
@@ -136,6 +137,7 @@ export const DRAWER = {
 
   // 1-2 민원 신호
   complaintTitle: '민원',
+  complaintTotal: (n) => `민원 ${n}건`, // 유형별 건수를 모를 때 (10_2 CM-00 15번의 앞부분)
   complaintLine: (types) => types.map((t) => `${t.type} ${t.count}건${t.recur ? ` (재발 ${t.recur})` : ''}`).join(' · '),
   complaintLowAccuracy: (n) => `위치를 대략만 알 수 있는 민원 ${n}건도 건수에 포함되어 있습니다.`, // 낮음 민원도 격자 민원 수에 넣는다 (ISS-033, K-1)
   complaintEmpty: '이번 점검 순위에는 민원 자료가 포함되지 않았습니다. 다른 근거만으로 정해진 순위입니다.', // K-6, US-03 1-2
@@ -220,6 +222,6 @@ export const CONFIRM = {
   more: '후보 더 결정하기',
   confirm: '우선 점검 대상 확정',
   doneTitle: (gu) => `${gu} 우선 점검 대상을 확정했습니다.`,
-  doneNote: '관할 부서별 점검 요청서를 만들 수 있습니다.',
+  doneNote: '관할 부서별 점검 요청서는 회차가 확정된 뒤에 만들 수 있습니다.',
   doneButton: '관할 부서별 점검 요청서 만들기',
 };

@@ -128,7 +128,7 @@ export default function RankBasisTab({ detail }) {
             <p className={styles.muted}>{DRAWER.complaintEmpty}</p>
           ) : (
             <>
-              <p>{d.complaint.types.length ? DRAWER.complaintLine(d.complaint.types) : '민원 0건'}</p>
+              <p>{d.complaint.types.length ? DRAWER.complaintLine(d.complaint.types) : DRAWER.complaintTotal(d.complaint.total)}</p>
               {d.complaint.lowAccuracy > 0 ? <p className={styles.muted}>{DRAWER.complaintLowAccuracy(d.complaint.lowAccuracy)}</p> : null}
             </>
           )}

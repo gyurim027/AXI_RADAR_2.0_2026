@@ -193,6 +193,7 @@ function CandidateListPage() {
               setFilters={changeFilters}
               city={city}
               obstacleOptions={data?.obstacleOptions ?? []}
+              unavailable={data?.unavailableFilters ?? []}
               open={filterOpen}
               setOpen={setFilterOpen}
               onCompare={() => setCompare(true)}
