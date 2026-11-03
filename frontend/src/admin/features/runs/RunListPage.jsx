@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { adminRunsFromServer, createRun, getNewRunDefaults, getOpenCheck, getPeriodGaps, listAdminRuns, openRun, setRunPeriod, startCalc } from '../../../api/admin.js';
 import { useAsync } from '../../../shared/hooks/useAsync.js';
-import { useAdmin } from '../../AdminProvider.jsx';
+import { useAdminOptional } from '../../AdminProvider.jsx';
 import Badge, { RUN_TONE } from '../../components/Badge.jsx';
 import Button from '../../components/Button.jsx';
 import DataTable from '../../components/DataTable.jsx';
@@ -18,7 +18,8 @@ import { reportActionError } from '../../utils/actionError.js';
 /** AD-06 회차 목록 (유형 B + E): 회차를 만들고, 산정을 시작하고, 검토 중으로 연다. */
 export default function RunListPage() {
   const navigate = useNavigate();
-  const { reloadRuns } = useAdmin();
+  // 서버 연결 모드에는 회차 선택(AdminProvider)이 없다. 그때는 회차를 다시 불러올 곳이 없으므로 아무 일도 하지 않는다.
+  const reloadRuns = useAdminOptional()?.reloadRuns ?? (() => {});
   const state = useAsync(() => listAdminRuns(), []);
   const [creating, setCreating] = useState(false);
   const [opening, setOpening] = useState(null);
