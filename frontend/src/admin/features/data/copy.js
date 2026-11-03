@@ -70,7 +70,7 @@ export const CHECKS = {
   empty: '검사에서 걸린 자료가 없습니다.',
   lowBefore: '민원 위치 낮음 ',
   lowAfter: (cells, changed) => `건 · 상위 ${cells}칸 순위 변화 ${changed}칸`,
-  lowNote: '위치 정확도가 낮은 민원도 격자 민원 수에 포함했습니다. 아래는 뺀 경우와 넣은 경우의 상위 순위를 비교한 결과입니다.', // K-2, ISS-033
+  lowNote: '위치를 대략만 알 수 있는 민원도 민원 건수에 포함했습니다. 위치를 대략만 알 수 있는 민원을 뺐을 때와 포함했을 때의 상위 순위를 비교한 결과입니다.', // K-2, ISS-033
   lowTitle: '위치 낮음 민원',
   lowClose: '위치 낮음 민원 창 닫기',
   failedArea: '검사 결과',
@@ -80,12 +80,12 @@ export const CHECKS = {
   coverageCaption: '표별 좌표 확보 현황',
   coverageHead: ['표', '전체 행 수', '좌표 없는 행 수', '좌표 없는 비율'],
   topTitle: '좌표가 없는 단속장소',
-  topNote: '단속 건수가 많은 순서로 보여 줍니다.',
+  topNote: '단속 건수가 많은 순서입니다.',
   topCaption: '좌표가 없는 단속장소 상위 목록',
   topHead: ['단속장소', '단속 건수'],
   topFoot: (total, shown) => `전체 ${total}곳 중 ${shown}곳`,
   lowUnit: '건',
-  lowNoteServer: '위치 정확도가 낮은 민원도 격자 민원 수에 포함했습니다.', // K-2 앞 문장. 순위 비교는 서버에 없어 뺐다
+  lowNoteServer: '위치를 대략만 알 수 있는 민원도 민원 건수에 포함했습니다.', // K-2 앞 문장. 순위 비교는 서버에 없어 뺐다
   lowHead: ['접수일', '구', '동', '찾은 방법'],
   lowPartial: (shown, total) => `전체 ${total}건 중 ${shown}건을 보여 줍니다.`,
 };

@@ -74,7 +74,7 @@ export const LIST = {
   evidenceHelp: '이 구역의 점검 순위를 높이는 데 영향을 준 주요 지점입니다.', // W-13
   evidenceHelpLabel: '근거 지점 뜻 보기',
   legendCluster: '숫자 원: 가까운 민원 묶음 (숫자는 건수)',
-  clusterNote: '이 칸에는 민원 점이 많아 가까운 점을 묶어 보입니다. 숫자는 민원 건수이고 지도를 확대하면 나뉩니다.',
+  clusterNote: '민원이 많은 곳은 건수로 모아 볼 수 있습니다. 지도를 확대하면 자세히 볼 수 있습니다.',
   mapLabel: '점검 후보 지도',
 
   // 3-1 구별 비교
@@ -133,8 +133,8 @@ export const DRAWER = {
   // 1-2 민원 신호
   complaintTitle: '민원',
   complaintLine: (types) => types.map((t) => `${t.type} ${t.count}건${t.recur ? ` (재발 ${t.recur})` : ''}`).join(' · '),
-  complaintLowAccuracy: (n) => `위치 정확도가 낮은 민원 ${n}건도 포함해 계산했습니다.`, // 낮음 민원도 격자 민원 수에 넣는다 (ISS-033, K-1)
-  complaintEmpty: '이번 점검 순위 계산에는 민원 자료를 사용하지 않았습니다. 다른 근거만으로 순위를 계산했습니다.', // K-6, US-03 1-2
+  complaintLowAccuracy: (n) => `위치를 대략만 알 수 있는 민원 ${n}건도 건수에 포함되어 있습니다.`, // 낮음 민원도 격자 민원 수에 넣는다 (ISS-033, K-1)
+  complaintEmpty: '이번 점검 순위에는 민원 자료가 포함되지 않았습니다. 다른 근거만으로 정해진 순위입니다.', // K-6, US-03 1-2
 
   // 2-1 조문
   articleTitle: '조문',
@@ -211,10 +211,10 @@ export const CONFIRM = {
   title: (gu) => `${gu} 우선 점검 대상을 확정할까요?`,
   sub: (gu) => `확정하면 ${gu} 결정은 더 고칠 수 없습니다.`,
   numbers: (c) => `결정 전 ${c.none}곳 · 우선 점검 대상 ${c.target}곳 · 보류 ${c.hold}곳 · 제외 ${c.exclude}곳`,
-  warning: (n) => `아직 결정하지 않은 후보가 ${n}곳 있습니다. 지금 확정하면 이 후보들은 결정 없이 남습니다.`,
+  warning: (n) => `아직 결정하지 않은 후보가 ${n}곳 있습니다. 지금 확정하면 이 후보들은 우선 점검 대상에 들어가지 않아 점검 요청서에 포함되지 않습니다.`,
   more: '후보 더 결정하기',
   confirm: '우선 점검 대상 확정',
   doneTitle: (gu) => `${gu} 우선 점검 대상을 확정했습니다.`,
-  doneNote: '이제 관할 부서별 점검 요청서를 만들 수 있습니다.',
+  doneNote: '관할 부서별 점검 요청서를 만들 수 있습니다.',
   doneButton: '관할 부서별 점검 요청서 만들기',
 };
