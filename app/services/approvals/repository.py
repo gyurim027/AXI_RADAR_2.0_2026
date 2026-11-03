@@ -47,6 +47,9 @@ class ApprovalRepository:
                     raise ApiError(409, "proposal_already_reviewed", "이미 처리됐거나 제안 상태가 아닙니다")
                 if row["setting_kind"] not in KINDS:
                     raise ApiError(422, "unsupported_setting_kind", "지원하지 않는 설정 종류입니다")
+                if (decision == "승인" and row["setting_kind"] in ("가중치", "기준값", "우선 확인 조건")
+                        and str(row.get("proposed_by")) == str(user["user_id"])):
+                    raise ApiError(403, "self_approval_not_allowed", "자신이 제안한 산정 설정은 승인할 수 없습니다")
                 cur.execute(
                     "UPDATE setting_version SET approval_status = %s, approved_by = %s, "
                     "approved_at = CURRENT_TIMESTAMP, review_comment = %s "

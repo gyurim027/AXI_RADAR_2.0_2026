@@ -40,14 +40,17 @@ class MemoryStore:
 def prepare(tmp_path, monkeypatch, store, run_function):
     export = tmp_path / "reviewed.json"
     export.write_text(
-        json.dumps([{"received_date": "2021-01-01"}]),
+        json.dumps([{"received_date": "2021-01-01","complaint_id":"MOCK_C1","gid":"g1","relevance":"N","class_method":"AI"}]),
         encoding="utf-8",
     )
 
+    monkeypatch.setenv("RADAR_PRIORITY_SETTING_LINKS", "v24")
+    monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(job_run, "_store", store)
     monkeypatch.setattr(mailer, "notify_failure", lambda *a, **kw: None)
 
     def fake_read(sql, params=None):
+        if "FROM src_complaint" in sql:return [{"complaint_id":"MOCK_C1","gid":"g1"}]
         if "COUNT(*)" in sql:
             return [{"n": 1}]
         if "FROM job_run WHERE job_run_id=" in sql:
@@ -59,9 +62,20 @@ def prepare(tmp_path, monkeypatch, store, run_function):
         return [{"ID_gid": "g1"}]
 
     monkeypatch.setattr(command.db, "read_only", fake_read)
+    # Job lifecycle tests isolate DB85 accounting from the independently tested
+    # fail-closed replay receipt implementation. Still require its invocation.
+    def accepted_replay_receipt(job_id, args, read_only):
+        assert job_id == store.run_id
+        assert args.existing_run_id == 88
+        assert read_only is fake_read
+    monkeypatch.setattr(command, "save_replay_receipt", accepted_replay_receipt)
     monkeypatch.setattr(command, "run_from_live_rows", run_function)
     monkeypatch.setattr(sys, "argv", [
         "run_official_priority",
+        "--existing-run-id", "88",
+        "--weight-setting-id", "2",
+        "--threshold-setting-id", "3",
+        "--priority-condition-setting-id", "4",
         "--setting-id", "2",
         "--policy-dir", str(tmp_path),
         "--reviewed-json", str(export),
@@ -103,6 +117,19 @@ def test_success_links_85_to_77(tmp_path, monkeypatch):
     assert store.finished[0][2] == 1
     assert store.finished[0][-2:] == ("priority_run", "88")
 
+
+def test_replay_receipt_rejection_blocks_scoring(tmp_path, monkeypatch):
+    store = MemoryStore()
+    scoring_calls = []
+    prepare(tmp_path, monkeypatch, store, lambda **kwargs: scoring_calls.append(kwargs))
+    def reject_receipt(job_id, args, read_only):
+        raise ValueError("CANDIDATE_ALREADY_STORED_DO_NOT_RERUN")
+    monkeypatch.setattr(command, "save_replay_receipt", reject_receipt)
+    with pytest.raises(ValueError, match="CANDIDATE_ALREADY_STORED_DO_NOT_RERUN"):
+        command.main()
+    assert scoring_calls == []
+    assert len(store.finished) == 1
+    assert store.finished[0][1] == job_run.FAILURE
 
 def test_failed_job_creation_blocks_scoring(tmp_path, monkeypatch):
     store = MemoryStore(run_id=None)

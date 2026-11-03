@@ -26,6 +26,8 @@ ROUTER_MODULES = [
     ("AI-05", "app.api.ai05_law_api"),        # /api/ai05  법령 근거 (은경)
     ("APPROVALS", "app.api.approvals_api"),    # /api/approvals I-07 (진규)
     ("SETTINGS", "app.api.settings_api"),      # /api/settings/versions I-02 조회 (진규)
+    ("SETTING-PROPOSALS", "app.api.setting_proposals_api"),  # /api/settings/proposals I-02 제안 (진규)
+    ("INPUT-BUILDS", "app.api.input_builds_api"),  # DB59 입력 판본·원천감사 승인, 회차/산정 자동 실행 없음
     ("STANDARDS", "app.api.standards_api"),   # /api/standards  법령·업무 기준: A-11·A-12·F-05 (은경)
     ("AI-07", "app.api.ai07_explain_api"),    # /api/ai07  근거 설명문 (진이)
     ("DATA-ISSUES", "app.api.data_issues_api"),  # /api/data-issues A-05/A-06/A-08 통합 조회 (진이)
@@ -35,8 +37,9 @@ ROUTER_MODULES = [
     ("AI-03", "app.api.ai03_location_api"),   # /api/ai03  좌표 결과 조회: 낮음 민원 목록 (세은, A-07·C-06)
     ("G-03", "app.api.g03_decision_api"),     # /api/g03   후보 결정 저장·조회 (대환)
     ("G-06", "app.api.g06_finalize_api"),     # /api/g06   구별·회차 확정 (대환)
-    ("D-10-READ", "app.api.d10_run_read_api"),            # /api/d10  회차 조회 (대환)
-    ("D-10-VALIDATE", "app.api.d10_run_validation_api"),   # /api/d10  입력 검증 (대환)
+    ("D-10-READ", "app.api.d10_run_read_api"),  # 대환 D-10 기존 API 유지
+    ("D-10-VALIDATE", "app.api.d10_run_validation_api"),  # 대환 D-10 기존 API 유지
+    ("D-10", "app.api.d10_operational_api"),  # 운영자 권한 회차 생성
     # 새 기능은 여기에 한 줄: ("AI-03", "app.api.ai03_xxx_api"), ("ENGINE", "app.api.engine_xxx_api") …
 ]
 

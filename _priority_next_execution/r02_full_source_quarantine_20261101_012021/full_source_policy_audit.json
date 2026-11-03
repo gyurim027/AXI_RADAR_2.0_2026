@@ -1,0 +1,48 @@
+{
+  "status": "FULL_SOURCE_DUAL_POLICY_READ_ONLY_PASS_WRITE_BLOCKED",
+  "audit": {
+    "policy_mapped": "R02_UNRESOLVED_EXCLUSION_TEAM_SELECTED_20261101_V1",
+    "policy_unmapped": "R02_UNMAPPED_QUARANTINE_TEAM_APPROVED_20261101_V1",
+    "period_start": "2021-01-01",
+    "period_end": "2026-09-30",
+    "source_rows": 281153,
+    "mapped_rows": 262822,
+    "unmapped_quarantined_rows": 18331,
+    "mapped_eligible_rows": 216109,
+    "mapped_excluded_rows": 46713,
+    "mapped_eligible_related": 148951,
+    "mapped_eligible_nonrelated": 67158,
+    "mapped_exclusion_reasons": {
+      "RELATED_TYPE_MISSING": 3,
+      "UNRESOLVED_CLASSIFICATION": 46710
+    },
+    "unmapped_quarantine_reasons": {
+      "NONRELATED": 1857,
+      "RELATED_TYPE_MISSING": 5,
+      "RELATED_WITH_TYPE": 3110,
+      "UNRESOLVED": 13359
+    },
+    "mapped_excluded_sha256": "d84c8eddb715b2af69229c3d81e8ec3a6fb585e47eb12b1c52df900918735a5d",
+    "unmapped_quarantined_sha256": "70dc19020cd3e2755b2e5f220f79f9c91d413e952e533e122c7b6d7c3cb4b352",
+    "grid_count": 2406,
+    "prepared_grid_count": 2406,
+    "classification_modified": false,
+    "grid_assignment_modified": false,
+    "approved_for_official_write": false,
+    "limitations": "Unmapped related complaints contribute no grid score; quarantine is not a nonrelated classification; immutable source provenance and signed durable audit pending.",
+    "audit_sha256": "abed6e98e083564e935a11d50f4142dc99ae5aa67823c5112c7c012fe85f857f"
+  },
+  "technical_wiring": "FULL_SOURCE_PREPARATION_MODULE_CONNECTED_TO_EXISTING_PREPARED_R02_BRIDGE",
+  "production_live_entry_wired": false,
+  "production_write_authorized": false,
+  "limitations": [
+    "existing official pipeline accepts mapped PreparedR02 only; full-source signed audit persistence not wired",
+    "unmapped 3110 valid related rows not scored; potential undercount must be disclosed",
+    "DB62 approval, official writer lineage and new run still blocked"
+  ],
+  "code_sha256": {
+    "app\\services\\scoring\\r02_full_source_quarantine.py": "63030a7185aa593cb7742f5b01b6fd797221bbd9f59fb77779185773dcf848e6",
+    "app\\services\\scoring\\r02_official_input_bridge.py": "01085ea449c5ca439de52da7448c22f9c6f105c4d426252526a5432b3c7b6ca8",
+    "app\\services\\scoring\\official_pipeline.py": "4a5b4b2a570cfd41f763a55629e0524799dd5fb99533c1e432c4ab4cf0d8480e"
+  }
+}
