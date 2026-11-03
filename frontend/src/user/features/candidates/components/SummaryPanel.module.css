@@ -27,6 +27,17 @@
   display: flex;
   align-items: center;
   gap: var(--space-8);
+  min-width: 0;
+}
+/* 접었을 때의 주소: 순위와 같은 14px, 굵지 않은 검은 글자 */
+.addr {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-small);
+  font-weight: var(--fw-regular);
+  color: var(--semantic-color-text);
 }
 .rank {
   font-size: var(--fs-small);
@@ -37,7 +48,7 @@
   font-size: var(--fs-body);
   font-weight: var(--fw-bold);
 }
-.close {
+.toggle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -49,7 +60,7 @@
   border-radius: var(--radius-full);
   background: none;
 }
-.close:hover {
+.toggle:hover {
   background: var(--semantic-color-bg-subtle);
 }
 .sub {

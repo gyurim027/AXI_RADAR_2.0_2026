@@ -1,5 +1,4 @@
 import Button from '../../../components/Button.jsx';
-import Icon from '../../../components/Icon.jsx';
 import { InfoHelp } from '../../../components/FormControls.jsx';
 import { LIST } from '../copy.js';
 import styles from './PriorityAlert.module.css';
@@ -14,7 +13,6 @@ export default function PriorityAlert({ count, active, onApply, onClear }) {
     <div className={styles.wrap}>
       <div className={styles.box} role="region" aria-label={LIST.alertTitle}>
         <p className={styles.title}>
-          <Icon name="info" size={16} />
           {LIST.alertTitle}
         </p>
         <p className={styles.body}>

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import Button from '../../../components/Button.jsx';
 import Icon from '../../../components/Icon.jsx';
 import Tag from '../../../components/Tag.jsx';
@@ -10,7 +11,8 @@ import { placeLabel } from '../../../../shared/utils/format.js';
  * 5-1 근거 팝업(US-02 요약 패널). 격자를 누르면 지도 위쪽에 뜬다. ×를 누르면 닫히고 목록 선택이 풀린다.
  * 설명문은 문장 틀로 만들고 AI가 다듬는다(AI-07). 다듬은 숫자가 원래와 다르면 원래 문장을 쓴다.
  */
-export default function SummaryPanel({ row, detail, loading, onClose, onDetail }) {
+export default function SummaryPanel({ row, detail, loading, onDetail }) {
+  const [open, setOpen] = useState(true); // 처음에는 펼쳐 둔다. 접으면 결정 상태, 순위, 주소만 보인다
   return (
     <section className={styles.panel} aria-label="후보 요약" data-summary-panel>
       <div className={styles.head}>
@@ -19,14 +21,15 @@ export default function SummaryPanel({ row, detail, loading, onClose, onDetail }
             {row.decision}
           </Tag>
           {row.rank != null ? <span className={`${styles.rank} num`}>{SUMMARY.rank(row.rank)}</span> : null}
+          {open ? null : <span className={styles.addr}>{row.address || placeLabel(row)}</span>}
         </div>
-        <button type="button" className={styles.close} onClick={onClose} aria-label={SUMMARY.close}>
-          <Icon name="close" size={22} />
+        <button type="button" className={styles.toggle} onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-label={open ? SUMMARY.collapse : SUMMARY.expand}>
+          <Icon name={open ? 'chevronUp' : 'chevronDown'} size={22} />
         </button>
       </div>
-      <h2 className={styles.title}>{placeLabel(row)}</h2>
+      {open ? <h2 className={styles.title}>{placeLabel(row)}</h2> : null}
 
-      {loading || !detail ? (
+      {!open ? null : loading || !detail ? (
         <div className={styles.skel}>
           <SkeletonBlock />
         </div>

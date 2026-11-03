@@ -26,7 +26,7 @@ const SELECT_ZOOM = 17; // 구역을 고르면 그 칸이 지도에 크게 보�
  * - 키보드: 지도에 포커스가 있으면 화살표로 구역을 옮기고 Enter로 고르고 +, -로 확대·축소
  * 지도 바탕 타일은 쓰지 않는다(지도 서비스 미정, 수치지형도 원본은 국외 반출 금지).
  */
-export default function CandidateMap({ items, unrated, boundaries, ownGu, selectedId, onSelect, fitKey, cooperative = false, children }) {
+export default function CandidateMap({ items, unrated, boundaries, ownGu, selectedId, onSelect, onBlankClick, fitKey, cooperative = false, children }) {
   const coopRef = useRef(cooperative);
   const [coopHint, setCoopHint] = useState(null); // 'wheel' | 'touch'
   const elRef = useRef(null);
@@ -41,8 +41,10 @@ export default function CandidateMap({ items, unrated, boundaries, ownGu, select
   const [zoom, setZoom] = useState(12);
   const [focusId, setFocusId] = useState(null);
   const onSelectRef = useRef(onSelect);
+  const onBlankRef = useRef(onBlankClick);
   useEffect(() => {
     onSelectRef.current = onSelect;
+    onBlankRef.current = onBlankClick;
   });
 
   const all = useMemo(() => [...items, ...unrated], [items, unrated]);
@@ -106,6 +108,8 @@ export default function CandidateMap({ items, unrated, boundaries, ownGu, select
     box.addEventListener('wheel', onWheel, { capture: true, passive: true });
     box.addEventListener('touchstart', onTouch, { passive: true });
     map.on('zoomend', () => setZoom(map.getZoom()));
+    // 고른 격자 바깥(빈 곳)을 누르면 선택이 풀려 근거 팝업이 닫힌다. 격자·지점은 자기 클릭만 받는다(bubblingMouseEvents: false)
+    map.on('click', () => onBlankRef.current?.());
     mapRef.current = map;
     // 분할 막대로 폭이 바뀌는 동안 호출이 몰리지 않게 프레임마다 한 번만 다시 잰다.
     let frame = 0;

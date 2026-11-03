@@ -292,6 +292,7 @@ function CandidateListPage() {
           ownGu={district ? user.gu : null}
           selectedId={selectedId}
           onSelect={select}
+          onBlankClick={selectedId ? closeSummary : undefined}
           fitKey={`${run.id}:${gu}:${data ? 'ready' : 'wait'}`}
           cooperative={!split.wide}
         >
@@ -305,7 +306,7 @@ function CandidateListPage() {
             </div>
           ) : null}
           {selectedRow && !drawerOpen ? (
-            <SummaryPanel row={selectedRow} detail={detail.data} loading={detail.loading} onClose={closeSummary} onDetail={openDetail} />
+            <SummaryPanel key={selectedRow.gid} row={selectedRow} detail={detail.data} loading={detail.loading} onClose={closeSummary} onDetail={openDetail} />
           ) : null}
         </CandidateMap>
         {drawerOpen && !selectedRow && detail.failed && ['forbidden', 'notFound'].includes(detail.error?.code) ? (

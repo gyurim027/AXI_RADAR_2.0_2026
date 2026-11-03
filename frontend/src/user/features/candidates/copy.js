@@ -104,7 +104,8 @@ export const LIST = {
 
 export const SUMMARY = {
   // US-02
-  close: '요약 닫기',
+  collapse: '근거 팝업 접기',
+  expand: '근거 팝업 펼치기',
   evidenceTitle: '주요 근거',
   deptTitle: '담당 부서',
   deptUndecided: '담당 미정',

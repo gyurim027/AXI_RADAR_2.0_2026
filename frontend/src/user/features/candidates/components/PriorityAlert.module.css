@@ -44,7 +44,10 @@
     grid-template-areas:
       'title btn'
       'body body';
-    row-gap: var(--space-4);
-    align-items: start;
+    row-gap: var(--space-2, 2px);
+    align-items: center; /* 제목과 버튼을 같은 높이 가운데에 둔다 */
+  }
+  .btn {
+    align-self: center;
   }
 }
