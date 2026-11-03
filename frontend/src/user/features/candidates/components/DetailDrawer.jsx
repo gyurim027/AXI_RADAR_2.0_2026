@@ -59,6 +59,7 @@ export default function DetailDrawer({ row, detail, loading, failed, errorCode, 
             <Icon name="close" size={20} />
           </button>
         </div>
+        {row.address || row.landmark ? <p className={styles.locationNote}>{DRAWER.locationNote}</p> : null}
         <div className={styles.metaRow}>
           <Tag tone="neutral" small>
             {row.decision}

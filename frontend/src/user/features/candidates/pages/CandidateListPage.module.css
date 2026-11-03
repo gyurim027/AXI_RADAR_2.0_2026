@@ -98,3 +98,8 @@
     height: clamp(360px, 60vh, 640px);
   }
 }
+
+.noGuNote {
+  font-size: var(--fs-small);
+  color: var(--semantic-color-text-muted);
+}
