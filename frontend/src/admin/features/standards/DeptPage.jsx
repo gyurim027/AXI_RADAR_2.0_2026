@@ -42,7 +42,7 @@ export default function DeptPage() {
         {(d) => (
           <div className={styles.row}>
             <div className={`${styles.stack} ${styles.main}`}>
-              <Panel title={DEPT.currentTitle} padded={false}>
+              <Panel aria-label={DEPT.currentTitle} padded={false}>
                 <DataTable
                   caption={DEPT.currentCaption}
                   columns={[

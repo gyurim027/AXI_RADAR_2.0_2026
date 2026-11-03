@@ -1,7 +1,8 @@
 .wrap {
   background: var(--radar-admin-component-table-row-bg);
-  border: 1px solid var(--radar-admin-component-table-outer-border);
-  border-radius: var(--radar-admin-component-table-radius);
+  /* 패널 안에 맞닿게 넣은 표(Panel padded={false})는 패널이 테두리와 모서리를 맡아 이중선이 생기지 않는다 */
+  border: var(--table-wrap-border, 1px solid var(--radar-admin-component-table-outer-border));
+  border-radius: var(--table-wrap-radius, var(--radar-admin-component-table-radius));
   overflow: hidden;
   min-width: 0;
 }
