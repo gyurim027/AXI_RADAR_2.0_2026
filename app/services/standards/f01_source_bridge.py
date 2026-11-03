@@ -118,6 +118,18 @@ def jurisdiction_candidates(candidate: Candidate, jurisdiction_rows: Iterable[Ma
             cond=str(d.get('condition_text') or '').strip()
             if cond and (not condition_verified or cond != str(condition_key or '').strip()):
                 blocked.append({'jurisdiction_id':jid,'reason':'F02_CONDITION_NOT_VERIFIED'});continue
+            # Where the same JUR/gu has both a general row and a qualified
+            # alternative, the general row must not silently win.  The source
+            # location must be independently verified by F-02 before routing.
+            # E.g. JUR-02 in Sujeong-gu has a separate "other neighborhoods" row.
+            if not cond and row_gu and any(
+                str(other.get('jurisdiction_id')) == jid
+                and str(other.get('gu_name') or '').strip() == row_gu
+                and str(other.get('condition_text') or '').strip()
+                for other in rows
+            ):
+                blocked.append({'jurisdiction_id':jid,'reason':'GU_CONDITIONAL_BRANCH_REQUIRES_REVIEW'})
+                continue
             eligible.append({'jurisdiction_id':jid,'dept_name':d.get('dept_name'),'gu_name':row_gu or None,'source_ref':j.get('basis'),'confirm_status':j.get('confirm_status')})
     # A detected road-surface defect does not establish a sidewalk defect.
     # The only mapped JUR-02 pertains to sidewalk; block this until a separately
