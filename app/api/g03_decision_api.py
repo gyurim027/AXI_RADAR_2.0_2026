@@ -15,6 +15,7 @@ from pydantic import BaseModel, Field
 
 from app.core.auth import allowed_gus, current_user
 from app.services.priority.repository import PriorityRepository, get_repository
+from app.services.priority import g03_operational_store as _operational
 
 _g03 = import_module("app.services.g01_g06.g03_candidate_decision")
 _store = _g03.InMemoryDecisionStore()
@@ -40,7 +41,7 @@ REASON_BY_DECISION = {
 
 
 def _guard() -> None:
-    if os.getenv("AI_G03_DEV_API_ENABLED") != "1":
+    if os.getenv("AI_G03_DEV_API_ENABLED") != "1" and not _operational.enabled():
         raise HTTPException(403, "G-03 개발용 메모리 API 비활성화")
 
 
@@ -107,6 +108,17 @@ def create_candidate_decision(
     uid = user.get("user_id")
     if type(uid) is not int or uid < 1:
         raise HTTPException(403, "인증 사용자 ID 미확인")
+    if _operational.enabled():
+        try:
+            record = _operational.create_decision(
+                run_id=run_id, gid=gid, gu=gu, decision=body.decision,
+                reason_code=body.reason_code, reason_text=body.reason_text,
+                memo=body.memo, actor_id=uid, rule_version=weight_version,
+            )
+        except _operational.OperationalError as exc:
+            raise HTTPException(exc.status, str(exc)) from exc
+        return {"ok": True, "record": record,
+                "storage": "operational_db", "operational_saved": True}
     req = _g03.DecisionRequest(
         run_id=run_id, gid=gid, decision=body.decision,
         reason_code=body.reason_code, memo=body.memo,
@@ -144,6 +156,16 @@ def get_candidate_decision(
     if candidate is None:
         raise HTTPException(404, "해당 회차의 후보가 없습니다")
     _district(user, candidate)
+    if _operational.enabled():
+        try:
+            record = _operational.get_decision(
+                run_id=run_id, gid=gid, gu=candidate.get("gu"))
+        except _operational.OperationalError as exc:
+            raise HTTPException(exc.status, str(exc)) from exc
+        if record is None:
+            raise HTTPException(404, "운영 DB 결정 기록이 없습니다")
+        return {"record": record, "storage": "operational_db",
+                "operational_saved": True}
     with _lock:
         record = _store.get(run_id, gid)
     if record is None:
@@ -173,6 +195,11 @@ def list_run_decisions(
             raise HTTPException(403, "담당 구를 확인할 수 없습니다")
     else:
         permitted = {"수정구", "중원구", "분당구"}
+    if _operational.enabled():
+        try:
+            return _operational.list_decisions(run_id=run_id, user=user)
+        except _operational.OperationalError as exc:
+            raise HTTPException(exc.status, str(exc)) from exc
     with _lock:
         saved = _store.list_for_run(run_id)
     decisions = []
