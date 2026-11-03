@@ -43,7 +43,11 @@ export const LIST = {
   // 꼬리표에는 이유만 쓴다. 반영 비율은 상세의 ⓘ에 둔다 (W-7)
   decisionMenuLabel: '결정 상태 바꾸기', // 메뉴 버튼의 화면 읽기 이름 (US-01 1-4)
   conditionTag: (name) => `먼저 볼 이유: ${name}`,
-  conditionRatioHelp: (name, ratio) => `${name}의 반영 비율은 ${ratio}%입니다.`,
+  conditionRatioHelp: (name, ratio) => (ratio == null ? `${name}에 해당해 먼저 확인할 후보로 표시했습니다.` : `${name}의 반영 비율은 ${ratio}%입니다.`),
+  conditionStateTitle: '우선 확인 조건 판정',
+  conditionState: { Y: '충족', N: '미충족', NULL: '미평가', INVALID: '확인 필요' },
+  conditionStateHelpLabel: '미평가 뜻 보기',
+  conditionStateHelp: '미평가는 판정에 필요한 자료가 없어 조건을 판정하지 못한 상태입니다. 충족하지 않은 것(미충족)과 다릅니다. 조건에 맞는지와 점검 후보로 선정됐는지는 서로 다른 값입니다.',
 
   // 2-3 순위 표
   tableCaption: '점검 후보 순위 표',
@@ -122,10 +126,10 @@ export const DRAWER = {
   axisTag: (axes) => `주요 근거: ${axes}`,
   evidenceHead: ['근거 분야', '근거 자료', '값', '성남시 내 순위', '반영 비율', '기준일', '출처'],
   unratedTag: (name, reason) => `평가하지 못한 분야: ${name} (${reason})`,
-  unratedHelp: '자료가 없어 평가하지 못한 분야입니다. 0점으로 처리하지 않았습니다.', // W-8
+  unratedHelp: '자료가 없어 평가하지 못한 분야입니다. 위험이 없다는 뜻이 아니며 0점으로 처리하지 않았습니다.', // W-8
   unratedHelpLabel: '평가하지 못한 분야 뜻 보기',
-  reliabilityTag: (level, reason) => `자료 신뢰도 ${level} · ${reason}`,
-  reliabilityHelp: "자료의 최신성, 누락 여부, 근거 자료 수를 바탕으로 평가합니다. '낮음'은 현장 확인이 필요합니다.", // W-10
+  reliabilityTag: (level, reason) => (reason ? `자료 신뢰도 ${level} · ${reason}` : `자료 신뢰도 ${level}`),
+  reliabilityHelp: "지표 9개 중 평가할 수 있는 지표의 수로 구분합니다. 높음은 8개 이상, 보통은 6~7개, 낮음은 5개 이하입니다. 위험이 높고 낮은 정도가 아니라 자료를 평가할 수 있는 정도입니다. '낮음'은 현장 확인이 필요합니다.", // W-10, D-06
   reliabilityHelpLabel: '자료 신뢰도 뜻 보기',
   sidewalkHelp: '도면에서 잰 폭이라 실제로 걸을 수 있는 폭과 다를 수 있습니다.',
   sidewalkHelpLabel: '보도 값 도움말 보기',
@@ -180,6 +184,7 @@ export const DRAWER = {
   otherLabel: '기타 사유', // 입력 칸의 이름 (스크린 리더용, 명세에 없는 말)
   memoLabel: '메모 (선택)',
   saveDecision: '결정 저장하기',
+  alreadyDecided: '이미 결정한 후보입니다. 지금은 결정을 바꿀 수 없습니다.',
   reasonRequired: '제외나 보류를 저장하려면 사유를 골라 주세요.',
   otherRequired: '기타 사유를 적어 주세요.',
   historyTitle: '결정 이력',

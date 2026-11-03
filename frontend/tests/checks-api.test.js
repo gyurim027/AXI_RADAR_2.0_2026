@@ -34,3 +34,28 @@ test('낮음 민원: 구를 지정하면 gu를 보낸다', async () => {
   await api.listLowComplaints({ gu: '수정구', limit: 50 });
   assert.ok(url.includes('gu=%EC%88%98%EC%A0%95%EA%B5%AC'), url);
 });
+
+test('검사 결과 목록: 검사 종류와 쪽 정보를 보내고, 사본은 확인 필요(참고)로 읽는다', async () => {
+  let url;
+  const api = apiWith(async (u) => { url = u; return response({ total: 1301, items: [
+    { issueId: 7, checkFn: 'A-05', errorCode: 'A05_DUPLICATE_ROW', checkName: '중복 행', tableName: 'src_lux_point', rowKey: 'id=12', sourceRowNo: 12, reason: 'x', valueText: '원본 값', reviewLabel: '확인 필요(참고)', blocking: false, duplicateRole: '중복 사본' },
+    { issueId: 9, checkFn: 'A-05', errorCode: 'A05_COORD_RANGE', checkName: '좌표 범위 검사', tableName: 'src_lux_point', sourceRowNo: 40, reason: 'r' },
+    { issueId: 8, checkFn: 'A-05', errorCode: 'A05_EMPTY', checkName: '빈칸', tableName: 'src_complaint', rowKey: 'id=3', sourceRowNo: null, reason: '필수 칸 비어 있음' }] }); });
+  const d = await api.listIssues({ checkFn: 'A-05', limit: 50, offset: 100 });
+  assert.equal(url, 'http://localhost:8000/api/data-issues?limit=50&offset=100&check_fn=A-05');
+  assert.equal(d.total, 1301);
+  assert.equal(d.rows[0].label, '확인 필요(참고)');
+  assert.equal(d.rows[0].role, '중복 사본');
+  assert.equal(d.rows[1].label, '확인 필요(참고)'); // 좌표 범위 오류는 A-06과 같은 행으로 본다
+  assert.equal(d.rows[2].label, '검사 오류');
+  assert.equal(d.rows[2].row, null);
+  assert.equal(d.rows[2].rowKey, 'id=3');
+  assert.equal('valueText' in d.rows[0] || 'valueText' in d.rows[0], false);
+});
+
+test('검사 결과 목록: A-06·A-08은 구분 칸이 없다', async () => {
+  const api = apiWith(async () => response({ total: 1, items: [{ issueId: 1, checkFn: 'A-08', checkName: '시설 묶기 실패', tableName: 't', sourceRowNo: 3, reason: 'r' }] }));
+  const d = await api.listIssues({ checkFn: 'A-08' });
+  assert.equal(d.rows[0].label, null);
+  assert.equal(d.rows[0].role, null);
+});

@@ -11,6 +11,7 @@ const checks = createChecksApi(backendRequest);
 /** 서버 모드에서만 쓴다: 검사 결과 화면의 위치 미확인 현황과 낮음 민원 */
 export const getUnlocated = checks.getUnlocated;
 export const listLowComplaints = checks.listLowComplaints;
+export const listIssues = checks.listIssues;
 
 export const getViewAsLabel = () => server.viewAsLabel();
 const listMockAdminRuns = mockCall('admin.listAdminRuns', (arg) => server.listAdminRuns(arg));

@@ -35,8 +35,9 @@ export default function DecisionReasonModal({ runId, gid, decision, onClose, onS
       });
       if (r.ok) onSaved();
       else setError(r.code === 'otherRequired' ? DRAWER.otherRequired : DRAWER.reasonRequired);
-    } catch {
-      setError(COMMON.saveFailed);
+    } catch (e) {
+      // 개발용 결정 저장은 최초 결정만 받는다. 이미 결정한 후보를 다시 저장하면 서버가 409로 거절한다.
+      setError(e?.status === 409 ? DRAWER.alreadyDecided : COMMON.saveFailed);
       onFailed?.(); // 처리됐는지 모를 수 있어 목록과 상태를 다시 불러와 먼저 확인하게 한다 (POL-024)
     } finally {
       setBusy(false);

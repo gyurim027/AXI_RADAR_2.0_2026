@@ -5,6 +5,13 @@ import styles from './StatusBand.module.css';
 
 /** 점검 해 상태 띠 (US-00 3-1). 검토 중이 아닌 회차를 볼 때 늘 보인다. 닫을 수 없다. */
 export default function StatusBand({ run }) {
+  if (run.status === RUN_STATUS.UNKNOWN) {
+    return (
+      <div className={`${styles.band} ${styles.final}`} role="status">
+        <span>이 회차는 아직 상태 정보가 없습니다. 상태가 정해지면 결정과 확정을 할 수 있습니다.</span>
+      </div>
+    );
+  }
   const isRef = run.status === RUN_STATUS.REF;
   return (
     <div className={`${styles.band} ${isRef ? styles.ref : styles.final}`} role="status">
@@ -16,7 +23,7 @@ export default function StatusBand({ run }) {
           </Link>
         </>
       ) : (
-        <span>{`${runYear(run.name)}년 점검 대상이 확정되었습니다. 열람만 가능합니다.`}</span>
+        <span>{`${runYear(run.name) ? `${runYear(run.name)}년` : run.name} 점검 대상이 확정되었습니다. 열람만 가능합니다.`}</span>
       )}
     </div>
   );
