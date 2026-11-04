@@ -24,8 +24,8 @@ export function StoredSettingsList(){
   const approved=useAsync(()=>listStoredSettings({status:'승인',limit:500}),[]);
   const currentIds=new Set(['가중치','기준값','우선 확인 조건'].map(k=>latestApproved((approved.data?.versions||[]).filter(v=>v.settingKind===k))?.settingVersionId).filter(id=>id!==undefined));
   return <div>
-    <PageHeader title="산정 기준" subtitle="저장된 설정과 제안·승인·반려 기록을 조회합니다."/>
-    <Toolbar actions={<Button onClick={state.reload}>새로고침</Button>}>
+    <PageHeader title="산정 기준" subtitle="저장된 설정과 제안·승인·반려 기록을 조회합니다."><Button onClick={state.reload}>새로고침</Button></PageHeader>
+    <Toolbar>
       <SelectInput label="설정 종류" value={kind} onChange={v=>{setKind(v);setOffset(0);}} options={[{value:'',label:'전체'},'가중치','기준값','우선 확인 조건']}/>
       <SelectInput label="처리 상태" value={status} onChange={v=>{setStatus(v);setOffset(0);}} options={[{value:'',label:'전체'},'제안','승인',{value:'돌려보냄',label:'반려'}]}/>
     </Toolbar>
@@ -41,7 +41,6 @@ export function StoredSettingsList(){
       ]} rows={data.versions} getRowKey={r=>r.settingVersionId} onRowClick={r=>navigate(`/admin/standards/criteria/${r.settingVersionId}`)} rowLabel={r=>`설정 ${r.settingVersionId} ${text(r.versionLabel)} 상세 보기`}/>:<p>조건에 맞는 저장된 설정이 없습니다.</p>}
       <div style={{display:'flex',gap:12,marginTop:16}}><Button disabled={offset===0} onClick={()=>setOffset(Math.max(0,offset-100))}>이전</Button><Button disabled={!data.hasMore} onClick={()=>setOffset(offset+100)}>다음</Button></div>
     </>}</Loadable>
-    <p style={{marginTop:24}}>설정 내용 편집·제안 생성·계산 미리보기는 아직 연결되지 않았습니다.</p>
   </div>;
 }
 

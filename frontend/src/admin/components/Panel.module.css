@@ -37,6 +37,14 @@
 }
 .flush {
   padding: 0;
+  /* 표를 맞닿게 넣는 자리: 표 자체의 테두리는 없애고 패널 모서리 안에서 자른다 */
+  --table-wrap-border: 0;
+  --table-wrap-radius: 0;
+  overflow: hidden;
+  border-radius: 0 0 var(--radar-admin-component-panel-radius) var(--radar-admin-component-panel-radius);
+}
+.flush:first-child {
+  border-radius: var(--radar-admin-component-panel-radius);
 }
 .banner {
   padding: var(--radar-admin-component-banner-padding);

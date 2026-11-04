@@ -1,3 +1,6 @@
+import Callout from '../../../../components/Callout.jsx';
+import { EmptyState } from '../../../../components/States.jsx';
+import Card from '../../../../components/Card.jsx';
 import { DECISION } from '../../../../../shared/constants.js';
 import { DRAWER } from '../../copy.js';
 import styles from './Tabs.module.css';
@@ -8,16 +11,17 @@ export default function LastYearTab({ detail }) {
   const warn = ly && (ly.decision === DECISION.EXCLUDE || ly.decision === DECISION.HOLD);
   return (
     <section>
-      <h3 className={styles.h}>{DRAWER.lastTitle}</h3>
       <p className={styles.sub}>{DRAWER.lastSub}</p>
       <div className={styles.content}>
         {ly ? (
           <>
-            <p className={`${styles.notice} ${warn ? styles.noticeWarn : ''}`}>{DRAWER.lastNotice(ly.runName, ly.decision)}</p>
-            <p>{DRAWER.lastReason(ly.reason, ly.memo)}</p>
+            <Callout tone={warn ? 'warn' : 'info'}>{DRAWER.lastNotice(ly.runName, ly.decision)}</Callout>
+            <Card variant="subtle">
+              <p>{DRAWER.lastReason(ly.reason, ly.memo)}</p>
+            </Card>
           </>
         ) : (
-          <p className={styles.muted}>{DRAWER.lastEmpty}</p>
+          <EmptyState compact text={DRAWER.lastEmpty} />
         )}
       </div>
     </section>

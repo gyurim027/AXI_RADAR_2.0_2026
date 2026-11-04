@@ -47,6 +47,7 @@
   color: var(--component-topbar-menu-active-fg);
   font-weight: var(--fw-bold);
   border-bottom-color: var(--component-topbar-menu-indicator);
+  border-image: var(--semantic-gradient-accent-line) 1;
 }
 .dropdown {
   position: absolute;
@@ -95,9 +96,6 @@
   align-items: center;
   gap: var(--space-8);
   font-size: var(--fs-small);
-}
-.fixedLabel {
-  font-weight: var(--fw-medium);
 }
 .account {
   display: flex;

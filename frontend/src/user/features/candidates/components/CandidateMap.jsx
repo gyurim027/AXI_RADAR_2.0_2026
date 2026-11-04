@@ -5,6 +5,7 @@ import Icon from '../../../components/Icon.jsx';
 import { InfoHelp } from '../../../components/FormControls.jsx';
 import { COMMON, MAP_COORD_CREDIT, MAP_CREDIT } from '../../../../shared/copy/common.js';
 import { LIST } from '../copy.js';
+import { singleFingerDragAllowed, wheelZoomAllowed } from '../stackNav.js';
 import { addHatchPattern, mapColors, prefersReducedMotion, tierFill } from './mapUtils.js';
 import { CLUSTER_LIMIT, basisSummary, clusterIcon, clusterLabel, groupComplaintPoints, pointIcon, pointKind, pointLabel } from './mapPoints.js';
 import styles from './CandidateMap.module.css';
@@ -15,6 +16,7 @@ const DIM_BOUNDS = [
   [37.25, 126.95],
   [37.65, 127.35],
 ];
+const PANEL_MARGIN = 16; // 요약 카드가 지도 위에서 떨어진 거리 (--component-map-card-margin)
 const SELECT_ZOOM = 17; // 구역을 고르면 그 칸이 지도에 크게 보이도록 이 단계까지 확대한다 (US-01 1-5)
 
 /**
@@ -24,9 +26,12 @@ const SELECT_ZOOM = 17; // 구역을 고르면 그 칸이 지도에 크게 보�
  * - 키보드: 지도에 포커스가 있으면 화살표로 구역을 옮기고 Enter로 고르고 +, -로 확대·축소
  * 지도 바탕 타일은 쓰지 않는다(지도 서비스 미정, 수치지형도 원본은 국외 반출 금지).
  */
-export default function CandidateMap({ items, unrated, boundaries, ownGu, selectedId, onSelect, fitKey, children }) {
+export default function CandidateMap({ items, unrated, boundaries, ownGu, selectedId, onSelect, onBlankClick, fitKey, cooperative = false, children }) {
+  const coopRef = useRef(cooperative);
+  const [coopHint, setCoopHint] = useState(null); // 'wheel' | 'touch'
   const elRef = useRef(null);
   const mapRef = useRef(null);
+  const viewBeforeRef = useRef(null); // 구역을 고르기 전 지도 보기
   const layersRef = useRef({ cells: null, points: null, bounds: null, focus: null });
   const rendererRef = useRef(null);
   const topRendererRef = useRef(null);
@@ -36,8 +41,10 @@ export default function CandidateMap({ items, unrated, boundaries, ownGu, select
   const [zoom, setZoom] = useState(12);
   const [focusId, setFocusId] = useState(null);
   const onSelectRef = useRef(onSelect);
+  const onBlankRef = useRef(onBlankClick);
   useEffect(() => {
     onSelectRef.current = onSelect;
+    onBlankRef.current = onBlankClick;
   });
 
   const all = useMemo(() => [...items, ...unrated], [items, unrated]);
@@ -82,16 +89,55 @@ export default function CandidateMap({ items, unrated, boundaries, ownGu, select
       focus: L.layerGroup().addTo(map),
     };
     map.setView([37.41, 127.13], 12);
+    // 쌓인 배치(협조 모드): 지도 위 휠은 페이지를 스크롤하고, Ctrl(⌘)+휠일 때만 확대한다. 터치는 두 손가락만 지도를 움직인다.
+    const box = map.getContainer();
+    let hintTimer = 0;
+    const showHint = (kind) => {
+      setCoopHint(kind);
+      clearTimeout(hintTimer);
+      hintTimer = setTimeout(() => setCoopHint(null), 1800);
+    };
+    const onWheel = (e) => {
+      if (wheelZoomAllowed({ cooperative: coopRef.current, ctrlKey: e.ctrlKey, metaKey: e.metaKey })) return;
+      e.stopPropagation(); // Leaflet의 휠 확대로 가지 않게 막는다. 페이지는 그대로 스크롤된다.
+      showHint('wheel');
+    };
+    const onTouch = (e) => {
+      if (coopRef.current && e.touches.length === 1 && window.matchMedia('(pointer: coarse)').matches) showHint('touch');
+    };
+    box.addEventListener('wheel', onWheel, { capture: true, passive: true });
+    box.addEventListener('touchstart', onTouch, { passive: true });
     map.on('zoomend', () => setZoom(map.getZoom()));
+    // 고른 격자 바깥(빈 곳)을 누르면 선택이 풀려 근거 팝업이 닫힌다. 격자·지점은 자기 클릭만 받는다(bubblingMouseEvents: false)
+    map.on('click', () => onBlankRef.current?.());
     mapRef.current = map;
-    const ro = new ResizeObserver(() => map.invalidateSize());
+    // 분할 막대로 폭이 바뀌는 동안 호출이 몰리지 않게 프레임마다 한 번만 다시 잰다.
+    let frame = 0;
+    const ro = new ResizeObserver(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => map.invalidateSize());
+    });
     ro.observe(elRef.current);
     return () => {
+      cancelAnimationFrame(frame);
+      clearTimeout(hintTimer);
+      box.removeEventListener('wheel', onWheel, { capture: true });
+      box.removeEventListener('touchstart', onTouch);
       ro.disconnect();
       map.remove();
       mapRef.current = null;
     };
   }, []);
+
+  // 협조 모드가 바뀌면(폭이 1100px을 넘나들면) 한 손가락 끌기를 켜고 끈다
+  useEffect(() => {
+    coopRef.current = cooperative;
+    const map = mapRef.current;
+    if (!map) return;
+    const coarse = window.matchMedia('(pointer: coarse)').matches;
+    if (singleFingerDragAllowed({ cooperative, coarse })) map.dragging.enable();
+    else map.dragging.disable();
+  }, [cooperative]);
 
   // 구 경계. 도로관리팀은 자기 구 밖을 흐리게 보인다 (US-01 1-5)
   useEffect(() => {
@@ -147,14 +193,16 @@ export default function CandidateMap({ items, unrated, boundaries, ownGu, select
       rect.addTo(cells);
       if (isSel) {
         // 후보 범위 표시 (CM-00 4번): 고른 구역을 네모 영역으로 칠하고 근거 지점 수를 적는다
-        rect.bindTooltip(r.points ? COMMON.rangeText(r.points.length) : COMMON.rangeUnknown, { permanent: true, direction: 'bottom', className: 'rmap-range', offset: [0, 4] }).openTooltip();
+        // 근거 지점 수(범위 표시)는 격자 옆 이름표 대신 오른쪽 아래 '이 칸의 근거' 상자 맨 위에 적는다(근거 팝업·상자와 겹치지 않게)
       }
     });
     // 칸을 고르기 전에는 점을 그리지 않는다. 고른 칸의 근거 지점(■)과 민원 점(● ○)만 그린다 (US-01 1-5, ISS-036)
     if (sel) {
       const addMarker = (latlng, icon, label, onClick) => {
         const m = L.marker(latlng, { icon, keyboard: true, title: label, alt: label });
-        m.bindTooltip(label, { direction: 'top', offset: [0, -6], className: 'rmap-issue' });
+        // 지도 위쪽 끝에서는 말풍선이 잘리지 않게 아래로 연다
+        const nearTop = map.latLngToContainerPoint(latlng).y < 72;
+        m.bindTooltip(label, { direction: nearTop ? 'bottom' : 'top', offset: [0, nearTop ? 6 : -6], className: 'rmap-issue' });
         m.on('add', () => {
           const el = m.getElement();
           if (!el) return;
@@ -192,15 +240,26 @@ export default function CandidateMap({ items, unrated, boundaries, ownGu, select
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fitKey]);
 
-  // 표에서 행을 고르면 지도가 그 구역으로 옮겨 간다
+  // 표에서 행을 고르면 지도가 그 구역으로 옮겨 간다. 고르기 전 보기는 기억해 두었다가, 선택을 풀면 그 보기로 돌아온다.
   useEffect(() => {
     const map = mapRef.current;
+    if (!map) return;
     const r = byId.get(selectedId);
-    if (!map || !r) return;
-    // 요약 패널이 지도 위쪽을 덮으므로, 고른 구역이 패널 아래에 오도록 중심을 조금 위로 옮긴다
+    if (!r) {
+      const before = viewBeforeRef.current;
+      if (before) {
+        viewBeforeRef.current = null;
+        map.flyTo(before.center, before.zoom, { animate: !prefersReducedMotion(), duration: 0.5 });
+      }
+      return;
+    }
+    if (!viewBeforeRef.current) viewBeforeRef.current = { center: map.getCenter(), zoom: map.getZoom() };
+    // 요약 패널이 지도 위쪽을 덮으므로, 고른 구역이 패널 아래 남은 면의 가운데에 오도록 중심을 패널 높이의 절반만큼 위로 옮긴다
     const z = Math.max(map.getZoom(), SELECT_ZOOM);
     const center = L.latLng((r.bounds[0][0] + r.bounds[1][0]) / 2, (r.bounds[0][1] + r.bounds[1][1]) / 2);
-    const target = map.unproject(map.project(center, z).subtract([0, map.getSize().y * 0.12]), z);
+    const panel = elRef.current?.parentElement?.querySelector('[data-summary-panel]');
+    const covered = panel ? panel.offsetHeight + PANEL_MARGIN : map.getSize().y * 0.24;
+    const target = map.unproject(map.project(center, z).subtract([0, covered / 2]), z);
     map.flyTo(target, z, { animate: !prefersReducedMotion(), duration: 0.5 });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedId]);
@@ -290,6 +349,12 @@ export default function CandidateMap({ items, unrated, boundaries, ownGu, select
 
       {children}
 
+      {coopHint ? (
+        <p className={styles.coopHint} role="status">
+          {coopHint === 'wheel' ? LIST.mapCoopWheel : LIST.mapCoopTouch}
+        </p>
+      ) : null}
+
       <div className={styles.zoom}>
         <button type="button" aria-label="지도 확대" onClick={() => mapRef.current?.zoomIn()}>
           <Icon name="plus" size={20} />
@@ -301,7 +366,8 @@ export default function CandidateMap({ items, unrated, boundaries, ownGu, select
 
       <div className={styles.legendWrap}>
         {clustered ? <p className={styles.clusterNote}>{LIST.clusterNote}</p> : null}
-        {legendOpen ? (
+        {/* 격자를 고르면 점검 필요도 범례는 숨긴다. 근거 팝업·이 칸의 근거와 겹치기 때문이다 */}
+        {!selCell && legendOpen ? (
           <>
             <button type="button" className={styles.legendToggle} aria-expanded="true" aria-label={LIST.legendToggle(true)} onClick={() => setLegendOpen(false)}>
               <Icon name="chevronDown" size={18} />
@@ -314,22 +380,28 @@ export default function CandidateMap({ items, unrated, boundaries, ownGu, select
                 </li>
               ))}
             </ul>
-            {selCell?.points ? (
-              <div className={styles.legendBasis}>
+          </>
+        ) : null}
+        {selCell ? (
+          <div className={styles.legendBasis}>
+            <p className={styles.basisCount}>{selCell.points ? COMMON.rangeText(selCell.points.length) : COMMON.rangeUnknown}</p>
+            {selCell.points ? (
+              <>
                 <p>{LIST.legendBasis(basisSummary(selCell))}</p>
                 <p aria-label={LIST.legendShapesLabel}>
                   {LIST.legendShapes}
                   <InfoHelp label={LIST.evidenceHelpLabel}>{LIST.evidenceHelp}</InfoHelp>
                 </p>
                 {clustered ? <p>{LIST.legendCluster}</p> : null}
-              </div>
+              </>
             ) : null}
-          </>
-        ) : (
+          </div>
+        ) : null}
+        {!selCell && !legendOpen ? (
           <button type="button" className={styles.legendChip} aria-expanded="false" aria-label={LIST.legendToggle(false)} onClick={() => setLegendOpen(true)}>
             {LIST.legendChip}
           </button>
-        )}
+        ) : null}
       </div>
       <p className={styles.credit}>{selCell ? MAP_COORD_CREDIT : MAP_CREDIT}</p>
     </div>

@@ -53,6 +53,7 @@ export default function BottomBar({ scrollRef, message, buttonLabel, buttonVaria
     };
   }, [scrollRef, measure]);
 
+  const parts = (message || '').split(/(?<=\.)\s+/).filter(Boolean);
   const visible = shown || pinned || engaged;
   return (
     <div
@@ -67,7 +68,15 @@ export default function BottomBar({ scrollRef, message, buttonLabel, buttonVaria
       onMouseEnter={() => setEngaged(true)}
       onMouseLeave={() => setEngaged(false)}
     >
-      <p className={styles.msg}>{message}</p> {/* 시 도로과는 버튼만 있어 글이 비어 있다 */}
+      {/* 시 도로과는 버튼만 있어 글이 비어 있다. 두 문장이면 좁은 폭에서 둘째 문장이 아래 줄로 내려간다 */}
+      <p className={styles.msg}>
+        {parts.map((t, i) => (
+          <span key={i} className={i > 0 ? styles.rest : undefined}>
+            {i > 0 ? ' ' : ''}
+            {t}
+          </span>
+        ))}
+      </p>
       {buttonLabel ? (
         <Button variant={buttonVariant} className={styles.btn} onClick={onButton}>
           {buttonLabel}

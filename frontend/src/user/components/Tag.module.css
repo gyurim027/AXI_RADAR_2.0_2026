@@ -9,7 +9,13 @@
   font-size: var(--component-tag-font-size);
   line-height: 1;
   white-space: nowrap;
+  min-width: 0;
+  max-width: 100%;
   background: var(--semantic-color-bg-surface);
+}
+.tag > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .small {
   height: 24px;
@@ -40,6 +46,21 @@
   color: var(--semantic-color-text-muted);
   background: var(--semantic-color-bg-subtle);
   border-color: var(--semantic-color-border);
+}
+.accent {
+  color: var(--semantic-color-on-primary-strong);
+  border-color: transparent;
+  background: var(--semantic-gradient-accent), var(--semantic-color-primary-strong);
+}
+.sky {
+  color: #1F4E8C;
+  border-color: transparent;
+  background: #E3EEFB;
+}
+.lavender {
+  color: #3A3CB0;
+  border-color: transparent;
+  background: #ECEEFC;
 }
 .remove {
   display: inline-flex;

@@ -12,9 +12,11 @@
   width: var(--component-modal-width);
   max-width: calc(100vw - 2 * var(--space-24));
   max-height: calc(100vh - 2 * var(--space-24));
+  max-height: calc(100dvh - 2 * var(--space-24)); /* 주소창이 줄어드는 화면에서도 넘치지 않게 */
   overflow: auto;
+  overscroll-behavior: contain;
   padding: var(--component-modal-padding);
-  background: var(--component-modal-bg);
+  background: var(--semantic-gradient-wash-top), var(--component-modal-bg);
   border-radius: var(--component-modal-radius);
   outline: none;
 }

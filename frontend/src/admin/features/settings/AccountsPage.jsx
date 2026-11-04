@@ -23,6 +23,7 @@ export default function AccountsPage() {
   const [done, setDone] = useState(false);
   const [error, setError] = useState('');
   const [busyId, setBusyId] = useState(null);
+  const [stopping, setStopping] = useState(null); // 사용을 멈추려는 계정(확인 창)
   const [temp, setTemp] = useState(null); // 새 계정의 임시 비밀번호. 한 번만 보인다.
 
   const toggle = async (row) => {
@@ -73,7 +74,14 @@ export default function AccountsPage() {
                     align: 'right',
                     render: (r) =>
                       r.id === user.id ? null : (
-                        <Button compact variant="secondary" loading={busyId === r.id} onClick={() => toggle(r)} aria-label={`${r.name} ${r.status === ACCOUNTS.statusOn ? ACCOUNTS.stop : ACCOUNTS.resume}`}>
+                        <Button
+                          compact
+                          variant="text"
+                          className={r.status === ACCOUNTS.statusOn ? styles.stopLink : ''}
+                          loading={busyId === r.id}
+                          onClick={() => (r.status === ACCOUNTS.statusOn ? setStopping(r) : toggle(r))}
+                          aria-label={`${r.name} ${r.status === ACCOUNTS.statusOn ? ACCOUNTS.stop : ACCOUNTS.resume}`}
+                        >
                           {r.status === ACCOUNTS.statusOn ? ACCOUNTS.stop : ACCOUNTS.resume}
                         </Button>
                       ),
@@ -104,6 +112,33 @@ export default function AccountsPage() {
             state.reload();
           }}
         />
+      ) : null}
+      {stopping ? (
+        <Dialog
+          title={ACCOUNTS.stopTitle(stopping.name)}
+          titleId="stop-account-title"
+          onClose={() => setStopping(null)}
+          closeLabel={ACCOUNTS.stopCancel}
+          footer={
+            <>
+              <Button variant="secondary" onClick={() => setStopping(null)}>
+                {ACCOUNTS.stopCancel}
+              </Button>
+              <Button
+                variant="danger"
+                onClick={() => {
+                  const row = stopping;
+                  setStopping(null);
+                  toggle(row);
+                }}
+              >
+                {ACCOUNTS.stop}
+              </Button>
+            </>
+          }
+        >
+          <p>{ACCOUNTS.stopNote}</p>
+        </Dialog>
       ) : null}
       {temp ? (
         <Dialog

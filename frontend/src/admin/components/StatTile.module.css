@@ -1,0 +1,45 @@
+.tiles {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+}
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--a-s1);
+  min-width: 0;
+  padding: var(--a-s1) var(--a-s3) var(--a-s1) var(--a-s4);
+  color: var(--radar-admin-semantic-color-text-primary);
+  text-decoration: none;
+  border-left: 1px solid var(--radar-admin-semantic-color-border-subtle);
+}
+.tile:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+.link {
+  border-radius: var(--a-radius-control);
+}
+.link:hover .value {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.valueRow {
+  display: flex;
+  align-items: baseline;
+  gap: var(--a-s1);
+}
+.value {
+  font-size: var(--radar-admin-component-kpi-value-size);
+  font-weight: var(--radar-admin-component-kpi-value-weight);
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.unit {
+  font-size: var(--a-fs-sm);
+  color: var(--radar-admin-semantic-color-text-secondary);
+}
+.label {
+  font-size: var(--a-fs-sm);
+  color: var(--radar-admin-semantic-color-text-secondary);
+}

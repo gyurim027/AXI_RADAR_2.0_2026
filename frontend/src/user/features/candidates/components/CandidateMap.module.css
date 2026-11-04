@@ -82,7 +82,8 @@
   padding: var(--space-12);
   border: 1px solid var(--semantic-color-border);
   border-radius: var(--radius-sm);
-  background: var(--semantic-color-bg-surface);
+  background: rgb(255 255 255 / 0.86); /* 2순위: 뒤의 지도가 비친다 */
+  color: var(--semantic-color-text-muted);
   font-size: var(--fs-caption);
 }
 .legend li {
@@ -130,7 +131,8 @@
   padding: var(--space-8) var(--space-12);
   border: 1px solid var(--semantic-color-border);
   border-radius: var(--radius-sm);
-  background: var(--semantic-color-bg-surface);
+  background: rgb(255 255 255 / 0.86); /* 2순위 */
+  color: var(--semantic-color-text-muted);
   font-size: var(--fs-caption);
   line-height: 1.5;
 }
@@ -143,7 +145,38 @@
   padding: var(--space-4) var(--space-8);
   border: 1px solid var(--semantic-color-border);
   border-radius: var(--radius-sm);
-  background: var(--semantic-color-bg-surface);
+  background: rgb(255 255 255 / 0.86); /* 2순위 */
+  color: var(--semantic-color-text-muted);
   font-size: var(--fs-caption);
   line-height: 1.5;
+}
+
+/* 쌓인 배치에서 지도 확대 방법을 잠깐 알린다 */
+.coopHint {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: var(--component-map-control-z);
+  transform: translate(-50%, -50%);
+  max-width: calc(100% - 2 * var(--space-16));
+  padding: var(--space-8) var(--space-12);
+  border-radius: var(--radius-md);
+  background: var(--semantic-color-text-strong);
+  color: var(--semantic-color-bg-surface);
+  font-size: var(--fs-small);
+  text-align: center;
+  pointer-events: none;
+}
+
+/* 쌓인 배치: 지도 칸 높이(보이는 높이 − 막대)를 지도가 넘치지 않게 따른다 */
+@media (max-width: 1099px) {
+  .wrap {
+    min-height: 0;
+  }
+}
+
+/* 근거 지점 수: 상자 안에서 가장 먼저 읽히도록 굵게 */
+.basisCount {
+  color: var(--semantic-color-text);
+  font-weight: var(--fw-bold);
 }

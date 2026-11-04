@@ -5,7 +5,8 @@ import styles from './DataTable.module.css';
 
 /**
  * 어드민 표 (디자인 시스템 9-3, 10장)
- * columns: { key, header, align('left'|'right'), width, render(row), first(첫 열: 500 굵기), nowrap }
+ * 정렬은 한 규칙이다: 머리 줄과 모든 칸(첫 열 포함)을 왼쪽에 맞춘다. 예외 없음. align: 'right'는 숫자 폭만 맞춘다.
+ * columns: { key, header, align('right'면 숫자 폭 맞춤), width, render(row), first(첫 열: 500 굵기), nowrap }
  * expandedKey / renderExpanded: 행을 누르면 그 행 아래에 칸이 열린다.
  * maxHeight: 긴 표는 안에서 스크롤하고 머리 줄을 고정한다.
  * compact: 조밀(행 40px, 글자 14px). 정하지 않으면 화면 위의 '표 밀도' 선택을 따른다(촘촘히가 기본).
@@ -40,10 +41,15 @@ export default function DataTable({
           <thead>
             <tr>
               {columns.map((c) => (
-                <th key={c.key} scope="col" className={`${styles.th} ${c.align === 'right' ? styles.right : ''}`} style={c.width ? { width: c.width, minWidth: c.width } : undefined}>
+                <th key={c.key} scope="col" className={styles.th} style={c.width ? { width: c.width, minWidth: c.width } : undefined}>
                   {c.header}
                 </th>
               ))}
+              {expandable ? (
+                <th scope="col" className={`${styles.th} ${styles.expandCol}`}>
+                  <span className="sr-only">펼치기</span>
+                </th>
+              ) : null}
             </tr>
           </thead>
           <tbody>
@@ -70,9 +76,14 @@ export default function DataTable({
                         : undefined
                     }
                   >
-                    {columns.map((c, i) => (
+                    {columns.map((c) => (
                       <td key={c.key} className={`${styles.td} ${c.align === 'right' ? styles.right : ''} ${c.first ? styles.first : ''} ${c.nowrap ? styles.nowrap : ''}`}>
-                        {expandable && i === 0 && canExpand?.(row) !== false ? (
+                        {c.render ? c.render(row) : row[c.key]}
+                      </td>
+                    ))}
+                    {expandable ? (
+                      <td className={`${styles.td} ${styles.expandCol}`}>
+                        {canExpand?.(row) !== false ? (
                           <button
                             type="button"
                             className={styles.chev}
@@ -86,13 +97,12 @@ export default function DataTable({
                             <Icon name={open ? 'chevronUp' : 'chevronDown'} size={16} />
                           </button>
                         ) : null}
-                        {c.render ? c.render(row) : row[c.key]}
                       </td>
-                    ))}
+                    ) : null}
                   </tr>
                   {open ? (
                     <tr className={styles.expandedRow}>
-                      <td colSpan={columns.length} className={styles.expandedCell}>
+                      <td colSpan={columns.length + 1} className={styles.expandedCell}>
                         {renderExpanded(row)}
                       </td>
                     </tr>

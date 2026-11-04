@@ -32,3 +32,8 @@
   letter-spacing: 0.04em;
   user-select: all;
 }
+
+/* 계정 사용 멈추기: 목록에서는 가볍게 글자 링크(위험 색)로 두고, 누르면 확인 창을 거친다 */
+button.stopLink {
+  color: var(--radar-admin-semantic-color-danger);
+}

@@ -17,7 +17,7 @@
   z-index: var(--radar-admin-component-nav-z);
 }
 .main {
-  padding: var(--a-s6) var(--radar-admin-component-shell-content-padding) var(--a-s12);
+  padding: var(--radar-admin-component-page-top-gap) var(--radar-admin-component-shell-content-padding) var(--a-s12);
 }
 .main:focus {
   outline: none;
@@ -26,6 +26,9 @@
   width: 100%;
   max-width: var(--radar-admin-component-shell-content-max);
   margin: 0 auto;
+}
+.wide {
+  max-width: none; /* 열이 많은 표 화면은 최대 폭을 풀어 표가 더 넓게 보이게 한다 */
 }
 .skip {
   position: absolute;

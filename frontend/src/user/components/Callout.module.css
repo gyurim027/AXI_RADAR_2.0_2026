@@ -1,0 +1,28 @@
+.callout {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-8);
+  padding: var(--space-12) var(--space-16);
+  border: 1px solid var(--semantic-color-band-border);
+  border-radius: var(--radius-sm);
+  background: var(--semantic-color-bg-info-soft);
+  font-size: var(--fs-small);
+  line-height: 1.6;
+}
+.icon {
+  flex: none;
+  margin-top: 3px;
+  color: var(--semantic-color-primary);
+}
+.ai {
+  background: var(--semantic-color-bg-surface);
+}
+.warn {
+  border-color: var(--semantic-color-risk-mid-line);
+  background: var(--semantic-color-risk-mid-soft);
+  color: var(--semantic-color-risk-mid);
+  font-weight: var(--fw-medium);
+}
+.warn .icon {
+  color: inherit;
+}

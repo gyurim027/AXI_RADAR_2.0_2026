@@ -239,7 +239,7 @@ test('상세의 민원은 서버 건수를 쓰고, 위치가 정확하지 않은
   const list = toCandidateList({ run: run2, candidates: [cand('a', '수정구', 50, 1)] }, { role: 'city' }, { gu: null, guList: GUS, allGu: ALL });
   const d = toCandidateDetail({ ...cand('a', '수정구', 50, 1), complaint_cnt: 12, complaint_cnt_excl_low: 9 }, { list, user: { role: 'city' }, record: null });
   assert.equal(d.complaint.has, true);
-  assert.equal(d.complaint.total, 12);
+  assert.equal(d.complaint.total, 12); // 위치가 정확하지 않은 민원도 건수에 넣는다
   assert.equal(d.complaint.lowAccuracy, 3);
   assert.deepEqual(d.complaint.types, []);
   const none = toCandidateDetail({ ...cand('a', '수정구', 50, 1), complaint_cnt: null, complaint_cnt_excl_low: null }, { list, user: { role: 'city' }, record: null });
@@ -286,6 +286,33 @@ test('구가 비어 있는 후보 수: 시 도로과에는 세어 주고 구 결
 test('구 도로관리팀 응답에는 구 없는 후보가 없어 0이다', () => {
   const list = toCandidateList({ run: run2, candidates: [cand('a', '수정구', 50, 1)] }, { role: 'district', gu: '수정구' }, { gu: null, guList: GUS, allGu: ALL });
   assert.equal(list.noGuCount, 0);
+});
+
+test('회차: 후보가 0건인 공회차는 구·시 선택지에서 빼고, 어드민 목록에서는 산정 결과 없음으로 구분한다', async () => {
+  const body = { runs: [{ run_id: 2, candidate_cnt: 2406 }, { run_id: 3, candidate_cnt: 0 }, { run_id: 4, candidate_cnt: 2406 }] };
+  const api = apiWith(async () => response(body));
+  const user = await api.listRuns();
+  assert.deepEqual(user.map((r) => r.id), ['2', '4']);
+  const admin = (await api.listRuns({ includeEmpty: true })).map(toAdminRun);
+  assert.deepEqual(admin.map((r) => [r.id, r.noResult]), [['2', false], ['3', true], ['4', false]]);
+});
+
+test('회차: 서버가 후보 수를 주지 않으면 회차를 빼지 않는다', async () => {
+  const api = apiWith(async () => response({ runs: [{ run_id: 4 }] }));
+  assert.deepEqual((await api.listRuns()).map((r) => r.id), ['4']);
+});
+
+test('후보 목록: 후보 응답에 회차 상태가 없어도 회차 목록의 상태(검토 중)를 쓰면 구 도로관리팀 결정 버튼이 열린다', () => {
+  const res = { run: { run_id: 4 }, candidates: [cand('a', '수정구', 50, 1), cand('b', '수정구', 40, 2)] };
+  const user = { role: 'district', gu: '수정구', readOnly: false };
+  const base = { gu: null, guList: GUS, allGu: ALL, myConfirm: { done: false } };
+  const without = toCandidateList(res, user, base);
+  assert.equal(without.run.status, RUN_STATUS.UNKNOWN);
+  assert.equal(without.canDecide, false); // 상태를 모르면 결정 버튼을 열지 않는다
+  const withRun = toCandidateList(res, user, { ...base, runInfo: { name: '2027 연간', kind: 'annual', status: RUN_STATUS.REVIEW } });
+  assert.equal(withRun.run.name, '2027 연간');
+  assert.equal(withRun.run.status, RUN_STATUS.REVIEW);
+  assert.equal(withRun.canDecide, true);
 });
 
 test('회차: 산정 기간은 자료 기준 점 형식과 민원 기간 객체로 바꾼다', () => {

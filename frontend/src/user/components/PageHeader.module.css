@@ -9,7 +9,7 @@
   margin-bottom: var(--space-4);
   font-size: var(--fs-small);
   font-weight: var(--fw-bold);
-  color: var(--semantic-color-primary-strong);
+  color: var(--semantic-color-primary-on-tint);
 }
 .title {
   font-size: var(--fs-h1);
@@ -32,14 +32,17 @@
 }
 .compact .title {
   display: flex;
+  flex-wrap: wrap; /* 좁으면 범위가 제목 아래로 내려가고, 제목은 한 줄로 둔다 */
   align-items: baseline;
-  gap: var(--space-12);
+  gap: 2px var(--space-12);
   font-size: var(--fs-h2);
+  white-space: nowrap;
 }
 .scope {
+  white-space: normal;
   font-size: var(--fs-small);
   font-weight: var(--fw-bold);
-  color: var(--semantic-color-primary-strong);
+  color: var(--semantic-color-primary-on-tint);
 }
 .compact .subtitle {
   margin-top: var(--space-4);

@@ -10,10 +10,12 @@
   max-height: calc(var(--component-summary-panel-max-height-ratio) * 100%);
   overflow: auto;
   padding: var(--component-summary-panel-padding);
-  border: 1px solid var(--component-summary-panel-border);
+  /* 1순위: 지금 고른 칸의 근거. 파란 위쪽 띠와 더 깊은 그림자로 지도 위 보조 정보보다 앞에 보이게 한다 */
+  border: 1px solid var(--semantic-color-band-border);
+  border-top: 3px solid var(--semantic-color-primary-strong);
   border-radius: var(--component-summary-panel-radius);
   background: var(--component-summary-panel-bg);
-  box-shadow: var(--component-summary-panel-shadow);
+  box-shadow: 0 12px 28px rgb(24 26 27 / 0.18);
   font-size: var(--fs-small);
 }
 .head {
@@ -25,6 +27,17 @@
   display: flex;
   align-items: center;
   gap: var(--space-8);
+  min-width: 0;
+}
+/* 접었을 때의 주소: 순위와 같은 14px, 굵지 않은 검은 글자 */
+.addr {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-small);
+  font-weight: var(--fw-regular);
+  color: var(--semantic-color-text);
 }
 .rank {
   font-size: var(--fs-small);
@@ -35,7 +48,7 @@
   font-size: var(--fs-body);
   font-weight: var(--fw-bold);
 }
-.close {
+.toggle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -47,7 +60,7 @@
   border-radius: var(--radius-full);
   background: none;
 }
-.close:hover {
+.toggle:hover {
   background: var(--semantic-color-bg-subtle);
 }
 .sub {
@@ -62,7 +75,7 @@
   gap: var(--space-8);
   padding: var(--space-12) var(--space-16);
   border-radius: var(--radius-md);
-  background: var(--semantic-color-bg-subtle);
+  background: var(--semantic-color-primary-soft);
 }
 .sparkle {
   flex: none;

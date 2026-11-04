@@ -18,6 +18,7 @@
 .head {
   flex: none;
   padding: var(--space-20) var(--space-24) 0;
+  background: var(--semantic-gradient-wash);
   border-bottom: 1px solid var(--semantic-color-border);
 }
 .titleRow {
@@ -27,8 +28,10 @@
   gap: var(--space-12);
 }
 .title {
-  font-size: var(--fs-body-lg);
+  font-size: var(--fs-h3); /* 위계 ① 서랍 제목 20px 굵게 */
   font-weight: var(--fw-bold);
+  word-break: keep-all; /* 주소·대표 지점을 단어 중간에서 끊지 않는다 */
+  text-wrap: balance; /* 두 줄이 되면 줄 길이를 고르게 */
 }
 .close {
   display: inline-flex;
@@ -68,13 +71,13 @@
 }
 .tab {
   flex: none;
-  height: var(--primitive-size-tab-row);
+  height: 36px;
   padding: 0 var(--space-12);
   border: 0;
   border-bottom: 2px solid transparent;
   background: none;
   color: var(--component-tab-inactive-fg);
-  font-size: var(--fs-body);
+  font-size: var(--fs-small);
   white-space: nowrap;
 }
 .tab:hover {
@@ -89,7 +92,10 @@
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding: var(--space-24);
+  padding: var(--space-20) var(--space-24) var(--space-24);
+  font-size: var(--fs-small); /* 위계 ③ 본문 14px */
+  word-break: keep-all; /* 한글은 단어 단위로 줄을 바꾸고, 아주 긴 글(영문·번호)만 칸 끝에서 끊는다 */
+  overflow-wrap: break-word;
 }
 
 @media (max-width: 1099px) {

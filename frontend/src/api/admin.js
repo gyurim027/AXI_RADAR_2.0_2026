@@ -19,7 +19,7 @@ const priority = createPriorityApi(backendRequest);
 /** 서버 회차 목록을 쓰는가. 회차 만들기·산정 시작·열기 API는 서버에 아직 없다. */
 export const adminRunsFromServer = backendAuthEnabled && priorityBackendEnabled;
 export const listAdminRuns = adminRunsFromServer
-  ? async () => (await priority.listRuns()).map(toAdminRun)
+  ? async () => (await priority.listRuns({ includeEmpty: true })).map(toAdminRun)
   : mockCall('admin.listAdminRuns', (arg) => server.listAdminRuns(arg));
 export const listAdminNotifications = opsBackendEnabled ? ops.listNotifications : mockCall('admin.listAdminNotifications', (arg) => server.listAdminNotifications(arg));
 export const markAdminNotificationRead = opsBackendEnabled ? ops.markNotificationRead : mockCall('admin.markAdminNotificationRead', (arg) => server.markAdminNotificationRead(arg));

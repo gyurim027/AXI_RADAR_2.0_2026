@@ -19,7 +19,7 @@ import SchedulePage from './features/runs/SchedulePage.jsx';
 // handle.title: 브라우저 탭 제목
 export const adminRoutes = [
   { index: true, element: <DashboardPage />, handle: { title: '대시보드' } },
-  { path: 'data/list', element: <DataListPage />, handle: { title: '데이터 목록' } },
+  { path: 'data/list', element: <DataListPage />, handle: { title: '데이터 목록', wide: true } },
   { path: 'data/upload', element: <UploadPage />, handle: { title: '자료 올리기' } },
   { path: 'data/checks', element: <ChecksPage />, handle: { title: '검사 결과' } },
   { path: 'data/classify', element: <ClassifyPage />, handle: { title: '민원 분류 검수' } },

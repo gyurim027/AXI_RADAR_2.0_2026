@@ -3,6 +3,7 @@ import { getArticle, getDept, requestDeptApproval, searchLawText } from '../../.
 import { useAsync } from '../../../shared/hooks/useAsync.js';
 import Badge from '../../components/Badge.jsx';
 import Button from '../../components/Button.jsx';
+import Icon from '../../../user/components/Icon.jsx';
 import DataTable from '../../components/DataTable.jsx';
 import { TextArea } from '../../components/Field.jsx';
 import Loadable from '../../components/Loadable.jsx';
@@ -23,6 +24,7 @@ export default function DeptPage() {
   const [article, setArticle] = useState(null); // 옆 패널에 연 근거 원문
   const [viewed, setViewed] = useState({}); // 원문을 열어 본 수정안
   const [done, setDone] = useState(false);
+  const [openId, setOpenId] = useState(null); // 펼친 관할 행(긴 글 전체를 보인다)
 
   const openArticle = async (draft) => {
     if (draft.statusLabel) {
@@ -42,19 +44,39 @@ export default function DeptPage() {
         {(d) => (
           <div className={styles.row}>
             <div className={`${styles.stack} ${styles.main}`}>
-              <Panel title={DEPT.currentTitle} padded={false}>
+              <Panel aria-label={DEPT.currentTitle} padded={false}>
                 <DataTable
                   caption={DEPT.currentCaption}
                   columns={[
                     { key: 'id', header: DEPT.currentHead[0], first: true, nowrap: true },
                     { key: 'problem', header: DEPT.currentHead[1] },
-                    { key: 'dept', header: DEPT.currentHead[2] },
-                    { key: 'related', header: DEPT.currentHead[3] },
+                    { key: 'dept', header: DEPT.currentHead[2], render: (r) => <span className={styles.clamp}>{r.dept}</span> },
+                    { key: 'related', header: DEPT.currentHead[3], render: (r) => <span className={styles.clamp}>{r.related}</span> },
                     { key: 'status', header: DEPT.currentHead[4], nowrap: true, render: (r) => <Badge tone={STATUS_TONE[r.status]}>{r.status}</Badge> },
-                    { key: 'basis', header: DEPT.currentHead[5] },
+                    { key: 'basis', header: DEPT.currentHead[5], render: (r) => <span className={styles.clamp}>{r.basis}</span> },
                   ]}
                   rows={d.current}
                   getRowKey={(r) => r.id}
+                  expandedKey={openId}
+                  onRowClick={(r) => setOpenId(openId === r.id ? null : r.id)}
+                  rowLabel={(r) => `${r.id} ${openId === r.id ? '자세히 접기' : '자세히 펼치기'}`}
+                  renderExpanded={(r) => (
+                    <dl className={styles.fullList}>
+                      {[
+                        ['building', DEPT.currentHead[2], r.dept],
+                        ['link', DEPT.currentHead[3], r.related],
+                        ['document', DEPT.currentHead[5], r.basis],
+                      ].map(([icon, label, text]) => (
+                        <div key={label} className={styles.fullRow}>
+                          <dt>
+                            <Icon name={icon} size={16} className={styles.fullIcon} />
+                            {label}
+                          </dt>
+                          <dd>{text || '-'}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  )}
                 />
               </Panel>
               <Panel title={d.sent ? DEPT.sentTitle : DEPT.draftTitle}>

@@ -18,15 +18,18 @@
 }
 .rmap-range.leaflet-tooltip {
   padding: 4px 8px;
-  border: 1px solid var(--semantic-color-border);
+  border: 1px solid var(--semantic-color-text-strong);
   border-radius: 8px;
-  background: var(--semantic-color-bg-surface);
-  color: var(--semantic-color-text);
-  font-size: 12px;
+  background: var(--semantic-color-text-strong); /* 격자 이름표: 어두운 바탕이라 팝업·범례(흰 바탕)와 구분된다 */
+  color: var(--semantic-color-bg-surface);
+  font-size: var(--fs-caption);
   box-shadow: none;
 }
 .rmap-range.leaflet-tooltip-bottom::before {
-  border-bottom-color: var(--semantic-color-border);
+  border-bottom-color: var(--semantic-color-text-strong);
+}
+.rmap-range.leaflet-tooltip-top::before {
+  border-top-color: var(--semantic-color-text-strong);
 }
 
 .rmap-issue.leaflet-tooltip {
@@ -35,8 +38,19 @@
   border-radius: 8px;
   background: var(--semantic-color-bg-surface);
   color: var(--semantic-color-text);
-  font-size: 12px;
+  font-size: var(--fs-caption);
   box-shadow: none;
+  /* 긴 문구는 한 줄로 늘어나지 않고 줄을 바꾼다 */
+  width: max-content;
+  max-width: 220px;
+  white-space: normal;
+}
+/* 화살표 색을 테두리와 맞춘다 */
+.rmap-issue.leaflet-tooltip-top::before {
+  border-top-color: var(--component-map-outline);
+}
+.rmap-issue.leaflet-tooltip-bottom::before {
+  border-bottom-color: var(--component-map-outline);
 }
 .rmap-point-wrap:focus-visible {
   outline: 2px solid var(--semantic-color-focus-ring);
@@ -63,7 +77,7 @@
   position: absolute;
   left: 13px;
   top: -3px;
-  font-size: 11px;
+  font-size: var(--fs-caption);
   font-weight: 700;
   line-height: 1;
   color: var(--semantic-color-text);
@@ -79,7 +93,7 @@
   border-radius: 50%;
   background: var(--semantic-color-text);
   color: var(--semantic-color-bg-surface);
-  font-size: 12px;
+  font-size: var(--fs-caption);
   font-weight: 700;
   cursor: pointer;
 }

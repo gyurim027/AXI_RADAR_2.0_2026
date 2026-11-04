@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import Tag from '../../../../components/Tag.jsx';
+import { EmptyState } from '../../../../components/States.jsx';
+import Card from '../../../../components/Card.jsx';
 import { DRAWER } from '../../copy.js';
 import styles from './Tabs.module.css';
 
@@ -8,15 +10,15 @@ export default function ArticlesTab({ detail }) {
   const [openId, setOpenId] = useState(null);
   return (
     <section>
-      <h3 className={styles.h}>{DRAWER.articleTitle}</h3>
       <p className={styles.sub}>{DRAWER.articleSub}</p>
       <div className={styles.content}>
         {detail.articles.length === 0 ? (
-          <p className={styles.muted}>{DRAWER.articleEmpty}</p>
+          <EmptyState compact text={DRAWER.articleEmpty} />
         ) : (
           <ul className={styles.list}>
             {detail.articles.map((a) => (
               <li key={a.id}>
+                <Card>
                 <div className={styles.articleRow}>
                   <button type="button" className={styles.linkBtn} aria-expanded={openId === a.id} onClick={() => setOpenId(openId === a.id ? null : a.id)}>
                     {a.name}
@@ -31,6 +33,7 @@ export default function ArticlesTab({ detail }) {
                   ) : null}
                 </div>
                 {openId === a.id ? <p className={styles.articleBody}>{a.body}</p> : null}
+                </Card>
               </li>
             ))}
           </ul>

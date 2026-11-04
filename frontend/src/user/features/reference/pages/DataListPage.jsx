@@ -33,7 +33,7 @@ export default function DataListPage() {
         </span>
       ),
     },
-    { key: 'fresh', header: H[3], align: 'center', render: (d) => <Tag tone={FRESH_TONE[d.freshness]} small>{d.freshness}</Tag> },
+    { key: 'fresh', header: H[3], render: (d) => <Tag tone={FRESH_TONE[d.freshness]} small>{d.freshness}</Tag> },
     { key: 'share', header: H[4], render: (d) => d.share },
   ];
   return (

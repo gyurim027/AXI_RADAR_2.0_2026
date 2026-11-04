@@ -1,12 +1,16 @@
 import { COMMON } from '../../shared/copy/common.js';
 import Button from './Button.jsx';
+import Icon from './Icon.jsx';
 import styles from './States.module.css';
 
 /** 빈 목록 (CM-00 11번). 필터 때문일 때만 버튼을 더한다. */
-export function EmptyState({ text, hint, actionLabel, onAction, children }) {
+export function EmptyState({ text, hint, actionLabel, onAction, children, icon = null, compact = false }) {
   return (
-    <div className={styles.state}>
-      <p className={styles.main}>{text}</p>
+    <div className={`${styles.state} ${compact ? styles.compact : ''}`} role="status">
+      <p className={styles.note}>
+        {icon ? <Icon name={icon} size={16} /> : null}
+        <span>{text}</span>
+      </p>
       {hint ? <p className={styles.hint}>{hint}</p> : null}
       {actionLabel ? (
         <Button variant="soft" onClick={onAction}>

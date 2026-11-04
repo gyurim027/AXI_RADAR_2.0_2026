@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: var(--semantic-color-bg-shell);
+  background: var(--semantic-gradient-shell), var(--semantic-color-bg-shell);
 }
 .main {
   flex: 1;

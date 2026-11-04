@@ -1,5 +1,5 @@
 // 서버 연결 모드에서 열리는 사용자 화면. 연결하지 않은 화면은 가짜 데이터를 보이지 않으려고 열지 않는다.
-import { i07BackendEnabled, priorityBackendEnabled } from '../api/backend.js';
+import { backendAuthEnabled, i07BackendEnabled, priorityBackendEnabled } from '../api/backend.js';
 
 const OPEN = [
   priorityBackendEnabled && /^\/candidates\/?$/, // 점검 후보 (US-01~03): 점수·순위 모델 결과
@@ -13,3 +13,6 @@ export function isUserOpenInServerMode(to) {
   const path = String(to || '').split(/[?#]/)[0];
   return OPEN.some((re) => re.test(path));
 }
+
+/** 메뉴를 거르는 함수. 서버 연결 모드에서만 쓰고, 연습용(가짜 서버) 모드에서는 모든 메뉴를 그대로 보인다. */
+export const userMenuFilter = backendAuthEnabled ? isUserOpenInServerMode : null;

@@ -93,11 +93,6 @@ export const CHECKS = {
   issueLabelHead: '구분',
   issueRoleHead: '대표·사본',
   issueErrorLabel: '검사 오류',
-  issueNote: {
-    format: '검사 오류는 고쳐서 다시 올려야 합니다. 같은 행이 겹친 사본은 확인 필요(참고)이며 진행을 막지 않습니다.',
-    value: '확인이 필요한 값은 참고용이며 진행을 막지 않습니다.',
-    group: '같은 시설로 묶지 못한 자료입니다. 진행을 막지 않습니다.',
-  },
   issueMore: '더 불러오기',
   issueMoreFailed: '다음 목록을 불러오지 못했습니다. 잠시 뒤에 다시 눌러 주세요.',
   issueFoot: (shown, total) => `전체 ${total}건 중 ${shown}건`,

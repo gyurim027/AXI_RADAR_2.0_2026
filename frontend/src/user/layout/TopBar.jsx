@@ -5,6 +5,7 @@ import { useRun } from '../../app/providers/RunProvider.jsx';
 import { ALL_GU, GU_LIST, ROLE } from '../../shared/constants.js';
 import { useAsync } from '../../shared/hooks/useAsync.js';
 import { activeGroup, buildMenu } from '../../shared/auth/permissions.js';
+import { userMenuFilter } from '../serverRoutes.js';
 import { dataYear, runOptionLabel } from '../../shared/utils/format.js';
 import { InfoHelp, SelectField } from '../components/FormControls.jsx';
 import Notifications from './Notifications.jsx';
@@ -16,7 +17,7 @@ export default function TopBar() {
   const { runs, run, setRunId, gu, setGu } = useRun();
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const menu = buildMenu(user);
+  const menu = buildMenu(user, userMenuFilter);
   const group = activeGroup(menu, pathname);
   const city = user.role === ROLE.CITY;
   // 승인 대기 건수 배지 (M-2). 시 도로과만 승인 대기를 본다.
@@ -59,26 +60,20 @@ export default function TopBar() {
             onChange={setRunId}
             options={runs.map((r) => ({ value: r.id, label: runOptionLabel(r) }))}
           />
-          <InfoHelp label="점검 연도 뜻 보기" align="right">
-            1년치를 계산한 점검 순위입니다. 반기 계산 결과는 참고용으로만 사용해주세요.
-          </InfoHelp>
-          <InfoHelp label="자료 기준 보기" align="right">
+          <InfoHelp label="자료 기준 보기" text="자료 기준" iconless>
             {[
+              '1년치를 계산한 점검 순위입니다. 반기 계산 결과는 참고용으로만 사용해 주세요.',
               run.dataRange ? `${dataYear(run.dataRange)}년 자료 기준 · 자료 기준일 ${run.dataRange}` : null,
               run.version ? `산정 기준 ${run.version}` : null,
-              run.unratedFields?.length ? `평가하지 못한 분야: ${run.unratedFields.join(', ')}` : null,
-            ].filter(Boolean).join(' · ') || '서버에서 받은 자료 기준 정보가 아직 없습니다.'}
-            <InfoHelp label="평가하지 못한 분야 뜻 보기" align="right">
-              자료가 없어 평가하지 못한 분야입니다. 0점으로 처리하지 않았습니다.
-            </InfoHelp>
+              run.unratedFields?.length ? `평가하지 못한 분야: ${run.unratedFields.join(', ')}. 자료가 없어 평가하지 못한 분야이며 0점으로 처리하지 않았습니다.` : null,
+            ].filter(Boolean).join(' · ')}
           </InfoHelp>
         </div>
 
         {city ? (
-          <SelectField label="구" id="gu-select" value={gu} onChange={setGu} options={[ALL_GU, ...GU_LIST]} />
+          <SelectField label="구" hideLabel id="gu-select" value={gu} onChange={setGu} options={[ALL_GU, ...GU_LIST]} />
         ) : (
           <div className={styles.guFixed}>
-            <span className={styles.fixedLabel}>구</span>
             <span>{user.gu}</span>
           </div>
         )}

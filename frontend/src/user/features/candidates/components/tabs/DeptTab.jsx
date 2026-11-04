@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Tag from '../../../../components/Tag.jsx';
+import Card from '../../../../components/Card.jsx';
 import { SelectField } from '../../../../components/FormControls.jsx';
 import { setDept } from '../../../../../api/candidates.js';
 import { DEPT_STATUS } from '../../../../../shared/constants.js';
@@ -25,11 +26,17 @@ export default function DeptTab({ detail, onChanged }) {
 
   return (
     <section>
-      <h3 className={styles.h}>{DRAWER.deptTitle}</h3>
       <p className={styles.sub}>{d.canPickDept ? DRAWER.deptSubDistrict : DRAWER.deptSubCity}</p>
       <div className={styles.content}>
+        <Card title={DRAWER.deptTitle}>
         {d.dept ? (
-          <p>{`${d.dept.name} · ${d.dept.contact} · ${d.dept.status}`}</p>
+          <p className={styles.deptLine}>
+            <b>{d.dept.name}</b>
+            <span className={styles.muted}>{d.dept.contact}</span>
+            <Tag tone={d.dept.status === DEPT_STATUS.OK ? 'low' : 'mid'} small>
+              {d.dept.status}
+            </Tag>
+          </p>
         ) : (
           <p>
             <Tag tone="mid">담당 미정</Tag>
@@ -52,6 +59,7 @@ export default function DeptTab({ detail, onChanged }) {
             {error}
           </p>
         ) : null}
+        </Card>
       </div>
     </section>
   );

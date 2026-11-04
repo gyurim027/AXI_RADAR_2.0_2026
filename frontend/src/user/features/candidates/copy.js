@@ -28,6 +28,12 @@ export const LIST = {
   zoneLabel: '보호구역',
   zoneOptions: ['보호구역 안', '보호구역 밖'],
   filterUnavailable: '아직 서버에서 값을 받지 못해 쓸 수 없습니다.',
+  mapCoopWheel: 'Ctrl(맥은 ⌘)을 누른 채 스크롤하면 지도를 확대할 수 있습니다.', // 쌓인 배치 (1100px 미만)
+  mapCoopTouch: '두 손가락으로 지도를 움직일 수 있습니다.',
+  stackTabsLabel: '점검 후보 표와 지도 이동',
+  stackTable: '점검 후보 표',
+  stackMap: '점검 후보 지도',
+  stackConfirm: '우선 점검 대상 확정',
   noGuNote: (n) => `구를 확인할 수 없어 목록에 없는 후보가 ${n}곳 있습니다.`, // 시 도로과 (구 미지정 후보, 결정 3-17)
   complaintLabel: '민원이 몰린 곳',
   complaintHelp: '같은 장소에 여러 해에 걸쳐 민원이 반복된 구역입니다.', // W-16
@@ -45,6 +51,10 @@ export const LIST = {
   // 꼬리표에는 이유만 쓴다. 반영 비율은 상세의 ⓘ에 둔다 (W-7)
   decisionMenuLabel: '결정 상태 바꾸기', // 메뉴 버튼의 화면 읽기 이름 (US-01 1-4)
   conditionTag: (name) => `먼저 볼 이유: ${name}`,
+  reasonLabel: '먼저 볼 이유', // 꼬리표 줄 앞에 한 번만 쓴다
+  moreChips: (n) => `+${n}`,
+  moreChipsTitle: (names) => `먼저 볼 이유 더 보기: ${names.join(', ')}`,
+  conditionRatioHelpLabel: '먼저 볼 이유 뜻 보기',
   conditionRatioHelp: (name, ratio) => (ratio == null ? `${name}에 해당해 먼저 확인할 후보로 표시했습니다.` : `${name}의 반영 비율은 ${ratio}%입니다.`),
   conditionStateTitle: '우선 확인 조건 판정',
   conditionState: { Y: '충족', N: '미충족', NULL: '미평가', INVALID: '확인 필요' },
@@ -95,7 +105,8 @@ export const LIST = {
 
 export const SUMMARY = {
   // US-02
-  close: '요약 닫기',
+  collapse: '근거 팝업 접기',
+  expand: '근거 팝업 펼치기',
   evidenceTitle: '주요 근거',
   deptTitle: '담당 부서',
   deptUndecided: '담당 미정',
@@ -105,23 +116,31 @@ export const SUMMARY = {
   title: (address, landmark) => `${address} · ${landmark}`,
 };
 
+// 표·지도 분할 (US-01 9-2)
+export const SPLIT = {
+  label: '표와 지도 비율 조절',
+  valueText: (mode, pct) => (mode === 'table' ? '표만 보는 중' : mode === 'map' ? '지도만 보는 중' : `표 ${pct}%, 지도 ${100 - pct}%`),
+};
+
 export const DRAWER = {
   // US-03 0-1
   prev: '◀ 이전 후보',
   next: '다음 후보 ▶',
   closeLabel: '상세 닫기', // 명세에 없는 닫기 버튼 (확인 필요)
   tabs: {
-    1: '① 순위 근거',
-    2: '② 조문',
-    3: '③ 담당 부서',
-    4: '④ 작년 결정',
-    5: '⑤ 결정 기록',
-    6: '⑥ 점검 요청',
+    1: '순위 근거',
+    2: '조문',
+    3: '담당 부서',
+    4: '작년 결정',
+    5: '결정 기록',
+    6: '점검 요청',
   },
 
   // 1-1 순위 근거
   basisTitle: '순위 근거',
   basisSub: '이 구역의 점검 순위에 영향을 준 근거입니다.',
+  scoreLabel: '점검 필요도',
+  scoreAux: (pct) => `성남시 내 상위 ${pct}%`,
   scoreLine: (score, pct) => `점검 필요도 ${score}점 · 성남시 내 상위 ${pct}%`,
   scoreHelp: '100점 만점이며, 점수가 높을수록 먼저 점검할 필요가 있습니다.', // W-6
   scoreHelpLabel: '점검 필요도 뜻 보기',
@@ -140,7 +159,7 @@ export const DRAWER = {
   complaintTitle: '민원',
   complaintTotal: (n) => `민원 ${n}건`, // 유형별 건수를 모를 때 (10_2 CM-00 15번의 앞부분)
   complaintLine: (types) => types.map((t) => `${t.type} ${t.count}건${t.recur ? ` (재발 ${t.recur})` : ''}`).join(' · '),
-  complaintLowAccuracy: (n) => `위치를 대략만 알 수 있는 민원 ${n}건도 건수에 포함되어 있습니다.`, // 낮음 민원도 격자 민원 수에 넣는다 (ISS-033, K-1)
+  complaintLowAccuracy: (n) => `이 건수에는 위치가 정확하지 않은 민원 ${n}건이 포함되어 있습니다.`, // 위치 낮음 민원도 건수에 넣고 따로 알린다 (ISS-062, 규림님 결정 11/04)
   complaintEmpty: '이번 점검 순위에는 민원 자료가 포함되지 않았습니다. 다른 근거만으로 정해진 순위입니다.', // K-6, US-03 1-2
 
   // 2-1 조문
@@ -174,6 +193,7 @@ export const DRAWER = {
     보류: '점검이 필요할 수 있지만, 올해는 대상 여부를 결정하지 않은 곳입니다.',
   },
   decisionHelpLabel: (c) => `${c} 뜻 보기`,
+  decisionHelpAllLabel: '결정 종류 뜻 보기',
   decisionChoices: ['우선 점검 대상', '제외', '보류'],
   reasonModalTitle: (decision) => `${decision} 사유`,
   reasonLabel: '결정 사유',

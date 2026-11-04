@@ -27,14 +27,11 @@ export default function RegulationsPage() {
 
   return (
     <div>
-      <PageHeader title={REGS.title} subtitle={REGS.subtitle} />
-      <Toolbar
-        actions={
-          <Button variant="secondary" onClick={() => navigate('/admin/standards/dept')}>
-            {REGS.toDept}
-          </Button>
-        }
-      />
+      <PageHeader title={REGS.title} subtitle={REGS.subtitle}>
+        <Button variant="secondary" onClick={() => navigate('/admin/standards/dept')}>
+          {REGS.toDept}
+        </Button>
+      </PageHeader>
       <Loadable state={state} areaName={REGS.failedArea} rows={4}>
         {(rows) => (
           <DataTable

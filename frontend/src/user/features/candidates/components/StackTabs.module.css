@@ -1,0 +1,25 @@
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: var(--component-map-control-z);
+  display: flex;
+  gap: var(--space-8);
+  padding: var(--space-8) var(--semantic-layout-page-margin);
+  background: var(--semantic-color-bg-surface);
+  border-bottom: 1px solid var(--semantic-color-border-card);
+}
+.btn {
+  flex: 1;
+  min-height: 44px;
+  border: 1px solid var(--semantic-color-border-card);
+  border-radius: var(--radius-md);
+  background: var(--semantic-color-bg-surface);
+  color: var(--semantic-color-text-strong);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-bold);
+}
+.on {
+  background: var(--semantic-color-primary-soft);
+  border-color: var(--semantic-color-primary-strong);
+  color: var(--semantic-color-primary-strong);
+}

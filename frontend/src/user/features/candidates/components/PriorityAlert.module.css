@@ -1,21 +1,20 @@
-.box {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-16);
+/* 얼럿이 놓인 칸의 폭에 맞춰 줄을 바꾼다(창 폭이 아니라 칸 폭 기준) */
+.wrap {
+  container-type: inline-size;
   margin: var(--space-8) var(--space-12);
+}
+.box {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: 'title body btn';
+  align-items: center;
+  column-gap: var(--space-16);
   padding: var(--space-8) var(--space-16);
   border-radius: var(--radius-md);
-  background: var(--semantic-color-bg-subtle);
-}
-.text {
-  display: flex;
-  align-items: center;
-  gap: var(--space-12);
-  min-width: 0;
+  background: var(--semantic-gradient-wash), var(--semantic-color-bg-subtle);
 }
 .title {
-  flex: none;
+  grid-area: title;
   display: flex;
   align-items: center;
   gap: var(--space-4);
@@ -24,24 +23,31 @@
   color: var(--semantic-color-primary-hover); /* 회색 상자 위에서 대비 4.5:1 이상으로 하려고 한 단계 진한 파랑 */
 }
 .body {
+  grid-area: body;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-4);
+  min-width: 0;
   font-size: var(--fs-small);
 }
 .btn {
-  flex: none;
-  height: var(--control-h-sm);
-  padding: 0 var(--space-16);
-  font-size: var(--fs-small);
+  grid-area: btn;
+  justify-self: end;
   background: var(--semantic-color-bg-surface);
 }
 
-@media (max-width: 1359px) {
+/* 좁으면 제목 줄 오른쪽 위에 버튼, 그 아래에 설명 */
+@container (max-width: 640px) {
   .box {
-    flex-wrap: wrap;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'title btn'
+      'body body';
+    row-gap: var(--space-2, 2px);
+    align-items: center; /* 제목과 버튼을 같은 높이 가운데에 둔다 */
   }
-  .text {
-    flex-wrap: wrap;
+  .btn {
+    align-self: center;
   }
 }

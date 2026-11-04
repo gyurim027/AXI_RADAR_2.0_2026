@@ -11,6 +11,7 @@ import AdminTopBar from './AdminTopBar.jsx';
 import SectionNav from './SectionNav.jsx';
 import styles from './AdminLayout.module.css';
 import topStyles from './AdminTopBar.module.css';
+import sectionStyles from './SectionNav.module.css';
 import {settingsBackendEnabled,opsBackendEnabled,priorityBackendEnabled,backendHome} from '../../api/backend.js';
 import {useAuth} from '../../app/providers/AuthProvider.jsx';
 
@@ -26,22 +27,19 @@ function SettingsLayout(){
   useEffect(()=>{document.title='RADAR 어드민';},[]);
   useEffect(()=>onActionError((message)=>setFailed({path:window.location.pathname,message})),[]);
   const banner=failed&&failed.path===pathname?failed.message||ADMIN_COPY.actionFailed:null;
+  const on={ops:opsBackendEnabled,settings:settingsBackendEnabled,priority:priorityBackendEnabled};
+  const menu=ADMIN_COPY.serverMenu.filter((m)=>on[m.need]);
   return <div className={styles.shell}>
     <a href="#admin-main" className={styles.skip}>본문 바로가기</a>
-    <div className={styles.fixed}><header className={topStyles.bar}>
-      <Link className={topStyles.brand} to={backendHome('operator')}>{ADMIN_COPY.serviceName}</Link>
-      <nav className={topStyles.nav} aria-label="설정 관리">
-        {opsBackendEnabled?<NavLink className={topStyles.tab} to="/admin" end>대시보드</NavLink>:null}
-        {opsBackendEnabled?<NavLink className={topStyles.tab} to="/admin/data/checks">검사 결과</NavLink>:null}
-        {priorityBackendEnabled?<NavLink className={topStyles.tab} to="/admin/runs/list">회차</NavLink>:null}
-        {opsBackendEnabled?<NavLink className={topStyles.tab} to="/admin/runs/log">실행 기록</NavLink>:null}
-        {settingsBackendEnabled?<NavLink className={topStyles.tab} to="/admin/standards/criteria">산정 기준</NavLink>:null}
-        {opsBackendEnabled?<NavLink className={topStyles.tab} to="/admin/standards/dept">담당 부서 표</NavLink>:null}
-        {opsBackendEnabled?<NavLink className={topStyles.tab} to="/admin/standards/regulations">규정 변경</NavLink>:null}
-        {opsBackendEnabled?[['/admin/settings/accounts','계정'],['/admin/settings/access','접속 기록'],['/admin/settings/alerts','알림 설정']].map(([to,label])=><NavLink key={to} className={topStyles.tab} to={to}>{label}</NavLink>):null}
+    <div className={styles.fixed}>
+      <header className={topStyles.bar}>
+        <Link className={topStyles.brand} to={backendHome('operator')}>{ADMIN_COPY.serviceName}</Link>
+        <div className={topStyles.tools}>{opsBackendEnabled?<AdminNotifications/>:null}<span className={topStyles.org}>{user.org}</span><button className={topStyles.logout} onClick={signOut}>로그아웃</button></div>
+      </header>
+      <nav className={sectionStyles.nav} aria-label="설정 관리">
+        {menu.map((m)=><NavLink key={m.to} to={m.to} end={m.end} className={({isActive})=>`${sectionStyles.item} ${isActive?sectionStyles.active:''}`}>{m.label}</NavLink>)}
       </nav>
-      <div className={topStyles.tools}>{opsBackendEnabled?<AdminNotifications/>:null}<span>{user.org}</span><button className={topStyles.logout} onClick={signOut}>로그아웃</button></div>
-    </header></div>
+    </div>
     <main id="admin-main" className={styles.main} tabIndex={-1}><div className={styles.content}>{banner?<div style={{marginBottom:16}}><Banner tone="danger">{banner}</Banner></div>:null}{isOpenInServerMode(pathname)?<Outlet/>:<div role="status"><EmptyState text="이 화면은 아직 서버와 연결되지 않았습니다."/></div>}</div></main>
   </div>;
 }

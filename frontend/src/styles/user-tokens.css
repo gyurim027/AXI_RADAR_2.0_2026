@@ -85,10 +85,11 @@
   --primitive-fontSize-body-lg: 18px;
   --primitive-fontSize-h3: 20px;
   --primitive-fontSize-h2: 24px;
-  --primitive-fontSize-h1: 32px;
+  --primitive-fontSize-h1: 28px;
   --primitive-fontSize-display: 40px;
   --primitive-fontWeight-regular: 400;
   --primitive-fontWeight-medium: 500;
+  --primitive-fontWeight-semibold: 600;
   --primitive-fontWeight-bold: 700;
   --primitive-lineHeight-tight: 1.3;
   --primitive-lineHeight-normal: 1.5;
@@ -126,7 +127,7 @@
   --primitive-size-report-max: 1000px;
   --primitive-size-tab-row: 48px;
   --primitive-fontFamily-sans: 'Pretendard', 'Pretendard Variable', 'Noto Sans KR', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
-  --primitive-breakpoint-min: 1024px;
+  --primitive-breakpoint-min: 768px;
   --primitive-breakpoint-base: 1440px;
   --primitive-breakpoint-wide: 1920px;
   --primitive-split-table: 6;
@@ -246,7 +247,7 @@
   --component-table-header-radius: var(--primitive-radius-sm);
   --component-table-row-border: var(--semantic-color-border-subtle);
   --component-table-row-high-bg: var(--semantic-color-risk-high-soft);
-  --component-table-cell-font-size: var(--primitive-fontSize-body);
+  --component-table-cell-font-size: var(--primitive-fontSize-small);
   --component-table-row-height: var(--semantic-density-comfortable-row);
   --component-table-head-height: var(--semantic-density-comfortable-head);
   --component-table-row-height-compact: var(--semantic-density-compact-row);

@@ -4,6 +4,19 @@ export const ADMIN_COPY = {
   skip: '본문 바로가기',
   mainMenuLabel: '주 메뉴',
   sectionMenuLabel: '화면 메뉴',
+  // 서버 연결 모드 2층 메뉴. need는 켜져 있어야 하는 서버 연결(ops 운영 / settings 설정 / priority 우선순위)이다.
+  serverMenu: [
+    { to: '/admin', label: '대시보드', need: 'ops', end: true },
+    { to: '/admin/data/checks', label: '검사 결과', need: 'ops' },
+    { to: '/admin/runs/list', label: '회차', need: 'priority' },
+    { to: '/admin/runs/log', label: '실행 기록', need: 'ops' },
+    { to: '/admin/standards/criteria', label: '산정 기준', need: 'settings' },
+    { to: '/admin/standards/dept', label: '담당 부서 표', need: 'ops' },
+    { to: '/admin/standards/regulations', label: '규정 변경', need: 'ops' },
+    { to: '/admin/settings/accounts', label: '계정', need: 'ops' },
+    { to: '/admin/settings/access', label: '접속 기록', need: 'ops' },
+    { to: '/admin/settings/alerts', label: '알림 설정', need: 'ops' },
+  ],
   density: { label: '표 밀도', normal: '기본', compact: '촘촘히' },
   runIndependent: '이 화면은 회차와 상관없이 같은 내용을 보여 줍니다.',
 

@@ -74,10 +74,11 @@ th.stickyRight {
   position: sticky;
   right: 0;
   z-index: 2;
-  box-shadow: -1px 0 0 var(--semantic-color-border-subtle);
+  /* 가로로 더 있다는 것을 보이는 그림자(스크롤 힌트) */
+  box-shadow: -1px 0 0 var(--semantic-color-border-subtle), -6px 0 6px -6px rgb(24 26 27 / 0.07);
 }
 .edge {
-  box-shadow: 1px 0 0 var(--semantic-color-border-subtle);
+  box-shadow: 1px 0 0 var(--semantic-color-border-subtle), 6px 0 6px -6px rgb(24 26 27 / 0.06);
 }
 .sortBtn {
   display: inline-flex;

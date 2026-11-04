@@ -7,6 +7,9 @@
   background: var(--radar-admin-component-nav-bg);
   border-bottom: 1px solid var(--radar-admin-component-nav-border);
 }
+.brandRest {
+  margin-left: 0.3em; /* 이름이 flex 칸이라 앞 공백이 사라지므로 간격을 준다 */
+}
 .brand {
   display: inline-flex;
   align-items: center;
