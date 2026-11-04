@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Iterable
 
 from app.core import rerun
+from app.core.job_run import MAX_STRUCTURED_TEXT
 
 PREFIX = "다시 실행용 입력: "
 SCRIPTS = {"A-11": "scripts.standards_check_law_revision", "A-12": "scripts.standards_compare_duty"}
@@ -37,8 +38,12 @@ def absolute(argv: Iterable[str], path_opts: Iterable[str]) -> list[str]:
 
 
 def remember(job, module: str, argv: Iterable[str]) -> None:
-    """실행 시작 때 부른다: 86에 다시 실행용 입력 한 줄."""
-    job.log(PREFIX + json.dumps(absolute(argv, PATH_OPTS.get(module, ())), ensure_ascii=False))
+    """실행 시작 때 부른다: 86에 다시 실행용 입력 한 줄.
+
+    job.log 기본 300자 자르기를 쓰면 경로가 길 때 JSON이 깨져 saved_argv()가
+    못 읽는다(11/4 발견). 되읽어 parsing해야 하는 구조화 데이터라 더 큰 한도로 남긴다."""
+    job.log(PREFIX + json.dumps(absolute(argv, PATH_OPTS.get(module, ())), ensure_ascii=False),
+            max_len=MAX_STRUCTURED_TEXT)
 
 
 def saved_argv(run: dict) -> list[str] | None:

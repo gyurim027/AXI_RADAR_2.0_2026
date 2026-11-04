@@ -12,6 +12,7 @@ import Tag from '../../../components/Tag.jsx';
 import { EmptyState, ErrorState, SkeletonRows } from '../../../components/States.jsx';
 import { ANNUAL, DOWNLOAD } from '../copy.js';
 import { DownloadBar, ReportCard, ReportShell, fileHeader, useReportDownload } from '../components/ReportParts.jsx';
+import PreviewGroups from '../components/PreviewGroups.jsx';
 import styles from '../components/ReportParts.module.css';
 
 // 서버 연결 모드는 1차 범위가 미리보기 전용이다: 파일 내려받기와 자동 발송이 없다(결정 2-14, D5).
@@ -60,20 +61,27 @@ export default function AnnualReportPage() {
       <PageHeader title={ANNUAL.title(runYear(run.name))} subtitle={PREVIEW_ONLY ? ANNUAL.subtitlePreview : ANNUAL.subtitle}>
         {PREVIEW_ONLY ? <Tag tone="info">{ANNUAL.previewTag}</Tag> : null}
       </PageHeader>
-      <ReportCard>
-        {failed ? (
-          <ErrorState areaName={ANNUAL.reportName} onRetry={reload} />
-        ) : loading && !data ? (
-          showSkeleton ? <SkeletonRows rows={4} /> : null
-        ) : data.ready ? (
-          <>
-            <DataTable caption={ANNUAL.reportName} columns={columns} rows={rows} getRowKey={(r) => r.dept} />
-            <p className={styles.note}>{PREVIEW_ONLY ? ANNUAL.previewNote : ANNUAL.notSend}</p>
-          </>
-        ) : (
-          <EmptyState text={ANNUAL.empty} actionLabel={ANNUAL.goDecide} onAction={() => navigate('/candidates')} />
-        )}
-      </ReportCard>
+      {PREVIEW_ONLY && data?.ready ? (
+        <>
+          <PreviewGroups groups={data.groups ?? []} />
+          <p className={styles.note}>{ANNUAL.previewNote}</p>
+        </>
+      ) : (
+        <ReportCard>
+          {failed ? (
+            <ErrorState areaName={ANNUAL.reportName} onRetry={reload} />
+          ) : loading && !data ? (
+            showSkeleton ? <SkeletonRows rows={4} /> : null
+          ) : data.ready ? (
+            <>
+              <DataTable caption={ANNUAL.reportName} columns={columns} rows={rows} getRowKey={(r) => r.dept} />
+              <p className={styles.note}>{PREVIEW_ONLY ? ANNUAL.previewNote : ANNUAL.notSend}</p>
+            </>
+          ) : (
+            <EmptyState text={ANNUAL.empty} actionLabel={ANNUAL.goDecide} onAction={() => navigate('/candidates')} />
+          )}
+        </ReportCard>
+      )}
       {data?.ready && !PREVIEW_ONLY ? <DownloadBar reportName={ANNUAL.reportName} dl={dl} /> : null}
     </ReportShell>
   );

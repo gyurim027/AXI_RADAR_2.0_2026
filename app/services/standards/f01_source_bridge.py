@@ -184,6 +184,17 @@ def jurisdiction_candidates(candidate: Candidate, jurisdiction_rows: Iterable[Ma
             if row_gu and not gu:
                 blocked.append({'jurisdiction_id':jid,'reason':'GU_REQUIRED'});continue
             if row_gu and row_gu not in str(gu):continue
+            # JUR-06 has distinct DB88 roles: district parking enforcement
+            # handles the complaint, while the city traffic-guidance team
+            # supervises enforcement.  The latter is NOT another first-line
+            # receiving department.  Do not discard it from the source DB;
+            # exclude it only from advisory first-line routing.
+            if (jid == 'JUR-06' and candidate.kind == '주정차'
+                    and str(d.get('dept_name') or '').strip()
+                    == '시 교통기획과 교통지도팀(단속 업무지도)'):
+                blocked.append({'jurisdiction_id': jid,
+                                'reason': 'CITY_OVERSIGHT_NOT_FIRST_LINE_HANDLER'})
+                continue
             cond=str(d.get('condition_text') or '').strip()
             if cond and (not condition_verified or cond != str(condition_key or '').strip()):
                 blocked.append({'jurisdiction_id':jid,'reason':'F02_CONDITION_NOT_VERIFIED'});continue
@@ -200,7 +211,14 @@ def jurisdiction_candidates(candidate: Candidate, jurisdiction_rows: Iterable[Ma
                 blocked.append({'jurisdiction_id':jid,'reason':'GU_CONDITIONAL_BRANCH_REQUIRES_REVIEW'})
                 continue
             eligible.append({'jurisdiction_id':jid,'dept_name':d.get('dept_name'),'gu_name':row_gu or None,'source_ref':j.get('basis'),'confirm_status':j.get('confirm_status')})
-    if len(eligible)==1 and eligible[0]['confirm_status']=='확인됨':
+    # Do not allow one confirmed JUR to silently override an unresolved sibling.
+    # A generic crossing/sidewalk kind alone is not proof of the exact job scope.
+    review_id = {'횡단보도': 'JUR-23', '보도': 'JUR-03'}.get(candidate.kind)
+    unresolved_sibling = bool(review_id and (
+        any(x.get('jurisdiction_id') == review_id for x in blocked)
+        or any(x.get('jurisdiction_id') == review_id and x.get('confirm_status') != '확인됨' for x in eligible)
+    ))
+    if len(eligible)==1 and eligible[0]['confirm_status']=='확인됨' and not unresolved_sibling:
         status='1차 부서 후보'
     else:
         status='확인 필요'

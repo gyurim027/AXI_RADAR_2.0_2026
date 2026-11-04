@@ -115,6 +115,20 @@ def drafts(limit: int = Query(50, ge=1, le=200), _u: dict = Depends(operator),
 # Register under the existing STANDARDS router; do not change app/main.py.
 from typing import Any
 from app.services.standards.f01_source_bridge import source_to_kinds, jurisdiction_candidates
+from app.services.standards.preview_enrichment import enrich_f01_match
+from app.services.standards.f03_department_confidence import describe_department_confidence
+from app.services.standards.f04_department_contact import attach_department_contact
+from app.services.standards.f01_display_supply import load_display_sources
+
+
+def _f01_display_enrich(match: dict) -> dict:
+    grades, contacts, supply_state = load_display_sources()
+    enriched = enrich_f01_match(match, grade_by_jurisdiction=grades, official_directory=contacts,
+                                describe_confidence=describe_department_confidence,
+                                attach_contact=attach_department_contact)
+    enriched['display_source_status'] = supply_state
+    return enriched
+
 
 class F01PreviewBody(BaseModel):
     gid: str = Field(min_length=1, max_length=100)
@@ -154,13 +168,21 @@ def f01_preview(body: F01PreviewBody, _u: dict = Depends(operator),
     for candidate in candidates:
         match = jurisdiction_candidates(candidate, rules, departments, gu=body.gu,
                                         condition_verified=False)
+        # The borough name on this endpoint is supplied by the caller, not
+        # verified from the source record. Do not publish a borough-specific
+        # work contact as though that location had been authenticated.
+        display = _f01_display_enrich(match)
+        if body.gu:
+            display.update(dept_team=None, dept_phone=None, contact_type=None,
+                           contact_source_ref=None, contact_status='확인 필요',
+                           contact_reason='요청 구명은 검증되지 않아 연락처 표시 보류')
         results.append({"source_table": candidate.source_table,
                         "source_id": candidate.source_id,
                         "gid": candidate.gid,
                         "problem_kind": candidate.kind,
                         "evidence": candidate.evidence,
                         "classification_basis": candidate.basis,
-                        **match})
+                        **display})
     return {
         "status": "READ_ONLY_PREVIEW", "gid": body.gid,
         "source_provenance": "CALLER_SUPPLIED_NOT_DB_VERIFIED",
@@ -174,6 +196,7 @@ def f01_preview(body: F01PreviewBody, _u: dict = Depends(operator),
 # F-01 additional verified-source path. Only source records read from the
 # official database may use SOURCE_DB_VERIFIED. No caller-supplied row content.
 from app.services.standards.f01_verified_source import load_verified_f01_row
+from app.services.standards.f01_verified_location import verified_advisory_gu
 
 class F01VerifiedSourceBody(BaseModel):
     gid: str = Field(min_length=1, max_length=100)
@@ -195,6 +218,7 @@ def f01_verified_source_preview(body: F01VerifiedSourceBody,
                                     source_id=body.source_id)
         kinds, unresolved = source_to_kinds(gid=body.gid,
                                             table=body.source_table, rows=[row])
+        verified_location = verified_advisory_gu(row, gid=body.gid, table=body.source_table)
     except ValueError as exc:
         raise ApiError(400, "invalid_f01_source", str(exc)) from None
     jurisdiction = repo.jurisdiction()
@@ -206,12 +230,14 @@ def f01_verified_source_preview(body: F01VerifiedSourceBody,
     for candidate in kinds:
         # A client-supplied gu must not be treated as independently checked.
         matched = jurisdiction_candidates(candidate, rules, departments,
-                                           gu=None, condition_verified=False)
+                                           gu=verified_location['gu'], condition_verified=False)
         results.append({"source_table": candidate.source_table,
                         "source_id": candidate.source_id,
                         "gid": candidate.gid, "problem_kind": candidate.kind,
                         "evidence": candidate.evidence,
-                        "classification_basis": candidate.basis, **matched})
+                        "classification_basis": candidate.basis,
+                        "location_verification": verified_location,
+                        **_f01_display_enrich(matched)})
     return {"status": "READ_ONLY_PREVIEW", "gid": body.gid,
             "source_provenance": "SOURCE_DB_VERIFIED_ROW_ID_AND_GID",
             "source_rows_received": 1, "results": results,

@@ -40,6 +40,7 @@ ROUTER_MODULES = [
     ("D-10-READ", "app.api.d10_run_read_api"),  # 대환 D-10 기존 API 유지
     ("D-10-VALIDATE", "app.api.d10_run_validation_api"),  # 대환 D-10 기존 API 유지
     ("D-10", "app.api.d10_operational_api"),  # 운영자 권한 회차 생성
+    ("H-01", "app.api.h01_preview_api"),      # /api/h01   점검 요청서 미리보기 (진이) (feat(h01): add inspection request preview API)
     # 새 기능은 여기에 한 줄: ("AI-03", "app.api.ai03_xxx_api"), ("ENGINE", "app.api.engine_xxx_api") …
 ]
 

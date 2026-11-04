@@ -273,3 +273,8 @@
   flex: none;
   color: var(--radar-admin-semantic-color-text-secondary);
 }
+.f01Form { display: grid; gap: var(--a-s3); margin: var(--a-s4) 0; }
+.f01Form label { display: grid; gap: var(--a-s1); }
+.f01Form input, .f01Form select, .f01Form textarea { padding: var(--a-s2); width: 100%; max-width: 32rem; }
+.f01Result { border-top: 1px solid var(--radar-admin-semantic-color-border-subtle); padding: var(--a-s3) 0; }
+.f01Result p { margin: var(--a-s2) 0; }
