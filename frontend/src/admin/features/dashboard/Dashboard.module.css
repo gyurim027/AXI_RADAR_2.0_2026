@@ -143,3 +143,33 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* 회차가 없을 때: 가운데에 놓이는 알림 한 줄(누를 수 없다). 버튼처럼 보이지 않게 알약·진한 바탕을 쓰지 않고, 옅은 바탕과 얇은 선의 안내 줄로 보인다. */
+.nextEmpty > div:last-child {
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  gap: var(--a-s4);
+}
+.nextEmpty .nextTask {
+  align-items: center;
+  max-width: none;
+}
+.toast {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--a-s2);
+  align-self: stretch; /* 알약이 아니라 가운데 정렬된 폭 넓은 안내 줄이라 버튼처럼 보이지 않는다 */
+  margin: 0;
+  padding: var(--a-s3) var(--a-s4);
+  border-radius: var(--a-radius-control);
+  background: var(--radar-admin-semantic-color-bg-subtle);
+  color: var(--radar-admin-semantic-color-text-secondary);
+  font-size: var(--a-fs-sm);
+  font-weight: var(--a-fw-regular);
+  line-height: 1.5;
+  pointer-events: none; /* 누를 수 없다 */
+  user-select: none;
+  cursor: default;
+}

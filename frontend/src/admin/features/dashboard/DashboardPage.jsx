@@ -4,6 +4,7 @@ import { useAsync } from '../../../shared/hooks/useAsync.js';
 import { opsBackendEnabled } from '../../../api/backend.js';
 import { useAdminOptional } from '../../AdminProvider.jsx';
 import { isOpenInServerMode } from '../../serverRoutes.js';
+import Icon from '../../../user/components/Icon.jsx';
 import Badge, { RUN_TONE } from '../../components/Badge.jsx';
 import PageHeader from '../../components/PageHeader.jsx';
 import Panel from '../../components/Panel.jsx';
@@ -167,20 +168,22 @@ function Body({ data }) {
 
   return (
     <>
-      <Panel className={styles.next} aria-label={DASH.runTitle(data.run.name)}>
-        <div className={styles.nextMain}>
-          <div className={styles.nextHead}>
-            {data.run.name ? (
-              <>
-                <h2 className={styles.nextTitle}>{DASH.runTitle(data.run.name)}</h2>
-                <Badge tone={RUN_TONE[data.run.status]}>{data.run.status || '-'}</Badge>
-              </>
-            ) : (
-              <h2 className={styles.nextTitle}>{DASH.noRun}</h2>
-            )}
+      <Panel className={`${styles.next} ${data.run.name ? '' : styles.nextEmpty}`} aria-label={data.run.name ? DASH.runTitle(data.run.name) : DASH.noRun}>
+        {data.run.name ? (
+          <div className={styles.nextMain}>
+            <div className={styles.nextHead}>
+              <h2 className={styles.nextTitle}>{DASH.runTitle(data.run.name)}</h2>
+              <Badge tone={RUN_TONE[data.run.status]}>{data.run.status || '-'}</Badge>
+            </div>
+            {known3 ? <Stepper steps={RUN_STEPS} current={data.run.status} label="회차 진행 단계" /> : null}
           </div>
-          {known3 ? <Stepper steps={RUN_STEPS} current={data.run.status} label="회차 진행 단계" /> : null}
-        </div>
+        ) : (
+          // 회차가 없다는 것은 정보라서 제목이 아니라 누를 수 없는 토스트 모양으로, 가운데에 작게 보인다.
+          <p className={styles.toast} role="status">
+            <Icon name="info" size={16} />
+            {DASH.noRun}
+          </p>
+        )}
         <div className={styles.nextTask}>
           {data.next.text ? <p className={styles.task}>{DASH.next(data.next.text)}</p> : null}
           {linkTo(data.next.to) ? (
