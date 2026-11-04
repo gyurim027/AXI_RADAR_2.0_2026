@@ -83,7 +83,7 @@ uv run uvicorn app.main:app --port 8000
 - http://127.0.0.1:8000/health/db : DB 연결 확인
 
 DB 없이도 서버는 켜지지만 로그인과 데이터 조회는 DB가 있어야 합니다.
-SQL을 실행하면 로그인용 시험 계정 6개(`suj`, `jungwon`, `bundang`, `bundang-sidewalk`, `city`, `operator`)가 함께 들어갑니다. 비밀번호는 저장소에 없으니 팀 공유 드라이브에서 확인합니다. 계정을 따로 만들 때는 `scripts/auth_create_test_users.py`를 쓰고, 사용법은 파일 맨 위에 있습니다.
+SQL을 실행하면 로그인용 시험 계정 6개(`suj`, `jungwon`, `bundang`, `bundang-sidewalk`, `city`, `operator`)가 함께 들어갑니다. 시험용 비밀번호는 모두 `0000`입니다. 실제 운영에서는 쓰지 않습니다. 계정을 따로 만들 때는 `scripts/auth_create_test_users.py`를 쓰고, 사용법은 파일 맨 위에 있습니다.
 
 ### 3. 프론트엔드와 백엔드 연결
 
@@ -91,7 +91,10 @@ SQL을 실행하면 로그인용 시험 계정 6개(`suj`, `jungwon`, `bundang`,
 
 ```
 VITE_API_BASE_URL=http://127.0.0.1:8000
+VITE_DEV_LOGIN_PASSWORD=0000
 ```
+
+`VITE_DEV_LOGIN_PASSWORD`를 넣으면 개발 서버의 로그인 화면에 있는 개발용 간편 로그인 버튼으로 바로 들어갈 수 있습니다. 넣지 않으면 아이디와 비밀번호를 직접 입력합니다.
 
 그다음 `npm run dev`를 다시 실행합니다. 서버 주소가 있으면 서버 연결 모드가 되고, 아직 서버와 연결되지 않은 화면에는 안내 문구가 나옵니다. 가짜 데이터를 보여 주지 않습니다. 이 줄을 지우면 1번의 가짜 서버 모드로 돌아갑니다. 옵션은 `frontend/.env.example`에 있습니다.
 
