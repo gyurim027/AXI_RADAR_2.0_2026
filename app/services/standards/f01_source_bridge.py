@@ -211,7 +211,14 @@ def jurisdiction_candidates(candidate: Candidate, jurisdiction_rows: Iterable[Ma
                 blocked.append({'jurisdiction_id':jid,'reason':'GU_CONDITIONAL_BRANCH_REQUIRES_REVIEW'})
                 continue
             eligible.append({'jurisdiction_id':jid,'dept_name':d.get('dept_name'),'gu_name':row_gu or None,'source_ref':j.get('basis'),'confirm_status':j.get('confirm_status')})
-    if len(eligible)==1 and eligible[0]['confirm_status']=='확인됨':
+    # Do not allow one confirmed JUR to silently override an unresolved sibling.
+    # A generic crossing/sidewalk kind alone is not proof of the exact job scope.
+    review_id = {'횡단보도': 'JUR-23', '보도': 'JUR-03'}.get(candidate.kind)
+    unresolved_sibling = bool(review_id and (
+        any(x.get('jurisdiction_id') == review_id for x in blocked)
+        or any(x.get('jurisdiction_id') == review_id and x.get('confirm_status') != '확인됨' for x in eligible)
+    ))
+    if len(eligible)==1 and eligible[0]['confirm_status']=='확인됨' and not unresolved_sibling:
         status='1차 부서 후보'
     else:
         status='확인 필요'
