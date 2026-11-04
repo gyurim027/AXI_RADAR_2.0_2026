@@ -287,3 +287,19 @@ test('구 도로관리팀 응답에는 구 없는 후보가 없어 0이다', () 
   const list = toCandidateList({ run: run2, candidates: [cand('a', '수정구', 50, 1)] }, { role: 'district', gu: '수정구' }, { gu: null, guList: GUS, allGu: ALL });
   assert.equal(list.noGuCount, 0);
 });
+
+test('회차: 산정 기간은 자료 기준 점 형식과 민원 기간 객체로 바꾼다', () => {
+  const r = toRun({ ...run2, period_start: '2022-01-01', period_end: '2025-12-31' });
+  assert.equal(r.dataRange, '2022.01 ~ 2025.12');
+  assert.deepEqual(r.complaintPeriod, { start: '2022-01-01', end: '2025-12-31' });
+  const admin = toAdminRun(r);
+  assert.equal(admin.period, '2022.01 ~ 2025.12');
+  assert.deepEqual(admin.complaintPeriod, { start: '2022-01-01', end: '2025-12-31' });
+});
+
+test('회차: 산정 기간이 없으면 가짜로 채우지 않는다', () => {
+  const r = toRun(run2);
+  assert.equal(r.dataRange, null);
+  assert.equal(r.complaintPeriod, null);
+  assert.equal(toAdminRun(r).period, '-');
+});
