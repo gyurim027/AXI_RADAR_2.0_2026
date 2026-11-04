@@ -45,7 +45,9 @@ def _cnt(v):
 
 def _run(r: dict) -> dict:
     out = {"run_id": r["run_id"], "build_id": r.get("build_id"), "rule_version": r.get("rule_version"),
-           "created_at": _iso(r.get("created_at")), "note": r.get("note")}
+           "created_at": _iso(r.get("created_at")), "note": r.get("note"),
+           "period_start": str(r["period_start"]) if r.get("period_start") is not None else None,
+           "period_end": str(r["period_end"]) if r.get("period_end") is not None else None}
     out.update({k:r.get(k) for k in (
         'weight_setting_version_id','threshold_setting_version_id',
         'priority_condition_setting_version_id','setting_versions',
