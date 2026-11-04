@@ -13,11 +13,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 @pytest.fixture
 def module(monkeypatch):
     # 운영 모듈은 변경하지 않고, 외부 의존 경계만 지역적으로 교체한다.
-    parent = 'app.services.AI-10'
+    parent = 'app.services.ai10'
     for name in ('app', 'app.services', parent):
         if name not in sys.modules:
             pkg = types.ModuleType(name)
-            pkg.__path__ = [str(Path(__file__).resolve().parents[1] / 'app' / 'services' / 'AI-10')] if name == parent else []
+            pkg.__path__ = [str(Path(__file__).resolve().parents[1] / 'app' / 'services' / 'ai10')] if name == parent else []
             monkeypatch.setitem(sys.modules, name, pkg)
     bridge_name = parent + '.ai10_assessment_evidence_bridge'
     fake_bridge = types.ModuleType(bridge_name)

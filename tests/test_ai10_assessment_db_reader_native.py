@@ -5,7 +5,7 @@ from pathlib import Path
 from unittest.mock import patch
 import pytest
 
-SRC = Path(__file__).resolve().parents[1] / 'app/services/AI-10/ai10_assessment_db_reader.py'
+SRC = Path(__file__).resolve().parents[1] / 'app/services/ai10/ai10_assessment_db_reader.py'
 spec = importlib.util.spec_from_file_location('ai10_native_db_reader', SRC)
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)

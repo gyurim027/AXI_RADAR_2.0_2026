@@ -7,7 +7,7 @@ from pathlib import Path
 root = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(root))
 
-module = importlib.import_module('app.services.AI-10.ai10_case_draft')
+module = importlib.import_module('app.services.ai10.ai10_case_draft')
 
 base = dict(
     approved_case_token='SAFE_TEST_01',

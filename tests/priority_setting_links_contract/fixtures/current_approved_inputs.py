@@ -54,51 +54,88 @@ def load_approved_policy(setting: dict, evidence_dir: str) -> dict:
     return policy
 
 
+def classification_decision(row: dict) -> str | None:
+    """Return Y/N for accepted classified inputs; None for excluded/unresolved.
+
+    Human CONFIRMED overrides the accepted AI/rule classification only when its
+    relevance is explicit. Unknowns are not inferred into negative cases.
+    """
+    relevance = row.get('relevance')
+    status = str(row.get('review_status') or '').strip().upper()
+    method = row.get('class_method')
+    if relevance in ('Y', '보행안전 관련'):
+        value = 'Y'
+    elif relevance in ('N', '비관련'):
+        value = 'N'
+    else:
+        return None
+    if status == 'CONFIRMED' or method in ('AI', '규칙'):
+        return value
+    return None
+
+
 def aggregate_reviewed_complaints(rows: list[dict], *, start: date, end: date,
                                   gids: set[str], confirmed_status='CONFIRMED') -> list[dict]:
-    """Aggregate reviewed complaint records by grid, preserving zero-complaint grids.
+    """Aggregate eligible classification; record unresolved rows without inventing values.
 
-    Input rows are joined upstream to original complaint_id and C-08 reviewer decision.
-    Each row requires independent human confirmation; rules alone never authorize inclusion.
-    repeat_count counts a later distinct received date for an already seen gid/type.
+    This is a pure pre-score input calculation, not approval for a DB77/78 write.
     """
-    if not isinstance(start,date) or not isinstance(end,date) or start>end:
+    if not isinstance(start, date) or not isinstance(end, date) or start > end:
         raise InputBlocked('INVALID_PERIOD')
-    state={gid:{'gid':gid,'relevant_count':0,'repeat_count':0,'count_excl_low':0,
-                'classification_status':'COMPLETE'} for gid in gids}
-    seen_ids=set(); seen_gid_type_dates=defaultdict(set)
-    selected=[]
+    gids = {str(g) for g in gids}
+    state = {gid: {'gid': gid, 'relevant_count': 0, 'repeat_count': 0,
+                   'count_excl_low': 0, 'classification_status': 'COMPLETE',
+                   'unresolved_count': 0, 'irrelevant_count': 0,
+                   'low_excluded_count': 0} for gid in gids}
+    seen_ids = set()
+    seen_gid_type_dates = defaultdict(set)
+    selected = []
     for row in rows:
-        cid=row.get('complaint_id'); gid=row.get('gid')
-        if not cid or cid in seen_ids:
+        cid = row.get('complaint_id')
+        if cid is None or not str(cid).strip() or str(cid) in seen_ids:
             raise InputBlocked('DUPLICATE_OR_EMPTY_COMPLAINT_ID')
-        seen_ids.add(cid)
-        dt=row.get('received_date')
-        if isinstance(dt,str):
-            try: dt=date.fromisoformat(dt[:10])
-            except ValueError as exc: raise InputBlocked('INVALID_RECEIVED_DATE') from exc
-        if not isinstance(dt,date):
+        seen_ids.add(str(cid))
+        dt = row.get('received_date')
+        if isinstance(dt, str):
+            try:
+                dt = date.fromisoformat(dt[:10])
+            except ValueError as exc:
+                raise InputBlocked('INVALID_RECEIVED_DATE') from exc
+        if not isinstance(dt, date):
             raise InputBlocked('INVALID_RECEIVED_DATE')
-        if not start<=dt<=end: continue
+        if not start <= dt <= end:
+            continue
+        gid = str(row.get('gid'))
         if gid not in gids:
             raise InputBlocked('UNMAPPED_COMPLAINT_GID')
-        if row.get('review_status')!=confirmed_status:
-            raise InputBlocked('UNREVIEWED_COMPLAINT_IN_OFFICIAL_INPUT')
-        relevant=row.get('relevance')
-        if relevant not in ('Y','N'):
-            raise InputBlocked('UNRESOLVED_RELEVANCE')
-        if relevant=='N':continue
-        typ=row.get('ped_type')
-        if not isinstance(typ,str) or not typ:
-            raise InputBlocked('MISSING_APPROVED_PED_TYPE')
-        selected.append((gid,typ,dt,row))
-        state[gid]['relevant_count']+=1
-        if row.get('low_confidence') is not True:
-            state[gid]['count_excl_low']+=1
-    for gid,typ,dt,row in sorted(selected,key=lambda v:(v[0],v[1],v[2])):
-        dates=seen_gid_type_dates[(gid,typ)]
+        target = state[gid]
+        relevant = classification_decision(row)
+        if relevant is None:
+            target['unresolved_count'] += 1
+            target['classification_status'] = 'INCOMPLETE'
+            continue
+        if relevant == 'N':
+            target['irrelevant_count'] += 1
+            continue
+        typ = row.get('ped_type')
+        if not isinstance(typ, str) or not typ.strip():
+            target['unresolved_count'] += 1
+            target['classification_status'] = 'INCOMPLETE'
+            continue
+        target['relevant_count'] += 1
+        # Missing confidence/coordinate quality is not evidence of high quality.
+        low = row.get('low_confidence')
+        if low is None:
+            low = str(row.get('coord_accuracy') or '').strip() == '낮음'
+        if low is True:
+            target['low_excluded_count'] += 1
+        else:
+            target['count_excl_low'] += 1
+        selected.append((gid, typ, dt, str(cid)))
+    for gid, typ, dt, cid in sorted(selected):
+        dates = seen_gid_type_dates[(gid, typ)]
         if dates and dt not in dates:
-            state[gid]['repeat_count']+=1
+            state[gid]['repeat_count'] += 1
         dates.add(dt)
     return [state[gid] for gid in sorted(state)]
 

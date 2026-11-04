@@ -15,7 +15,7 @@ JUR = {
  '주정차': ('JUR-06',), '적치': ('JUR-07',),
  '조도': ('JUR-05',), '가로등': ('JUR-05',),
  '보도': ('JUR-02','JUR-03'), '점자블록': ('JUR-02',),
- '파손': ('JUR-02',), '단차': ('JUR-02',),
+ '파손': ('JUR-02','JUR-24'), '단차': ('JUR-02',),
  '신호': ('JUR-11',), '횡단보도': ('JUR-01','JUR-23'),
  '점용': ('JUR-07','JUR-08'), '보호구역': ('JUR-01','JUR-10'),
  '자전거': ('JUR-13',), '노점': ('JUR-07',), '공사': ('JUR-08',),
@@ -49,6 +49,12 @@ class Candidate:
     kind: str
     evidence: str
     basis: str
+    # Context not currently supplied by F-01 preview or verified-source APIs.
+    # None is unknown, NOT proof that the event is outside a protection zone.
+    protected_zone: str | None = None
+    protected_zone_basis: str | None = None
+    facility_scope: str | None = None
+    facility_scope_basis: str | None = None
 
 
 def source_to_kinds(*, gid: str, table: str, rows: Iterable[Mapping]) -> tuple[list[Candidate], list[dict]]:
@@ -95,6 +101,32 @@ def source_to_kinds(*, gid: str, table: str, rows: Iterable[Mapping]) -> tuple[l
     return result,unresolved
 
 
+
+def verified_damage_jurisdiction(candidate: Candidate) -> str | None:
+    """Only an independently explicit road/sidewalk context can choose JUR-24/02.
+
+    A bare '파손' category is ambiguous. The raw road-hazard source is a
+    confirmed roadway-surface defect; text evidence must identify the surface.
+    Never use arbitrary score/location to guess a department.
+    """
+    if candidate.kind != '파손':
+        return None
+    if (candidate.source_table == 'src_road_hazard'
+            and candidate.basis == 'CONFIRMED_ROAD_SURFACE_DEFECT'):
+        return 'JUR-24'
+    if candidate.source_table != 'src_complaint':
+        return None
+    if candidate.basis not in {'EXPLICIT_REPORT_TYPE', 'EXPLICIT_VERIFIED_KIND'}:
+        return None
+    raw = candidate.evidence.strip()
+    # Ambiguous mixed reports must remain for review.
+    road = bool(re.search(r'포트홀|차도|도로\s*(?:파손|파임|균열)', raw))
+    sidewalk = bool(re.search(r'보도|인도|보행로|점자블록', raw))
+    if road == sidewalk:
+        return None
+    return 'JUR-24' if road else 'JUR-02'
+
+
 def jurisdiction_candidates(candidate: Candidate, jurisdiction_rows: Iterable[Mapping], dept_rows: Iterable[Mapping], *, gu: str | None=None, condition_key: str | None=None, condition_verified: bool=False) -> dict:
     """Advisory only: match actual DB87+88, never fabricate 3-key F01 rules.
 
@@ -103,7 +135,44 @@ def jurisdiction_candidates(candidate: Candidate, jurisdiction_rows: Iterable[Ma
     """
     j_by_id={str(j.get('jurisdiction_id')): j for j in jurisdiction_rows}
     eligible=[]; blocked=[]
-    for jid in JUR[candidate.kind]:
+    # JUR-01: verified protection-zone traffic-safety facility only.
+    # JUR-04: verified general pedestrian-obstruction / road-safety facility.
+    # A location inside a protection zone does not by itself prove the owner or
+    # that a particular bollard/guardrail is a protection-zone installation.
+    if candidate.kind == '교통안전시설':
+        zone = candidate.protected_zone
+        scope = candidate.facility_scope
+        zone_verified = zone in {'안', '밖'} and bool(candidate.protected_zone_basis)
+        scope_verified = scope in {'보호구역 교통안전시설', '일반 보행 방해시설'} and bool(candidate.facility_scope_basis)
+        if not zone_verified or not scope_verified:
+            return {'status':'확인 필요','problem_kind':candidate.kind,
+                    'source_id':candidate.source_id,'candidate_departments':[],
+                    'blocked_conditions':[{'jurisdiction_id':'JUR-01/JUR-04',
+                        'reason':'PROTECTED_ZONE_AND_FACILITY_CONTEXT_UNVERIFIED'}],
+                    'department_finalized':False,'needs_human_review':True}
+        # An independently validated facility scope outranks geographic proximity.
+        # Mixed facts go to human review; never infer an owner from the zone alone.
+        if zone == '안' and scope == '보호구역 교통안전시설':
+            facility_jur = 'JUR-01'
+        elif scope == '일반 보행 방해시설':
+            facility_jur = 'JUR-04'
+        else:
+            return {'status':'확인 필요','problem_kind':candidate.kind,
+                    'source_id':candidate.source_id,'candidate_departments':[],
+                    'blocked_conditions':[{'jurisdiction_id':'JUR-01/JUR-04',
+                        'reason':'ZONE_AND_FACILITY_SCOPE_CONFLICT'}],
+                    'department_finalized':False,'needs_human_review':True}
+    else:
+        facility_jur = None
+    damage_jur = verified_damage_jurisdiction(candidate)
+    if candidate.kind == '파손' and damage_jur is None:
+        return {'status':'확인 필요','problem_kind':candidate.kind,
+                'source_id':candidate.source_id,'candidate_departments':[],
+                'blocked_conditions':[{'jurisdiction_id': 'JUR-02/JUR-24',
+                                       'reason':'ROAD_VS_SIDEWALK_UNVERIFIED'}],
+                'department_finalized':False,'needs_human_review':True}
+    ids = (facility_jur,) if facility_jur else ((damage_jur,) if damage_jur else JUR[candidate.kind])
+    for jid in ids:
         j=j_by_id.get(jid)
         if j is None:
             blocked.append({'jurisdiction_id':jid,'reason':'MISSING_DB87_ROW'});continue
@@ -118,17 +187,19 @@ def jurisdiction_candidates(candidate: Candidate, jurisdiction_rows: Iterable[Ma
             cond=str(d.get('condition_text') or '').strip()
             if cond and (not condition_verified or cond != str(condition_key or '').strip()):
                 blocked.append({'jurisdiction_id':jid,'reason':'F02_CONDITION_NOT_VERIFIED'});continue
+            # Where the same JUR/gu has both a general row and a qualified
+            # alternative, the general row must not silently win.  The source
+            # location must be independently verified by F-02 before routing.
+            # E.g. JUR-02 in Sujeong-gu has a separate "other neighborhoods" row.
+            if not cond and row_gu and any(
+                str(other.get('jurisdiction_id')) == jid
+                and str(other.get('gu_name') or '').strip() == row_gu
+                and str(other.get('condition_text') or '').strip()
+                for other in rows
+            ):
+                blocked.append({'jurisdiction_id':jid,'reason':'GU_CONDITIONAL_BRANCH_REQUIRES_REVIEW'})
+                continue
             eligible.append({'jurisdiction_id':jid,'dept_name':d.get('dept_name'),'gu_name':row_gu or None,'source_ref':j.get('basis'),'confirm_status':j.get('confirm_status')})
-    # A detected road-surface defect does not establish a sidewalk defect.
-    # The only mapped JUR-02 pertains to sidewalk; block this until a separately
-    # verified road/sidewalk attribution and matching jurisdiction are available.
-    road_surface_unresolved = (
-        candidate.source_table == 'src_road_hazard'
-        and candidate.kind == '파손'
-    )
-    if road_surface_unresolved:
-        blocked.append({'jurisdiction_id':'JUR-02','reason':'ROAD_VS_SIDEWALK_UNVERIFIED'})
-        eligible = []
     if len(eligible)==1 and eligible[0]['confirm_status']=='확인됨':
         status='1차 부서 후보'
     else:

@@ -134,7 +134,7 @@ def prepare_external_llm_request(*, approved_case_token: str, reviewed_findings:
     """
     import importlib
     projection = importlib.import_module(
-        'app.services.AI-10.ai10_external_payload'
+        'app.services.ai10.ai10_external_payload'
     ).make_external_projection(
         approved_case_token=approved_case_token,
         reviewed_findings=reviewed_findings,
@@ -235,7 +235,7 @@ def generate_case_draft(case: CaseInput, *, generator: Callable[[str], dict | st
     output=validate_case_draft(output,case)
     from importlib import import_module
     collect_review_signals = import_module(
-        "app.services.AI-10.ai10_case_review_signals"
+        "app.services.ai10.ai10_case_review_signals"
     ).collect_review_signals
     payload["review_findings"] = collect_review_signals(case, output)
     payload['draft']=output.model_dump()

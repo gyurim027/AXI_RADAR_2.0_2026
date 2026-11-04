@@ -86,11 +86,12 @@ class Cursor:
                 nullable='YES',column_type='json' if i in C.JSON_INDEXES else 'decimal(18,6)' if i in (4,6) else 'varchar(40)' if i==3 else 'varchar(255)') for i,col in enumerate(C.COLS)]
         elif 'FROM grid_feature' in sql:self.result=[{'ID_gid':'TEST_GRID'}]
         elif 'FROM priority_run WHERE note=' in sql:self.result=[]
+        elif sql.startswith('SELECT run_id,') and 'FROM priority_run WHERE run_id=' in sql:self.result=[dict(c.run)]
         elif sql.startswith('INSERT INTO priority_run'):
             c.run={'period_start':args[3],'period_end':args[4],**dict(zip(L.FIELDS,args[5:]))};self.result=[]
         elif sql.startswith('INSERT INTO priority_candidate'):
             c.saved={'gid':args[1],**dict(zip(C.COLS,args[-8:]))};self.result=[]
-        elif sql.startswith('SELECT COUNT(*) AS n FROM priority_candidate'):self.result=[{'n':1}]
+        elif sql.startswith('SELECT COUNT(*) AS n FROM priority_candidate'):self.result=[{'n':1 if hasattr(c,'saved') else 0}]
         elif sql.startswith('SELECT gid,'):
             self.result=[dict(c.saved)]
             if c.mode=='bad_detail':self.result[0]['complaint_contribution']=Decimal('9')
@@ -101,7 +102,10 @@ class Cursor:
     def fetchall(self):return self.result
 
 class Connection:
-    def __init__(self,mode=None):self.mode=mode;self.calls=[];self.committed=False;self.rolled=False;self.closed=False
+    def __init__(self,mode=None):
+        self.mode=mode;self.calls=[];self.committed=False;self.rolled=False;self.closed=False
+        self.run={'run_id':42,'build_id':'TEST_ONLY_BUILD','rule_version':'TEST_ONLY_POLICY',
+                  'period_start':date(2021,1,1),'period_end':date(2026,9,30),**dict(zip(L.FIELDS,(10,20,30)))}
     def cursor(self):return Cursor(self)
     def commit(self):self.committed=True
     def rollback(self):self.rolled=True
@@ -166,7 +170,8 @@ class ReadTests(unittest.TestCase):
         if sql.startswith('SELECT run_id,'):
             return [{'run_id':1,**dict(zip(L.FIELDS,(10,20,30)))}]
         return [dict(setting_version_id=r.setting_version_id,setting_kind=r.setting_kind,
-                     version_label=r.version_label,version_no=r.version_no) for r in refs()]
+                     version_label=r.version_label,version_no=r.version_no,
+                     approval_status='승인',approved_at=datetime(2026,10,30)) for r in refs()]
     def test_legacy_uses_no_new_column_query(self):
         old={'run_id':1,'score':None,'rule_version':'v1'};r=L.attach_run_versions([old],no_db,False)[0]
         self.assertEqual(r['setting_links_status'],'NOT_DEPLOYED');self.assertIsNone(r['score']);self.assertNotIn('setting_versions',old)
@@ -183,7 +188,21 @@ class ReadTests(unittest.TestCase):
             if not s.startswith('SELECT run_id,'):rows[0]['version_no']=None
             return rows
         r=L.attach_run_versions([{'run_id':1}],read,True)[0]
-        self.assertNotIn('가중치 v10',r['setting_version_display']);self.assertEqual(r['setting_versions']['weight']['status'],'UNNUMBERED')
+        self.assertNotIn('가중치 v10',r['setting_version_display'])
+        self.assertEqual(r['setting_versions']['weight']['status'],'LINKED')
+        self.assertIsNone(r['setting_versions']['weight']['version_no'])
+        self.assertIn('가중치 [ID 10]',r['setting_version_display'])
+        self.assertEqual(r['setting_links_status'],'LINKED')
+    def test_unapproved_reference_not_presented_as_linked(self):
+        def read(s,a):
+            rows=self.reader(s,a)
+            if not s.startswith('SELECT run_id,'):
+                rows[0]['approval_status']='제안'
+            return rows
+        r=L.attach_run_versions([{'run_id':1}],read,True)[0]
+        self.assertEqual(r['setting_versions']['weight']['status'],'NOT_APPROVED')
+        self.assertEqual(r['setting_links_status'],'INCOMPLETE')
+
     def test_wrong_kind_not_presented_as_valid(self):
         def read(s,a):
             rows=self.reader(s,a)
@@ -202,7 +221,7 @@ class ReadTests(unittest.TestCase):
 class WriteTests(unittest.TestCase):
     def setUp(self):self.mode=patch.dict(os.environ,{'RADAR_PRIORITY_SETTING_LINKS':'v24'});self.mode.start()
     def tearDown(self):self.mode.stop()
-    def write(self,c,b=None):return W.write_approved_batch(b or batch(),explicit_db_write_approval=True,evidence_by_gid=evidence(),connection_factory=lambda:c)
+    def write(self,c,b=None):return W.write_approved_batch(b or batch(),explicit_db_write_approval=True,evidence_by_gid=evidence(),connection_factory=lambda:c,existing_run_id=42)
     def test_same_transaction_writes_and_reads_refs_period_and_details(self):
         c=Connection();r=self.write(c);self.assertEqual(r['status'],'WRITTEN');self.assertTrue(c.committed and c.closed);self.assertFalse(c.rolled)
         self.assertEqual(tuple(c.run[f] for f in L.FIELDS),(10,20,30));self.assertEqual(c.run['period_end'],date(2026,9,30));self.assertEqual(c.saved['complaint_contribution'],Decimal('-1.500000'))
@@ -225,16 +244,16 @@ class WriteTests(unittest.TestCase):
     def test_inactive_mode_connects_no_database(self):
         with patch.dict(os.environ,{'RADAR_PRIORITY_SETTING_LINKS':'legacy'}):
             with self.assertRaisesRegex(P.ProductionBlocked,'ACTIVATION'):
-                W.write_approved_batch(batch(),explicit_db_write_approval=True,evidence_by_gid=evidence(),connection_factory=no_db)
+                W.write_approved_batch(batch(),explicit_db_write_approval=True,evidence_by_gid=evidence(),connection_factory=no_db,existing_run_id=42)
     def test_missing_references_connects_no_database(self):
         with self.assertRaisesRegex(L.SettingLinksBlocked,'THREE_EXPLICIT'):
-            W.write_approved_batch(replace(batch(),setting_references=()),explicit_db_write_approval=True,evidence_by_gid=evidence(),connection_factory=no_db)
+            W.write_approved_batch(replace(batch(),setting_references=()),explicit_db_write_approval=True,evidence_by_gid=evidence(),connection_factory=no_db,existing_run_id=42)
     def test_simulated_base_stays_blocked(self):
         with self.assertRaisesRegex(P.ProductionBlocked,'SIMULATION'):
-            W.write_approved_batch(replace(batch(),setting_version_id=1),explicit_db_write_approval=True,evidence_by_gid=evidence(),connection_factory=no_db)
+            W.write_approved_batch(replace(batch(),setting_version_id=1),explicit_db_write_approval=True,evidence_by_gid=evidence(),connection_factory=no_db,existing_run_id=42)
     def test_explicit_write_gate_stays_blocked(self):
         with self.assertRaisesRegex(P.ProductionBlocked,'EXPLICIT'):
-            W.write_approved_batch(batch(),explicit_db_write_approval=False,evidence_by_gid=evidence(),connection_factory=no_db)
+            W.write_approved_batch(batch(),explicit_db_write_approval=False,evidence_by_gid=evidence(),connection_factory=no_db,existing_run_id=42)
     def test_reference_identity_changes_fingerprint(self):
         b=batch();other=(replace(b.setting_references[0],setting_version_id=11),*b.setting_references[1:])
         self.assertNotEqual(P.plan(b)['fingerprint'],P.plan(replace(b,setting_references=other))['fingerprint'])
@@ -283,7 +302,7 @@ class PipelineTests(unittest.TestCase):
                 reviewed_complaints=({'complaint_id':'TEST_ONLY_1','gid':'TEST_GRID','received_date':'2021-01-02',
                     'review_status':'CONFIRMED','relevance':'Y','ped_type':'TEST_TYPE','low_confidence':False},),
                 scored_candidates=({**batch().candidates[0],'complaint_cnt':1,'complaint_cnt_excl_low':1},),
-                evidence_by_gid=evidence(),authorized_by='TEST_ONLY',approval_reference='TEST_ONLY',setting_references=references)
+                evidence_by_gid=evidence(),authorized_by='TEST_ONLY',approval_reference='TEST_ONLY',setting_references=references,existing_run_id=42)
             with patch.object(pipeline,'write_approved_batch',return_value={'status':'WRITTEN','run_id':42}) as wr:
                 result=pipeline.run_official_pipeline(inputs,explicit_db_write_approval=True,read_only=reader)
             saved=wr.call_args.args[0]

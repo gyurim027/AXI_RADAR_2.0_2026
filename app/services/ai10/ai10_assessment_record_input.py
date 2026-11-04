@@ -51,8 +51,8 @@ def build_case_from_assessment(
         raise ValueError(f'시설 ID가 정확히 한 행과 일치해야 합니다: {len(matches)}건')
     if not attestations:
         raise ValueError('검증된 근거 연결 없음: AI 입력 생성 중단')
-    bridge = importlib.import_module('app.services.AI-10.ai10_assessment_evidence_bridge')
-    case_module = importlib.import_module('app.services.AI-10.ai10_case_draft')
+    bridge = importlib.import_module('app.services.ai10.ai10_assessment_evidence_bridge')
+    case_module = importlib.import_module('app.services.ai10.ai10_case_draft')
     row = matches[0]
     evidence = []
     audits = []
