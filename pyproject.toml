@@ -1,6 +1,6 @@
 [project]
 name = "radar-backend"
-version = "0.1.0"
+version = "1.0.0"
 description = "RADAR 2.0 공통 백엔드 (FastAPI 서버 하나에 기능별 API)"
 requires-python = ">=3.11,<3.14"
 # 모두가 설치하는 기본 묶음: 공통 서버 + AI-05 + AI-07 + AI-10

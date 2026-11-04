@@ -62,7 +62,7 @@ ROUTERS = _load_routers()
 app = FastAPI(
     title="RADAR 2.0",
     description="RADAR 2.0 공통 서버 — 기능별 API는 /api/<기능>/ 아래에 있습니다.",
-    version="0.1.0",
+    version="1.0.0",
 )
 
 settings = get_settings()
@@ -85,13 +85,13 @@ for _name, _router in ROUTERS:
 
 @app.get("/")
 def root():
-    return {"service": "RADAR 2.0", "status": "running", "docs": "/docs"}
+    return {"service": "RADAR 2.0", "version": app.version, "status": "running", "docs": "/docs"}
 
 
 @app.get("/health")
 def health():
     """서버가 떠 있는지만 본다 (DB는 연결하지 않음)."""
-    return {"status": "ok", "modules": [name for name, _ in ROUTERS], "db_configured": db.is_configured()}
+    return {"status": "ok", "version": app.version, "modules": [name for name, _ in ROUTERS], "db_configured": db.is_configured()}
 
 
 @app.get("/health/db")
