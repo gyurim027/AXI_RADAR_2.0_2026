@@ -5,7 +5,6 @@ export const RUNS = {
   title: '회차 목록',
   subtitle: '회차를 만들고 산정을 실행한 뒤 검토 중으로 엽니다.',
   create: '회차 만들기',
-  notConnected: '회차 만들기, 산정 시작하기, 검토 중으로 열기는 아직 서버와 연결되지 않았습니다. 지금은 회차 목록만 볼 수 있습니다.',
   head: ['회차', '종류', '상태', '산정 기준 버전', '민원 접수 기간', '생성일', '검토 시작일'],
   // 산정 중인 회차의 지금 단계. 그 단계에 할 버튼 하나만 진하게 보인다 (5-3 ③)
   stage: { before: '산정 전', running: '산정 실행 중', ready: '열기 전' },
@@ -48,7 +47,7 @@ export const RUNS = {
   missingTitle: '빠진 자료',
   unratedTitle: '미평가 분야',
   refNote: '반기 참고 회차는 참고용으로만 볼 수 있으며, 점검 대상은 확정할 수 없습니다.',
-  goMissing: '빠진 자료 올리러 가기',
+  goMissing: '빠진 자료 올리기',
   notFinished: '산정이 끝나지 않아 열 수 없습니다.',
 };
 

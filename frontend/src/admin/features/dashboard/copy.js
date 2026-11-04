@@ -1,5 +1,4 @@
 // AD-01 대시보드 문구 (10_3_화면명세_어드민 AD-01)
-import { withEuro } from '../../../shared/utils/format.js';
 
 export const DASH = {
   title: '대시보드',
@@ -7,7 +6,7 @@ export const DASH = {
   noRun: '진행 중인 회차가 없습니다',
   runTitle: (name) => `${name || '-'} 회차`,
   next: (task) => `다음에 할 일: ${task}`,
-  goto: (screen) => `${withEuro(screen)} 가기`,
+  goto: (screen) => `${screen} 열기`,
   todoTitle: '처리할 일',
   baseTitle: '기준 현황',
   dataTitle: '자료 최신 여부',
@@ -15,15 +14,15 @@ export const DASH = {
   approvalsTitle: '승인 현황',
   regTitle: '규정 변경',
   criteriaTitle: '산정 기준',
-  // 카드 오른쪽 위 상태와 아래 '보러 가기' 링크 (UX 고도화 A-1)
+  // 카드 오른쪽 위 상태와 아래 '보기' 링크 (UX 고도화 A-1)
   state: { ok: '정상', check: '확인 필요', fail: '실패 있음', wait: '승인 대기 있음', none: '대기 없음', current: '현재 버전', unknown: '-' },
   more: {
-    data: '자료 목록 보러 가기',
-    runs: '실행 기록 보러 가기',
-    approvals: '승인 이력 보러 가기',
-    regs: '규정 변경 보러 가기',
-    criteria: '산정 기준으로 가기',
-    checks: '검사 결과 보러 가기',
+    data: '자료 목록 보기',
+    runs: '실행 기록 보기',
+    approvals: '승인 이력 보기',
+    regs: '규정 변경 보기',
+    criteria: '산정 기준 보기',
+    checks: '검사 결과 보기',
   },
   checksTitle: '자료 검사', // 제안 문구: 정의서 AD-01에 이 카드 이름이 없다
   criteriaCurrent: '현재 버전',

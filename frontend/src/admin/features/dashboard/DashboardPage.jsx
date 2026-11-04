@@ -25,7 +25,7 @@ function Metric({ label, value, unit, to }) {
   return <StatTile label={label} value={value} unit={unit} to={linkTo(to) || undefined} />;
 }
 
-/** 카드 하나: 오른쪽 위에 상태 배지, 아래에 '보러 가기' 링크 (A-1). 숫자만 있던 카드가 어디로 가는지 드러낸다. */
+/** 카드 하나: 오른쪽 위에 상태 배지, 아래에 '보기' 링크 (A-1). 숫자만 있던 카드가 어디로 가는지 드러낸다. */
 function StatCard({ title, tone, state, to, more, children }) {
   return (
     <Panel title={title} className={styles.card} actions={<Badge tone={tone}>{state}</Badge>}>

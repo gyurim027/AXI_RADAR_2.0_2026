@@ -90,7 +90,7 @@ export const REGS = {
   jurHead: ['관할', '조건', '담당 부서'],
   toDeptRow: '담당 부서 표에서 보기',
   pending: '시행 전',
-  toDept: '담당 부서 표로 가기',
+  toDept: '담당 부서 표 보기',
   empty: '바뀐 법령이나 업무분장이 없습니다.',
   failedArea: '규정 변경',
 };

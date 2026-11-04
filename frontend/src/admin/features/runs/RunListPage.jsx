@@ -108,11 +108,6 @@ export default function RunListPage() {
           {RUNS.create}
         </Button>
       </PageHeader>
-      {adminRunsFromServer ? (
-        <p role="status" className={styles.note}>
-          {RUNS.notConnected}
-        </p>
-      ) : null}
       {error ? (
         <p role="alert" className={styles.error}>
           {error}
