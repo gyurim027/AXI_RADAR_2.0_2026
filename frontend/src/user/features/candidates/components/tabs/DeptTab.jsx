@@ -30,7 +30,13 @@ export default function DeptTab({ detail, onChanged }) {
       <div className={styles.content}>
         <Card title={DRAWER.deptTitle}>
         {d.dept ? (
-          <p>{`${d.dept.name} · ${d.dept.contact} · ${d.dept.status}`}</p>
+          <p className={styles.deptLine}>
+            <b>{d.dept.name}</b>
+            <span className={styles.muted}>{d.dept.contact}</span>
+            <Tag tone={d.dept.status === DEPT_STATUS.OK ? 'low' : 'mid'} small>
+              {d.dept.status}
+            </Tag>
+          </p>
         ) : (
           <p>
             <Tag tone="mid">담당 미정</Tag>

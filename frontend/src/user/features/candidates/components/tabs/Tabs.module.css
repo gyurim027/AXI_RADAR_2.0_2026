@@ -12,7 +12,7 @@
 }
 /* 탭 맨 위 안내 한 줄: 14px 보조색 (위계 ③을 옅게) */
 .sub {
-  font-size: var(--fs-small);
+  font-size: var(--fs-caption); /* 설명 글은 12px 보조색: 상태값·빈 안내와 구분된다 */
   color: var(--semantic-color-text-muted);
 }
 .h + .sub {
@@ -123,4 +123,12 @@
 }
 .helpLine + .helpLine {
   margin-top: var(--space-4);
+}
+
+/* 담당 부서: 이름은 굵게, 연락처는 보조색, 상태값은 꼬리표 */
+.deptLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8);
 }

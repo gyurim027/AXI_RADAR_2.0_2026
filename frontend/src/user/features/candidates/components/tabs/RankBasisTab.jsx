@@ -1,4 +1,5 @@
 import Tag from '../../../../components/Tag.jsx';
+import { EmptyState } from '../../../../components/States.jsx';
 import Card from '../../../../components/Card.jsx';
 import Stat from '../../../../components/Stat.jsx';
 import Callout from '../../../../components/Callout.jsx';
@@ -117,7 +118,7 @@ export default function RankBasisTab({ detail }) {
             <DataTable caption="순위 근거" columns={columns} rows={d.evidence} getRowKey={(e) => `${e.field}-${e.item}`} minWidth={990} />
           </div>
         ) : (
-          <p className={styles.muted}>{COMMON.noEvidence}</p>
+          <EmptyState compact text={COMMON.noEvidence} />
         )}
       </Card>
 
@@ -138,7 +139,7 @@ export default function RankBasisTab({ detail }) {
 
       <Card title={DRAWER.complaintTitle} aria-label={complaintAria}>
         {!d.complaint.has ? (
-          <p className={styles.muted}>{DRAWER.complaintEmpty}</p>
+          <EmptyState compact text={DRAWER.complaintEmpty} />
         ) : (
           <>
             <p>{d.complaint.types.length ? DRAWER.complaintLine(d.complaint.types) : DRAWER.complaintTotal(d.complaint.total)}</p>

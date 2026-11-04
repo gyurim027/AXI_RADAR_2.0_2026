@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Tag from '../../../../components/Tag.jsx';
+import { EmptyState } from '../../../../components/States.jsx';
 import Card from '../../../../components/Card.jsx';
 import { DRAWER } from '../../copy.js';
 import styles from './Tabs.module.css';
@@ -12,7 +13,7 @@ export default function ArticlesTab({ detail }) {
       <p className={styles.sub}>{DRAWER.articleSub}</p>
       <div className={styles.content}>
         {detail.articles.length === 0 ? (
-          <p className={styles.muted}>{DRAWER.articleEmpty}</p>
+          <EmptyState compact text={DRAWER.articleEmpty} />
         ) : (
           <ul className={styles.list}>
             {detail.articles.map((a) => (

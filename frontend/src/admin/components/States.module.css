@@ -3,12 +3,26 @@
   flex-direction: column;
   align-items: center;
   gap: var(--a-s3);
-  padding: var(--a-s10) var(--a-s4);
+  padding: var(--a-s6) var(--a-s4);
   text-align: center;
 }
-.main {
-  font-size: var(--a-fs-md);
-  color: var(--radar-admin-semantic-color-text-primary);
+/* 비어 있다는 안내(cold case): 설명 글과 구분되게 옅은 면 + 아이콘. 대시보드의 '진행 중인 회차가 없습니다'와 같은 모양 */
+.note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--a-s2);
+  align-self: stretch;
+  margin: 0;
+  padding: var(--a-s3) var(--a-s4);
+  border-radius: var(--a-radius-control);
+  background: var(--radar-admin-semantic-color-bg-subtle);
+  color: var(--radar-admin-semantic-color-text-secondary);
+  font-size: var(--a-fs-sm);
+  line-height: 1.5;
+  word-break: keep-all;
+  text-wrap: balance;
+  text-align: center;
 }
 .hint {
   font-size: var(--a-fs-sm);

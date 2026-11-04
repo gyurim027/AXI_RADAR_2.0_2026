@@ -1,4 +1,5 @@
 import Callout from '../../../../components/Callout.jsx';
+import { EmptyState } from '../../../../components/States.jsx';
 import Card from '../../../../components/Card.jsx';
 import { DECISION } from '../../../../../shared/constants.js';
 import { DRAWER } from '../../copy.js';
@@ -20,7 +21,7 @@ export default function LastYearTab({ detail }) {
             </Card>
           </>
         ) : (
-          <p className={styles.muted}>{DRAWER.lastEmpty}</p>
+          <EmptyState compact text={DRAWER.lastEmpty} />
         )}
       </div>
     </section>
