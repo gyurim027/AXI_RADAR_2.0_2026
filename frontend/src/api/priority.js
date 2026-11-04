@@ -94,12 +94,24 @@ export function toRun(r, { finalized = false } = {}) {
     candidateCount: r.candidate_cnt == null ? null : Number(r.candidate_cnt),
     dataRange: periodLabel(runPeriod(r)),
     version: r.setting_version_display || null,
+    settingLinks: toSettingLinks(r.setting_versions),
     unratedFields: [],
     hasComplaints: null,
     complaintPeriod: runPeriod(r),
     conditionCount: PRIORITY_CONDITIONS.length,
     dataCount: null,
   };
+}
+
+const SETTING_KINDS = [['weight', '가중치'], ['threshold', '기준값'], ['priority_condition', '우선 확인 조건']];
+/** 회차에 연결된 산정 설정 세 종류. 연결된(LINKED) 것만 id를 주어 상세로 가게 한다. 서버가 안 주면 빈 목록. */
+export function toSettingLinks(v) {
+  if (!v) return [];
+  return SETTING_KINDS.map(([key, kind]) => {
+    const x = v[key] || {};
+    const linked = x.status === 'LINKED' && x.setting_version_id != null;
+    return { kind, id: linked ? x.setting_version_id : null, label: linked ? (x.version_no != null ? `v${x.version_no}` : x.version_label || `설정 ${x.setting_version_id}`) : null };
+  });
 }
 
 /** 어드민 회차 목록의 한 줄. 서버가 주지 않는 값(생성일·검토 시작일·민원 기간)은 '-'로 두고 가짜로 채우지 않는다. */
@@ -111,6 +123,7 @@ export function toAdminRun(run) {
     kindLabel: run.kind === 'ref' ? '반기 참고' : '연간',
     status: run.status,
     version: run.version || '-',
+    settingLinks: run.settingLinks || [],
     created: '-',
     review: run.openedAt ? String(run.openedAt).slice(0, 10).replaceAll('-', '.') : '-',
     period: periodLabel(run.complaintPeriod) || '-',

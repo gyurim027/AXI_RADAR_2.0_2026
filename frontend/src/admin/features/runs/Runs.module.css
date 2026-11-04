@@ -86,6 +86,12 @@
   gap: var(--space-8);
 }
 
+.verList {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
 .verLink {
   color: var(--radar-admin-semantic-color-text-link);
   text-underline-offset: 3px;

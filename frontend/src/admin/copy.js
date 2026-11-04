@@ -8,6 +8,7 @@ export const ADMIN_COPY = {
   serverMenu: [
     { to: '/admin', label: '대시보드', need: 'ops', end: true },
     { to: '/admin/data/checks', label: '검사 결과', need: 'ops' },
+    { to: '/admin/data/classify', label: '민원 분류 검수', need: 'ops' },
     { to: '/admin/runs/list', label: '회차', need: 'priority' },
     { to: '/admin/runs/log', label: '실행 기록', need: 'ops' },
     { to: '/admin/standards/criteria', label: '산정 기준', need: 'settings' },
