@@ -248,6 +248,19 @@ function tierOf(rank, total) {
   return r <= 0.1 ? 'top' : r <= 0.3 ? 'mid' : 'rest';
 }
 
+/**
+ * 후보 상세 응답의 조치 제안(82번에 저장된 문장). 서버가 기록 존재 여부만 판정하므로 빈 목록을 '조치 불필요'로 읽지 않는다.
+ * 받는 부서·근거 조문이 비어 있으면 화면이 '확인 필요'로 보인다(가짜 값을 채우지 않는다).
+ */
+export function toActions(list) {
+  return (list || []).map((a) => ({
+    key: String(a.item_id ?? a.action_text),
+    sentence: a.action_text || '',
+    dept: a.dept_text || null,
+    article: a.basis_text || null,
+  }));
+}
+
 /** 후보 상세 응답 → 화면 상세. 중심 좌표는 상세에 없어 목록에서 받은 값을 쓴다. */
 export function toCandidateDetail(c, { list, user, record = null }) {
   const row = list?.items?.find((r) => r.gid === c.gid) || list?.unrated?.find((r) => r.gid === c.gid) || null;
@@ -317,7 +330,7 @@ export function toCandidateDetail(c, { list, user, record = null }) {
     canPickDept: false,
     showRequest: user?.role === 'district' && record?.decision === DECISION.TARGET,
     confirmedByGu: !!list?.myConfirm?.done,
-    problems: [],
+    problems: toActions(c.actions),
     request: null,
     org: user?.org || '',
   };

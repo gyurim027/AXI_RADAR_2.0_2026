@@ -61,6 +61,7 @@ export default function RequestTab({ detail, onGoTab }) {
         </div>
 
         <Card title={DRAWER.actionTitle}>
+        {d.problems.length === 0 ? <p className={styles.muted}>{DRAWER.actionEmpty}</p> : null}
         <ul className={styles.list}>
           {d.problems.map((p) => (
             <li key={p.key} className={styles.actionRow}>

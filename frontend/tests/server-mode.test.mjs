@@ -106,3 +106,10 @@ test('회차의 산정 설정 연결: 연결된 것만 번호를 주고, 서버 
     { kind: '우선 확인 조건', id: 9, label: '시범' },
   ]);
 });
+
+test('조치 제안: 응답의 actions를 화면 모양으로 바꾸고 빈 응답은 빈 목록이다', async () => {
+  const { toActions } = await import('../src/api/priority.js');
+  assert.deepEqual(toActions(undefined), []);
+  assert.deepEqual(toActions([]), []);
+  assert.deepEqual(toActions([{ item_id: 7, action_text: '문장', dept_text: null, basis_text: '제32조' }]), [{ key: '7', sentence: '문장', dept: null, article: '제32조' }]);
+});

@@ -223,6 +223,7 @@ export const DRAWER = {
   requestCopied: '요청 내용을 복사했습니다.', // 명세에 없는 완료 문구 (확인 필요)
   actionTitle: '조치 제안',
   actionDeptCheck: '받는 부서 확인 필요',
+  actionEmpty: '승인된 조치 제안이 아직 없습니다. 운영자가 검토해 승인하면 여기에 나옵니다.',
   articlePending2: '근거 조문 확인 전',
   needDept: '점검 요청 내용을 만들려면 담당 부서를 먼저 정해 주세요.',
   pickDept: '담당 부서 정하기',
