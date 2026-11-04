@@ -314,3 +314,19 @@ test('후보 목록: 후보 응답에 회차 상태가 없어도 회차 목록�
   assert.equal(withRun.run.status, RUN_STATUS.REVIEW);
   assert.equal(withRun.canDecide, true);
 });
+
+test('회차: 산정 기간은 자료 기준 점 형식과 민원 기간 객체로 바꾼다', () => {
+  const r = toRun({ ...run2, period_start: '2022-01-01', period_end: '2025-12-31' });
+  assert.equal(r.dataRange, '2022.01 ~ 2025.12');
+  assert.deepEqual(r.complaintPeriod, { start: '2022-01-01', end: '2025-12-31' });
+  const admin = toAdminRun(r);
+  assert.equal(admin.period, '2022.01 ~ 2025.12');
+  assert.deepEqual(admin.complaintPeriod, { start: '2022-01-01', end: '2025-12-31' });
+});
+
+test('회차: 산정 기간이 없으면 가짜로 채우지 않는다', () => {
+  const r = toRun(run2);
+  assert.equal(r.dataRange, null);
+  assert.equal(r.complaintPeriod, null);
+  assert.equal(toAdminRun(r).period, '-');
+});

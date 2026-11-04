@@ -1,6 +1,6 @@
 import importlib.util
 from pathlib import Path
-m_path = Path(__file__).resolve().parents[1] / 'app/services/AI-10/ai10_source_provenance.py'
+m_path = Path(__file__).resolve().parents[1] / 'app/services/ai10/ai10_source_provenance.py'
 spec = importlib.util.spec_from_file_location('ai10_source_provenance', m_path)
 m = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(m)

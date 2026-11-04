@@ -32,7 +32,7 @@ uv run python -m scripts.eval_run --name ai05 --cases data/eval/ai05_cases.csv -
 uv run python -m scripts.eval_run --name ai01_relevance --cases data/eval/ai01_relevance_cases.csv --adapter app.services.ai01.eval_adapter:run
 uv run python -m scripts.eval_run --name ai01_mask --cases data/eval/ai01_mask_cases.csv --adapter app.services.ai01.eval_adapter:run_mask
 uv run python -m scripts.eval_run --name ai07 --cases data/eval/ai07_cases.xlsx --adapter app.services.ai07.eval_adapter:run
-uv run python -m scripts.eval_run --name ai10 --cases data/eval/ai10_cases.csv --adapter "app.services.AI-10.eval_adapter:run_text"
+uv run python -m scripts.eval_run --name ai10 --cases data/eval/ai10_cases.csv --adapter "app.services.ai10.eval_adapter:run_text"
 ```
 - AI-01·AI-07·AI-10 명령의 정답 목록과 어댑터 짝은 각 담당자가 맞는지 확인해 주세요 (은경은 파일 이름으로 짝을 지음)
 - 정답 목록과 결과 파일에는 민원 원문·개인정보를 넣지 않는다 (ISS-032)

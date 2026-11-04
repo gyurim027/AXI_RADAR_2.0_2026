@@ -15,7 +15,7 @@ from pydantic import BaseModel
 from app.core.auth import current_user
 from app.services.priority.repository import PriorityRepository, get_repository
 
-_g06 = import_module("app.services.G-01~06.g06_round_finalize")
+_g06 = import_module("app.services.g01_g06.g06_round_finalize")
 _g03_api = import_module("app.api.g03_decision_api")
 _store = _g06.InMemoryFinalizeStore()
 _lock = RLock()
@@ -96,6 +96,8 @@ def preview_confirmation(run_id: int, user: dict = Depends(current_user),
 def confirm_district(run_id: int, body: ConfirmBody, user: dict = Depends(current_user),
                      repo: PriorityRepository = Depends(get_repository)):
     _guard()
+    if run_id <= 1:
+        raise HTTPException(409, "기존 1회차는 새로 확정할 수 없습니다")
     gu = _gu(user)
     candidates = _candidates(repo, run_id, gu)
     uid = user.get("user_id")

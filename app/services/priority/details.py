@@ -152,6 +152,32 @@ def encode_evidence(run_id, gid, data):
 
 
 def read_evidence(read_only, run_id, gid):
-    """Read eight stored DB78 fields; no filesystem fallback."""
-    from app.services.priority.db8_details import read_db_evidence
-    return read_db_evidence(read_only, run_id, gid)
+    """DB78_EXPLICIT_STORAGE_ROUTING_V1.
+
+    An ev1: pointer names immutable legacy sidecar evidence; never silently
+    substitute DB8 data if that evidence is missing or has a bad checksum.
+    Candidates without an ev1: pointer use the 8-column DB78 contract.
+    An old note-only read adapter with no pointer stays unverified, not valid.
+    """
+    from app.services.priority.db8_details import COLS, decode_db_row, DetailBlocked
+    if type(run_id) is not int or run_id <= 0 or not isinstance(gid, str) or not gid.strip():
+        raise ValueError('invalid candidate identity')
+    args = (run_id, gid)
+    notes = read_only('SELECT note FROM priority_candidate WHERE run_id=%s AND gid=%s', args)
+    if len(notes) != 1:
+        raise ValueError('candidate evidence identity not found')
+    note = notes[0].get('note')
+    if isinstance(note, str) and note.startswith(PREFIX):
+        # Explicit legacy representation. Checksum/identity errors must propagate.
+        return read_legacy_evidence(lambda _sql, _args: notes, run_id, gid)
+    rows = read_only('SELECT '+','.join(COLS)+' FROM priority_candidate WHERE run_id=%s AND gid=%s', args)
+    if len(rows) != 1:
+        raise DetailBlocked('CANDIDATE_IDENTITY_NOT_FOUND')
+    row = rows[0]
+    if all(col in row for col in COLS):
+        return decode_db_row(row)
+    if set(row) == {'note'} and not (isinstance(row['note'], str) and row['note'].startswith(PREFIX)):
+        # Compatibility with a legacy note-only reader. This is not verified.
+        return {'stored': False, 'evidence_version': 'UNSTORED',
+                'complete': False, **{k: None for k in FIELDS}}
+    raise DetailBlocked('DB78_EIGHT_DETAIL_COLUMNS_MISSING')

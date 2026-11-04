@@ -39,7 +39,7 @@ def build_assessment_evidence(
         raise ValueError('명시적 SRC 번호 필요')
     if not isinstance(source_rows, list):
         raise TypeError('DB 56 조회 결과가 필요')
-    prov = importlib.import_module('app.services.AI-10.ai10_source_provenance')
+    prov = importlib.import_module('app.services.ai10.ai10_source_provenance')
     item = {
         'source_table': table,
         'source_column': field,

@@ -3,7 +3,7 @@ from pathlib import Path
 import importlib.util
 
 root = Path(__file__).resolve().parents[1]
-path = root / 'app/services/AI-10/ai10_external_payload.py'
+path = root / 'app/services/ai10/ai10_external_payload.py'
 spec = importlib.util.spec_from_file_location('ai10_external_payload', path)
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)

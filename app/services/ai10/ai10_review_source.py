@@ -17,7 +17,7 @@ def inspect_review_source(item_id: str, store: Path) -> dict:
     if not isinstance(item_id, str) or not item_id.strip():
         raise ReviewSourceError("Invalid review item ID")
 
-    module = import_module("app.services.AI-10.ai10_operator_review")
+    module = import_module("app.services.ai10.ai10_operator_review")
     data = module.load_store(Path(store))
 
     items = data.get("items")

@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 from app.core import db
+from app.services.priority.location_labels import attach_location, location_labels_for_gids
 from app.services.priority.db8_details import COLS as DB8_COLS, decode_db_row
 from app.services.scoring.setting_links import attach_run_versions
 
@@ -20,16 +21,16 @@ _GU = "NULLIF(REPLACE(f.id_gu, '성남시 ', ''), '')"          # '성남시 분
 class PriorityRepository:
     def list_runs(self, limit: int) -> list[dict]:
         rows = db.read_only(
-            "SELECT r.run_id, r.build_id, r.rule_version, r.created_at, r.note, "
+            "SELECT r.run_id, r.build_id, r.rule_version, r.created_at, r.note, r.period_start, r.period_end, "
             "COUNT(c.gid) AS candidate_cnt, SUM(c.selected_yn = 'Y') AS selected_cnt, "
             "SUM(c.score IS NOT NULL) AS scored_cnt "
             "FROM priority_run r LEFT JOIN priority_candidate c ON c.run_id = r.run_id "
-            "GROUP BY r.run_id, r.build_id, r.rule_version, r.created_at, r.note "
+            "GROUP BY r.run_id, r.build_id, r.rule_version, r.created_at, r.note, r.period_start, r.period_end "
             "ORDER BY r.created_at DESC, r.run_id DESC LIMIT %s", (limit,))
         return attach_run_versions(rows, db.read_only)
 
     def get_run(self, run_id: int) -> dict | None:
-        rows = db.read_only("SELECT run_id, build_id, rule_version, created_at, note FROM priority_run "
+        rows = db.read_only("SELECT run_id, build_id, rule_version, created_at, note, period_start, period_end FROM priority_run "
                             "WHERE run_id = %s", (run_id,))
         return attach_run_versions(rows, db.read_only)[0] if rows else None
 
@@ -52,18 +53,21 @@ class PriorityRepository:
         rows = db.read_only(
             "SELECT " + ", ".join("c." + k for k in CANDIDATE_COLS) + f", {_GU} AS gu, f.id_center_lat AS center_lat, f.id_center_lon AS center_lon " + base +
             " ORDER BY c.rank_no IS NULL, c.rank_no, c.gid LIMIT %s OFFSET %s", [*args, limit, offset])
+        labels = location_labels_for_gids([row["gid"] for row in rows], db.read_only)
         for row in rows:
             row["details"] = decode_db_row(row)
+            attach_location(row, labels)
         return rows, int(total[0]["n"]) if total else 0
 
     def get_candidate(self, run_id: int, gid: str) -> dict | None:
         rows = db.read_only(
-            "SELECT " + ", ".join("c." + k for k in CANDIDATE_COLS) + f", {_GU} AS gu "
+            "SELECT " + ", ".join("c." + k for k in CANDIDATE_COLS) + f", {_GU} AS gu, f.id_center_lat AS center_lat, f.id_center_lon AS center_lon "
             "FROM priority_candidate c LEFT JOIN grid_feature f ON f.ID_gid = c.gid "
             "WHERE c.run_id = %s AND c.gid = %s", (run_id, gid))
         if not rows:
             return None
         cand = rows[0]
+        attach_location(cand, location_labels_for_gids([gid], db.read_only))
         from app.services.priority.details import read_evidence
         cand["details"] = read_evidence(db.read_only, run_id, gid)
         cand["actions"] = db.read_only(

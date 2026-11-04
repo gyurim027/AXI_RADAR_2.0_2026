@@ -78,7 +78,7 @@ def load_assessment_case_from_db(
         (facility_id.strip(),),
     )
     source_rows = read_only('SELECT source_id FROM source_list')
-    converter = importlib.import_module('app.services.AI-10.ai10_assessment_record_input')
+    converter = importlib.import_module('app.services.ai10.ai10_assessment_record_input')
     return converter.build_case_from_assessment(
         case_reference=case_reference, issue_description=issue_description,
         table=table, facility_id=facility_id, rows=rows,

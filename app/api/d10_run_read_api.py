@@ -8,7 +8,9 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from app.core.auth import require_roles
 from app.core.responses import ApiError
 
-_repo = import_module("app.services.D-10.d10_run_readonly")
+_repo = import_module("app.services.d10.d10_run_readonly")
+_contract = import_module("app.services.d10.d10_run_contract")
+_workflow = import_module("app.services.d10.d10_run_workflow_db")
 router = APIRouter(prefix="/api/d10", tags=["D-10 회차 조회·기간 검증 (읽기 전용)"])
 operator = require_roles("operator")
 
@@ -45,8 +47,11 @@ class PeriodValidationRequest(BaseModel):
 @router.get("/runs")
 def list_d10_runs(limit: int = Query(50, ge=1, le=200), _user: dict = Depends(operator)):
     rows = _repo.list_runs(limit)
-    return {"runs": [_present(r) for r in rows], "read_only": True,
-            "status_available": False, "status_note": "v2.3 priority_run에 회차 상태 컬럼이 없습니다."}
+    metadata = _workflow.metadata_for_runs([int(r["run_id"]) for r in rows])
+    ready = _workflow.tables_ready()
+    return {"runs": _contract.visible_run_rows(rows, is_operator=True,
+            verified_metadata=metadata), "read_only": True,
+            "status_available": ready, "status_note": None if ready else "운영 회차 저장 테이블 미적용"}
 
 
 @router.get("/runs/{run_id}")
@@ -56,10 +61,28 @@ def get_d10_run(run_id: int, _user: dict = Depends(operator)):
     row = _repo.get_run(run_id)
     if row is None:
         raise ApiError(404, "run_not_found", "회차를 찾을 수 없습니다.")
-    return {"run": _present(row), "candidate_counts": _repo.candidate_counts(run_id),
-            "read_only": True, "status_available": False,
-            "not_verified": ["산정 완료", "회차 열기", "구별 확정", "회차 상태"],
+    metadata = _workflow.metadata_for_runs([run_id])
+    ready = _workflow.tables_ready()
+    return {"run": _contract.to_run_response(row, metadata.get(run_id)), "candidate_counts": _repo.candidate_counts(run_id),
+            "read_only": True, "status_available": ready,
+            "not_verified": ["G-06 구별 확정"],
             "candidate_note": "selected_yn은 산정 단계 후보 선정값이며 G-03 운영자 결정이 아닙니다."}
+
+
+class OpenRunRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    name: str = Field(min_length=1, max_length=100)
+    kind: str
+
+
+@router.post("/runs/{run_id}/open")
+def open_d10_run(run_id: int, payload: OpenRunRequest, user: dict = Depends(operator)):
+    try:
+        result = _workflow.open_run(run_id=run_id, name=payload.name, kind=payload.kind,
+                                    actor_id=user.get("user_id"))
+    except _workflow.WorkflowError as exc:
+        raise ApiError(exc.status, exc.code, exc.message) from None
+    return {"ok": True, "run": result, "storage": "operational_db"}
 
 
 @router.post("/period/validate")

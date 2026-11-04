@@ -63,6 +63,17 @@ const DECISION_VALUES = new Set([DECISION.TARGET, DECISION.EXCLUDE, DECISION.HOL
 const num = (v) => (v == null ? null : Number(v));
 const round1 = (v) => Math.round(Number(v) * 10) / 10; // 점수는 소수 첫째 자리까지 보인다(순서는 서버 원래 값으로 매긴다)
 
+// 서버의 산정 기간(YYYY-MM-DD)을 화면 형식으로 바꾼다. 자료 기준은 'YYYY.MM ~ YYYY.MM'(화면의 dataYear가 읽는 형식),
+// 민원 접수 기간은 어드민 날짜 칸이 읽는 { start, end }(YYYY-MM-DD)다. 자료 기준 기간과 민원 활용 기간은 같은 값이다(진규님 확인).
+const ymd = (v) => (v ? String(v).slice(0, 10) : null);
+const dotMonth = (iso) => String(iso).slice(0, 7).replace('-', '.');
+export const periodLabel = (p) => (p ? `${dotMonth(p.start)} ~ ${dotMonth(p.end)}` : null);
+function runPeriod(r) {
+  const start = ymd(r.period_start);
+  const end = ymd(r.period_end);
+  return start && end ? { start, end } : null;
+}
+
 /** 서버 회차 한 건 → 화면 회차. 상태·이름·종류가 서버에 없으면 '상태 정보 없음'·'회차 N'으로 둔다(가짜 상태를 만들지 않는다). */
 export function toRun(r, { finalized = false } = {}) {
   const id = String(r.run_id);
@@ -81,12 +92,12 @@ export function toRun(r, { finalized = false } = {}) {
     openedAt: r.opened_at ?? null,
     // 서버가 회차의 후보 수를 주면 담는다. 0건이면 산정 결과가 없는 회차(공회차)라 구·시 선택지에서 뺀다. 모르면 null.
     candidateCount: r.candidate_cnt == null ? null : Number(r.candidate_cnt),
-    dataRange: null,
+    dataRange: periodLabel(runPeriod(r)),
     version: r.setting_version_display || null,
     settingLinks: toSettingLinks(r.setting_versions),
     unratedFields: [],
     hasComplaints: null,
-    complaintPeriod: null,
+    complaintPeriod: runPeriod(r),
     conditionCount: PRIORITY_CONDITIONS.length,
     dataCount: null,
   };
@@ -115,8 +126,8 @@ export function toAdminRun(run) {
     settingLinks: run.settingLinks || [],
     created: '-',
     review: run.openedAt ? String(run.openedAt).slice(0, 10).replaceAll('-', '.') : '-',
-    period: '-',
-    complaintPeriod: null,
+    period: periodLabel(run.complaintPeriod) || '-',
+    complaintPeriod: run.complaintPeriod,
     noResult: run.candidateCount === 0, // 후보가 0건인 회차: 어드민 목록에서 '산정 결과 없음'으로 구분한다
     calcDone: false,
     ran: false,
