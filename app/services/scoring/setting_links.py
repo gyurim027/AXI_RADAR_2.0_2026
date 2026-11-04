@@ -112,6 +112,8 @@ def project(doc, kind):
             value.update({k:doc[k] for k in ('complaint_mode','complaint_strength',
                 'confidence_thresholds','accident_exclusion','selection_min_score',
                 'input_period_start','input_period_end')})
+            if 'inside_hazard_unobserved' in doc:
+                value['inside_hazard_unobserved'] = doc['inside_hazard_unobserved']
         elif kind == '우선 확인 조건':
             value = {'d05_rule':doc['d05_rule']}
             if value['d05_rule'] is None:
@@ -182,8 +184,8 @@ def attach_run_versions(rows, reader, enabled=None):
         links={r['run_id']:r for r in found}
         setting_ids=sorted({r.get(f) for r in found for f in FIELDS if r.get(f) is not None})
         if setting_ids:
-            found=reader('SELECT setting_version_id,setting_kind,version_label,NULL AS version_no '
-                         'FROM setting_version WHERE setting_version_id IN ('+
+            found=reader('SELECT setting_version_id,setting_kind,version_label,NULL AS version_no,'
+                         'approval_status,approved_at FROM setting_version WHERE setting_version_id IN ('+
                          ','.join(['%s']*len(setting_ids))+')',tuple(setting_ids))
             settings={r['setting_version_id']:r for r in found}
     for row in out:
@@ -193,15 +195,22 @@ def attach_run_versions(rows, reader, enabled=None):
             row[field]=sid
             setting=settings.get(sid,{})
             number=setting.get('version_no')
+            # An approved, correctly typed setting reference is linked even if no
+            # separate display sequence was assigned. Never synthesize v52 from ID 52.
             state=('NOT_DEPLOYED' if not enabled else 'RUN_NOT_FOUND' if row['run_id'] not in links
                    else 'UNLINKED' if sid is None else 'REFERENCE_NOT_FOUND' if not setting
                    else 'KIND_MISMATCH' if setting.get('setting_kind')!=kind
-                   else 'UNNUMBERED' if number is None else 'INVALID_DISPLAY_NUMBER'
-                   if type(number) is not int or number<=0 else 'LINKED')
-            if state!='LINKED':number=None
-            values[key]={'setting_version_id':sid,'version_no':number,
-                         'version_label':setting.get('version_label'),'status':state}
-            parts.append(kind+' v'+str(number) if state=='LINKED' else kind+' 순번 미확정' if state=='UNNUMBERED' else kind+' 미연결')
+                   else 'NOT_APPROVED' if setting.get('approval_status') not in ('승인','APPROVED')
+                        or not setting.get('approved_at')
+                   else 'INVALID_DISPLAY_NUMBER' if number is not None
+                        and (type(number) is not int or number<=0)
+                   else 'LINKED')
+            values[key]={'setting_version_id':sid,'version_no':number if state=='LINKED' else None,
+                         'version_label':setting.get('version_label'),'status':state,
+                         'display_number_assigned':bool(state=='LINKED' and number is not None)}
+            parts.append(kind+' v'+str(number) if state=='LINKED' and number is not None
+                         else kind+' [ID '+str(sid)+'] '+str(setting.get('version_label') or '')
+                         if state=='LINKED' else kind+' 미연결')
         row['setting_versions']=values
         row['setting_version_display']=' · '.join(parts)
         row['setting_links_status']='NOT_DEPLOYED' if not enabled else ('LINKED' if all(v['status']=='LINKED' for v in values.values()) else 'INCOMPLETE')

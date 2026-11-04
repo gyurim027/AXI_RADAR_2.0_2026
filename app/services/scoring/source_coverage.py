@@ -5,6 +5,7 @@ Every mapped source row must have a separately human-confirmed review export row
 from __future__ import annotations
 from hashlib import sha256
 import json
+from app.services.scoring.approved_inputs import classification_decision
 
 class CoverageBlocked(ValueError):
     pass
@@ -30,6 +31,7 @@ def verify_coverage(source_rows, reviewed_rows, valid_gids):
         else:
             mapped_ids.add(cid)
     reviewed_ids = set()
+    unresolved_ids = set()
     for row in reviewed_rows:
         cid = str(row.get('complaint_id') or '').strip()
         if not cid or cid in reviewed_ids:
@@ -40,8 +42,8 @@ def verify_coverage(source_rows, reviewed_rows, valid_gids):
         source_gid = str(source_by_id[cid]['gid'])
         if str(row.get('gid')) != source_gid:
             raise CoverageBlocked('REVIEW_GID_SOURCE_MISMATCH')
-        if row.get('review_status') != 'CONFIRMED':
-            raise CoverageBlocked('REVIEW_NOT_HUMAN_CONFIRMED')
+        if classification_decision(row) is None:
+            unresolved_ids.add(cid)
     if reviewed_ids != mapped_ids:
         raise CoverageBlocked('MAPPED_SOURCE_NOT_FULLY_REVIEWED:missing=%d,extra=%d' %
                               (len(mapped_ids - reviewed_ids),len(reviewed_ids - mapped_ids)))
@@ -53,4 +55,6 @@ def verify_coverage(source_rows, reviewed_rows, valid_gids):
             'excluded_ids_sha256':digest(unmapped_ids),
             'exclusion_reason':'NO_VALID_GRID_ID_FOR_SPATIAL_SCORING',
             'unmapped_used_in_scoring':False,
-            'reviewed_mapped_count':len(reviewed_ids)}
+            'reviewed_mapped_count':len(reviewed_ids),
+            'unresolved_mapped_count':len(unresolved_ids),
+            'classification_status':'INCOMPLETE' if unresolved_ids else 'COMPLETE'}

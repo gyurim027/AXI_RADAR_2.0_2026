@@ -1,0 +1,41 @@
+{
+  "accident_exclusion": "reweight_observed_nonaccident",
+  "complaint_mode": "inside_hazard",
+  "complaint_strength": 0.15,
+  "confidence_thresholds": {
+    "high": 0.8888888888888888,
+    "medium": 0.6666666666666666
+  },
+  "d05_rule": {
+    "missing": "UNKNOWN",
+    "operator": "ANY",
+    "thresholds": {
+      "exposure": 0.8,
+      "hazard": 0.75,
+      "vulnerability": 0.8
+    },
+    "version": "D05_TEAM_SELECTED_20261031_V1"
+  },
+  "document_status": "NOT_APPROVED_DRAFT",
+  "hazard_missing_rule_approved_by_user": true,
+  "hazard_missing_rule_official_db62_registered": false,
+  "hazard_missing_rule_verification": "PENDING_REAL_SCORING",
+  "input_period_end": "2026-09-30",
+  "input_period_start": "2021-01-01",
+  "inside_hazard_unobserved": "keep_base_no_complaint_adjustment",
+  "inside_hazard_unobserved_policy_note": "Unobserved hazard: retain existing base score; do not add complaint adjustment; preserve hazard missingness and D05 UNKNOWN.",
+  "policy": {
+    "accident_reduce": "mean",
+    "domain_weights": {
+      "accident": 0.3,
+      "exposure": 0.2,
+      "hazard": 0.35,
+      "vulnerability": 0.15
+    },
+    "label": "RADAR_TEAM_DRAFT_PENDING_APPROVAL",
+    "missing": "renormalize",
+    "normalization": "positive_mid",
+    "observation": "scope_aware"
+  },
+  "selection_min_score": 70
+}

@@ -33,6 +33,7 @@ class OfficialBatch:
     setting_references: tuple = ()
     period_start: date | None = None
     period_end: date | None = None
+    source_audit_sha256: str | None = None
 
 
 def _nonempty(value, name):
@@ -42,6 +43,9 @@ def _nonempty(value, name):
 
 
 def validate_batch(batch: OfficialBatch):
+    if batch.source_audit_sha256 is not None:
+        from app.services.scoring.source_audit_lineage import valid_hash
+        valid_hash(batch.source_audit_sha256)
     validate_references(batch.setting_references)
     if type(batch.period_start) is not date or type(batch.period_end) is not date or batch.period_start > batch.period_end:
         raise ProductionBlocked("INVALID_RUN_PERIOD")
@@ -109,6 +113,8 @@ def plan(batch: OfficialBatch):
                 'input_digest':batch.input_digest, 'policy_digest':batch.policy_digest,
                 'complaint_contract_digest':batch.complaint_contract_digest,
                 'candidates':sorted(batch.candidates, key=lambda c:c['gid'])}
+    if batch.source_audit_sha256 is not None:
+        identity['source_audit_sha256'] = batch.source_audit_sha256
     fingerprint=sha256(json.dumps(identity,sort_keys=True,separators=(',',':'),allow_nan=False,default=str).encode()).hexdigest()
     return {'fingerprint':fingerprint,'candidate_count':len(batch.candidates),
             'authorized_reference':batch.approval_reference,

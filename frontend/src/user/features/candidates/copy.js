@@ -27,6 +27,8 @@ export const LIST = {
   reliabilityLabel: '자료 신뢰도',
   zoneLabel: '보호구역',
   zoneOptions: ['보호구역 안', '보호구역 밖'],
+  filterUnavailable: '아직 서버에서 값을 받지 못해 쓸 수 없습니다.',
+  noGuNote: (n) => `구를 확인할 수 없어 목록에 없는 후보가 ${n}곳 있습니다.`, // 시 도로과 (구 미지정 후보, 결정 3-17)
   complaintLabel: '민원이 몰린 곳',
   complaintHelp: '같은 장소에 여러 해에 걸쳐 민원이 반복된 구역입니다.', // W-16
   complaintHelpLabel: '민원이 몰린 곳 뜻 보기',
@@ -136,6 +138,7 @@ export const DRAWER = {
 
   // 1-2 민원 신호
   complaintTitle: '민원',
+  complaintTotal: (n) => `민원 ${n}건`, // 유형별 건수를 모를 때 (10_2 CM-00 15번의 앞부분)
   complaintLine: (types) => types.map((t) => `${t.type} ${t.count}건${t.recur ? ` (재발 ${t.recur})` : ''}`).join(' · '),
   complaintLowAccuracy: (n) => `위치를 대략만 알 수 있는 민원 ${n}건도 건수에 포함되어 있습니다.`, // 낮음 민원도 격자 민원 수에 넣는다 (ISS-033, K-1)
   complaintEmpty: '이번 점검 순위에는 민원 자료가 포함되지 않았습니다. 다른 근거만으로 정해진 순위입니다.', // K-6, US-03 1-2
@@ -203,8 +206,12 @@ export const DRAWER = {
   articlePending2: '근거 조문 확인 전',
   needDept: '점검 요청 내용을 만들려면 담당 부서를 먼저 정해 주세요.',
   pickDept: '담당 부서 정하기',
-  requestText: (dept, content, landmark, address, basis, years) =>
-    `${dept}에 아래 지점의 확인을 요청드립니다. 요청 내용: ${content}. 위치: ${landmark} 일대 (${address}). 근거: ${basis}. 자료 기준일: ${years}.`,
+  // 위치 칸: 대표 지점이 '○○ 인근'이면 '일대'를 더 붙이지 않는다. 주소·대표 지점이 없으면 격자 번호로 부른다(가짜 주소를 만들지 않는다).
+  requestText: (dept, content, landmark, address, basis, years, fallback = '') => {
+    const where = [landmark ? (landmark.endsWith('인근') ? landmark : `${landmark} 일대`) : null, address ? `(${address})` : null].filter(Boolean).join(' ');
+    return `${dept}에 아래 지점의 확인을 요청드립니다. 요청 내용: ${content}. 위치: ${where || fallback}. 근거: ${basis}. 자료 기준일: ${years}.`;
+  },
+  locationNote: '주소는 같은 격자에 연결된 시설 자료를 참고한 값입니다.',
 };
 
 export const CONFIRM = {
@@ -220,6 +227,7 @@ export const CONFIRM = {
   more: '후보 더 결정하기',
   confirm: '우선 점검 대상 확정',
   doneTitle: (gu) => `${gu} 우선 점검 대상을 확정했습니다.`,
-  doneNote: '관할 부서별 점검 요청서를 만들 수 있습니다.',
+  doneNote: '관할 부서별 점검 요청서는 회차가 확정된 뒤에 만들 수 있습니다.',
+  doneNoteFinal: '3개 구가 모두 확정해 회차가 확정되었습니다. 관할 부서별 점검 요청서를 만들 수 있습니다.',
   doneButton: '관할 부서별 점검 요청서 만들기',
 };

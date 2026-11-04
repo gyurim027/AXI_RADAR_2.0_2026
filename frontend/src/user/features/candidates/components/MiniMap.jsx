@@ -27,14 +27,14 @@ export default function MiniMap({ bounds, points, tier = 'rest' }) {
     const fill = tier === 'top' ? c.level3 : tier === 'mid' ? c.level2 : c.level1;
     L.rectangle(bounds, { renderer, color: c.halo, weight: 3.5, fill: false }).addTo(map);
     L.rectangle(bounds, { renderer, color: c.selected, weight: 3, fillColor: fill, fillOpacity: 1 }).addTo(map);
-    points.forEach((p) => L.marker([p.lat, p.lon], { icon: pointIcon('site'), interactive: false, keyboard: false }).addTo(map));
+    (points || []).forEach((p) => L.marker([p.lat, p.lon], { icon: pointIcon('site'), interactive: false, keyboard: false }).addTo(map));
     map.fitBounds(bounds, { padding: [24, 24], animate: false });
     return () => map.remove();
   }, [bounds, points, tier]);
   return (
     <figure className={styles.fig}>
-      <div ref={ref} className={styles.map} role="img" aria-label={COMMON.rangeText(points.length)} />
-      <figcaption className={styles.cap}>{COMMON.rangeText(points.length)}</figcaption>
+      <div ref={ref} className={styles.map} role="img" aria-label={points ? COMMON.rangeText(points.length) : COMMON.rangeUnknown} />
+      <figcaption className={styles.cap}>{points ? COMMON.rangeText(points.length) : COMMON.rangeUnknown}</figcaption>
     </figure>
   );
 }

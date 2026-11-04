@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createBackendClient } from '../src/api/backend.js';
-import { createPriorityApi, toRun, toCandidateList, toCandidateDetail, toConditionRecord, cellBounds } from '../src/api/priority.js';
+import { createPriorityApi, toRun, toCandidateList, toCandidateDetail, toConditionRecord, toAdminRun, cellBounds } from '../src/api/priority.js';
 import { RUN_STATUS } from '../src/shared/constants.js';
 
 const response = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
@@ -168,15 +168,15 @@ test('결정 버튼은 구 도로관리팀 · 검토 중 회차 · 자기 구 �
 test('회차 상태: 서버가 상태를 주지 않아도 3개 구가 모두 확정했으면 확정이다', () => {
   assert.equal(toRun(run2, { finalized: true }).status, '확정');
   assert.equal(toRun(run2, { finalized: false }).status, '상태 정보 없음');
-  assert.equal(toRun({ ...run2, status: '검토 중' }, { finalized: true }).status, '검토 중'); // 서버 상태가 우선
+  assert.equal(toRun({ ...run2, status: '산정 중' }, { finalized: true }).status, '산정 중'); // 산정 중 회차는 서버 상태가 우선
 });
 
-test('회차 목록: 상태를 주지 않는 회차만 확정 여부를 묻는다', async () => {
+test('회차 목록: 상태가 없거나 검토 중인 회차만 확정 여부를 묻는다', async () => {
   const asked = [];
-  const api = apiWith(async () => response({ runs: [{ runId: 2 }, { runId: 3, status: '검토 중' }, { runId: 1 }] }));
+  const api = apiWith(async () => response({ runs: [{ runId: 2 }, { runId: 3, status: '검토 중' }, { runId: 4, status: '참고' }, { runId: 1 }] }));
   const runs = await api.listRuns({ finalizedOf: async (id) => { asked.push(id); return true; } });
-  assert.deepEqual(asked, [2]);
-  assert.deepEqual(runs.map((r) => [r.id, r.status]), [['2', '확정'], ['3', '검토 중']]);
+  assert.deepEqual(asked, [2, 3]);
+  assert.deepEqual(runs.map((r) => [r.id, r.status]), [['2', '확정'], ['3', '확정'], ['4', '참고']]);
 });
 
 test('후보 상세: 결정 기록과 결정 탭 표시', () => {
@@ -207,4 +207,83 @@ test('점수 근거: 확정 회차에서 후보 수·우선 확인 후보 수·�
   assert.equal(r.dataCount, null); // 서버에 없는 값은 비워 둔다
   assert.equal(r.version, null);
   assert.equal(r.indicators.length, 9);
+});
+
+test('어드민 회차 한 줄: 서버가 주지 않는 값은 -로 두고 상태는 상태 정보 없음', () => {
+  const row = toAdminRun(toRun({ run_id: 2, name: null, kind: null, status: null, setting_version_display: null }));
+  assert.equal(row.id, '2');
+  assert.equal(row.name, '회차 2');
+  assert.equal(row.kindLabel, '연간');
+  assert.equal(row.status, RUN_STATUS.UNKNOWN);
+  assert.equal(row.version, '-');
+  assert.equal(row.created, '-');
+  assert.equal(row.review, '-');
+  assert.equal(row.period, '-');
+});
+
+test('어드민 회차 한 줄: 반기 참고와 검토 시작일', () => {
+  const row = toAdminRun(toRun({ run_id: 3, name: '2027 상반기 참고', kind: '반기 참고', status: '참고', opened_at: '2027-03-02T09:00:00' }));
+  assert.equal(row.kindLabel, '반기 참고');
+  assert.equal(row.status, '참고');
+  assert.equal(row.review, '2027.03.02');
+});
+
+test('서버가 근거 지점을 주지 않으면 0곳이 아니라 null이다', () => {
+  const list = toCandidateList({ run: run2, candidates: [cand('a', '수정구', 50, 1)] }, { role: 'city' }, { gu: null, guList: GUS, allGu: ALL });
+  const row = [...list.items, ...list.unrated][0];
+  assert.equal(row.points, null);
+  assert.equal(row.complaintPoints, null);
+});
+
+test('상세의 민원은 서버 건수를 쓰고, 위치가 정확하지 않은 건수는 두 건수의 차이다', () => {
+  const list = toCandidateList({ run: run2, candidates: [cand('a', '수정구', 50, 1)] }, { role: 'city' }, { gu: null, guList: GUS, allGu: ALL });
+  const d = toCandidateDetail({ ...cand('a', '수정구', 50, 1), complaint_cnt: 12, complaint_cnt_excl_low: 9 }, { list, user: { role: 'city' }, record: null });
+  assert.equal(d.complaint.has, true);
+  assert.equal(d.complaint.total, 12);
+  assert.equal(d.complaint.lowAccuracy, 3);
+  assert.deepEqual(d.complaint.types, []);
+  const none = toCandidateDetail({ ...cand('a', '수정구', 50, 1), complaint_cnt: null, complaint_cnt_excl_low: null }, { list, user: { role: 'city' }, record: null });
+  assert.equal(none.complaint.has, false);
+  assert.equal(none.complaint.lowAccuracy, 0);
+});
+
+test('서버 값이 없는 필터는 막을 목록으로 알린다', () => {
+  const list = toCandidateList({ run: run2, candidates: [cand('a', '수정구', 50, 1)] }, { role: 'city' }, { gu: null, guList: GUS, allGu: ALL });
+  assert.deepEqual(list.unavailableFilters, ['zone', 'complaint']);
+});
+
+test('후보 응답의 주소·대표 지점은 표기 규칙을 거쳐 보인다(D-59)', () => {
+  const cand1 = { ...cand('a', '수정구', 50, 1), address: '성남시 수정구 신흥동 1', landmark: '해님 어린이집', address_source: '어린이집·유치원', landmark_source: '어린이집·유치원' };
+  const list = toCandidateList({ run: run2, candidates: [cand1] }, { role: 'city' }, { gu: null, guList: GUS, allGu: ALL });
+  const row = [...list.items, ...list.unrated][0];
+  assert.equal(row.address, '성남시 수정구 신흥동 1');
+  assert.equal(row.landmark, '어린이집 인근');
+  const d = toCandidateDetail(cand1, { list, user: { role: 'city' }, record: null });
+  assert.equal(d.landmark, '어린이집 인근');
+});
+
+test('담당 부서가 null이면 서버가 준 이유(department_reason)를 보인다', () => {
+  const list = toCandidateList({ run: run2, candidates: [cand('a', '수정구', 50, 1)] }, { role: 'city' }, { gu: null, guList: GUS, allGu: ALL });
+  const d = toCandidateDetail({ ...cand('a', '수정구', 50, 1), department: null, department_status: '확인 필요', department_reason: '문제 유형 연결이 없습니다.' }, { list, user: { role: 'city' }, record: null });
+  assert.equal(d.dept, null);
+  assert.equal(d.deptReason, '문제 유형 연결이 없습니다.');
+});
+
+test('서버 상태가 검토 중이어도 3개 구가 모두 확정했다는 값이 있으면 확정으로 본다', () => {
+  assert.equal(toRun({ run_id: 2, status: '검토 중' }, { finalized: true }).status, RUN_STATUS.FINAL);
+  assert.equal(toRun({ run_id: 2, status: '검토 중' }, { finalized: false }).status, RUN_STATUS.REVIEW);
+  assert.equal(toRun({ run_id: 2, status: '참고' }, { finalized: true }).status, '참고'); // 참고 회차는 확정하지 않는다
+});
+
+test('구가 비어 있는 후보 수: 시 도로과에는 세어 주고 구 결정 목록에서는 뺀다', () => {
+  const noGu = { ...cand('x', null, 40, 9), gu: null };
+  const list = toCandidateList({ run: run2, candidates: [cand('a', '수정구', 50, 1), noGu] }, { role: 'city' }, { gu: null, guList: GUS, allGu: ALL });
+  assert.equal(list.noGuCount, 1);
+  assert.equal(list.items.length, 1); // 구 없는 후보는 목록·집계에 넣지 않는다
+  assert.equal(list.counts.total, 1);
+});
+
+test('구 도로관리팀 응답에는 구 없는 후보가 없어 0이다', () => {
+  const list = toCandidateList({ run: run2, candidates: [cand('a', '수정구', 50, 1)] }, { role: 'district', gu: '수정구' }, { gu: null, guList: GUS, allGu: ALL });
+  assert.equal(list.noGuCount, 0);
 });

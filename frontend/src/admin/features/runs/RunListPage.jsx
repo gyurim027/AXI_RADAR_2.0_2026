@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { createRun, getNewRunDefaults, getOpenCheck, getPeriodGaps, listAdminRuns, openRun, setRunPeriod, startCalc } from '../../../api/admin.js';
+import { adminRunsFromServer, createRun, getNewRunDefaults, getOpenCheck, getPeriodGaps, listAdminRuns, openRun, setRunPeriod, startCalc } from '../../../api/admin.js';
 import { useAsync } from '../../../shared/hooks/useAsync.js';
 import { useAdmin } from '../../AdminProvider.jsx';
 import Badge, { RUN_TONE } from '../../components/Badge.jsx';
@@ -103,10 +103,15 @@ export default function RunListPage() {
   return (
     <div>
       <PageHeader title={RUNS.title} subtitle={RUNS.subtitle}>
-        <Button variant="primary" onClick={() => setCreating(true)}>
+        <Button variant="primary" disabled={adminRunsFromServer} onClick={() => setCreating(true)}>
           {RUNS.create}
         </Button>
       </PageHeader>
+      {adminRunsFromServer ? (
+        <p role="status" className={styles.note}>
+          {RUNS.notConnected}
+        </p>
+      ) : null}
       {error ? (
         <p role="alert" className={styles.error}>
           {error}

@@ -7,18 +7,19 @@ import { DRAWER, LIST } from '../copy.js';
 import { activeTags, clearTag } from '../filters.js';
 import styles from './FilterBar.module.css';
 
-function ChipGroup({ label, options, value, onToggle, help, helpLabel }) {
+function ChipGroup({ label, options, value, onToggle, help, helpLabel, disabled = false }) {
   return (
     <div className={styles.group} role="group" aria-label={label}>
       <span className={styles.groupLabel}>
         {label}
         {help ? <InfoHelp label={helpLabel}>{help}</InfoHelp> : null}
       </span>
+      {disabled ? <span className={styles.unavailable}>{LIST.filterUnavailable}</span> : null}
       <div className={styles.chips}>
         {options.map((o) => {
           const on = value.includes(o);
           return (
-            <button key={o} type="button" className={`${styles.chip} ${on ? styles.chipOn : ''}`} aria-pressed={on} onClick={() => onToggle(o)}>
+            <button key={o} type="button" className={`${styles.chip} ${on ? styles.chipOn : ''}`} aria-pressed={on} disabled={disabled} onClick={() => onToggle(o)}>
               {o}
             </button>
           );
@@ -32,7 +33,7 @@ function ChipGroup({ label, options, value, onToggle, help, helpLabel }) {
  * 2-1 필터. 표 카드 위 오른쪽의 '필터' 버튼을 누르면 아래로 펼쳐진다.
  * 결정 상태는 KPI 카드가, 우선 확인 조건은 시스템 제안 얼럿이 맡는다.
  */
-export default function FilterBar({ filters, setFilters, city, obstacleOptions, open, setOpen, onCompare }) {
+export default function FilterBar({ filters, setFilters, city, obstacleOptions, unavailable = [], open, setOpen, onCompare }) {
   const tags = activeTags(filters);
   const toggle = (key) => (v) =>
     setFilters({ ...filters, [key]: filters[key].includes(v) ? filters[key].filter((x) => x !== v) : [...filters[key], v] });
@@ -56,8 +57,8 @@ export default function FilterBar({ filters, setFilters, city, obstacleOptions, 
         <div id="filter-panel" className={styles.panel} role="group" aria-label={LIST.filterPanelLabel}>
           <ChipGroup label={LIST.obstacleLabel} options={obstacleOptions} value={filters.obstacles} onToggle={toggle('obstacles')} />
           <ChipGroup label={LIST.reliabilityLabel} options={RELIABILITY} value={filters.reliability} onToggle={toggle('reliability')} help={DRAWER.reliabilityHelp} helpLabel={DRAWER.reliabilityHelpLabel} />
-          <ChipGroup label={LIST.zoneLabel} options={LIST.zoneOptions} value={filters.zone} onToggle={toggle('zone')} />
-          <ChipGroup label={LIST.complaintLabel} options={LIST.complaintOptions} value={filters.complaint} onToggle={toggle('complaint')} help={LIST.complaintHelp} helpLabel={LIST.complaintHelpLabel} />
+          <ChipGroup label={LIST.zoneLabel} options={LIST.zoneOptions} value={filters.zone} onToggle={toggle('zone')} disabled={unavailable.includes('zone')} />
+          <ChipGroup label={LIST.complaintLabel} options={LIST.complaintOptions} value={filters.complaint} onToggle={toggle('complaint')} disabled={unavailable.includes('complaint')} help={LIST.complaintHelp} helpLabel={LIST.complaintHelpLabel} />
         </div>
       ) : null}
 
