@@ -53,6 +53,8 @@ class Candidate:
     # None is unknown, NOT proof that the event is outside a protection zone.
     protected_zone: str | None = None
     protected_zone_basis: str | None = None
+    facility_scope: str | None = None
+    facility_scope_basis: str | None = None
 
 
 def source_to_kinds(*, gid: str, table: str, rows: Iterable[Mapping]) -> tuple[list[Candidate], list[dict]]:
@@ -133,17 +135,35 @@ def jurisdiction_candidates(candidate: Candidate, jurisdiction_rows: Iterable[Ma
     """
     j_by_id={str(j.get('jurisdiction_id')): j for j in jurisdiction_rows}
     eligible=[]; blocked=[]
-    # JUR-01 covers protection-zone traffic safety installations, whereas
-    # JUR-04 concerns other pedestrian/road safety facilities. A source label
-    # like "볼라드 파손" does not verify zone membership or facility ownership.
-    # In particular, gu=None must not hide JUR-04 and accidentally promote
-    # the city-wide JUR-01 row into a single recommended department.
+    # JUR-01: verified protection-zone traffic-safety facility only.
+    # JUR-04: verified general pedestrian-obstruction / road-safety facility.
+    # A location inside a protection zone does not by itself prove the owner or
+    # that a particular bollard/guardrail is a protection-zone installation.
     if candidate.kind == '교통안전시설':
-        return {'status':'확인 필요','problem_kind':candidate.kind,
-                'source_id':candidate.source_id,'candidate_departments':[],
-                'blocked_conditions':[{'jurisdiction_id':'JUR-01/JUR-04',
-                                       'reason':'PROTECTED_ZONE_AND_FACILITY_CONTEXT_UNVERIFIED'}],
-                'department_finalized':False,'needs_human_review':True}
+        zone = candidate.protected_zone
+        scope = candidate.facility_scope
+        zone_verified = zone in {'안', '밖'} and bool(candidate.protected_zone_basis)
+        scope_verified = scope in {'보호구역 교통안전시설', '일반 보행 방해시설'} and bool(candidate.facility_scope_basis)
+        if not zone_verified or not scope_verified:
+            return {'status':'확인 필요','problem_kind':candidate.kind,
+                    'source_id':candidate.source_id,'candidate_departments':[],
+                    'blocked_conditions':[{'jurisdiction_id':'JUR-01/JUR-04',
+                        'reason':'PROTECTED_ZONE_AND_FACILITY_CONTEXT_UNVERIFIED'}],
+                    'department_finalized':False,'needs_human_review':True}
+        # An independently validated facility scope outranks geographic proximity.
+        # Mixed facts go to human review; never infer an owner from the zone alone.
+        if zone == '안' and scope == '보호구역 교통안전시설':
+            facility_jur = 'JUR-01'
+        elif scope == '일반 보행 방해시설':
+            facility_jur = 'JUR-04'
+        else:
+            return {'status':'확인 필요','problem_kind':candidate.kind,
+                    'source_id':candidate.source_id,'candidate_departments':[],
+                    'blocked_conditions':[{'jurisdiction_id':'JUR-01/JUR-04',
+                        'reason':'ZONE_AND_FACILITY_SCOPE_CONFLICT'}],
+                    'department_finalized':False,'needs_human_review':True}
+    else:
+        facility_jur = None
     damage_jur = verified_damage_jurisdiction(candidate)
     if candidate.kind == '파손' and damage_jur is None:
         return {'status':'확인 필요','problem_kind':candidate.kind,
@@ -151,7 +171,7 @@ def jurisdiction_candidates(candidate: Candidate, jurisdiction_rows: Iterable[Ma
                 'blocked_conditions':[{'jurisdiction_id': 'JUR-02/JUR-24',
                                        'reason':'ROAD_VS_SIDEWALK_UNVERIFIED'}],
                 'department_finalized':False,'needs_human_review':True}
-    ids = (damage_jur,) if damage_jur else JUR[candidate.kind]
+    ids = (facility_jur,) if facility_jur else ((damage_jur,) if damage_jur else JUR[candidate.kind])
     for jid in ids:
         j=j_by_id.get(jid)
         if j is None:
