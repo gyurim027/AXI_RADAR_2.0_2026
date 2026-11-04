@@ -113,3 +113,15 @@ test('조치 제안: 응답의 actions를 화면 모양으로 바꾸고 빈 응�
   assert.deepEqual(toActions([]), []);
   assert.deepEqual(toActions([{ item_id: 7, action_text: '문장', dept_text: null, basis_text: '제32조' }]), [{ key: '7', sentence: '문장', dept: null, article: '제32조' }]);
 });
+
+test('화면 버전은 package.json과 같고 1.0.0이다', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const { createServer } = await import('vite');
+  const server = await createServer({ configFile: false, envFile: false, logLevel: 'silent', server: { middlewareMode: true }, appType: 'custom' });
+  try {
+    const { APP_VERSION } = await server.ssrLoadModule('/src/shared/version.js');
+    const pkg = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));
+    assert.equal(APP_VERSION, pkg.version);
+    assert.equal(APP_VERSION, '1.0.0');
+  } finally { await server.close(); }
+});

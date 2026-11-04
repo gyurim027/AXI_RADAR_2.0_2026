@@ -1,3 +1,4 @@
+import AppVersion from '../../shared/components/AppVersion.jsx';
 import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useMatches } from 'react-router-dom';
 import { useAdmin } from '../AdminProvider.jsx';
@@ -40,7 +41,7 @@ function SettingsLayout(){
         {menu.map((m)=><NavLink key={m.to} to={m.to} end={m.end} className={({isActive})=>`${sectionStyles.item} ${isActive?sectionStyles.active:''}`}>{m.label}</NavLink>)}
       </nav>
     </div>
-    <main id="admin-main" className={styles.main} tabIndex={-1}><div className={styles.content}>{banner?<div style={{marginBottom:16}}><Banner tone="danger">{banner}</Banner></div>:null}{isOpenInServerMode(pathname)?<Outlet/>:<div role="status"><EmptyState text="이 화면은 아직 서버와 연결되지 않았습니다."/></div>}</div></main>
+    <main id="admin-main" className={styles.main} tabIndex={-1}><div className={styles.content}>{banner?<div style={{marginBottom:16}}><Banner tone="danger">{banner}</Banner></div>:null}{isOpenInServerMode(pathname)?<Outlet/>:<div role="status"><EmptyState text="이 화면은 아직 서버와 연결되지 않았습니다."/></div>}<AppVersion/></div></main>
   </div>;
 }
 
@@ -76,6 +77,7 @@ function RunAdminLayout() {
             </div>
           ) : null}
           <Outlet key={run.id} />
+          <AppVersion />
         </div>
       </main>
     </div>

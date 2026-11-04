@@ -1,3 +1,4 @@
+import AppVersion from '../../../../shared/components/AppVersion.jsx';
 import { useEffect, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../../app/providers/AuthProvider.jsx';
@@ -130,6 +131,7 @@ export default function LoginPage() {
 
       {/* DEV-QUICK-LOGIN */}
       <DevQuickLogin onPick={quickLogin} disabled={busy} />
+      <AppVersion />
     </div>
   );
 }
