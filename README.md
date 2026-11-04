@@ -83,7 +83,7 @@ uv run uvicorn app.main:app --port 8000
 - http://127.0.0.1:8000/health/db : DB 연결 확인
 
 DB 없이도 서버는 켜지지만 로그인과 데이터 조회는 DB가 있어야 합니다.
-로그인용 시험 계정은 DB에 `scripts/auth_create_test_users.py`로 만듭니다. 사용법은 파일 맨 위에 있습니다.
+SQL을 실행하면 로그인용 시험 계정 6개(`suj`, `jungwon`, `bundang`, `bundang-sidewalk`, `city`, `operator`)가 함께 들어갑니다. 비밀번호는 저장소에 없으니 팀 공유 드라이브에서 확인합니다. 계정을 따로 만들 때는 `scripts/auth_create_test_users.py`를 쓰고, 사용법은 파일 맨 위에 있습니다.
 
 ### 3. 프론트엔드와 백엔드 연결
 
