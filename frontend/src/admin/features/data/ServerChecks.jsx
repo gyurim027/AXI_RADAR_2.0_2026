@@ -86,7 +86,6 @@ function IssueTable({ tabKey, first }) {
   ];
   return (
     <Panel padded={false}>
-      <p className={styles.note}>{CHECKS.issueNote[tabKey]}</p>
       <DataTable
         caption={CHECKS.tabs[tabKey]}
         compact
