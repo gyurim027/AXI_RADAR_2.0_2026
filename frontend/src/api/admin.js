@@ -60,6 +60,8 @@ export const getVersion = mockCall('admin.getVersion', (arg) => server.getVersio
 export const saveVersionDraft = mockCall('admin.saveVersionDraft', (arg) => server.saveVersionDraft(arg));
 export const previewChange = mockCall('admin.previewChange', (arg) => server.previewChange(arg));
 export const requestVersionApproval = mockCall('admin.requestVersionApproval', (arg) => server.requestVersionApproval(arg));
+export const previewF01Verified = opsBackendEnabled ? ops.previewF01Verified : async () => { throw new Error('F-01 서버 미연결'); };
+export const previewF01Caller = opsBackendEnabled ? ops.previewF01Caller : async () => { throw new Error('F-01 서버 미연결'); };
 export const getDept = opsBackendEnabled ? ops.getDept : mockCall('admin.getDept', (arg) => server.getDept(arg));
 /** 서버 모드에서만 쓴다: 수정안 근거 원문 찾기 */
 export const searchLawText = opsBackendEnabled ? ops.searchLaw : () => Promise.resolve({ result: '보유 원문에서 못 찾음', items: [] });

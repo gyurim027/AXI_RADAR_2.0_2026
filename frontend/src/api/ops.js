@@ -44,6 +44,17 @@ export function adaptDashboard(d, approvedLabel = null) {
 
 export function createOpsApi(request) {
   return {
+    previewF01Verified({ gid, sourceTable, sourceId }) {
+      return request('/api/standards/f01/preview/verified-source', {
+        method: 'POST', body: { gid, source_table: sourceTable, source_id: sourceId },
+      });
+    },
+    previewF01Caller({ gid, sourceTable, sourceRows, gu }) {
+      return request('/api/standards/f01/preview', {
+        method: 'POST', body: { gid, source_table: sourceTable, source_rows: sourceRows, gu: gu || null },
+      });
+    },
+
     listAccounts() {
       return request('/api/admin/accounts');
     },
