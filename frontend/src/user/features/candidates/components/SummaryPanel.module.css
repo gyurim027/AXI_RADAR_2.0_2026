@@ -1,0 +1,128 @@
+.panel {
+  position: absolute;
+  top: var(--component-map-card-margin);
+  left: var(--component-map-card-margin);
+  right: var(--component-map-card-margin);
+  z-index: var(--component-summary-panel-z);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  max-height: calc(var(--component-summary-panel-max-height-ratio) * 100%);
+  overflow: auto;
+  padding: var(--component-summary-panel-padding);
+  /* 1순위: 지금 고른 칸의 근거. 파란 위쪽 띠와 더 깊은 그림자로 지도 위 보조 정보보다 앞에 보이게 한다 */
+  border: 1px solid var(--semantic-color-band-border);
+  border-top: 3px solid var(--semantic-color-primary-strong);
+  border-radius: var(--component-summary-panel-radius);
+  background: var(--component-summary-panel-bg);
+  box-shadow: 0 12px 28px rgb(24 26 27 / 0.18);
+  font-size: var(--fs-small);
+}
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  min-width: 0;
+}
+/* 접었을 때의 주소: 순위와 같은 14px, 굵지 않은 검은 글자 */
+.addr {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-small);
+  font-weight: var(--fw-regular);
+  color: var(--semantic-color-text);
+}
+.rank {
+  font-size: var(--fs-small);
+  font-weight: var(--fw-bold);
+  color: var(--semantic-color-primary-strong);
+}
+.title {
+  font-size: var(--fs-body);
+  font-weight: var(--fw-bold);
+}
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin: -4px -4px 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: none;
+}
+.toggle:hover {
+  background: var(--semantic-color-bg-subtle);
+}
+.sub {
+  margin-top: var(--space-4);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-bold);
+  color: var(--semantic-color-text);
+}
+.explain {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-8);
+  padding: var(--space-12) var(--space-16);
+  border-radius: var(--radius-md);
+  background: var(--semantic-color-primary-soft);
+}
+.sparkle {
+  flex: none;
+  margin-top: 2px;
+  color: var(--semantic-color-primary);
+}
+/* 설명문은 2줄까지 보인다 (와이어프레임 5-1). 전체는 후보 상세에서 볼 수 있다. */
+.clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.fail {
+  color: var(--semantic-color-risk-high);
+}
+.dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-16);
+}
+.dots li {
+  position: relative;
+  color: var(--semantic-color-text-muted);
+}
+.dots li + li::before {
+  content: '';
+  position: absolute;
+  left: -10px;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  margin-top: -2px;
+  border-radius: 50%;
+  background: var(--semantic-color-text-muted);
+}
+.skel {
+  height: 120px;
+}
+.actions {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: var(--space-8);
+}
+
+@media (max-width: 1099px) {
+  .panel {
+    max-width: calc(100% - 2 * var(--component-map-card-margin));
+  }
+}

@@ -1,0 +1,4 @@
+.note {
+  font-size: var(--fs-small);
+  color: var(--semantic-color-text-muted);
+}

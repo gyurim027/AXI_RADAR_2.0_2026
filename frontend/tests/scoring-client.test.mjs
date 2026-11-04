@@ -1,0 +1,10 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';
+import {makeEvidenceClient} from '../src/api/scoring/client.mjs';
+const body=JSON.parse(fs.readFileSync(new URL('./fixtures/scoring/experimental_response.json',import.meta.url)));
+const ok=(b=body)=>({status:200,json:async()=>b});
+test('actual response preserves engine rank',async()=>{let states=[];await makeEvidenceClient(async()=>ok(),s=>states.push(s)).load(body.runId,body.gid);assert.equal(states.at(-1).rank,body.experimentalRank);assert.equal(states[0].experimentalScore,null)});
+for(const field of ['runId','gid'])test(`wrong ${field} hidden`,async()=>{let s;await makeEvidenceClient(async()=>ok({...body,[field]:'wrong'}),v=>s=v).load(body.runId,body.gid);assert.equal(s.state,'INVALID');assert.equal(s.experimentalScore,null)});
+test('late earlier request cannot overwrite later forbidden state',async()=>{let resolve,s;let n=0;const client=makeEvidenceClient(()=>++n===1?new Promise(r=>resolve=r):Promise.resolve({status:403}),v=>s=v);const first=client.load(body.runId,body.gid);await client.load(body.runId,body.gid);resolve(ok());await first;assert.equal(s.state,'FORBIDDEN');assert.equal(s.experimentalScore,null)});
+test('cancel hides pending response',async()=>{let resolve,s;const c=makeEvidenceClient(()=>new Promise(r=>resolve=r),v=>s=v);const pending=c.load(body.runId,body.gid);c.cancel();resolve(ok());await pending;assert.equal(s.state,'IDLE')});
+test('network error clears previous result',async()=>{let s;await makeEvidenceClient(async()=>{throw Error('offline')},v=>s=v).load(body.runId,body.gid);assert.equal(s.state,'ERROR');assert.equal(s.experimentalScore,null)});
+test('unsafe numeric run rejected before request',async()=>{let called=false,s;await makeEvidenceClient(async()=>{called=true},v=>s=v).load(Number.MAX_SAFE_INTEGER+1,body.gid);assert.equal(called,false);assert.equal(s.state,'INVALID')});

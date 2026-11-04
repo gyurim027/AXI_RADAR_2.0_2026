@@ -1,0 +1,127 @@
+/* 왼쪽 열(스크롤)과 오른쪽 지도(꽉 참). 표 6 : 지도 4 (디자인 시스템 9-2) */
+.split {
+  flex: 1;
+  display: grid;
+  /* 표 : 막대 : 지도. 기본 6:4이고 --split-left/--split-right는 분할 막대가 바꾼다 (US-01 9-2) */
+  grid-template-columns: minmax(0, var(--split-left, 60fr)) 12px minmax(0, var(--split-right, 40fr));
+  min-height: 0;
+  width: 100%;
+}
+.animate {
+  transition: grid-template-columns 0.2s ease;
+}
+.collapsed {
+  visibility: hidden;
+}
+.dragging {
+  cursor: col-resize;
+  user-select: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate {
+    transition: none;
+  }
+}
+.left {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: transparent;
+}
+.leftInner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  padding: var(--space-16) var(--semantic-layout-page-margin) var(--space-24);
+}
+.filterRow {
+  margin-bottom: calc(-1 * var(--space-4));
+}
+.guide {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-bold);
+  color: var(--semantic-color-text-strong);
+}
+.guideBtn {
+  min-height: var(--control-h-sm);
+  padding: 0 var(--space-12);
+  border: 1px solid var(--semantic-color-border-card);
+  border-radius: var(--radius-md);
+  background: var(--semantic-color-bg-surface);
+  color: var(--semantic-color-primary-strong);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-bold);
+}
+
+.tableCard {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: clamp(420px, calc(100vh - 290px), 820px); /* 목록이 화면의 절반 이상을 쓴다 (U-1) */
+  overflow: hidden;
+  border: 1px solid var(--component-card-border);
+  border-radius: var(--component-card-radius);
+  background: var(--component-card-bg);
+}
+.scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.mapCol {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+}
+.mapMsg {
+  position: absolute;
+  inset: 0;
+  z-index: var(--component-map-control-z);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--component-map-bg);
+}
+
+/* 1100px 미만(태블릿): 표 위, 지도 아래로 쌓는다. 한 쪽이 스크롤한다. */
+@media (max-width: 1099px) {
+  .split {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  .left {
+    flex: none;
+    overflow: visible;
+  }
+  .mapCol {
+    flex: none;
+    height: max(300px, var(--stack-map-h, clamp(360px, 70vh, 640px)));
+    min-height: 300px;
+  }
+  /* 세로 스크롤은 분할 영역 하나만 쓴다. 표 카드는 높이를 풀고 안쪽은 가로로만 넘긴다 */
+  .tableCard {
+    height: auto;
+    overflow: visible;
+  }
+  .scroll {
+    flex: none;
+    overflow-x: auto;
+    overflow-y: visible;
+  }
+}
+
+.noGuNote {
+  font-size: var(--fs-small);
+  color: var(--semantic-color-text-muted);
+}
+
+/* 쌓인 배치에서 지도 아래 맨 끝에 놓이는 확정 바 */
+.stackConfirm {
+  flex: none;
+}

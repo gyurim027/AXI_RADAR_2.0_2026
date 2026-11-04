@@ -1,0 +1,52 @@
+.shell {
+  min-height: 100vh;
+  min-width: var(--radar-admin-component-shell-content-min);
+  background: var(--radar-admin-semantic-color-bg-canvas);
+  color: var(--radar-admin-semantic-color-text-primary);
+  font-family: var(--a-font);
+  font-size: var(--a-fs-md);
+  line-height: var(--a-lh-body);
+}
+.shell :focus-visible {
+  outline: var(--a-focus-width) solid var(--radar-admin-semantic-color-focus);
+  outline-offset: var(--a-focus-offset);
+}
+.fixed {
+  position: sticky;
+  top: 0;
+  z-index: var(--radar-admin-component-nav-z);
+}
+.main {
+  padding: var(--radar-admin-component-page-top-gap) var(--radar-admin-component-shell-content-padding) var(--a-s12);
+}
+.main:focus {
+  outline: none;
+}
+.content {
+  width: 100%;
+  max-width: var(--radar-admin-component-shell-content-max);
+  margin: 0 auto;
+}
+.wide {
+  max-width: none; /* 열이 많은 표 화면은 최대 폭을 풀어 표가 더 넓게 보이게 한다 */
+}
+.skip {
+  position: absolute;
+  top: -48px;
+  left: var(--a-s4);
+  z-index: var(--a-z-toast);
+  padding: var(--a-s2) var(--a-s4);
+  border-radius: var(--a-radius-control);
+  background: var(--radar-admin-semantic-color-bg-surface);
+  border: 2px solid var(--radar-admin-semantic-color-focus);
+}
+.skip:focus {
+  top: var(--a-s2);
+}
+
+@media (max-width: 1359px) {
+  .main {
+    padding-left: clamp(16px, 2vw, 32px);
+    padding-right: clamp(16px, 2vw, 32px);
+  }
+}

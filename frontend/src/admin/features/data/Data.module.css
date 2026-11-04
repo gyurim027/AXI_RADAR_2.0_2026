@@ -1,0 +1,123 @@
+.name {
+  font-weight: var(--a-fw-medium);
+}
+.stack {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--a-s2);
+}
+.versions {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--a-fs-sm);
+}
+.versions th {
+  padding: var(--a-s2) var(--a-s3);
+  text-align: left;
+  font-weight: var(--a-fw-medium);
+  color: var(--radar-admin-semantic-color-text-secondary);
+}
+.versions td {
+  padding: var(--a-s2) var(--a-s3);
+  border-top: 1px solid var(--radar-admin-semantic-color-border-subtle);
+}
+.file {
+  overflow-wrap: anywhere;
+}
+.formPanel {
+  max-width: 960px;
+}
+/* 입력을 두 줄로 놓는다. 파일, 안내, 버튼은 한 줄을 다 쓴다 (A-2) */
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--a-s5) var(--a-s6);
+  align-items: start;
+}
+.lock > :nth-child(2),
+.full {
+  grid-column: 1 / -1;
+}
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--a-s2);
+}
+.stackPanels {
+  display: flex;
+  flex-direction: column;
+  gap: var(--a-s6);
+}
+.lowLine {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--a-s1);
+  font-size: var(--a-fs-md);
+}
+.lowBtn {
+  min-height: 40px;
+  padding: 0 var(--a-s1);
+  border: 0;
+  border-radius: var(--a-radius-control);
+  background: none;
+  font-size: var(--radar-admin-component-kpi-value-size);
+  font-weight: var(--radar-admin-component-kpi-value-weight);
+  line-height: 1.2;
+  color: var(--radar-admin-semantic-color-text-link);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  font-variant-numeric: tabular-nums;
+}
+.lowBtn:hover {
+  background: var(--radar-admin-semantic-color-bg-hover);
+}
+.rowBtns {
+  display: inline-flex;
+  gap: var(--a-s2);
+  justify-content: flex-end;
+}
+.relevance {
+  white-space: nowrap;
+}
+.link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--a-size-compact);
+  color: var(--radar-admin-semantic-color-text-link);
+  text-underline-offset: 3px;
+}
+.panelFoot {
+  padding: var(--space-12) var(--space-24);
+  font-size: var(--a-fs-sm);
+  color: var(--radar-admin-semantic-color-text-secondary);
+}
+.note {
+  margin-top: var(--a-s2);
+  font-size: var(--a-fs-sm);
+  color: var(--radar-admin-semantic-color-text-secondary);
+}
+
+/* 올리는 동안 입력을 잠그되 화면 배치는 그대로 둔다 (fieldset disabled) */
+.lock {
+  display: contents;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.helpLine {
+  margin: 0 0 var(--a-s3);
+  font-size: var(--a-fs-sm);
+  color: var(--radar-admin-semantic-color-text-secondary);
+}
+
+@media (max-width: 1099px) {
+  .formGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .formPanel {
+    max-width: none;
+  }
+}

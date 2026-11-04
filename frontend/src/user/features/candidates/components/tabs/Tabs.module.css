@@ -1,0 +1,134 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+.block + .block {
+  margin-top: var(--space-32);
+}
+.h {
+  font-size: var(--fs-body); /* 위계 ② 블록 소제목 16px 굵게 */
+  font-weight: var(--fw-bold);
+}
+/* 탭 맨 위 안내 한 줄: 14px 보조색 (위계 ③을 옅게) */
+.sub {
+  font-size: var(--fs-caption); /* 설명 글은 12px 보조색: 상태값·빈 안내와 구분된다 */
+  color: var(--semantic-color-text-muted);
+}
+.h + .sub {
+  margin-top: var(--space-4);
+}
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  margin-top: var(--space-12);
+}
+/* 점검 필요도: 핵심 수치만 24px 굵게, 나머지는 14px */
+.tagRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+.sparkle {
+  flex: none;
+  margin-top: 3px;
+  color: var(--semantic-color-primary);
+}
+.fail {
+  color: var(--semantic-color-risk-high);
+}
+.tableWrap {
+  overflow-x: auto;
+  border: 1px solid var(--semantic-color-border-card);
+  border-radius: var(--radius-sm);
+}
+.valueCell {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+.muted {
+  color: var(--semantic-color-text-muted);
+}
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+.linkBtn {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--semantic-color-primary-strong);
+  font-weight: var(--fw-medium);
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.articleBody {
+  margin-top: var(--space-8);
+  padding: var(--space-12) var(--space-16);
+  border-radius: var(--radius-sm);
+  background: var(--semantic-color-bg-shell);
+  font-size: var(--fs-small);
+  color: var(--semantic-color-text-muted);
+}
+.articleRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8);
+}
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+.hist {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+.histRow {
+  padding: var(--space-8) 0;
+  border-bottom: 1px solid var(--semantic-color-border-subtle);
+  font-size: var(--fs-small);
+}
+.actionRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8);
+}
+.right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+}
+.err {
+  color: var(--semantic-color-risk-high);
+  font-size: var(--fs-small);
+}
+
+.choice {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+/* 한 ⓘ 말풍선 안에서 줄마다 하나씩 설명한다 */
+.helpLine {
+  display: block;
+}
+.helpLine + .helpLine {
+  margin-top: var(--space-4);
+}
+
+/* 담당 부서: 이름은 굵게, 연락처는 보조색, 상태값은 꼬리표 */
+.deptLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8);
+}

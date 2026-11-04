@@ -1,0 +1,39 @@
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--a-s6);
+}
+.log {
+  display: flex;
+  flex-direction: column;
+  gap: var(--a-s2);
+  margin-top: var(--a-s3);
+  font-size: var(--a-fs-md);
+}
+.formPanel {
+  max-width: var(--radar-admin-component-field-max-width);
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--a-s4);
+}
+.actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.temp {
+  padding: var(--a-s3) var(--a-s4);
+  border: 1px solid var(--radar-admin-semantic-color-border-subtle);
+  border-radius: var(--a-radius-control);
+  background: var(--radar-admin-semantic-color-bg-hover);
+  font-size: var(--a-fs-lg);
+  letter-spacing: 0.04em;
+  user-select: all;
+}
+
+/* 계정 사용 멈추기: 목록에서는 가볍게 글자 링크(위험 색)로 두고, 누르면 확인 창을 거친다 */
+button.stopLink {
+  color: var(--radar-admin-semantic-color-danger);
+}

@@ -1,0 +1,54 @@
+.panel {
+  flex: none;
+  width: min(var(--radar-admin-component-side-panel-width), 90vw);
+  align-self: flex-start;
+  position: sticky;
+  top: calc(var(--radar-admin-component-shell-topbar-height) + var(--radar-admin-component-shell-section-nav-height) + var(--a-s6));
+  padding: var(--radar-admin-component-side-panel-padding);
+  background: var(--radar-admin-component-side-panel-bg);
+  border: 1px solid var(--radar-admin-component-side-panel-border);
+  border-radius: var(--radar-admin-component-side-panel-radius);
+}
+.panel:focus {
+  outline: none;
+}
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--a-s3);
+}
+.title {
+  font-size: var(--a-fs-lg);
+  font-weight: var(--a-fw-semibold);
+  line-height: var(--a-lh-heading);
+}
+.close {
+  flex: none;
+  width: var(--a-size-icon-button);
+  height: var(--a-size-icon-button);
+  margin: calc(var(--a-s2) * -1);
+  border: 0;
+  border-radius: var(--radar-admin-component-button-radius);
+  background: none;
+  font-size: var(--a-fs-h3);
+  line-height: 1;
+  color: var(--radar-admin-semantic-color-text-secondary);
+}
+.close:hover {
+  background: var(--radar-admin-semantic-color-bg-hover);
+}
+.body {
+  margin-top: var(--a-s3);
+  font-size: var(--a-fs-md);
+  line-height: var(--a-lh-body);
+  white-space: pre-wrap;
+}
+
+@media (max-width: 1099px) {
+  .panel {
+    position: static;
+    width: 100%;
+    align-self: stretch;
+  }
+}

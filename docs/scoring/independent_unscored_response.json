@@ -1,0 +1,95 @@
+{
+  "run_id": 920001,
+  "gid": "다사58aa30ab",
+  "gu": null,
+  "calculation_status": "UNSCORED",
+  "official_score": null,
+  "experimental_score": null,
+  "experimental_rank": null,
+  "selected_yn": null,
+  "setting_version_id": 920001,
+  "setting_status": "제안",
+  "rule_version": "EXP_scope_positive_upper",
+  "details": {
+    "base_adjustment": null,
+    "base_score": 0.0,
+    "cap_adjustment": null,
+    "classification_status": "OFFICIAL_INPUT_MISSING",
+    "complaint_signal": null,
+    "complaint_signal_points": null,
+    "count_excl_low": 0,
+    "indicator_contributions": {
+      "cond_blind_spot_cnt": null,
+      "cond_delineator_detect_cnt": null,
+      "cond_obstacle_cnt": null,
+      "cond_pothole_detect_cnt": null,
+      "exp_board_alight_daily_avg": 0.0,
+      "res_fatal_accident_cnt": 0.0,
+      "res_hotspot_cnt": 0.0,
+      "res_ped_hotspot_cnt": 0.0,
+      "vul_zone_total": 0.0
+    },
+    "manifest": {
+      "build_id": "bundle-6af10e9-scoring-integration",
+      "code_sha256": "e5da9b119989eca9cb0865a8012cacc2e9e4063e2466f26aa6af3a725cfdc6a7",
+      "execution_fingerprint": "53dba737ce691e8fef25d496fc1756d12f6f13a0a3ee518499224a9da97805fd",
+      "input_sha256": "f5b9fc7bf348c7de4f1a6ff768904e5ffbbebba0c22f0e1004b6572ec1e7cda6",
+      "inputs": {
+        "complaints": "228cc4f64c7b795880b4fba334f00d9cc2ad25d7b0612ca7cd7456aa61e13c80",
+        "grid": "f5b9fc7bf348c7de4f1a6ff768904e5ffbbebba0c22f0e1004b6572ec1e7cda6"
+      },
+      "policies": [
+        {
+          "build_id": "bundle-6af10e9-scoring-integration",
+          "coefficient_points": 5,
+          "comparison_population": "hazard_observed",
+          "complaint_mode": "independent",
+          "fit_population": "all_input_positive_counts",
+          "input_status": "EXPLORATORY_PROXY",
+          "label": "EXP_scope_positive_upper",
+          "period_note": "Existing mixed-period snapshot; NOT a half-year comparison",
+          "policy": {
+            "accident_reduce": "mean",
+            "domain_weights": {
+              "accident": 0.25,
+              "exposure": 0.25,
+              "hazard": 0.25,
+              "vulnerability": 0.25
+            },
+            "label": "EXP_scope_positive_upper",
+            "missing": "renormalize",
+            "normalization": "positive_upper",
+            "observation": "scope_aware"
+          },
+          "run_id": 920001,
+          "schema_version": 1,
+          "setting_version_id": 920001
+        }
+      ],
+      "run_id": 920001
+    },
+    "net_change": null,
+    "observation_states": {
+      "cond_blind_spot_cnt": "NO_RECORD_COVERAGE_UNKNOWN",
+      "cond_delineator_detect_cnt": "NO_RECORD_COVERAGE_UNKNOWN",
+      "cond_obstacle_cnt": "OUTSIDE_SURVEY_SCOPE",
+      "cond_pothole_detect_cnt": "NO_RECORD_COVERAGE_UNKNOWN",
+      "exp_board_alight_daily_avg": "RECORD_VALUE",
+      "res_fatal_accident_cnt": "RECORD_VALUE",
+      "res_hotspot_cnt": "RECORD_VALUE",
+      "res_ped_hotspot_cnt": "RECORD_VALUE",
+      "vul_zone_total": "RECORD_VALUE"
+    },
+    "proxy_count": 0,
+    "raw_complaint_count": 0,
+    "reasons": [
+      "EXPERIMENTAL_PROXY_NOT_OFFICIAL",
+      "OUTSIDE_COMMON_OBSERVED_POPULATION_OR_BASE_UNSCORED"
+    ],
+    "rounding_adjustment": null,
+    "stored": true,
+    "tie_size": null
+  },
+  "integration_status": "VERIFIED_ISOLATED_JOIN",
+  "production_ready": false
+}

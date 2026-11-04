@@ -1,0 +1,24 @@
+.fig {
+  position: relative;
+  margin: 0;
+}
+.map {
+  isolation: isolate;
+  height: 176px;
+  border: 1px solid var(--component-map-border);
+  border-radius: var(--radius-md);
+  background: var(--component-map-bg);
+}
+/* 지도 위 왼쪽에 얹는 작은 어두운 꼬리표 (격자 이름표와 같은 모양) */
+.tag {
+  position: absolute;
+  top: var(--space-8);
+  left: var(--space-8);
+  z-index: 500;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--semantic-color-text-strong);
+  color: var(--semantic-color-bg-surface);
+  font-size: var(--fs-caption);
+  pointer-events: none;
+}

@@ -1,0 +1,96 @@
+// I-07 실제 연결은 명시적으로 켠 경우에만 사용한다. 실패 시 목업으로 대체하지 않는다.
+// 서버 주소(VITE_API_BASE_URL)를 적어 두면 서버를 쓰겠다는 뜻으로 보고, 연결된 화면을 모두 서버로 연다.
+// 스위치를 'false'로 적으면 그 기능만 끈다. 주소도 스위치도 없으면 서버 없이 가짜 서버로 돈다(연습용).
+const serverAddressSet = Boolean((import.meta.env?.VITE_API_BASE_URL || '').trim());
+const on = (flag) => flag === 'true' || (serverAddressSet && flag !== 'false');
+export const i07BackendEnabled = on(import.meta.env?.VITE_I07_API);
+export const settingsBackendEnabled = on(import.meta.env?.VITE_SETTINGS_API);
+// 계정 관리·접속 기록·알림 설정(I-01·I-03·I-04) 실제 연결. 켜면 RADAR 운영자 로그인과 그 세 화면만 서버를 쓴다.
+export const opsBackendEnabled = on(import.meta.env?.VITE_OPS_API);
+// G-03만 명시적으로 개발 연결한다. 기존 mockCall의 전역 차단 범위를 확장하지 않는다.
+export const g03BackendEnabled = import.meta.env?.VITE_G03_API === 'true';
+export const g06BackendEnabled = import.meta.env?.VITE_G06_API === 'true';
+// 점검 후보·회차(점수·순위 모델 /api/priority). 서버 주소가 있으면 켜진다. 연결된 사용자 화면은 점검 후보뿐이다.
+export const priorityBackendEnabled = on(import.meta.env?.VITE_PRIORITY_API);
+export const backendAuthEnabled = i07BackendEnabled || settingsBackendEnabled || opsBackendEnabled;
+
+/** 서버 연결 모드에서 로그인 뒤 처음 여는 화면 */
+export function backendHome(role) {
+  if (role === 'operator') return settingsBackendEnabled ? '/admin/standards/criteria' : '/admin/settings/accounts';
+  if (role === 'city' && i07BackendEnabled) return '/reference/approvals';
+  return '/candidates';
+}
+const baseUrl = import.meta.env?.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
+/** 개발 화면에서 어느 서버로 가는지 보이려고 내보낸다 (비밀 값 아님) */
+export const backendBaseUrl = baseUrl;
+const sessionKey = 'radar.backend.session.v1';
+
+export class BackendError extends Error {
+  constructor(status, code, message, details = {}) {
+    super(message);
+    this.name = 'BackendError';
+    this.status = status;
+    this.code = code;
+    this.details = details;
+  }
+}
+
+export function createBackendClient({ baseUrl = '', getToken = () => null, fetchImpl = (...args) => fetch(...args), onUnauthorized = () => {} } = {}) {
+  return async function request(path, { method = 'GET', body } = {}) {
+    const token = getToken();
+    const headers = { Accept: 'application/json' };
+    if (token) headers.Authorization = `Bearer ${token}`;
+    if (body !== undefined) headers['Content-Type'] = 'application/json';
+    let response;
+    try {
+      response = await fetchImpl(`${baseUrl.replace(/\/$/, '')}${path}`, {
+        method, headers, ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+      });
+    } catch {
+      throw new BackendError(0, 'network_error', '서버에 연결하지 못했습니다. 잠시 뒤에 다시 시도해 주세요.');
+    }
+    let data;
+    try {
+      data = await response.json();
+    } catch {
+      if (response.status === 401) onUnauthorized();
+      throw new BackendError(response.status, 'invalid_response', '서버 응답을 확인하지 못했습니다. 처리 상태를 다시 확인해 주세요.');
+    }
+    if (response.status === 401) onUnauthorized(data?.error?.code); // 멈춘 계정·바뀐 역할도 로그인 화면으로 보낸다 (account_inactive·role_changed)
+    if (!response.ok) {
+      const error = data?.error || {};
+      throw new BackendError(response.status, error.code || 'request_failed', error.message || '요청을 처리하지 못했습니다.', error);
+    }
+    return data;
+  };
+}
+
+export function readBackendSession() {
+  try {
+    return JSON.parse(window.sessionStorage.getItem(sessionKey) || 'null');
+  } catch {
+    return null;
+  }
+}
+
+export function saveBackendSession(value) {
+  // 보관이 거부되면 로그인 성공으로 표시하지 않는다. 비밀번호는 저장하지 않는다.
+  try {
+    window.sessionStorage.setItem(sessionKey, JSON.stringify(value));
+  } catch {
+    throw new BackendError(0, 'session_unavailable', '로그인 정보를 보관할 수 없습니다. 브라우저 설정을 확인해 주세요.');
+  }
+}
+
+export function clearBackendSession() {
+  try { window.sessionStorage.removeItem(sessionKey); } catch { /* 이미 보관하지 못한 경우 */ }
+}
+
+export const backendRequest = createBackendClient({
+  baseUrl,
+  getToken: () => readBackendSession()?.token,
+  onUnauthorized: (code) => {
+    clearBackendSession();
+    window.dispatchEvent(new CustomEvent('radar:session-expired', { detail: { code } }));
+  },
+});

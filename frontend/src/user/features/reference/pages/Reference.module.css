@@ -1,0 +1,70 @@
+.card {
+  border: 1px solid var(--component-card-border);
+  border-radius: var(--component-card-radius);
+  background: var(--component-card-bg);
+  overflow: hidden;
+}
+.scroll {
+  overflow-x: auto;
+}
+.split {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-24);
+}
+.splitOpen {
+  grid-template-columns: 5fr 7fr; /* 제안 목록 5열, 비교 7열 (디자인 시스템 8장) */
+  align-items: start;
+}
+.compare {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  padding: var(--space-32);
+}
+.h2 {
+  font-size: var(--fs-h3);
+  font-weight: var(--fw-bold);
+}
+.changeList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+.change {
+  padding: var(--space-8) var(--space-12);
+  border-radius: var(--radius-sm);
+  background: var(--semantic-color-bg-info-soft);
+}
+.btns {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-8);
+}
+.modalBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  margin-top: var(--space-16);
+}
+.rowBtns {
+  display: inline-flex;
+  gap: var(--space-8);
+}
+.source {
+  padding: var(--space-12) var(--space-16);
+  font-size: var(--fs-caption);
+  color: var(--semantic-color-text-muted);
+}
+
+@media (max-width: 1099px) {
+  .splitOpen {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .compare {
+    position: static;
+    padding: var(--space-16);
+  }
+}

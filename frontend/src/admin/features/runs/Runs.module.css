@@ -1,0 +1,108 @@
+.h3 {
+  font-size: var(--a-fs-md);
+  font-weight: var(--a-fw-semibold);
+  margin-bottom: var(--a-s2);
+}
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--a-s1);
+  padding-left: var(--a-s5);
+  list-style: disc;
+}
+.note {
+  font-size: var(--a-fs-sm);
+  color: var(--radar-admin-semantic-color-text-secondary);
+}
+.error {
+  margin-bottom: var(--a-s4);
+  font-size: var(--a-fs-sm);
+  color: var(--radar-admin-semantic-color-danger);
+}
+.log {
+  margin: 0;
+  padding: var(--a-s3) var(--a-s4);
+  background: var(--radar-admin-semantic-color-bg-surface);
+  border: 1px solid var(--radar-admin-semantic-color-border-subtle);
+  border-radius: var(--a-radius-control);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: var(--a-fs-sm);
+  line-height: var(--a-lh-body);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.expanded {
+  display: flex;
+  flex-direction: column;
+  gap: var(--a-s3);
+  align-items: flex-start;
+}
+.h4 {
+  font-size: var(--a-fs-md);
+  font-weight: var(--a-fw-semibold);
+}
+.cause {
+  font-size: var(--a-fs-md);
+  color: var(--radar-admin-semantic-color-danger);
+}
+.help {
+  font-size: var(--a-fs-sm);
+  color: var(--radar-admin-semantic-color-text-secondary);
+}
+
+/* 민원 접수 기간 (AD-06 1-2) */
+.period {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.period legend {
+  padding: 0;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--semantic-color-text);
+}
+.periodRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-12);
+}
+.help {
+  margin: 0;
+  font-size: var(--fs-caption);
+  color: var(--semantic-color-text-muted);
+}
+.note {
+  margin: 0;
+  font-size: var(--fs-caption);
+  color: var(--semantic-color-text);
+}
+.rowBtns {
+  display: inline-flex;
+  gap: var(--space-8);
+}
+
+.verList {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.verLink {
+  color: var(--radar-admin-semantic-color-text-link);
+  text-underline-offset: 3px;
+}
+
+.statusCell {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--a-s2);
+}
+.stage {
+  font-size: var(--a-fs-sm);
+  color: var(--radar-admin-semantic-color-text-secondary);
+}

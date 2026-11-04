@@ -1,0 +1,280 @@
+.error {
+  margin-bottom: var(--a-s4);
+  font-size: var(--a-fs-sm);
+  color: var(--radar-admin-semantic-color-danger);
+}
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--a-s6);
+}
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--a-s6);
+}
+.main {
+  flex: 1;
+  min-width: 640px;
+}
+.back {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--a-size-compact);
+  display: inline-block;
+  margin-bottom: var(--a-s4);
+  font-size: var(--a-fs-sm);
+  color: var(--radar-admin-semantic-color-text-link);
+  text-underline-offset: 3px;
+}
+.meta {
+  font-size: var(--a-fs-md);
+  color: var(--radar-admin-semantic-color-text-secondary);
+}
+.changed {
+  background: var(--radar-admin-component-table-changed-bg);
+  box-shadow: inset 2px 0 0 var(--radar-admin-component-table-changed-line);
+  font-weight: var(--a-fw-medium);
+}
+.readonly {
+  font-variant-numeric: tabular-nums;
+}
+.sum {
+  padding: var(--a-s3) var(--a-s4);
+  border-top: 1px solid var(--radar-admin-semantic-color-border-subtle);
+  font-size: var(--a-fs-md);
+  font-weight: var(--a-fw-medium);
+  text-align: right;
+}
+.previewLine {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--a-s4);
+  flex-wrap: wrap;
+}
+.previewText {
+  font-size: var(--a-fs-lg);
+}
+.actionBar {
+  position: sticky;
+  bottom: 0;
+  z-index: var(--a-z-sticky);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--a-s4);
+  height: 64px;
+  margin: var(--a-s6) calc(var(--radar-admin-component-shell-content-padding) * -1) calc(var(--a-s12) * -1);
+  padding: 0 var(--radar-admin-component-shell-content-padding);
+  background: var(--radar-admin-semantic-color-bg-surface);
+  border-top: 1px solid var(--radar-admin-semantic-color-border-default);
+}
+.barText {
+  font-size: var(--a-fs-sm);
+  color: var(--radar-admin-semantic-color-text-secondary);
+}
+.draft {
+  display: flex;
+  flex-direction: column;
+  gap: var(--a-s3);
+  padding: var(--a-s4) 0;
+}
+.draft + .draft {
+  border-top: 1px solid var(--radar-admin-semantic-color-border-subtle);
+}
+.draftText {
+  font-size: var(--a-fs-md);
+  line-height: var(--a-lh-body);
+}
+.draftBasis {
+  font-size: var(--a-fs-sm);
+  color: var(--radar-admin-semantic-color-text-secondary);
+}
+.linkBtn {
+  align-self: flex-start;
+  min-height: var(--a-size-compact);
+  padding: 0 var(--a-s1);
+  border: 0;
+  background: none;
+  font-size: var(--a-fs-sm);
+  color: var(--radar-admin-semantic-color-text-link);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.note {
+  font-size: var(--a-fs-sm);
+  color: var(--radar-admin-semantic-color-text-secondary);
+}
+.cmp {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--a-s4);
+}
+.cmpBox {
+  padding: var(--a-s3) var(--a-s4);
+  background: var(--radar-admin-semantic-color-bg-subtle);
+  border: 1px solid var(--radar-admin-semantic-color-border-subtle);
+  border-radius: var(--a-radius-control);
+  font-size: var(--a-fs-sm);
+  line-height: var(--a-lh-body);
+}
+.cmpTitle {
+  margin-bottom: var(--a-s1);
+  font-weight: var(--a-fw-medium);
+  color: var(--radar-admin-semantic-color-text-secondary);
+}
+.chips {
+  display: flex;
+  gap: var(--a-s2);
+  margin-bottom: var(--a-s4);
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--a-s1);
+  min-height: var(--radar-admin-component-chip-height);
+  padding: 0 var(--a-s1) 0 var(--radar-admin-component-chip-padding-x);
+  border-radius: var(--radar-admin-component-chip-radius);
+  background: var(--radar-admin-component-chip-bg);
+  color: var(--radar-admin-component-chip-text);
+  font-size: var(--a-fs-sm);
+  font-weight: var(--a-fw-medium);
+}
+.chipX {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  font-size: var(--a-fs-lg);
+  line-height: 1;
+  color: inherit;
+}
+.chipX:hover {
+  background: var(--radar-admin-semantic-color-bg-hover);
+}
+.editForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--a-s4);
+}
+.inlineEdit {
+  display: flex;
+  gap: var(--a-s2);
+  align-items: center;
+}
+.num {
+  font-variant-numeric: tabular-nums;
+}
+.changedCell {
+  display: inline-block;
+  padding: var(--a-s1) var(--a-s2);
+  border-radius: var(--a-radius-control);
+  background: var(--radar-admin-component-table-changed-bg);
+  font-weight: var(--a-fw-medium);
+  font-variant-numeric: tabular-nums;
+}
+.tableHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--a-s4);
+  padding: var(--a-s4) var(--a-s6);
+  border-bottom: 1px solid var(--radar-admin-semantic-color-border-subtle);
+}
+
+.detected {
+  margin-bottom: var(--a-s2);
+  font-size: var(--a-fs-sm);
+  color: var(--radar-admin-semantic-color-text-secondary);
+}
+.jurTable {
+  width: 100%;
+  margin-top: var(--a-s3);
+  border-collapse: collapse;
+  font-size: var(--a-fs-sm);
+}
+.jurTable th,
+.jurTable td {
+  padding: var(--a-s1) var(--a-s2);
+  text-align: left;
+  border-bottom: 1px solid var(--radar-admin-component-nav-border);
+}
+.jurLink {
+  color: var(--radar-admin-semantic-color-text-link);
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+.usedList {
+  margin: 0;
+  padding-left: var(--a-s4);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--a-s1) var(--a-s4);
+  font-size: var(--a-fs-md);
+}
+
+@media (max-width: 1099px) {
+  .row {
+    flex-direction: column;
+  }
+  .main {
+    min-width: 0;
+    width: 100%;
+  }
+  .cmp {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .jurTable {
+    display: block;
+    overflow-x: auto;
+  }
+}
+.usedTitle {
+  margin-bottom: var(--a-s2);
+  font-size: var(--a-fs-md);
+  font-weight: var(--a-fw-semibold);
+}
+
+/* 담당 부서 표: 긴 글은 3줄까지만 보이고, 행 오른쪽 끝 버튼으로 펼치면 전체가 나온다 */
+.clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: var(--a-lh-dense);
+}
+.fullList {
+  display: grid;
+  gap: var(--a-s5); /* 항목 사이 20px */
+  margin: 0;
+}
+.fullRow {
+  display: grid;
+  grid-template-columns: 148px minmax(0, 1fr); /* 라벨 120px, 값은 첫 열 글자 시작점에 맞춘 안쪽 여백 위에서 시작 */
+  gap: var(--a-s4);
+}
+.fullRow dt {
+  display: flex;
+  align-items: center;
+  gap: var(--a-s2);
+  font-size: var(--a-fs-sm);
+  font-weight: var(--a-fw-semibold); /* 라벨은 굵게, 기본색 */
+  color: var(--radar-admin-semantic-color-text-primary);
+}
+.fullRow dd {
+  margin: 0;
+  font-size: var(--a-fs-sm);
+  line-height: 1.7; /* 글이 길어도 줄 사이가 숨 쉬도록 */
+  white-space: pre-line;
+}
+.fullIcon {
+  flex: none;
+  color: var(--radar-admin-semantic-color-text-secondary);
+}
+.f01Form { display: grid; gap: var(--a-s3); margin: var(--a-s4) 0; }
+.f01Form label { display: grid; gap: var(--a-s1); }
+.f01Form input, .f01Form select, .f01Form textarea { padding: var(--a-s2); width: 100%; max-width: 32rem; }
+.f01Result { border-top: 1px solid var(--radar-admin-semantic-color-border-subtle); padding: var(--a-s3) 0; }
+.f01Result p { margin: var(--a-s2) 0; }

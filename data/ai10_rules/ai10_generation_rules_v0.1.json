@@ -1,0 +1,533 @@
+{
+  "document": {
+    "name": "RADAR AI-10 신규 생성·검증 기준 설계안",
+    "version": "draft-0.1",
+    "created": "2026-10-21",
+    "status": "설계 검토안 / 운영 승인 전",
+    "source_priority": [
+      "기능정의서 v0.5.3의 AI-10 기능·운영 명세",
+      "통합 기획·관리 대장 v0.4.2의 일반 정책·데이터 흐름",
+      "v2_SQL_MySQL_PK_FK_261021의 실제 테이블·컬럼 구조",
+      "AI-10 기존 코드의 입출력·승인·검증 흐름",
+      "05_03의 CK 사례는 참고용이며 필수 기준이 아님"
+    ],
+    "not_a_schema_change": true,
+    "not_implemented": true
+  },
+  "principles": {
+    "ck_role": "선택적 참고 사례·레거시 템플릿 키; 생성 가능 여부의 필수 전제 아님",
+    "classification": "시설/문제/현상/장소를 입력 가능한 범위만 기술; 폐쇄형 CK 목록으로 제한하지 않음",
+    "no_fake_facts": true,
+    "separate_claims_from_verified": true,
+    "no_automatic_legal_conclusion": true,
+    "no_automatic_department_assignment": true,
+    "human_review_required": true,
+    "approved_template_reuse_policy_retained": true,
+    "no_new_db_tables_or_columns": true
+  },
+  "input_contract": {
+    "required_to_assess_generation": [
+      "case_reference",
+      "issue_description",
+      "evidence_items"
+    ],
+    "case_reference": "시험 식별값이나 외부에서 전달된 사례 식별 정보. 실제 시설 ID/격자 ID는 제공되었을 때만 사용.",
+    "issue_description": "문제·시설·현상에 대한 최소 하나의 구체적 서술. 출처/관찰/주장 여부 구분.",
+    "evidence_items": "근거가 0건이면 생성 불가 또는 자료 확인용 안내로 전환. 근거의 상태가 판별 가능해야 함.",
+    "optional": [
+      "facility_type",
+      "problem_type_text",
+      "location",
+      "gid",
+      "facility_id",
+      "assessment",
+      "ck_reference",
+      "law_references",
+      "approved_template_reference",
+      "observations",
+      "source_timestamps"
+    ],
+    "evidence_item_fields": [
+      "source_table",
+      "source_column",
+      "record_reference",
+      "raw_value",
+      "claim_or_finding",
+      "evidence_state",
+      "observed_at",
+      "source_date",
+      "location_match_state"
+    ],
+    "do_not_require": [
+      "ck_reference",
+      "facility_id",
+      "gid",
+      "law_references"
+    ],
+    "requirement_note": "이는 신규 제안 스키마이지 기존 DB 컬럼의 집합이 아님. 실제 생성 가능성은 정보 품질·근거 수준으로 추가 심사."
+  },
+  "evidence_states": {
+    "confirmed_observation": "원문·측정·검토의 범위가 확인된 관측 사실. 확인 대상/시점도 필수 표시.",
+    "assessment_result": "규칙·도면·집계 등에 따른 판정 결과. 현실 시설 상태 확정과 구분.",
+    "reported_claim": "민원·신고인의 주장. 외부 확인 없는 현장 사실로 변환 금지.",
+    "historical_record": "과거 기록. 현시점 유효성을 자동 주장하지 않음.",
+    "estimated_or_derived": "추정·가공·계산 값. 산식/가정/제약을 확인할 수 없으면 제한 표현.",
+    "missing": "필요한 정보 없음. 시설 미설치·문제 없음으로 치환 금지.",
+    "conflicting": "출처 간 충돌. 단정하지 않고 운영자 대조 요청.",
+    "unverified_reference": "검증 전 법령·정책·시설 참고자료."
+  },
+  "generation_gate": {
+    "ready_for_review_draft": "문제나 확인 대상이 특정되고, 근거가 출처·상태와 함께 제공되며, 금지된 단정 없이 검토용 문장을 작성할 수 있음",
+    "limited_check_only": "문제 설명은 있으나 실제 상태 근거가 부족해 확인 절차만 제안할 수 있음",
+    "insufficient_input": "문제 설명도 근거도 부족하거나 문제와 자료를 연결할 수 없음; 임의 생성하지 않음",
+    "requires_human_resolution": "상충 정보, 법령 단정 필요, 실제 조치 권한 미확인 등; 승인 보류",
+    "never_use_ck_absence_as_sole_blocker": true
+  },
+  "writing_rules": [
+    {
+      "id": "R01",
+      "rule": "AI-10이 새 사실·수치·현장 상태·확정 법적 위반 여부를 생성하지 않음"
+    },
+    {
+      "id": "R02",
+      "rule": "판정 결과·추정·신고 주장과 현장 확인 사실을 명시적으로 구분"
+    },
+    {
+      "id": "R03",
+      "rule": "자료가 없음을 시설이 없음/정상/위반이라고 바꾸지 않음"
+    },
+    {
+      "id": "R04",
+      "rule": "날짜·기준연도·위치 정합성이 없으면 현재 상태 단정 금지"
+    },
+    {
+      "id": "R05",
+      "rule": "법령은 근거 후보/원문검증/적용판단을 구분; AI-05 또는 실제 확인 원문 연결 전 확정 인용 금지"
+    },
+    {
+      "id": "R06",
+      "rule": "조치 실행 명령보다 확인 결과에 따른 조건부 조치 검토를 우선"
+    },
+    {
+      "id": "R07",
+      "rule": "받는 부서는 AI가 추론해 확정하지 않음; 확인된 관할 매핑 값만 전달"
+    },
+    {
+      "id": "R08",
+      "rule": "AI 초안은 운영자 검토 전까지 최종 후보 조치 제안으로 표시·저장하지 않음"
+    },
+    {
+      "id": "R09",
+      "rule": "같은 입력·근거이면 의미상 동일한 판단과 조치 수준을 유지"
+    },
+    {
+      "id": "R10",
+      "rule": "같은 판정값이어도 원인·근거 상태·발생 시점·현장 확인 상태가 달라지면 확인·조치 내용을 조건부로 차별화"
+    },
+    {
+      "id": "R11",
+      "rule": "승인된 유형별 문장 틀 재사용을 기본 운영 원칙으로 존중; 새로운 예외 상황의 AI 호출 정책은 별도 확정 전까지 시험용으로 한정"
+    }
+  ],
+  "output_contract": [
+    {
+      "label": "사례 식별",
+      "source": "상위 시스템/시험 데이터",
+      "strategy": "직접 출력",
+      "missing": "식별값 미제공"
+    },
+    {
+      "label": "신고인의 주장",
+      "source": "src_complaint.masked_summary 등",
+      "strategy": "민원 입력일 때만 주장으로 표시",
+      "missing": "민원 없음/제공되지 않음"
+    },
+    {
+      "label": "사실 확인",
+      "source": "판정·점검·시설 데이터",
+      "strategy": "근거의 확인 범위를 표기; 판정 결과를 현장 확정으로 격상하지 않음",
+      "missing": "확인된 사실 없음"
+    },
+    {
+      "label": "미확인",
+      "source": "관측 시점/결측/위치/미평가",
+      "strategy": "데이터 한계 도출",
+      "missing": "확인 상태 미제공"
+    },
+    {
+      "label": "연결",
+      "source": "외부 판정/후보·시설/격자 ID",
+      "strategy": "확인된 관계만 출력",
+      "missing": "미연결"
+    },
+    {
+      "label": "시험 시설·격자",
+      "source": "시험 입력 또는 실제 시설·격자 관계",
+      "strategy": "시험용과 실데이터 구분",
+      "missing": "식별값 미제공"
+    },
+    {
+      "label": "검증 결과",
+      "source": "로컬 테스트·검증 결과",
+      "strategy": "PASS/FAIL 등 실제 테스트 수행 결과만 표시",
+      "missing": "시험 미수행"
+    },
+    {
+      "label": "문제 유형",
+      "source": "입력 현상·시설·CK 참고",
+      "strategy": "입력 근거로 문제 서술; CK 식별자는 선택",
+      "missing": "분류 미확정"
+    },
+    {
+      "label": "문제 유형 판정 기준",
+      "source": "assess_* 또는 검증된 판정 근거",
+      "strategy": "실제 판정 조건·결과와 한계 구분",
+      "missing": "판정 기준 미확인"
+    },
+    {
+      "label": "문제 유형 자료 한계",
+      "source": "source_list,data_upload,assess_*,신고 속성",
+      "strategy": "추정/결측/과거/충돌 상태를 구분",
+      "missing": "근거 확인 필요"
+    },
+    {
+      "label": "문제 유형 확인 사항",
+      "source": "입력된 결측·관측 정보+참고 사례",
+      "strategy": "현재 부족한 사실을 검증할 구체 질문 생성",
+      "missing": "확인 대상 특정 필요"
+    },
+    {
+      "label": "문제 유형 조치 종류",
+      "source": "확인된 조치 근거+action_template 참고",
+      "strategy": "확인 후 선택 가능한 조치를 조건부로 제시",
+      "missing": "조치 판단 보류"
+    },
+    {
+      "label": "법령 근거 후보/검증 전",
+      "source": "criterion,기확인 법령,action_template 참고",
+      "strategy": "원문확인/적용확정 여부를 명시",
+      "missing": "근거 후보 없음"
+    },
+    {
+      "label": "AI 모델",
+      "source": "실제 호출 결과",
+      "strategy": "미호출/생성/실패/미승인 표시",
+      "missing": "미호출"
+    },
+    {
+      "label": "문제 유형별 초안",
+      "source": "AI 생성 응답",
+      "strategy": "두 문장 권장: 자료 한계/확인 사실 + 확인/조건부 조치. 기계 검증 후 노출",
+      "missing": "미생성"
+    },
+    {
+      "label": "운영자 확인 메모",
+      "source": "AI 검토 제안 또는 실제 운영자 기록",
+      "strategy": "AI 생성 제안과 운영자의 실제 메모를 동일한 확정값으로 혼동하지 않음",
+      "missing": "운영자 검토 전"
+    },
+    {
+      "label": "최종 후보 조치 제안",
+      "source": "승인된 템플릿+실제 대상 연결",
+      "strategy": "운영 정책에 따라 승인·대상연결 확인 시만 표시",
+      "missing": "없음 / 승인 또는 연결 전"
+    }
+  ],
+  "db_source_candidates": [
+    {
+      "category": "판정",
+      "table": "assess_crosswalk",
+      "columns": [
+        "crosswalk_mgmt_no",
+        "gid",
+        "sig_check_result",
+        "lux_check_result",
+        "ng_refuge_result",
+        "guide_check_needed",
+        "guide_braille_raw",
+        "guide_curb_cut_raw",
+        "guide_source"
+      ],
+      "use": "후보 데이터 원천; 실제 JOIN 및 적용 가능 조건은 별도 검증"
+    },
+    {
+      "category": "판정",
+      "table": "assess_sidewalk",
+      "columns": [
+        "UFID",
+        "gid",
+        "width_m_raw",
+        "width_status",
+        "measure_method",
+        "slope_confidence",
+        "slope_usable",
+        "fence_result",
+        "lux_check_result",
+        "source"
+      ],
+      "use": "후보 데이터 원천; 실제 JOIN 및 적용 가능 조건은 별도 검증"
+    },
+    {
+      "category": "판정",
+      "table": "assess_intersection",
+      "columns": [
+        "intersection_id",
+        "gid",
+        "result",
+        "corner_building_block_20m_pct",
+        "right_turn_blind_50m_2022",
+        "source"
+      ],
+      "use": "후보 데이터 원천; 실제 JOIN 및 적용 가능 조건은 별도 검증"
+    },
+    {
+      "category": "판정",
+      "table": "assess_zone",
+      "columns": [
+        "zone_id",
+        "gid",
+        "survey2022_result",
+        "survey2022_source",
+        "dwg2025_anti_slip_area_m2",
+        "dwg2025_source"
+      ],
+      "use": "후보 데이터 원천; 실제 JOIN 및 적용 가능 조건은 별도 검증"
+    },
+    {
+      "category": "민원",
+      "table": "src_complaint",
+      "columns": [
+        "complaint_id",
+        "masked_summary",
+        "received_date",
+        "occurred_at",
+        "gid",
+        "coord_accuracy",
+        "class_confidence",
+        "relevance",
+        "ped_type",
+        "source_type"
+      ],
+      "use": "후보 데이터 원천; 실제 JOIN 및 적용 가능 조건은 별도 검증"
+    },
+    {
+      "category": "위험 탐지",
+      "table": "src_road_hazard",
+      "columns": [
+        "row_id",
+        "type",
+        "detected_at",
+        "gid",
+        "coord_accuracy",
+        "raw_sheet"
+      ],
+      "use": "후보 데이터 원천; 실제 JOIN 및 적용 가능 조건은 별도 검증"
+    },
+    {
+      "category": "격자 집계",
+      "table": "grid_feature",
+      "columns": [
+        "ID_gid",
+        "cond_crosswalk_no_braille_cnt",
+        "cond_obstacle_cnt",
+        "cond_pothole_detect_cnt",
+        "res_ped_hotspot_accident_cnt"
+      ],
+      "use": "후보 데이터 원천; 실제 JOIN 및 적용 가능 조건은 별도 검증"
+    },
+    {
+      "category": "자료 원천",
+      "table": "source_list",
+      "columns": [
+        "source_id",
+        "dataset",
+        "source_ref",
+        "access_level",
+        "source_check_result",
+        "used_tables"
+      ],
+      "use": "후보 데이터 원천; 실제 JOIN 및 적용 가능 조건은 별도 검증"
+    },
+    {
+      "category": "적재 이력",
+      "table": "data_upload",
+      "columns": [
+        "upload_id",
+        "ref_date",
+        "period_start",
+        "period_end",
+        "check_result",
+        "is_official_raw"
+      ],
+      "use": "후보 데이터 원천; 실제 JOIN 및 적용 가능 조건은 별도 검증"
+    },
+    {
+      "category": "법령 참고",
+      "table": "criterion",
+      "columns": [
+        "criterion_id",
+        "kind",
+        "name",
+        "article_or_publisher",
+        "checked_version",
+        "check_level",
+        "url"
+      ],
+      "use": "후보 데이터 원천; 실제 JOIN 및 적용 가능 조건은 별도 검증"
+    },
+    {
+      "category": "CK 사례·기존 템플릿",
+      "table": "action_template",
+      "columns": [
+        "item_id",
+        "judgement_kind",
+        "check_item",
+        "unknown_reason",
+        "to_check",
+        "action_kind",
+        "action_sentence",
+        "sentence_review_status",
+        "basis_article",
+        "basis_status",
+        "reviewer",
+        "reviewed_at"
+      ],
+      "use": "후보 데이터 원천; 실제 JOIN 및 적용 가능 조건은 별도 검증"
+    },
+    {
+      "category": "후보 조치",
+      "table": "priority_candidate_action",
+      "columns": [
+        "run_id",
+        "gid",
+        "item_id",
+        "action_text",
+        "dept_text",
+        "basis_text"
+      ],
+      "use": "후보 데이터 원천; 실제 JOIN 및 적용 가능 조건은 별도 검증"
+    },
+    {
+      "category": "후보",
+      "table": "priority_candidate",
+      "columns": [
+        "run_id",
+        "gid",
+        "selected_yn",
+        "cond_result_yn",
+        "note"
+      ],
+      "use": "후보 데이터 원천; 실제 JOIN 및 적용 가능 조건은 별도 검증"
+    },
+    {
+      "category": "현장 점검",
+      "table": "inspection",
+      "columns": [
+        "inspection_id",
+        "gid",
+        "inspected_at",
+        "status",
+        "memo"
+      ],
+      "use": "후보 데이터 원천; 실제 JOIN 및 적용 가능 조건은 별도 검증"
+    },
+    {
+      "category": "현장 점검 항목",
+      "table": "inspection_item",
+      "columns": [
+        "inspection_id",
+        "item_code",
+        "value_num",
+        "value_text",
+        "unit"
+      ],
+      "use": "후보 데이터 원천; 실제 JOIN 및 적용 가능 조건은 별도 검증"
+    },
+    {
+      "category": "결정",
+      "table": "decision",
+      "columns": [
+        "decision_id",
+        "decision_type",
+        "authority_verified",
+        "decided_at",
+        "reason"
+      ],
+      "use": "후보 데이터 원천; 실제 JOIN 및 적용 가능 조건은 별도 검증"
+    }
+  ],
+  "db_constraints": {
+    "action_template": "기존 CK 14건 및 문장·검토 상태 저장; 신규 생성 규칙의 유일한 기준이 아님",
+    "priority_candidate_action": "item_id가 action_template 참조; CK 없이 검토용 생성 가능성과 DB 영구 저장 가능성은 별도 문제",
+    "inspection_and_decision": "첨부 SQL상 관련 테이블은 0행; 현장·승인 사실을 기본값으로 설정 금지",
+    "criterion": "법령/문서 기준 자료 95건이나 action_template과 직접 FK 없음. 이름 유사성만으로 조문 확정 연결 금지"
+  },
+  "open_decisions": [
+    {
+      "id": "D01",
+      "issue": "CK 미연결 초안을 운영 환경에서도 AI 호출할지, 개발 검증에만 허용할지",
+      "status": "미확정",
+      "default_for_tests": "시험용 검토 초안만 허용"
+    },
+    {
+      "id": "D02",
+      "issue": "CK 없는 초안을 기존 81·82번 테이블에 어떻게 연동/저장할지",
+      "status": "미확정",
+      "default_for_tests": "DB 저장 안 함"
+    },
+    {
+      "id": "D03",
+      "issue": "문장 틀 승인·재사용과 사례별 조건부 반영의 책임 분리",
+      "status": "미확정",
+      "default_for_tests": "유형별 승인과 사례별 검토를 분리하여 기록"
+    },
+    {
+      "id": "D04",
+      "issue": "법령 후보의 원문 검증·현장 적용 판단 주체/절차",
+      "status": "미확정",
+      "default_for_tests": "근거 후보 표시, 최종 확정 금지"
+    }
+  ],
+  "test_matrix": [
+    {
+      "id": "T01",
+      "case": "동일 판정 + 동일 근거를 반복 입력",
+      "expect": "표현이 달라도 의미·확실성·조치 수준 동일"
+    },
+    {
+      "id": "T02",
+      "case": "동일 판정 + 서로 다른 근거/발생 원인",
+      "expect": "확인 사항과 조건부 조치가 근거에 맞게 달라짐"
+    },
+    {
+      "id": "T03",
+      "case": "CK 없음 + 구체적인 문제 설명/출처 있음",
+      "expect": "CK 부재만으로 호출 차단하지 않는 시험용 초안 경로"
+    },
+    {
+      "id": "T04",
+      "case": "신고 주장만 있고 현장 사실 없음",
+      "expect": "주장으로 표시하고 현장 확정 단정 금지"
+    },
+    {
+      "id": "T05",
+      "case": "과거 기록만 존재",
+      "expect": "현재 상태 단정 금지"
+    },
+    {
+      "id": "T06",
+      "case": "법령 후보 검증 전",
+      "expect": "법적 위반·의무 확정 금지"
+    },
+    {
+      "id": "T07",
+      "case": "현장·법령 근거 충돌",
+      "expect": "검토 필요 상태, 임의 확정 금지"
+    },
+    {
+      "id": "T08",
+      "case": "미승인 초안",
+      "expect": "최종 후보 조치 제안 없음; DB 승인 저장 없음"
+    }
+  ]
+}

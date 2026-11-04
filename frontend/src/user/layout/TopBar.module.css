@@ -1,0 +1,191 @@
+.bar {
+  flex: none;
+  position: relative;
+  z-index: var(--component-topbar-z);
+  display: flex;
+  align-items: center;
+  gap: var(--space-24);
+  height: var(--component-topbar-height);
+  padding: 0 var(--semantic-layout-page-margin);
+  background: var(--component-topbar-bg);
+  border-bottom: 1px solid var(--component-topbar-border);
+}
+.brand {
+  font-size: var(--fs-body);
+  font-weight: var(--fw-bold);
+  color: var(--semantic-color-text-strong);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.nav {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-8);
+  height: 100%;
+}
+.group {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+}
+.navItem {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--space-12);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--component-topbar-menu-inactive-fg);
+  font-size: var(--fs-body);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.navItem:hover {
+  color: var(--semantic-color-text);
+}
+.active {
+  color: var(--component-topbar-menu-active-fg);
+  font-weight: var(--fw-bold);
+  border-bottom-color: var(--component-topbar-menu-indicator);
+  border-image: var(--semantic-gradient-accent-line) 1;
+}
+.dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 220px;
+  padding: var(--space-8);
+  background: var(--semantic-color-bg-surface);
+  border: 1px solid var(--semantic-color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+}
+.dropItem {
+  display: block;
+  padding: var(--space-8) var(--space-12);
+  border-radius: var(--radius-sm);
+  color: var(--semantic-color-text);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.dropItem:hover {
+  background: var(--semantic-color-bg-subtle);
+}
+.dropActive {
+  color: var(--semantic-color-primary-strong);
+  font-weight: var(--fw-bold);
+}
+.tools {
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+  margin-left: auto;
+}
+.runBox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+.tools select {
+  height: 40px;
+  min-width: 0;
+  font-size: var(--fs-small);
+}
+.guFixed {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  font-size: var(--fs-small);
+}
+.account {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  font-size: var(--fs-small);
+}
+.org {
+  white-space: nowrap;
+}
+.logout {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 var(--space-4);
+  border: 0;
+  background: none;
+  color: var(--semantic-color-primary-strong);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-size: var(--fs-small);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  margin-left: var(--space-4);
+  padding: 0 6px;
+  border-radius: 10px;
+  background: var(--semantic-color-primary-strong);
+  color: var(--semantic-color-bg-surface);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-bold);
+}
+
+@media (max-width: 1359px) {
+  .bar {
+    gap: var(--space-16);
+  }
+  .brandRest,
+  .org {
+    display: none;
+  }
+  .navItem {
+    padding: 0 var(--space-8);
+  }
+}
+/* 1100px 미만: 메뉴 줄과 도구 줄을 두 줄로 나눈다 */
+@media (max-width: 1099px) {
+  .bar {
+    flex-wrap: wrap;
+    height: auto;
+    row-gap: 0;
+    padding-top: var(--space-4);
+  }
+  .brand {
+    order: 0;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+  .nav {
+    order: 2;
+    flex-basis: 100%;
+    min-height: 44px;
+    overflow-x: auto;
+  }
+  .tools {
+    order: 1;
+    flex-wrap: wrap;
+    gap: var(--space-8);
+  }
+  .logout,
+  .navItem {
+    min-height: 44px;
+  }
+}
+
+.navItem,
+.logout,
+.brand {
+  white-space: nowrap;
+}
+
+@media (max-width: 1099px) {
+  .nav {
+    height: auto;
+    align-items: stretch;
+  }
+}

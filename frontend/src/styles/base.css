@@ -1,0 +1,101 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  min-width: var(--primitive-breakpoint-min);
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  line-height: var(--lh-normal);
+  color: var(--semantic-color-text);
+  background: var(--semantic-color-bg-shell);
+  -webkit-font-smoothing: antialiased;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  margin: 0;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  color: var(--semantic-color-text-strong);
+  line-height: var(--lh-tight);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  color: var(--semantic-color-primary-strong);
+}
+
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* 디자인 시스템 15장: 포커스 테두리를 없애지 않는다 */
+:focus-visible {
+  outline: 2px solid var(--semantic-color-focus-ring);
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* 숫자 폭을 맞춘다 (디자인 시스템 11-2) */
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* 반응형 기준 (태블릿까지): 1360px 미만 = 좁은 노트북, 1100px 미만 = 태블릿. CSS 변수는 미디어 쿼리에 쓸 수 없어 각 CSS에 같은 숫자를 쓴다. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,16 @@
+.box {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  padding: var(--space-24);
+}
+.title {
+  font-size: var(--fs-h3);
+}
+.body {
+  color: var(--semantic-color-text-muted);
+}
+.back {
+  display: flex;
+  justify-content: flex-end;
+}

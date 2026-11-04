@@ -1,0 +1,27 @@
+
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.env
+.env.*
+!.env.example
+local.env
+.vscode/
+*.log
+data/private/
+
+# 캐시·실행 결과 (장소 글자·API 결과가 쌓임 — 저장소에 올리지 않음)
+out/
+*_cache.json
+
+# 올리면 안 되는 자료 (CONTRIBUTING · 공간정보관리법 제16조·제21조 · ISS-032)
+# 민원 원본·민원에서 뽑은 자료, 수치지형도 원본·가공 자료는 data/private/ 에 둔다
+
+# 시험이 만드는 결과 파일
+tests/_ai05_last_eval.json
+/data/RADAR_AI10_민원샘플_정리_v*.json
+
+# AI-05 임베딩 숫자 묶음 (공용 PC에서 scripts/ai05_build_embeddings로 만듦, 약 7MB)
+data/ai05/embeddings.npy
+data/ai05/embeddings_meta.json

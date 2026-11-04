@@ -1,0 +1,63 @@
+.nav {
+  overflow-x: auto;
+  display: flex;
+  align-items: stretch;
+  gap: var(--a-s1);
+  height: var(--radar-admin-component-shell-section-nav-height);
+  padding: 0 var(--radar-admin-component-shell-content-padding);
+  background: var(--radar-admin-semantic-color-bg-subtle);
+  border-bottom: 1px solid var(--radar-admin-component-nav-border);
+}
+.item {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--a-s3);
+  font-size: var(--a-fs-sm);
+  font-weight: var(--a-fw-medium);
+  color: var(--radar-admin-component-nav-tab-inactive-text);
+  text-decoration: none;
+  border-bottom: var(--radar-admin-component-nav-tab-indicator-height) solid transparent;
+}
+.item:hover {
+  background: var(--radar-admin-component-nav-tab-hover-bg);
+}
+.active {
+  color: var(--radar-admin-component-nav-tab-active-text);
+  border-bottom-color: var(--radar-admin-component-nav-tab-indicator);
+}
+
+.density {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--a-s1);
+  margin-left: auto;
+  font-size: var(--a-fs-sm);
+}
+.densityLabel {
+  color: var(--radar-admin-semantic-color-text-secondary);
+  margin-right: var(--a-s1);
+}
+.densityBtn {
+  min-height: 28px;
+  padding: 0 var(--a-s2);
+  border: 1px solid var(--radar-admin-component-nav-border);
+  border-radius: var(--a-radius-control);
+  background: none;
+  color: var(--radar-admin-component-nav-tab-inactive-text);
+  font-size: var(--a-fs-sm);
+}
+.densityOn {
+  background: var(--radar-admin-semantic-color-bg-hover);
+  color: var(--radar-admin-component-nav-tab-active-text);
+  font-weight: var(--a-fw-medium);
+}
+
+.item {
+  flex: none;
+  white-space: nowrap;
+}
+@media (max-width: 1099px) {
+  .item {
+    min-height: 44px;
+  }
+}

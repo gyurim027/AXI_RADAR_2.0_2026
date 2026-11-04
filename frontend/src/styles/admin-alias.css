@@ -1,0 +1,47 @@
+/* 어드민 디자인 시스템에서 의미값·부품값이 없는 간격·글자·모서리에 붙인 짧은 이름이다.
+   값은 admin-tokens.css의 기본값(primitive)을 가리키기만 한다. 새 값을 여기서 만들지 않는다. */
+:root {
+  --a-s1: var(--radar-admin-primitive-space-1);
+  --a-s2: var(--radar-admin-primitive-space-2);
+  --a-s3: var(--radar-admin-primitive-space-3);
+  --a-s4: var(--radar-admin-primitive-space-4);
+  --a-s5: var(--radar-admin-primitive-space-5);
+  --a-s6: var(--radar-admin-primitive-space-6);
+  --a-s8: var(--radar-admin-primitive-space-8);
+  --a-s10: var(--radar-admin-primitive-space-10);
+  --a-s12: var(--radar-admin-primitive-space-12);
+
+  --a-fs-sm: var(--radar-admin-primitive-type-size-sm);
+  --a-fs-md: var(--radar-admin-primitive-type-size-md);
+  --a-fs-lg: var(--radar-admin-primitive-type-size-lg);
+  --a-fs-h3: var(--radar-admin-primitive-type-size-h3);
+  --a-fs-h2: var(--radar-admin-primitive-type-size-h2);
+  --a-fs-h1: var(--radar-admin-primitive-type-size-h1);
+  --a-fs-kpi: var(--radar-admin-primitive-type-size-kpi);
+  --a-fw-regular: var(--radar-admin-primitive-type-weight-regular);
+  --a-fw-medium: var(--radar-admin-primitive-type-weight-medium);
+  --a-fw-semibold: var(--radar-admin-primitive-type-weight-semibold);
+  --a-lh-body: var(--radar-admin-primitive-type-line-body);
+  --a-lh-heading: var(--radar-admin-primitive-type-line-heading);
+  --a-lh-dense: var(--radar-admin-primitive-type-line-dense);
+  --a-font: var(--radar-admin-primitive-type-family);
+
+  --a-radius-control: var(--radar-admin-primitive-radius-control);
+  --a-radius-surface: var(--radar-admin-primitive-radius-surface);
+  --a-radius-dialog: var(--radar-admin-primitive-radius-dialog);
+  --a-radius-pill: var(--radar-admin-primitive-radius-pill);
+
+  --a-size-control: var(--radar-admin-primitive-size-control);
+  --a-size-compact: var(--radar-admin-primitive-size-control-compact);
+  --a-size-icon: var(--radar-admin-primitive-size-icon);
+  --a-size-icon-button: var(--radar-admin-primitive-size-icon-button);
+
+  --a-z-sticky: var(--radar-admin-primitive-z-sticky);
+  --a-z-popover: var(--radar-admin-primitive-z-popover);
+  --a-z-toast: var(--radar-admin-primitive-z-toast);
+  --a-shadow-popover: var(--radar-admin-primitive-shadow-popover);
+  --a-shadow-overlay: var(--radar-admin-primitive-shadow-overlay);
+  --a-focus-width: var(--radar-admin-primitive-size-focus-ring);
+  --a-focus-offset: var(--radar-admin-primitive-size-focus-offset);
+  --a-status-band: var(--radar-admin-primitive-size-status-band);
+}

@@ -1,0 +1,59 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--semantic-gradient-shell), var(--semantic-color-bg-shell);
+}
+.main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+}
+.content {
+  width: 100%;
+  max-width: var(--semantic-layout-content-max);
+  margin: 0 auto;
+  padding: var(--space-24) var(--semantic-layout-page-margin) var(--space-32);
+}
+.reading {
+  max-width: 1120px;
+}
+.mainEdge {
+  overflow: hidden;
+}
+/* 지도가 상단 바(상태 띠) 바로 아래부터 화면 끝까지 차는 화면. 바깥 여백이 없다 */
+.edge {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  width: 100%;
+}
+
+/* 키보드 사용자가 메뉴를 건너뛰고 본문으로 가는 링크. 포커스를 받을 때만 보인다 */
+.skip {
+  position: absolute;
+  top: -48px;
+  left: var(--space-16);
+  z-index: var(--primitive-zIndex-toast);
+  padding: var(--space-8) var(--space-16);
+  border-radius: var(--radius-sm);
+  background: var(--semantic-color-bg-surface);
+  border: 2px solid var(--semantic-color-focus-ring);
+}
+.skip:focus {
+  top: var(--space-8);
+}
+.main:focus {
+  outline: none;
+}
+
+@media (max-width: 1359px) {
+  .content {
+    padding-left: var(--space-16);
+    padding-right: var(--space-16);
+  }
+}
+
+

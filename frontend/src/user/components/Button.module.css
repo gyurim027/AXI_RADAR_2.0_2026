@@ -1,0 +1,72 @@
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  height: var(--component-button-height);
+  padding: 0 var(--component-button-padding-x);
+  border: 1px solid transparent;
+  border-radius: var(--component-button-radius);
+  font-size: var(--component-button-font-size);
+  font-weight: var(--fw-bold);
+  white-space: nowrap;
+  transition: background-color 0.15s;
+}
+.sm {
+  height: var(--control-h-sm);
+  padding: 0 var(--space-16);
+  font-size: var(--fs-small);
+}
+.primary {
+  background: var(--semantic-gradient-accent), var(--component-button-bg);
+  color: var(--component-button-fg);
+}
+.primary:hover:not(:disabled) {
+  background: var(--semantic-gradient-accent-hover), var(--component-button-hover-bg);
+}
+.soft {
+  background: var(--component-button-soft-bg);
+  color: var(--component-button-soft-fg);
+  border-color: var(--semantic-color-band-border);
+}
+.soft:hover:not(:disabled) {
+  background: var(--semantic-color-notice-bg);
+}
+.neutral {
+  background: var(--semantic-color-bg-table-head);
+  color: var(--semantic-color-text);
+  border-color: var(--semantic-color-border);
+}
+.neutral:hover:not(:disabled) {
+  background: var(--semantic-color-border);
+}
+.danger {
+  background: var(--semantic-color-risk-high-soft);
+  color: var(--semantic-color-risk-high);
+}
+.text {
+  height: auto;
+  padding: 0;
+  background: none;
+  color: var(--semantic-color-primary-strong);
+  font-weight: var(--fw-medium);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.btn:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+.loading .label {
+  visibility: hidden;
+}
+.loading .spin {
+  position: absolute;
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

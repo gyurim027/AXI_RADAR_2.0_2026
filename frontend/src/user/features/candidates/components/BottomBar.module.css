@@ -1,0 +1,47 @@
+.bar {
+  position: sticky;
+  bottom: 0;
+  z-index: var(--component-map-control-z);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-24);
+  padding: var(--space-12) var(--space-24);
+  border-top: 1px solid var(--semantic-color-border);
+  background: var(--semantic-color-bg-surface);
+  box-shadow: 0 -4px 12px rgb(0 0 0 / 0.06);
+  transition: transform 0.2s ease;
+}
+.hidden {
+  transform: translateY(100%);
+}
+.msg {
+  flex: 1;
+}
+.btn {
+  flex: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .bar {
+    transition: none;
+  }
+}
+
+/* 좁은 폭: 글 두 줄(둘째 문장이 아래로)과 오른쪽 끝, 높이 가운데의 버튼. 쌓인 배치에서는 지도 아래 맨 끝에 놓인다 */
+@media (max-width: 1099px) {
+  .bar,
+  .hidden {
+    position: static;
+    transform: none;
+  }
+  .bar {
+    gap: var(--space-12);
+    padding: var(--space-12) var(--space-16);
+  }
+  .rest {
+    display: block;
+  }
+  .btn {
+    align-self: center;
+  }
+}

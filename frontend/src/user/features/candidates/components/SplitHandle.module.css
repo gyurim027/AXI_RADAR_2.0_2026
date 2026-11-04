@@ -1,0 +1,35 @@
+.wrap {
+  position: relative;
+  z-index: calc(var(--component-map-control-z) + 5);
+  width: 12px;
+  background: var(--semantic-color-bg-shell);
+}
+.bar {
+  position: absolute;
+  inset: 0;
+  cursor: col-resize;
+  touch-action: none;
+  border-left: 1px solid var(--semantic-color-border-card);
+  border-right: 1px solid var(--semantic-color-border-card);
+  background: var(--semantic-color-bg-shell);
+  outline: none;
+}
+.bar::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 44px;
+  margin: -22px 0 0 -2px;
+  border-radius: var(--radius-full);
+  background: var(--semantic-color-border-control);
+}
+.bar:hover,
+.bar:focus-visible {
+  background: var(--semantic-color-primary-soft);
+}
+.bar:focus-visible {
+  outline: 2px solid var(--semantic-color-focus-ring);
+  outline-offset: -2px;
+}

@@ -1,0 +1,50 @@
+.head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-24);
+  margin-bottom: var(--space-16);
+}
+.eyebrow {
+  margin-bottom: var(--space-4);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-bold);
+  color: var(--semantic-color-primary-on-tint);
+}
+.title {
+  font-size: var(--fs-h1);
+  font-weight: var(--fw-bold);
+}
+.subtitle {
+  margin-top: var(--space-8);
+  color: var(--semantic-color-text);
+}
+.side {
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+  flex-shrink: 0;
+}
+
+/* 점검 후보처럼 목록이 화면을 많이 써야 하는 화면: 범위를 제목 옆에 두고 간격을 줄인다 (U-1) */
+.compact {
+  margin-bottom: var(--space-8);
+}
+.compact .title {
+  display: flex;
+  flex-wrap: wrap; /* 좁으면 범위가 제목 아래로 내려가고, 제목은 한 줄로 둔다 */
+  align-items: baseline;
+  gap: 2px var(--space-12);
+  font-size: var(--fs-h2);
+  white-space: nowrap;
+}
+.scope {
+  white-space: normal;
+  font-size: var(--fs-small);
+  font-weight: var(--fw-bold);
+  color: var(--semantic-color-primary-on-tint);
+}
+.compact .subtitle {
+  margin-top: var(--space-4);
+  font-size: var(--fs-small);
+}

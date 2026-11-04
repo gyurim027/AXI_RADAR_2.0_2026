@@ -1,0 +1,29 @@
+import Callout from '../../../../components/Callout.jsx';
+import { EmptyState } from '../../../../components/States.jsx';
+import Card from '../../../../components/Card.jsx';
+import { DECISION } from '../../../../../shared/constants.js';
+import { DRAWER } from '../../copy.js';
+import styles from './Tabs.module.css';
+
+/** ④ 작년 결정 (US-03 4-1). 작년에 제외·보류였으면 안내 문구를 주황 띠로 보인다. */
+export default function LastYearTab({ detail }) {
+  const ly = detail.lastYear;
+  const warn = ly && (ly.decision === DECISION.EXCLUDE || ly.decision === DECISION.HOLD);
+  return (
+    <section>
+      <p className={styles.sub}>{DRAWER.lastSub}</p>
+      <div className={styles.content}>
+        {ly ? (
+          <>
+            <Callout tone={warn ? 'warn' : 'info'}>{DRAWER.lastNotice(ly.runName, ly.decision)}</Callout>
+            <Card variant="subtle">
+              <p>{DRAWER.lastReason(ly.reason, ly.memo)}</p>
+            </Card>
+          </>
+        ) : (
+          <EmptyState compact text={DRAWER.lastEmpty} />
+        )}
+      </div>
+    </section>
+  );
+}
