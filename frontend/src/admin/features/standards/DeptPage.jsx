@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { getArticle, getDept, requestDeptApproval, searchLawText } from '../../../api/admin.js';
+import { opsBackendEnabled } from '../../../api/backend.js';
+import F01PreviewPanel from './F01PreviewPanel.jsx';
 import { useAsync } from '../../../shared/hooks/useAsync.js';
 import Badge from '../../components/Badge.jsx';
 import Button from '../../components/Button.jsx';
@@ -79,6 +81,7 @@ export default function DeptPage() {
                   )}
                 />
               </Panel>
+              {opsBackendEnabled ? <F01PreviewPanel /> : null}
               <Panel title={d.sent ? DEPT.sentTitle : DEPT.draftTitle}>
                 {done ? <Banner tone="success">{DEPT.requested}</Banner> : null}
                 {d.drafts === null ? (

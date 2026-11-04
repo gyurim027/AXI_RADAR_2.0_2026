@@ -9,9 +9,9 @@ from app.core import db
 
 # Identifier names are fixed in code; runtime input binds values only.
 SOURCE_SQL = {
-    "src_complaint": ("SELECT complaint_id, gid, report_type_raw FROM src_complaint "
+    "src_complaint": ("SELECT complaint_id, gid, report_type_raw, gu, lat, lon, coord_method, coord_accuracy FROM src_complaint "
                       "WHERE complaint_id = %s AND gid = %s LIMIT 2", "complaint_id"),
-    "src_road_hazard": ("SELECT row_id, gid, `type` FROM src_road_hazard "
+    "src_road_hazard": ("SELECT row_id, gid, `type`, gu, lat, lon, coord_method, coord_accuracy FROM src_road_hazard "
                         "WHERE row_id = %s AND gid = %s LIMIT 2", "row_id"),
 }
 
