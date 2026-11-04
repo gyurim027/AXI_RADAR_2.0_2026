@@ -127,6 +127,26 @@ VITE_DEV_LOGIN_PASSWORD=0000
 | `tests/` | 백엔드 시험 |
 | `docs/` | 서버 구조와 기능별 문서 ([서버 공통 구조](docs/W05_common_structure.md)) |
 
+## Workflow
+
+RADAR가 순서대로 거치는 전체 단계입니다. 핵심은 점검 후보를 만들고 확정하는 흐름이고, 부가는 없어도 핵심이 돌아가는 단계입니다.
+
+| 단계 | 하는 일 (기능 ID) | 실행 위치 | 구분 |
+|---|---|---|---|
+| 1. 기준 자료 | 법령 색인(AI-05), 격자·시설 특징(B-02), 산정 기준 제안과 승인(I-02·I-07) | `scripts/ai05_build_index`, `scripts/grid_build_feature`, `/api/settings`, `/api/approvals` | 부가 (처음과 반기마다) |
+| 2. 민원 적재 | 월별 xlsx 등록(C-09), 민원 정제(AI-01), 분류 검수(C-08) | `/api/c09/uploads`, `scripts/load_month.py`, `/api/c08` | 핵심 |
+| 3. 위치 보정 | 위치 글자로 좌표·격자 찾기(AI-03) | `scripts/ai03_locate`, `scripts/ai03_apply` | 핵심 |
+| 4. 입력 판본 | 입력 판본 등록과 원천 감사 승인 | `/api/input-builds` | 핵심 |
+| 5. 회차 만들기 | 입력 검증 후 회차 생성(D-10) | `/api/d10/rounds` | 핵심 |
+| 6. 점수 산정 | 분류, 반복 민원(C-07), 점수, 순위 | `scripts/run_official_priority` | 핵심 |
+| 7. 점검 후보 보기 | 목록, 지도, 상세, 근거 설명문(AI-07), 관련 조문(AI-05), 데이터 문제 | `/api/priority`, `/api/ai07`, `/api/ai05`, `/api/data-issues` | 핵심 |
+| 8. 결정과 확정 | 후보 결정(G-03), 구 확정(G-06) | `/api/g03`, `/api/g06` | 핵심 |
+| 9. 점검 요청서 | 요청서 미리보기(H-01) | `/api/h01` | 핵심 |
+| 10. 조치 제안 | 초안 생성(AI-10), 운영자 검토와 승인 후 후보 상세에 표시 | `/api/ai10`, `/api/priority` | 부가 (승인 전에는 비어 있음) |
+| 11. 운영 | 계정과 접속 기록(I-01·I-04), 실패 알림 메일(I-03), 실행 기록과 대시보드(I-05·I-06) | `/api/auth`, `/api/admin`, `/api/ops` | 부가 |
+
+단계 막힘은 아래 Troubleshooting에서 오류 코드로 찾습니다.
+
 ## 테스트
 
 ```bash
@@ -140,15 +160,36 @@ npm run build                      # 배포용 빌드
 node --test tests/*.test.*         # 프론트엔드 테스트
 ```
 
-## 문제 해결 (Troubleshooting)
+## Troubleshooting
 
-| 증상 | 확인할 것 |
-|---|---|
-| 화면에서 서버 요청이 실패합니다 | 서버가 켜져 있는지, `VITE_API_BASE_URL` 주소와 포트가 맞는지, `.env`의 `RADAR_CORS_ORIGINS`에 화면 주소가 들어 있는지 봅니다 |
-| `.env` 값이 적용되지 않습니다 | 파일이 저장소 루트에 있는지, 서버를 다시 켰는지 봅니다. 터미널에서 넣은 환경변수가 `.env`보다 우선합니다 |
-| `/health/db`가 `unreachable`입니다 | DB 주소, 계정, 방화벽을 확인합니다. 공용 DB는 정해진 네트워크에서만 접속될 수 있습니다 |
-| `Address already in use` | 포트 8000(서버) 또는 5173(화면)을 쓰는 다른 프로세스를 끄거나 `--port`로 바꿉니다 |
-| `npm install`이나 빌드가 실패합니다 | `node -v`로 Node 22인지 확인합니다 |
+오류 응답의 `code` 값이나 서버 로그의 글자를 그대로 검색합니다: `grep -rn "<키워드>" app/`. 요청 하나를 따라갈 때는 응답 헤더 `X-Request-ID`로 서버 로그를 찾습니다.
+
+| 단계 | 증상·키워드 | 원인 | 조치 |
+|---|---|---|---|
+| 실행 | `Address already in use` | 포트 8000(서버)이나 5173(화면)을 다른 프로세스가 쓴다 | 그 프로세스를 끄거나 `--port`로 바꿉니다 |
+| 실행 | `npm install`이나 빌드 실패 | Node 버전이 다르다 | `node -v`로 22인지 확인합니다 |
+| 실행 | 화면에서 서버 요청 실패 (CORS) | 서버가 꺼져 있거나 주소가 다르다 | 서버를 켜고, `VITE_API_BASE_URL`과 `.env`의 `RADAR_CORS_ORIGINS`를 맞춥니다 |
+| 설정 | `.env` 값이 안 먹는다 | 파일 위치나 환경변수 우선순위 | `.env`는 저장소 루트에 둡니다. 터미널 환경변수가 `.env`보다 우선합니다. 서버를 다시 켭니다 |
+| DB | `db_not_configured` (503), `db_configured: false` | `.env`에 DB 접속 값이 없다 | `RADAR_DB_HOST`, `RADAR_DB_USER` 등을 채우고 서버를 다시 켭니다 |
+| DB | `/health/db`가 `unreachable`, `db_read_failed` | 주소, 계정, 방화벽 문제. 공용 DB는 정해진 네트워크에서만 접속된다 | 접속 값을 확인하거나 내 PC의 MySQL에 SQL을 실행해 씁니다 |
+| DB | `setting_table_missing`, `decision_schema_unavailable` | DB에 표가 없다 (SQL 버전이 낮다) | 최신 SQL(`v2.5`)로 표를 다시 만듭니다. 이 SQL은 데이터를 지웁니다 |
+| 로그인 | `login_required`, `token_expired`, `role_changed` | 로그인이 없거나 시간이 지났거나 역할이 바뀌었다 | 다시 로그인합니다 |
+| 로그인 | `wrong_password`, `account_locked` (423) | 비밀번호를 여러 번 틀려 잠겼다 | 잠금 시간이 지난 뒤 다시 합니다. 운영자가 어드민에서 임시 비밀번호를 다시 만들면 잠금도 풀립니다 |
+| 로그인 | `inactive_account` | 사용 중지된 계정이다 | 운영자가 어드민에서 계정을 `사용 중`으로 바꿉니다 |
+| 권한 | `forbidden_role`, `forbidden_gu` | 역할이나 담당 구가 맞지 않는다 | 맞는 계정으로 로그인합니다 (구 팀은 자기 구만 봅니다) |
+| 민원 적재 | `too_large` (413), `empty_file`, `invalid_input` | 파일이 크거나 비었거나 입력이 틀렸다 | 한 달치 xlsx인지, 공식 원본 여부 선택이 맞는지 확인합니다 |
+| 민원 적재 | `load_failed` (500) | 적재 중 검사에 걸렸다 | 업로드 기록의 검사 결과를 봅니다 |
+| 회차 | `run_not_found` (404) | 회차가 없다 | 회차 번호를 확인합니다. 회차가 없으면 운영자가 만듭니다 |
+| 회차 | `run_scope_missing` (503) | 회차에 민원 자료 기간(시작·끝)이 비어 있다 | 회차 생성 때 넣은 기간을 확인합니다 |
+| 산정 | `already_running` (409) | 같은 실행이 이미 돌고 있다 | 끝난 뒤 실행 기록을 확인합니다 |
+| 산정 | `rerun_not_supported`, `rerun_input_missing` | 화면에서는 다시 실행할 수 없다 | 터미널에서 `scripts/run_official_priority`로 다시 돌립니다 |
+| 입력 판본 | `input_build_lookup_blocked` (409) | 입력 판본 조회가 막혔다 | 응답 메시지에 이유가 나옵니다. 원천 감사 승인 상태를 확인합니다 |
+| 후보 | `candidate_not_found` (404), `gu_required` (422) | 그 회차에 격자가 없거나 구를 안 정했다 | 회차와 격자 번호, 구 선택을 확인합니다 |
+| 결정·확정 | 403 "개발용 API 비활성화" | `AI_G03_DEV_API_ENABLED`, `AI_G06_DEV_API_ENABLED`가 `1`이 아니다 | `.env.example`을 복사했는지 확인하고 서버를 다시 켭니다 |
+| 결정·확정 | 서버를 다시 켰더니 결정이 사라졌다 | `RADAR_G03_PERSIST_ENABLED=0`이면 결정을 메모리에만 둔다 | 현재 알려진 동작입니다. DB에 저장하려면 이 값을 `1`로 합니다 |
+| AI | `local_access_only` (403) | 설명문 일부 API는 서버 PC에서만 열린다 | 서버가 켜진 PC에서 호출합니다 |
+| 화면 | "아직 서버와 연결되지 않았습니다" | 서버 API가 아직 없는 화면이다 | 오류가 아니라 정상 안내입니다 |
+| 화면 | 후보 상세의 조치 제안이 비어 있다 | 승인된 조치 제안이 아직 없다 | 승인 전에는 비어 있습니다. 점검 요청서는 조치 제안 없이도 나옵니다 |
 
 ## Contributing
 
