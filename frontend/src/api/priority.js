@@ -265,11 +265,11 @@ export function toCandidateDetail(c, { list, user, record = null }) {
     conditionStates: conditionStates(c.conditions),
     unrated,
     obstacles,
-    // 유형별 건수·재발은 서버가 주지 않아 비워 두고(types), 건수만 보인다. 위치가 정확하지 않은 민원 수는 두 건수의 차이이며 안내로만 알린다.
+    // 유형별 건수·재발은 서버가 주지 않아 비워 두고(types), 건수만 보인다. 위치가 정확하지 않은 민원 수는 두 건수(전체, 낮음 제외)의 차이이며, 건수에 포함된 채로 안내한다.
     complaint: {
       has: c.complaint_cnt != null,
-      // 위치가 정확하지 않은 민원은 세지 않는다(정의서 10_2, ISS-062). 서버가 제외한 건수를 주면 그것을, 없으면 전체 건수를 쓴다.
-      total: c.complaint_cnt_excl_low ?? c.complaint_cnt ?? 0,
+      // 위치가 정확하지 않은 민원도 시스템에서 빼지 않는다(규림님 결정 11/04). 전체 건수를 보이고, 그중 위치가 정확하지 않은 건수는 안내로 따로 알린다.
+      total: c.complaint_cnt ?? 0,
       lowAccuracy: c.complaint_cnt != null && c.complaint_cnt_excl_low != null ? Math.max(0, c.complaint_cnt - c.complaint_cnt_excl_low) : 0,
       types: [],
       recur: 0,

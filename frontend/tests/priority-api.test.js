@@ -239,7 +239,7 @@ test('상세의 민원은 서버 건수를 쓰고, 위치가 정확하지 않은
   const list = toCandidateList({ run: run2, candidates: [cand('a', '수정구', 50, 1)] }, { role: 'city' }, { gu: null, guList: GUS, allGu: ALL });
   const d = toCandidateDetail({ ...cand('a', '수정구', 50, 1), complaint_cnt: 12, complaint_cnt_excl_low: 9 }, { list, user: { role: 'city' }, record: null });
   assert.equal(d.complaint.has, true);
-  assert.equal(d.complaint.total, 9); // 위치가 정확하지 않은 민원은 건수에서 뺀다
+  assert.equal(d.complaint.total, 12); // 위치가 정확하지 않은 민원도 건수에 넣는다
   assert.equal(d.complaint.lowAccuracy, 3);
   assert.deepEqual(d.complaint.types, []);
   const none = toCandidateDetail({ ...cand('a', '수정구', 50, 1), complaint_cnt: null, complaint_cnt_excl_low: null }, { list, user: { role: 'city' }, record: null });
