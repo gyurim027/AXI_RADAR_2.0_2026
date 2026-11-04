@@ -237,7 +237,7 @@
   --radar-admin-component-table-row-bg: var(--radar-admin-semantic-color-bg-surface);
   --radar-admin-component-table-row-hover-bg: var(--radar-admin-semantic-color-bg-hover);
   --radar-admin-component-table-row-selected-bg: var(--radar-admin-semantic-color-bg-selected);
-  --radar-admin-component-table-row-expanded-bg: var(--radar-admin-primitive-color-gray-50); /* 펼친 행과 펼침 영역을 한 덩어리로 묶는 옅은 바탕 */
+  --radar-admin-component-table-row-expanded-bg: var(--radar-admin-primitive-color-indigo-50); /* 펼침 영역 바탕: 머리 줄·화면 바탕(회색)과 다른 옅은 인디고 */
   --radar-admin-component-table-changed-bg: var(--radar-admin-semantic-color-warning-bg);
   --radar-admin-component-table-changed-line: var(--radar-admin-semantic-color-warning-line);
   --radar-admin-component-table-border: var(--radar-admin-semantic-color-border-subtle);

@@ -85,9 +85,6 @@
   outline: var(--a-focus-width) solid var(--radar-admin-semantic-color-focus);
   outline-offset: -2px;
 }
-.open {
-  background: var(--radar-admin-component-table-row-expanded-bg);
-}
 .selected {
   background: var(--radar-admin-component-table-row-selected-bg);
 }
@@ -109,20 +106,14 @@
 .chev:hover {
   background: var(--radar-admin-semantic-color-bg-hover);
 }
-/* 펼침: 펼친 행과 펼침 영역을 같은 옅은 바탕으로 묶고 왼쪽에 2px 인디고 선을 둔다. 글자는 표 본문과 같은 14px이다. */
-.open .td {
-  background: var(--radar-admin-component-table-row-expanded-bg);
-}
-.open .td:first-child {
-  box-shadow: inset 2px 0 0 var(--radar-admin-semantic-color-action);
-}
+/* 펼침: 펼친 행은 흰색 그대로 두고, 펼침 영역만 옅은 인디고 바탕에 위아래 회색 선으로 구분한다. 글자는 표 본문과 같은 14px이다. */
 .expandedRow {
   background: var(--radar-admin-component-table-row-expanded-bg);
 }
 .expandedCell {
   padding: var(--a-s4) var(--a-s6);
-  border-bottom: 1px solid var(--radar-admin-semantic-color-border-subtle);
-  box-shadow: inset 2px 0 0 var(--radar-admin-semantic-color-action);
+  border-top: 1px solid var(--radar-admin-semantic-color-border-default);
+  border-bottom: 1px solid var(--radar-admin-semantic-color-border-default);
   font-size: var(--a-fs-sm);
   line-height: var(--a-lh-body);
 }
@@ -159,9 +150,6 @@
 }
 tr:hover > .expandCol {
   background: var(--radar-admin-component-table-row-hover-bg);
-}
-.open > .expandCol {
-  background: var(--radar-admin-component-table-row-expanded-bg);
 }
 .selected > .expandCol {
   background: var(--radar-admin-component-table-row-selected-bg);

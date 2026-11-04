@@ -3,6 +3,7 @@ import { getArticle, getDept, requestDeptApproval, searchLawText } from '../../.
 import { useAsync } from '../../../shared/hooks/useAsync.js';
 import Badge from '../../components/Badge.jsx';
 import Button from '../../components/Button.jsx';
+import Icon from '../../../user/components/Icon.jsx';
 import DataTable from '../../components/DataTable.jsx';
 import { TextArea } from '../../components/Field.jsx';
 import Loadable from '../../components/Loadable.jsx';
@@ -62,12 +63,15 @@ export default function DeptPage() {
                   renderExpanded={(r) => (
                     <dl className={styles.fullList}>
                       {[
-                        [DEPT.currentHead[2], r.dept],
-                        [DEPT.currentHead[3], r.related],
-                        [DEPT.currentHead[5], r.basis],
-                      ].map(([label, text]) => (
+                        ['building', DEPT.currentHead[2], r.dept],
+                        ['link', DEPT.currentHead[3], r.related],
+                        ['document', DEPT.currentHead[5], r.basis],
+                      ].map(([icon, label, text]) => (
                         <div key={label} className={styles.fullRow}>
-                          <dt>{label}</dt>
+                          <dt>
+                            <Icon name={icon} size={16} className={styles.fullIcon} />
+                            {label}
+                          </dt>
                           <dd>{text || '-'}</dd>
                         </div>
                       ))}

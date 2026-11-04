@@ -256,6 +256,9 @@
   gap: var(--a-s4);
 }
 .fullRow dt {
+  display: flex;
+  align-items: center;
+  gap: var(--a-s2);
   font-size: var(--a-fs-sm);
   font-weight: var(--a-fw-medium);
   color: var(--radar-admin-semantic-color-text-secondary);
@@ -265,4 +268,8 @@
   font-size: var(--a-fs-sm);
   line-height: var(--a-lh-body);
   white-space: pre-line;
+}
+.fullIcon {
+  flex: none;
+  color: var(--radar-admin-semantic-color-text-secondary);
 }
