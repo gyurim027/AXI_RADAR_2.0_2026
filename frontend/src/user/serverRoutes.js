@@ -4,6 +4,7 @@ import { i07BackendEnabled, priorityBackendEnabled } from '../api/backend.js';
 const OPEN = [
   priorityBackendEnabled && /^\/candidates\/?$/, // 점검 후보 (US-01~03): 점수·순위 모델 결과
   priorityBackendEnabled && /^\/reports\/conditions\/?$/, // 우선순위 점수 근거 (US-07)
+  priorityBackendEnabled && /^\/reports\/annual\/?$/, // 관할 부서별 점검 요청서 미리보기 (US-05, H-01)
   i07BackendEnabled && /^\/reference\/approvals\/?$/, // 승인 대기 (US-10)
 ].filter(Boolean);
 
