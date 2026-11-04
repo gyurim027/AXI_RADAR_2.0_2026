@@ -6,6 +6,7 @@ import NotConnected from '../components/NotConnected.jsx';
 import { ROLE } from '../../shared/constants.js';
 import { RUN_STATUS } from '../../shared/constants.js';
 import { useAuth } from '../../app/providers/AuthProvider.jsx';
+import AppVersion from '../../shared/components/AppVersion.jsx';
 import { useRun } from '../../app/providers/RunProvider.jsx';
 import TopBar from './TopBar.jsx';
 import SubNav from './SubNav.jsx';
@@ -38,7 +39,7 @@ function ServerUserLayout() {
         {approvals ? <nav aria-label="주 메뉴"><Link to="/reference/approvals">승인 대기</Link></nav> : null}
         <div className={bar.account}><span>{user.org}</span><button type="button" className={bar.logout} onClick={logout}>로그아웃</button></div>
       </header>
-      <main className={styles.main} id="main" tabIndex={-1}><div className={styles.content}>{approvals && onApprovals ? <Outlet /> : <NotConnected role={user.role} />}</div></main>
+      <main className={styles.main} id="main" tabIndex={-1}><div className={styles.content}>{approvals && onApprovals ? <Outlet /> : <NotConnected role={user.role} />}<AppVersion /></div></main>
     </div>
   );
 }
@@ -71,6 +72,7 @@ function RunUserLayout() {
       <main className={`${styles.main} ${edge && connected ? styles.mainEdge : ''}`} id="main" tabIndex={-1}>
         <div className={edge && connected ? styles.edge : `${styles.content} ${reading ? styles.reading : ''}`}>
           {connected ? <Outlet /> : <NotConnected role={user.role} />}
+          {edge && connected ? null : <AppVersion />}
         </div>
       </main>
     </div>

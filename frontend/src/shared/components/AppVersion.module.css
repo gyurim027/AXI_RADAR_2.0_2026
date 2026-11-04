@@ -1,0 +1,7 @@
+.version {
+  margin: var(--space-24) 0 0;
+  font-size: var(--fs-caption);
+  line-height: 1.4;
+  text-align: center;
+  color: var(--semantic-color-text-disabled);
+}
