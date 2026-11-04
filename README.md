@@ -56,6 +56,8 @@ cp .env.example .env       # Windows PowerShell: Copy-Item .env.example .env
 
 **DB 준비**: 내 PC의 MySQL 8에 DB를 만들고 드라이브의 SQL 파일을 실행합니다. 공용 DB에 접속할 수 있으면 이 단계는 건너뜁니다.
 
+> **주의**: 이 SQL은 `DROP TABLE` 후 `CREATE TABLE`을 합니다. 기존 데이터가 모두 지워지므로 공용 DB에는 실행하지 않습니다. DB(`CREATE DATABASE`)는 SQL에 없어서 아래처럼 먼저 만듭니다.
+
 ```bash
 mysql -u root -p -e "CREATE DATABASE mysqlteam02db DEFAULT CHARACTER SET utf8mb4"
 mysql -u root -p mysqlteam02db < v2.5_261104_03_최종개발문서_DB백업쿼리포함.sql
