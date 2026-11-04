@@ -17,7 +17,7 @@
   z-index: var(--radar-admin-component-nav-z);
 }
 .main {
-  padding: var(--a-s6) var(--radar-admin-component-shell-content-padding) var(--a-s12);
+  padding: var(--radar-admin-component-page-top-gap) var(--radar-admin-component-shell-content-padding) var(--a-s12);
 }
 .main:focus {
   outline: none;

@@ -237,7 +237,7 @@
   --radar-admin-component-table-row-bg: var(--radar-admin-semantic-color-bg-surface);
   --radar-admin-component-table-row-hover-bg: var(--radar-admin-semantic-color-bg-hover);
   --radar-admin-component-table-row-selected-bg: var(--radar-admin-semantic-color-bg-selected);
-  --radar-admin-component-table-row-expanded-bg: var(--radar-admin-semantic-color-bg-subtle);
+  --radar-admin-component-table-row-expanded-bg: var(--radar-admin-primitive-color-gray-50); /* 펼친 행과 펼침 영역을 한 덩어리로 묶는 옅은 바탕 */
   --radar-admin-component-table-changed-bg: var(--radar-admin-semantic-color-warning-bg);
   --radar-admin-component-table-changed-line: var(--radar-admin-semantic-color-warning-line);
   --radar-admin-component-table-border: var(--radar-admin-semantic-color-border-subtle);
@@ -258,6 +258,12 @@
   --radar-admin-component-panel-padding: var(--radar-admin-primitive-space-6);
   --radar-admin-component-panel-gap: var(--radar-admin-primitive-space-6);
   --radar-admin-component-panel-shadow: var(--radar-admin-primitive-shadow-none);
+  /* component / page-header (화면 머리: 화면 제목, 설명, 오른쪽 동작) */
+  --radar-admin-component-page-top-gap: var(--radar-admin-primitive-space-8); /* 2층 메뉴 줄 바닥에서 제목까지 32px */
+  --radar-admin-component-page-title-size: var(--radar-admin-primitive-type-size-h2); /* 24px */
+  --radar-admin-component-page-subtitle-size: var(--radar-admin-primitive-type-size-sm); /* 14px */
+  --radar-admin-component-page-bottom-gap: var(--radar-admin-primitive-space-6); /* 머리에서 본문까지 24px */
+
   /* component / kpi */
   --radar-admin-component-kpi-bg: var(--radar-admin-semantic-color-bg-canvas);
   --radar-admin-component-kpi-border: var(--radar-admin-semantic-color-border-default);

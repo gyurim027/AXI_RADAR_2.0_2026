@@ -64,14 +64,12 @@ export default function DataListPage() {
 
   return (
     <div>
-      <PageHeader title={LIST.title} subtitle={LIST.subtitle} />
-      <Toolbar
-        actions={
-          <Button variant="primary" onClick={() => navigate('/admin/data/upload')}>
-            {LIST.upload}
-          </Button>
-        }
-      >
+      <PageHeader title={LIST.title} subtitle={LIST.subtitle}>
+        <Button variant="primary" onClick={() => navigate('/admin/data/upload')}>
+          {LIST.upload}
+        </Button>
+      </PageHeader>
+      <Toolbar>
         <SelectInput label={LIST.freshnessLabel} value={freshness} onChange={(v) => setFilter('freshness', v)} options={LIST.freshnessOptions} />
         <SelectInput label={LIST.sourceLabel} value={source} onChange={(v) => setFilter('source', v)} options={LIST.sourceOptions} />
       </Toolbar>

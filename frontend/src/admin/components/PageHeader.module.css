@@ -1,9 +1,17 @@
+/* 화면 머리: [제목 / 설명]을 왼쪽에, 동작 버튼을 오른쪽 끝에 한 줄로 둔다. 좁으면 버튼이 아래로 내려온다. */
 .head {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
-  gap: var(--a-s4);
-  margin-bottom: var(--a-s6);
+  flex-wrap: wrap;
+  gap: var(--a-s3) var(--a-s6);
+  margin-bottom: var(--radar-admin-component-page-bottom-gap);
+}
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--a-s1);
+  min-width: 0;
 }
 .titleRow {
   display: flex;
@@ -12,20 +20,20 @@
   flex-wrap: wrap;
 }
 .title {
-  font-size: var(--a-fs-h1);
+  font-size: var(--radar-admin-component-page-title-size);
   font-weight: var(--a-fw-semibold);
   line-height: var(--a-lh-heading);
   color: var(--radar-admin-semantic-color-text-primary);
 }
 .subtitle {
-  margin-top: var(--a-s1);
   max-width: 760px;
-  font-size: var(--a-fs-md);
+  font-size: var(--radar-admin-component-page-subtitle-size);
   line-height: var(--a-lh-body);
   color: var(--radar-admin-semantic-color-text-secondary);
 }
 .side {
   display: flex;
-  gap: var(--a-s2);
+  align-items: center;
+  gap: var(--a-s2); /* 보조 버튼을 앞에, 주된 버튼을 마지막(맨 오른쪽)에 둔다 */
   flex: none;
 }

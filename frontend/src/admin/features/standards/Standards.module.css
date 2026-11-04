@@ -252,7 +252,7 @@
 }
 .fullRow {
   display: grid;
-  grid-template-columns: 120px minmax(0, 1fr);
+  grid-template-columns: 120px minmax(0, 1fr); /* 라벨 120px, 값은 첫 열 글자 시작점에 맞춘 안쪽 여백 위에서 시작 */
   gap: var(--a-s4);
 }
 .fullRow dt {
@@ -262,7 +262,7 @@
 }
 .fullRow dd {
   margin: 0;
-  font-size: var(--a-fs-md);
+  font-size: var(--a-fs-sm);
   line-height: var(--a-lh-body);
   white-space: pre-line;
 }
