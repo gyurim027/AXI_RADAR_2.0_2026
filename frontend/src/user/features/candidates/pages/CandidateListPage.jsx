@@ -70,7 +70,7 @@ function CandidateListPage() {
   const split = useSplit();
   const confirmRef = useRef(null);
 
-  const list = useAsync(() => listCandidates({ runId: run.id, gu }), [run.id, gu, user.id, version]);
+  const list = useAsync(() => listCandidates({ runId: run.id, gu, run }), [run.id, gu, user.id, version]);
   const detail = useAsync(
     () => (selectedId ? getCandidateDetail({ runId: run.id, gid: selectedId }) : Promise.resolve(null)),
     [run.id, selectedId, user.id, version],

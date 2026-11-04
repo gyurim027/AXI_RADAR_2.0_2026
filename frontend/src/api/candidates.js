@@ -53,7 +53,7 @@ export async function listCandidates(arg) {
     user?.role === 'district' && g06BackendEnabled ? getConfirmSummary({ runId: arg.runId }).then((s) => s.mine, () => null) : null,
     isRoundFinalized(arg.runId),
   ]);
-  return priority.listCandidates({ ...arg, user, guList: GU_LIST, allGu: ALL_GU, decisions, myConfirm, finalized });
+  return priority.listCandidates({ ...arg, user, guList: GU_LIST, allGu: ALL_GU, decisions, myConfirm, finalized }); // arg.run: 회차 목록에서 받은 회차(상태 포함)
 }
 export async function getCandidateDetail(arg) {
   if (!serverMode()) return mockGetCandidateDetail(arg);

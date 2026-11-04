@@ -62,3 +62,13 @@ test('서버 모드에서 어드민 회차 목록은 /admin/runs/list로 열리�
     assert.equal(routes.isOpenInServerMode('/admin/runs/log'), true);
   } finally { await server.close(); }
 });
+
+test('서버 연결 모드의 메뉴는 열리는 화면만 남기고, 하위 메뉴가 모두 빠진 묶음은 뺀다', async () => {
+  const { buildMenu } = await import('../src/shared/auth/permissions.js');
+  const open = (to) => ['/candidates', '/reports/conditions'].includes(to);
+  const menu = buildMenu({ role: 'district' }, open);
+  assert.deepEqual(menu.map((m) => m.key), ['candidates', 'reports']);
+  assert.deepEqual(menu[1].items.map((i) => i.to), ['/reports/conditions']);
+  // 연습용 모드(거르지 않음)는 모든 메뉴를 그대로 보인다
+  assert.ok(buildMenu({ role: 'district' }).some((m) => m.key === 'reference'));
+});

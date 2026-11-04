@@ -8,10 +8,10 @@ import { ROLE, RUN_STATUS } from '../constants.js';
  * items가 있는 메뉴는 화면 아래 하위 탭 줄로 보이고, 탭 이름은 6자 안팎의 짧은 이름이다 (UX 고도화 3-1).
  * 화면 제목과 파일 이름의 전체 이름은 각 화면의 copy.js에 있다.
  */
-export function buildMenu(user) {
+export function buildMenu(user, isOpen = null) {
   const district = user.role === ROLE.DISTRICT;
   const city = user.role === ROLE.CITY;
-  return [
+  const menu = [
     { key: 'candidates', label: '점검 후보', to: '/candidates' },
     {
       key: 'reports',
@@ -35,6 +35,17 @@ export function buildMenu(user) {
       ],
     },
   ].filter(Boolean);
+  return isOpen ? onlyOpen(menu, isOpen) : menu;
+}
+
+/**
+ * 서버 연결 모드에서는 열리지 않는 화면을 메뉴에서 뺀다(눌러도 "연결되지 않았습니다"만 나오는 항목을 두지 않는다).
+ * 하위 메뉴가 모두 빠진 묶음은 묶음째 뺀다. isOpen(to)가 true인 화면만 남는다.
+ */
+export function onlyOpen(menu, isOpen) {
+  return menu
+    .map((m) => (m.items ? { ...m, items: m.items.filter((i) => isOpen(i.to)) } : m))
+    .filter((m) => (m.items ? m.items.length > 0 : isOpen(m.to)));
 }
 
 /** 지금 주소가 속한 하위 탭 묶음. 하위 탭이 없는 메뉴면 null이다. */

@@ -170,8 +170,11 @@ function toRow(c, rank, scopeTotal, cityRank, cityTotal) {
 }
 
 /** 후보 목록 응답 → 화면 목록 */
-export function toCandidateList(res, user, { gu, guList, allGu, decisions = null, myConfirm = null, finalized = false }) {
-  const run = toRun(res.run, { finalized });
+export function toCandidateList(res, user, { gu, guList, allGu, decisions = null, myConfirm = null, finalized = false, runInfo = null }) {
+  // 후보 응답의 run에는 회차 운영 정보(이름·종류·상태)가 없다. 회차 목록에서 받은 값(runInfo)이 있으면 그것을 쓴다.
+  // 그렇지 않으면 상태를 몰라 '검토 중'으로 보지 못하고 결정 버튼이 숨겨진다.
+  const fromRes = toRun(res.run, { finalized });
+  const run = runInfo ? { ...fromRes, name: runInfo.name, kind: runInfo.kind, status: runInfo.status, openedAt: runInfo.openedAt ?? fromRes.openedAt, version: runInfo.version ?? fromRes.version } : fromRes;
   const all = res.candidates || [];
   const rated = all.filter((c) => c.score != null).sort((a, b) => Number(b.score) - Number(a.score) || (a.rank_no ?? 1e9) - (b.rank_no ?? 1e9));
   const unratedList = all.filter((c) => c.score == null);
@@ -334,9 +337,9 @@ export function createPriorityApi(rawRequest) {
         }),
       );
     },
-    async listCandidates({ runId, gu, user, guList, allGu, decisions, myConfirm, finalized }) {
+    async listCandidates({ runId, gu, user, guList, allGu, decisions, myConfirm, finalized, run: runInfo = null }) {
       const res = await request(`/api/priority/runs/${encodeURIComponent(runId)}/candidates?limit=3000`);
-      lastList = toCandidateList(res, user, { gu, guList, allGu, decisions, myConfirm, finalized });
+      lastList = toCandidateList(res, user, { gu, guList, allGu, decisions, myConfirm, finalized, runInfo });
       return lastList;
     },
     async getCandidateDetail({ runId, gid, user, record }) {

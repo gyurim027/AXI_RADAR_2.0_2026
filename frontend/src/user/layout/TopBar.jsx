@@ -5,6 +5,7 @@ import { useRun } from '../../app/providers/RunProvider.jsx';
 import { ALL_GU, GU_LIST, ROLE } from '../../shared/constants.js';
 import { useAsync } from '../../shared/hooks/useAsync.js';
 import { activeGroup, buildMenu } from '../../shared/auth/permissions.js';
+import { userMenuFilter } from '../serverRoutes.js';
 import { dataYear, runOptionLabel } from '../../shared/utils/format.js';
 import { InfoHelp, SelectField } from '../components/FormControls.jsx';
 import Notifications from './Notifications.jsx';
@@ -16,7 +17,7 @@ export default function TopBar() {
   const { runs, run, setRunId, gu, setGu } = useRun();
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const menu = buildMenu(user);
+  const menu = buildMenu(user, userMenuFilter);
   const group = activeGroup(menu, pathname);
   const city = user.role === ROLE.CITY;
   // 승인 대기 건수 배지 (M-2). 시 도로과만 승인 대기를 본다.

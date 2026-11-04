@@ -301,3 +301,16 @@ test('회차: 서버가 후보 수를 주지 않으면 회차를 빼지 않는�
   const api = apiWith(async () => response({ runs: [{ run_id: 4 }] }));
   assert.deepEqual((await api.listRuns()).map((r) => r.id), ['4']);
 });
+
+test('후보 목록: 후보 응답에 회차 상태가 없어도 회차 목록의 상태(검토 중)를 쓰면 구 도로관리팀 결정 버튼이 열린다', () => {
+  const res = { run: { run_id: 4 }, candidates: [cand('a', '수정구', 50, 1), cand('b', '수정구', 40, 2)] };
+  const user = { role: 'district', gu: '수정구', readOnly: false };
+  const base = { gu: null, guList: GUS, allGu: ALL, myConfirm: { done: false } };
+  const without = toCandidateList(res, user, base);
+  assert.equal(without.run.status, RUN_STATUS.UNKNOWN);
+  assert.equal(without.canDecide, false); // 상태를 모르면 결정 버튼을 열지 않는다
+  const withRun = toCandidateList(res, user, { ...base, runInfo: { name: '2027 연간', kind: 'annual', status: RUN_STATUS.REVIEW } });
+  assert.equal(withRun.run.name, '2027 연간');
+  assert.equal(withRun.run.status, RUN_STATUS.REVIEW);
+  assert.equal(withRun.canDecide, true);
+});
