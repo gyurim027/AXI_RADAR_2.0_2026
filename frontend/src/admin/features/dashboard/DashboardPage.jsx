@@ -180,7 +180,7 @@ function Body({ data }) {
         ) : (
           // 회차가 없다는 것은 정보라서 제목이 아니라 누를 수 없는 토스트 모양으로, 가운데에 작게 보인다.
           <p className={styles.toast} role="status">
-            <Icon name="info" size={16} />
+            <Icon name="calendar" size={16} />
             {DASH.noRun}
           </p>
         )}

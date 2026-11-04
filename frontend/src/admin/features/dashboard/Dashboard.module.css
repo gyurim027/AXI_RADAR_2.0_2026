@@ -149,7 +149,8 @@
   flex-direction: column;
   justify-content: center;
   text-align: center;
-  gap: var(--a-s4);
+  gap: var(--a-s2);
+  padding: var(--a-s2) var(--a-s4); /* 얇은 한 줄: 위아래 8px */
 }
 .nextEmpty .nextTask {
   align-items: center;
@@ -160,11 +161,9 @@
   align-items: center;
   justify-content: center;
   gap: var(--a-s2);
-  align-self: stretch; /* 알약이 아니라 가운데 정렬된 폭 넓은 안내 줄이라 버튼처럼 보이지 않는다 */
+  align-self: stretch;
   margin: 0;
-  padding: var(--a-s3) var(--a-s4);
-  border-radius: var(--a-radius-control);
-  background: var(--radar-admin-semantic-color-bg-subtle);
+  padding: 0; /* 카드 자체가 얇은 한 줄이라 안쪽 상자에 따로 바탕·여백을 두지 않는다 */
   color: var(--radar-admin-semantic-color-text-secondary);
   font-size: var(--a-fs-sm);
   font-weight: var(--a-fw-regular);

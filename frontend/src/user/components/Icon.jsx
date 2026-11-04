@@ -16,11 +16,12 @@ const PATHS = {
   download: 'M12 4v11m0 0 4-4m-4 4-4-4M5 19h14',
   spinner: 'M12 3a9 9 0 1 0 9 9',
   filter: 'M4 6h16M7 12h10M10 18h4',
+  calendar: 'M7 3v3M17 3v3M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1ZM4 9h16',
   building: 'M4 21V5a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v16M15 10h4a1 1 0 0 1 1 1v10M3 21h18M8 8h3M8 12h3M8 16h3',
   link: 'M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1',
   document: 'M7 3h7l5 5v12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1ZM14 3v5h5M9 13h6M9 17h6',
 };
-const STROKE = new Set(['filter', 'close', 'chevronDown', 'chevronUp', 'chevronLeft', 'chevronRight', 'plus', 'minus', 'download', 'spinner', 'bell', 'building', 'link', 'document']);
+const STROKE = new Set(['filter', 'close', 'chevronDown', 'chevronUp', 'chevronLeft', 'chevronRight', 'plus', 'minus', 'download', 'spinner', 'bell', 'building', 'link', 'document', 'calendar']);
 
 export default function Icon({ name, size = 20, className, title }) {
   const stroke = STROKE.has(name);
