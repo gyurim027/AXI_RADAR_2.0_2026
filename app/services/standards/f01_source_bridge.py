@@ -49,6 +49,10 @@ class Candidate:
     kind: str
     evidence: str
     basis: str
+    # Context not currently supplied by F-01 preview or verified-source APIs.
+    # None is unknown, NOT proof that the event is outside a protection zone.
+    protected_zone: str | None = None
+    protected_zone_basis: str | None = None
 
 
 def source_to_kinds(*, gid: str, table: str, rows: Iterable[Mapping]) -> tuple[list[Candidate], list[dict]]:
@@ -129,6 +133,17 @@ def jurisdiction_candidates(candidate: Candidate, jurisdiction_rows: Iterable[Ma
     """
     j_by_id={str(j.get('jurisdiction_id')): j for j in jurisdiction_rows}
     eligible=[]; blocked=[]
+    # JUR-01 covers protection-zone traffic safety installations, whereas
+    # JUR-04 concerns other pedestrian/road safety facilities. A source label
+    # like "볼라드 파손" does not verify zone membership or facility ownership.
+    # In particular, gu=None must not hide JUR-04 and accidentally promote
+    # the city-wide JUR-01 row into a single recommended department.
+    if candidate.kind == '교통안전시설':
+        return {'status':'확인 필요','problem_kind':candidate.kind,
+                'source_id':candidate.source_id,'candidate_departments':[],
+                'blocked_conditions':[{'jurisdiction_id':'JUR-01/JUR-04',
+                                       'reason':'PROTECTED_ZONE_AND_FACILITY_CONTEXT_UNVERIFIED'}],
+                'department_finalized':False,'needs_human_review':True}
     damage_jur = verified_damage_jurisdiction(candidate)
     if candidate.kind == '파손' and damage_jur is None:
         return {'status':'확인 필요','problem_kind':candidate.kind,
