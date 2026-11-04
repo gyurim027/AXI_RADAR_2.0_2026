@@ -14,7 +14,6 @@
   --radar-admin-primitive-color-gray-700: #3E4252;
   --radar-admin-primitive-color-gray-800: #2A2D3A;
   --radar-admin-primitive-color-gray-900: #1A1C26;
-  --radar-admin-primitive-color-ivory-50: #FAF8F4; /* 펼침 영역 전용 미색 (채도 낮음, 명도 높음) */
   --radar-admin-primitive-color-indigo-50: #F1F3FF;
   --radar-admin-primitive-color-indigo-100: #E5E8FE;
   --radar-admin-primitive-color-indigo-200: #CDD2FC;
@@ -238,7 +237,7 @@
   --radar-admin-component-table-row-bg: var(--radar-admin-semantic-color-bg-surface);
   --radar-admin-component-table-row-hover-bg: var(--radar-admin-semantic-color-bg-hover);
   --radar-admin-component-table-row-selected-bg: var(--radar-admin-semantic-color-bg-selected);
-  --radar-admin-component-table-row-expanded-bg: var(--radar-admin-primitive-color-ivory-50); /* 펼침 영역 바탕: 머리 줄·화면 바탕(차가운 회색)과 색조가 다른 옅은 미색 */
+  --radar-admin-component-table-row-expanded-bg: var(--radar-admin-primitive-color-gray-50); /* 펼침 영역 바탕: 연한 회색(화면 바탕과 비슷해도 위아래 선으로 구분한다) */
   --radar-admin-component-table-changed-bg: var(--radar-admin-semantic-color-warning-bg);
   --radar-admin-component-table-changed-line: var(--radar-admin-semantic-color-warning-line);
   --radar-admin-component-table-border: var(--radar-admin-semantic-color-border-subtle);
