@@ -32,6 +32,11 @@ KINDS = ("수집", "업로드", "검사", "좌표", "분류", "집계", "산정"
 RUNNING, SUCCESS, WARNING, FAILURE, SKIPPED = "실행 중", "성공", "경고", "실패", "건너뜀"   # 화면 목업 상태 이름
 STATUSES = (RUNNING, SUCCESS, WARNING, FAILURE, SKIPPED)
 MAX_TEXT = 300
+# 사람이 읽는 메시지가 아니라 되읽어 parsing해야 하는 구조화 데이터(예: 다시 실행 입력 JSON)를
+# 남길 때 쓰는 더 큰 한도. 300자 자르기는 긴 절대경로가 섞이면 JSON을 깨뜨려 되읽기를 막는다
+# (11/4, I-06 다시 실행 버그: rerun_hooks.remember()가 JSON을 300자에서 잘려 저장해
+#  saved_argv()가 json.loads 실패로 None을 돌려주고, canRerun이 조용히 false가 됨).
+MAX_STRUCTURED_TEXT = 2000
 
 
 def _cut(text: str | None, n: int = MAX_TEXT) -> str | None:
@@ -130,9 +135,11 @@ class JobHandle:
         self._warn: str | None = None
         self._ref: tuple[str | None, str | None] = (None, None)
 
-    def log(self, message: str) -> None:
+    def log(self, message: str, *, max_len: int = MAX_TEXT) -> None:
+        """max_len: 기본 300자. 되읽어 parsing할 구조화 데이터를 남길 때는
+        MAX_STRUCTURED_TEXT처럼 더 큰 값을 넘겨 자르다가 깨지는 것을 막는다."""
         if self.run_id is not None:
-            _safe(_store.log, self.run_id, _cut(message))
+            _safe(_store.log, self.run_id, _cut(message, max_len))
 
     def rows(self, n: int) -> None:
         self._rows = int(n)
