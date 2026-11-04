@@ -50,6 +50,7 @@ export default function RunListPage() {
       render: (r) => (
         <span className={styles.statusCell}>
           <Badge tone={RUN_TONE[r.status]}>{r.status}</Badge>
+          {r.noResult ? <span className={styles.stage}>{RUNS.noResult}</span> : null}
           {r.status === '산정 중' ? <span className={styles.stage}>{r.calcDone ? RUNS.stage.ready : r.ran ? RUNS.stage.running : RUNS.stage.before}</span> : null}
         </span>
       ),

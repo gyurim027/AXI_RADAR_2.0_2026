@@ -239,7 +239,7 @@ test('상세의 민원은 서버 건수를 쓰고, 위치가 정확하지 않은
   const list = toCandidateList({ run: run2, candidates: [cand('a', '수정구', 50, 1)] }, { role: 'city' }, { gu: null, guList: GUS, allGu: ALL });
   const d = toCandidateDetail({ ...cand('a', '수정구', 50, 1), complaint_cnt: 12, complaint_cnt_excl_low: 9 }, { list, user: { role: 'city' }, record: null });
   assert.equal(d.complaint.has, true);
-  assert.equal(d.complaint.total, 12);
+  assert.equal(d.complaint.total, 9); // 위치가 정확하지 않은 민원은 건수에서 뺀다
   assert.equal(d.complaint.lowAccuracy, 3);
   assert.deepEqual(d.complaint.types, []);
   const none = toCandidateDetail({ ...cand('a', '수정구', 50, 1), complaint_cnt: null, complaint_cnt_excl_low: null }, { list, user: { role: 'city' }, record: null });
@@ -286,4 +286,18 @@ test('구가 비어 있는 후보 수: 시 도로과에는 세어 주고 구 결
 test('구 도로관리팀 응답에는 구 없는 후보가 없어 0이다', () => {
   const list = toCandidateList({ run: run2, candidates: [cand('a', '수정구', 50, 1)] }, { role: 'district', gu: '수정구' }, { gu: null, guList: GUS, allGu: ALL });
   assert.equal(list.noGuCount, 0);
+});
+
+test('회차: 후보가 0건인 공회차는 구·시 선택지에서 빼고, 어드민 목록에서는 산정 결과 없음으로 구분한다', async () => {
+  const body = { runs: [{ run_id: 2, candidate_cnt: 2406 }, { run_id: 3, candidate_cnt: 0 }, { run_id: 4, candidate_cnt: 2406 }] };
+  const api = apiWith(async () => response(body));
+  const user = await api.listRuns();
+  assert.deepEqual(user.map((r) => r.id), ['2', '4']);
+  const admin = (await api.listRuns({ includeEmpty: true })).map(toAdminRun);
+  assert.deepEqual(admin.map((r) => [r.id, r.noResult]), [['2', false], ['3', true], ['4', false]]);
+});
+
+test('회차: 서버가 후보 수를 주지 않으면 회차를 빼지 않는다', async () => {
+  const api = apiWith(async () => response({ runs: [{ run_id: 4 }] }));
+  assert.deepEqual((await api.listRuns()).map((r) => r.id), ['4']);
 });

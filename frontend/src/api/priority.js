@@ -79,6 +79,8 @@ export function toRun(r, { finalized = false } = {}) {
     kind: r.kind === '반기 참고' ? 'ref' : 'annual',
     status,
     openedAt: r.opened_at ?? null,
+    // 서버가 회차의 후보 수를 주면 담는다. 0건이면 산정 결과가 없는 회차(공회차)라 구·시 선택지에서 뺀다. 모르면 null.
+    candidateCount: r.candidate_cnt == null ? null : Number(r.candidate_cnt),
     dataRange: null,
     version: r.setting_version_display || null,
     unratedFields: [],
@@ -102,6 +104,7 @@ export function toAdminRun(run) {
     review: run.openedAt ? String(run.openedAt).slice(0, 10).replaceAll('-', '.') : '-',
     period: '-',
     complaintPeriod: null,
+    noResult: run.candidateCount === 0, // 후보가 0건인 회차: 어드민 목록에서 '산정 결과 없음'으로 구분한다
     calcDone: false,
     ran: false,
     running: false,
@@ -262,10 +265,11 @@ export function toCandidateDetail(c, { list, user, record = null }) {
     conditionStates: conditionStates(c.conditions),
     unrated,
     obstacles,
-    // 유형별 건수·재발은 서버가 주지 않아 비워 두고(types), 전체 건수만 보인다. 위치가 정확하지 않은 민원 수는 두 건수의 차이다.
+    // 유형별 건수·재발은 서버가 주지 않아 비워 두고(types), 건수만 보인다. 위치가 정확하지 않은 민원 수는 두 건수의 차이이며 안내로만 알린다.
     complaint: {
       has: c.complaint_cnt != null,
-      total: c.complaint_cnt ?? 0,
+      // 위치가 정확하지 않은 민원은 세지 않는다(정의서 10_2, ISS-062). 서버가 제외한 건수를 주면 그것을, 없으면 전체 건수를 쓴다.
+      total: c.complaint_cnt_excl_low ?? c.complaint_cnt ?? 0,
       lowAccuracy: c.complaint_cnt != null && c.complaint_cnt_excl_low != null ? Math.max(0, c.complaint_cnt - c.complaint_cnt_excl_low) : 0,
       types: [],
       recur: 0,
@@ -319,9 +323,10 @@ export function createPriorityApi(rawRequest) {
   return {
     /** 회차 목록. 보존 대상 회차는 뺀다. */
     /** finalizedOf(runId) → 3개 구가 모두 확정했는가(서버 값). 상태를 주지 않는 서버에서만 쓴다. */
-    async listRuns({ finalizedOf } = {}) {
+    // includeEmpty: 어드민 목록은 후보가 0건인 회차도 보인다. 구·시 화면(기본)은 산정 결과가 없는 회차를 선택지에서 뺀다.
+    async listRuns({ finalizedOf, includeEmpty = false } = {}) {
       const d = await request('/api/priority/runs');
-      const runs = (d.runs || []).filter((r) => !PRESERVED_RUN_IDS.has(Number(r.run_id)));
+      const runs = (d.runs || []).filter((r) => !PRESERVED_RUN_IDS.has(Number(r.run_id)) && (includeEmpty || Number(r.candidate_cnt) !== 0 || r.candidate_cnt == null));
       return Promise.all(
         runs.map(async (r) => {
           const needs = (!STATUS_VALUES.has(r.status) || r.status === RUN_STATUS.REVIEW) && typeof finalizedOf === 'function';

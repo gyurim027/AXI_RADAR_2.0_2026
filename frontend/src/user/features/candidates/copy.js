@@ -159,7 +159,7 @@ export const DRAWER = {
   complaintTitle: '민원',
   complaintTotal: (n) => `민원 ${n}건`, // 유형별 건수를 모를 때 (10_2 CM-00 15번의 앞부분)
   complaintLine: (types) => types.map((t) => `${t.type} ${t.count}건${t.recur ? ` (재발 ${t.recur})` : ''}`).join(' · '),
-  complaintLowAccuracy: (n) => `위치를 대략만 알 수 있는 민원 ${n}건도 건수에 포함되어 있습니다.`, // 낮음 민원도 격자 민원 수에 넣는다 (ISS-033, K-1)
+  complaintLowAccuracy: (n) => `위치가 정확하지 않은 민원 ${n}건은 세지 않았습니다.`, // 위치 낮음 민원은 건수에서 뺀다 (ISS-062, 정의서 10_2 226행)
   complaintEmpty: '이번 점검 순위에는 민원 자료가 포함되지 않았습니다. 다른 근거만으로 정해진 순위입니다.', // K-6, US-03 1-2
 
   // 2-1 조문

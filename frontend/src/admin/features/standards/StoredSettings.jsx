@@ -41,7 +41,6 @@ export function StoredSettingsList(){
       ]} rows={data.versions} getRowKey={r=>r.settingVersionId} onRowClick={r=>navigate(`/admin/standards/criteria/${r.settingVersionId}`)} rowLabel={r=>`설정 ${r.settingVersionId} ${text(r.versionLabel)} 상세 보기`}/>:<p>조건에 맞는 저장된 설정이 없습니다.</p>}
       <div style={{display:'flex',gap:12,marginTop:16}}><Button disabled={offset===0} onClick={()=>setOffset(Math.max(0,offset-100))}>이전</Button><Button disabled={!data.hasMore} onClick={()=>setOffset(offset+100)}>다음</Button></div>
     </>}</Loadable>
-    <p style={{marginTop:24}}>설정 내용 편집·제안 생성·계산 미리보기는 아직 연결되지 않았습니다.</p>
   </div>;
 }
 
