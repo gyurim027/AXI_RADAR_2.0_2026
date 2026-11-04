@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { listClassify, markClassifyAdmin } from '../../../api/admin.js';
+import { listAdminRuns, listClassify, markClassifyAdmin } from '../../../api/admin.js';
 import { useAsync } from '../../../shared/hooks/useAsync.js';
-import { useAdmin } from '../../AdminProvider.jsx';
+import { useAdminOptional } from '../../AdminProvider.jsx';
 import Badge from '../../components/Badge.jsx';
 import Button from '../../components/Button.jsx';
 import DataTable from '../../components/DataTable.jsx';
@@ -16,8 +16,13 @@ import { reportActionError } from '../../utils/actionError.js';
 
 /** AD-05 분류 검수 (유형 B + E). 사용자 화면 분류 검수와 한 기록으로 남는다. 원문 보기는 확장 단계라 MVP에서는 보이지 않는다. */
 export default function ClassifyPage() {
-  const { run } = useAdmin();
-  const state = useAsync(() => listClassify({ runId: run.id }), [run.id]);
+  const ctx = useAdminOptional();
+  // 서버 연결 모드에는 위쪽 회차 선택이 없어, 이 화면에서 회차를 고른다 (산정 결과가 있는 회차만)
+  const runs = useAsync(() => (ctx ? Promise.resolve([]) : listAdminRuns()), [ctx]);
+  const options = (runs.data || []).filter((r) => !r.noResult).sort((a, b) => b.id - a.id);
+  const [pickedId, setPickedId] = useState(null);
+  const run = ctx ? ctx.run : options.find((r) => r.id === pickedId) || options[0] || null;
+  const state = useAsync(() => (run ? listClassify({ runId: run.id }) : Promise.resolve({ items: [], relevance: [], types: [], available: false })), [run?.id]);
   const [fixing, setFixing] = useState(null);
   const [busyId, setBusyId] = useState(null);
 
@@ -36,6 +41,11 @@ export default function ClassifyPage() {
   return (
     <div>
       <PageHeader title={CLASSIFY.title} subtitle={CLASSIFY.subtitle} />
+      {!ctx && options.length > 1 ? (
+        <div style={{ marginBottom: 16, maxWidth: 280 }}>
+          <SelectInput label="회차" value={String(run?.id ?? '')} onChange={(v) => setPickedId(Number(v))} options={options.map((r) => ({ value: String(r.id), label: r.name }))} />
+        </div>
+      ) : null}
       <Loadable state={state} areaName={CLASSIFY.failedArea} rows={8}>
         {(d) => (
           <>
@@ -69,7 +79,7 @@ export default function ClassifyPage() {
               ]}
               rows={d.items}
               getRowKey={(r) => r.id}
-              emptyContent={<EmptyState text={run.complaintPeriod ? CLASSIFY.empty : CLASSIFY.emptyNoPeriod} />}
+              emptyContent={<EmptyState text={ctx ? (run.complaintPeriod ? CLASSIFY.empty : CLASSIFY.emptyNoPeriod) : d.available === false ? CLASSIFY.emptyNoPeriod : CLASSIFY.empty} />}
             />
             {fixing ? (
               <FixDialog
