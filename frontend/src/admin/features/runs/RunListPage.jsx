@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { adminRunsFromServer, createRun, getNewRunDefaults, getOpenCheck, getPeriodGaps, listAdminRuns, openRun, setRunPeriod, startCalc } from '../../../api/admin.js';
+import { adminRunsFromServer, createRun, getNewRunDefaults, getOpenCheck, getPeriodGaps, listAdminRuns, openRun, openRunOnServer, setRunPeriod, startCalc } from '../../../api/admin.js';
 import { useAsync } from '../../../shared/hooks/useAsync.js';
 import { useAdminOptional } from '../../AdminProvider.jsx';
 import Badge, { RUN_TONE } from '../../components/Badge.jsx';
@@ -13,6 +13,7 @@ import PageHeader from '../../components/PageHeader.jsx';
 import { EmptyState } from '../../components/States.jsx';
 import { RUNS } from './copy.js';
 import styles from './Runs.module.css';
+import { RUN_STATUS } from '../../../shared/constants.js';
 import { reportActionError } from '../../utils/actionError.js';
 
 /** AD-06 회차 목록 (유형 B + E): 회차를 만들고, 산정을 시작하고, 검토 중으로 연다. */
@@ -60,10 +61,29 @@ export default function RunListPage() {
       header: RUNS.head[3],
       nowrap: true,
       render: (r) =>
-        r.version && r.version !== '-' ? (
-          <Link to={`/admin/standards/criteria/${r.version}`} className={styles.verLink}>
-            {r.version}
-          </Link>
+        r.settingLinks?.length ? (
+          <span className={styles.verList}>
+            {r.settingLinks.map((x) => (
+              <span key={x.kind}>
+                {x.kind}{' '}
+                {x.id != null ? (
+                  <Link to={`/admin/standards/criteria/${x.id}`} className={styles.verLink}>
+                    {x.label}
+                  </Link>
+                ) : (
+                  '미연결'
+                )}
+              </span>
+            ))}
+          </span>
+        ) : r.version && r.version !== '-' ? (
+          adminRunsFromServer ? (
+            r.version
+          ) : (
+            <Link to={`/admin/standards/criteria/${r.version}`} className={styles.verLink}>
+              {r.version}
+            </Link>
+          )
         ) : (
           '-'
         ),
@@ -76,6 +96,14 @@ export default function RunListPage() {
       header: <span className="sr-only">동작</span>,
       align: 'right',
       render: (r) => {
+        // 서버 모드: 아직 열지 않은 회차(상태 정보 없음) 가운데 후보가 있는 회차를 연다. 산정이 끝났는지는 서버가 열 때 확인한다.
+        if (adminRunsFromServer) {
+          return r.status === RUN_STATUS.UNKNOWN && !r.noResult ? (
+            <Button compact variant="primary" onClick={() => setOpening(r)} aria-label={`${r.name} ${RUNS.openRun}`}>
+              {RUNS.openRun}
+            </Button>
+          ) : null;
+        }
         if (r.status !== '산정 중') return null;
         if (r.calcDone) {
           return (
@@ -140,7 +168,17 @@ export default function RunListPage() {
           }}
         />
       ) : null}
-      {opening ? (
+      {opening && adminRunsFromServer ? (
+        <ServerOpenDialog
+          run={opening}
+          onClose={() => setOpening(null)}
+          onOpened={() => {
+            setOpening(null);
+            state.reload();
+          }}
+        />
+      ) : null}
+      {opening && !adminRunsFromServer ? (
         <OpenDialog
           run={opening}
           onClose={() => setOpening(null)}
@@ -309,6 +347,49 @@ function PeriodDialog({ run, onClose, onDone }) {
         }}
         error={error}
       />
+    </Dialog>
+  );
+}
+
+/** 서버 모드 회차 열기 확인 창: 이름과 종류를 정해 연다. 서버가 거절하면 서버가 준 사유를 그대로 보인다. */
+function ServerOpenDialog({ run, onClose, onOpened }) {
+  const [name, setName] = useState(run.name || '');
+  const [kind, setKind] = useState('연간');
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+  const submit = async () => {
+    setBusy(true);
+    setError('');
+    try {
+      await openRunOnServer({ runId: run.id, name: name.trim(), kind });
+      onOpened();
+    } catch (e) {
+      setError(e?.message || RUNS.notFinished);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <Dialog
+      title={RUNS.openTitle(run.name)}
+      titleId="open-run-title"
+      subtitle={RUNS.openSub}
+      size="md"
+      onClose={onClose}
+      closeLabel={RUNS.openClose}
+      footer={
+        <Button variant="primary" loading={busy} onClick={submit} disabled={!name.trim()}>
+          {RUNS.openRun}
+        </Button>
+      }
+    >
+      <TextInput label="회차 이름" value={name} onChange={setName} maxLength={100} help="구·시 화면의 연도 선택에 이 이름이 보입니다." required />
+      <SelectInput label="회차 종류" value={kind} onChange={setKind} options={['연간', '반기 참고']} help="연간은 검토 중으로, 반기 참고는 참고로 열립니다." />
+      {error ? (
+        <p role="alert" className={styles.error}>
+          {error}
+        </p>
+      ) : null}
     </Dialog>
   );
 }

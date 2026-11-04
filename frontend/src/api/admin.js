@@ -6,9 +6,11 @@ import { backendAuthEnabled, backendRequest, opsBackendEnabled, priorityBackendE
 import { createPriorityApi, toAdminRun } from './priority.js';
 import { createOpsApi } from './ops.js';
 import { createChecksApi } from './checks.js';
+import { createClassifyApi } from './classify.js';
 
 const ops = createOpsApi(backendRequest);
 const checks = createChecksApi(backendRequest);
+const classify = createClassifyApi(backendRequest);
 /** 서버 모드에서만 쓴다: 검사 결과 화면의 위치 미확인 현황과 낮음 민원 */
 export const getUnlocated = checks.getUnlocated;
 export const listLowComplaints = checks.listLowComplaints;
@@ -43,10 +45,12 @@ export const uploadFile = async (arg) => {
 };
 export const getChecks = mockCall('admin.getChecks', (arg) => server.getChecks(arg));
 export const listLowLocation = mockCall('admin.listLowLocation', (arg) => server.listLowLocation(arg));
-export const listClassify = mockCall('admin.listClassify', (arg) => server.listClassify(arg));
-export const markClassifyAdmin = mockCall('admin.markClassifyAdmin', (arg) => server.markClassifyAdmin(arg));
+export const listClassify = opsBackendEnabled ? classify.list : mockCall('admin.listClassify', (arg) => server.listClassify(arg));
+export const markClassifyAdmin = opsBackendEnabled ? classify.mark : mockCall('admin.markClassifyAdmin', (arg) => server.markClassifyAdmin(arg));
 export const createRun = mockCall('admin.createRun', (arg) => server.createRun(arg));
 export const getOpenCheck = mockCall('admin.getOpenCheck', (arg) => server.getOpenCheck(arg));
+/** 서버 모드: 산정이 끝난 회차를 연다. 이름과 종류(연간·반기 참고)를 함께 보낸다. 연간은 '검토 중', 반기 참고는 '참고'로 열린다. */
+export const openRunOnServer = ({ runId, name, kind }) => backendRequest(`/api/d10/runs/${encodeURIComponent(runId)}/open`, { method: 'POST', body: { name, kind } });
 export const openRun = mockCall('admin.openRun', (arg) => server.openRun(arg));
 export const startCalc = mockCall('admin.startCalc', (arg) => server.startCalc(arg));
 export const listExecutions = opsBackendEnabled ? ops.listExecutions : mockCall('admin.listExecutions', (arg) => server.listExecutions(arg));

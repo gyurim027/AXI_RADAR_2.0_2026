@@ -8,6 +8,7 @@ const OPEN = [
   priorityBackendEnabled && /^\/admin\/runs\/list\/?$/, // 회차 목록 (AD-06, 조회만)
   opsBackendEnabled && /^\/admin\/runs\/log\/?$/, // 실행 기록 (AD-07)
   opsBackendEnabled && /^\/admin\/data\/checks\/?$/, // 검사 결과 (AD-04)
+  opsBackendEnabled && /^\/admin\/data\/classify\/?$/, // 민원 분류 검수 (AD-05)
   opsBackendEnabled && /^\/admin\/standards\/(?:dept|regulations)\/?$/, // 담당 부서 표 (AD-11), 규정 변경 (AD-12)
 ].filter(Boolean);
 

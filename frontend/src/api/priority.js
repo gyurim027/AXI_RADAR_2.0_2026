@@ -94,12 +94,24 @@ export function toRun(r, { finalized = false } = {}) {
     candidateCount: r.candidate_cnt == null ? null : Number(r.candidate_cnt),
     dataRange: periodLabel(runPeriod(r)),
     version: r.setting_version_display || null,
+    settingLinks: toSettingLinks(r.setting_versions),
     unratedFields: [],
     hasComplaints: null,
     complaintPeriod: runPeriod(r),
     conditionCount: PRIORITY_CONDITIONS.length,
     dataCount: null,
   };
+}
+
+const SETTING_KINDS = [['weight', '가중치'], ['threshold', '기준값'], ['priority_condition', '우선 확인 조건']];
+/** 회차에 연결된 산정 설정 세 종류. 연결된(LINKED) 것만 id를 주어 상세로 가게 한다. 서버가 안 주면 빈 목록. */
+export function toSettingLinks(v) {
+  if (!v) return [];
+  return SETTING_KINDS.map(([key, kind]) => {
+    const x = v[key] || {};
+    const linked = x.status === 'LINKED' && x.setting_version_id != null;
+    return { kind, id: linked ? x.setting_version_id : null, label: linked ? (x.version_no != null ? `v${x.version_no}` : x.version_label || `설정 ${x.setting_version_id}`) : null };
+  });
 }
 
 /** 어드민 회차 목록의 한 줄. 서버가 주지 않는 값(생성일·검토 시작일·민원 기간)은 '-'로 두고 가짜로 채우지 않는다. */
@@ -111,6 +123,7 @@ export function toAdminRun(run) {
     kindLabel: run.kind === 'ref' ? '반기 참고' : '연간',
     status: run.status,
     version: run.version || '-',
+    settingLinks: run.settingLinks || [],
     created: '-',
     review: run.openedAt ? String(run.openedAt).slice(0, 10).replaceAll('-', '.') : '-',
     period: periodLabel(run.complaintPeriod) || '-',
@@ -235,6 +248,19 @@ function tierOf(rank, total) {
   return r <= 0.1 ? 'top' : r <= 0.3 ? 'mid' : 'rest';
 }
 
+/**
+ * 후보 상세 응답의 조치 제안(82번에 저장된 문장). 서버가 기록 존재 여부만 판정하므로 빈 목록을 '조치 불필요'로 읽지 않는다.
+ * 받는 부서·근거 조문이 비어 있으면 화면이 '확인 필요'로 보인다(가짜 값을 채우지 않는다).
+ */
+export function toActions(list) {
+  return (list || []).map((a) => ({
+    key: String(a.item_id ?? a.action_text),
+    sentence: a.action_text || '',
+    dept: a.dept_text || null,
+    article: a.basis_text || null,
+  }));
+}
+
 /** 후보 상세 응답 → 화면 상세. 중심 좌표는 상세에 없어 목록에서 받은 값을 쓴다. */
 export function toCandidateDetail(c, { list, user, record = null }) {
   const row = list?.items?.find((r) => r.gid === c.gid) || list?.unrated?.find((r) => r.gid === c.gid) || null;
@@ -304,7 +330,7 @@ export function toCandidateDetail(c, { list, user, record = null }) {
     canPickDept: false,
     showRequest: user?.role === 'district' && record?.decision === DECISION.TARGET,
     confirmedByGu: !!list?.myConfirm?.done,
-    problems: [],
+    problems: toActions(c.actions),
     request: null,
     org: user?.org || '',
   };
