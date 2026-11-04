@@ -22,7 +22,7 @@
 | MySQL 서버 접속 정보 | 8 | 백엔드 (프론트엔드만 볼 때는 필요 없음) |
 | Ollama 또는 Gemini API 키 | - | AI 기능을 직접 돌릴 때만 (선택) |
 
-DB 스키마(SQL)는 이 저장소에 없고, 팀 구글 드라이브에 있습니다. 파일 이름은 `v2.5_261104_03_최종개발문서_DB백업쿼리포함`입니다. 접속 정보는 저장소에 올리지 않습니다.
+DB 스키마(SQL)는 이 저장소에 없고, 팀 구글 드라이브의 `v2.5_261104_03_최종개발문서_DB백업쿼리포함` 파일에 있습니다. 실행 방법은 아래 '백엔드 실행'을 봅니다.
 
 ## 시작하기 (Getting Started)
 
@@ -54,16 +54,17 @@ uv sync                    # 의존성 설치 (.venv 생성)
 cp .env.example .env       # Windows PowerShell: Copy-Item .env.example .env
 ```
 
-**DB 준비**: 내 PC의 MySQL 8에 DB를 만들고 드라이브의 SQL 파일을 실행합니다. 공용 DB에 접속할 수 있으면 이 단계는 건너뜁니다.
+**DB 준비**: 내 PC의 MySQL 8에 DB를 만들고 드라이브의 SQL 파일을 실행합니다. DB 자체(`CREATE DATABASE`)는 SQL에 없어서 먼저 만듭니다.
 
-> **주의**: 이 SQL은 `DROP TABLE` 후 `CREATE TABLE`을 합니다. 기존 데이터가 모두 지워지므로 공용 DB에는 실행하지 않습니다. DB(`CREATE DATABASE`)는 SQL에 없어서 아래처럼 먼저 만듭니다.
+> **주의**: 이 SQL은 `DROP TABLE` 후 `CREATE TABLE`을 하므로 기존 데이터가 모두 지워집니다. 공용 DB에는 실행하지 않습니다. 공용 DB를 쓸 때는 이 단계를 건너뜁니다.
 
 ```bash
 mysql -u root -p -e "CREATE DATABASE mysqlteam02db DEFAULT CHARACTER SET utf8mb4"
 mysql -u root -p mysqlteam02db < v2.5_261104_03_최종개발문서_DB백업쿼리포함.sql
 ```
 
-`.env`를 열어 값을 채웁니다. 내 PC의 DB를 쓰면 `RADAR_DB_HOST=127.0.0.1`입니다. 값은 저장소나 채팅에 올리지 않습니다.
+`.env`를 열어 값을 채웁니다. 내 PC의 DB를 쓰면 `RADAR_DB_HOST=127.0.0.1`로 둡니다.
+`.env`의 값은 저장소나 채팅에 올리지 않습니다.
 
 | 항목 | 설명 |
 |---|---|
@@ -83,7 +84,9 @@ uv run uvicorn app.main:app --port 8000
 - http://127.0.0.1:8000/health/db : DB 연결 확인
 
 DB 없이도 서버는 켜지지만 로그인과 데이터 조회는 DB가 있어야 합니다.
-SQL을 실행하면 로그인용 시험 계정 6개(`suj`, `jungwon`, `bundang`, `bundang-sidewalk`, `city`, `operator`)가 함께 들어갑니다. 시험용 비밀번호는 모두 `0000`입니다. 실제 운영에서는 쓰지 않습니다. 계정을 따로 만들 때는 `scripts/auth_create_test_users.py`를 쓰고, 사용법은 파일 맨 위에 있습니다.
+SQL을 실행하면 로그인용 시험 계정 6개가 함께 들어갑니다: `suj`, `jungwon`, `bundang`, `bundang-sidewalk`, `city`, `operator`.
+시험용 비밀번호는 모두 `0000`이고, 실제 운영에서는 쓰지 않습니다.
+계정을 따로 만들 때는 `scripts/auth_create_test_users.py`를 쓰고, 사용법은 파일 맨 위에 있습니다.
 
 ### 3. 프론트엔드와 백엔드 연결
 
@@ -147,7 +150,7 @@ node --test tests/*.test.*         # 프론트엔드 테스트
 | `Address already in use` | 포트 8000(서버) 또는 5173(화면)을 쓰는 다른 프로세스를 끄거나 `--port`로 바꿉니다 |
 | `npm install`이나 빌드가 실패합니다 | `node -v`로 Node 22인지 확인합니다 |
 
-## 기여하기 (Contributing)
+## Contributing
 
 브랜치, 커밋, PR 규칙은 [CONTRIBUTING.md](CONTRIBUTING.md)를 봅니다.
 수치지형도 가공 테이블, 민원 테이블, `.env`는 저장소에 올리지 않습니다.
