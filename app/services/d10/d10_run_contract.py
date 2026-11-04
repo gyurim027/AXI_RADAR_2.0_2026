@@ -65,10 +65,19 @@ def visible_run_rows(
     result = []
     for row in rows:
         run_id = int(row['run_id'])
+
         if run_id in excluded_legacy_ids:
             continue
+
         public = to_run_response(row, verified_metadata.get(run_id))
+
+        # 회차 3은 공회차이므로 구·시 사용자 목록에서 제외
+        if not is_operator and run_id == 3:
+            continue
+
         if not is_operator and run_id != 1 and public['status'] not in {'검토 중', '확정', '참고'}:
             continue
+
         result.append(public)
+
     return result

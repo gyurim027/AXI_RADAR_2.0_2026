@@ -138,9 +138,9 @@ def _ids(response):
 def test_http_visible_runs_nonoperator_fail_closed(api_client):
     client, _state = api_client
     response = client.get("/api/priority/runs", headers=auth("city"))
-    # Existing contract preserves legacy run 1 for read-only listing.
-    # Unknown status run 2 and processing run 4 must stay hidden.
-    assert _ids(response) == [1, 3, 5]
+    # Run 3 is an empty run and must be hidden from city/district lists.
+    # Unknown status run 2 and processing run 4 must also stay hidden.
+    assert _ids(response) == [1, 5]
 
 
 def test_http_visible_runs_operator_can_inspect_unopened(api_client):
