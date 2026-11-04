@@ -21,6 +21,9 @@ from fastapi import APIRouter, Depends, Query
 from app.core.auth import allowed_gus, check_gu, current_user
 from app.core.responses import ApiError
 from app.services.priority.repository import PriorityRepository, get_repository
+from app.services.priority.department_resolution import (
+    unresolved_department, read_department_reference, DISTRICTS,
+)
 
 router = APIRouter(prefix="/api/priority", tags=["우선순위 결과 조회 (77·78·82)"])
 
@@ -58,12 +61,15 @@ def _candidate(c: dict) -> dict:
     return {
         "run_id": c["run_id"], "gid": c["gid"], "gu": c.get("gu"),
         "center_lat": _num(c.get("center_lat")), "center_lon": _num(c.get("center_lon")),
+        "address": c.get("address"), "landmark": c.get("landmark"),
+        "addressSource": c.get("addressSource"), "landmarkSource": c.get("landmarkSource"),
         "selected_yn": c.get("selected_yn"), "score": score, "rank_no": c.get("rank_no"),
         "score_status": "산출" if score is not None else "미산출",
         "complaint_cnt": c.get("complaint_cnt"), "complaint_cnt_excl_low": c.get("complaint_cnt_excl_low"),
         "conditions": {"result": c.get("cond_result_yn"), "hazard": c.get("cond_hazard_yn"),
                        "exposure": c.get("cond_exposure_yn"), "vulnerable": c.get("cond_vulnerable_yn")},
         "matched_roles": c.get("matched_roles"), "note": None if isinstance(c.get("note"), str) and c["note"].startswith("ev1:") else c.get("note"),
+        **unresolved_department(c),
         "details": c.get("details") if c.get("details") is not None else {"stored": False, **{k: None for k in DETAIL_NAMES}},
     }
 
@@ -78,10 +84,98 @@ def _scope(user: dict, gu: str | None) -> tuple[list[str] | None, bool]:
     return None, True
 
 
+@router.get("/department-reference")
+def department_reference(
+    jurisdictionId: str = Query(..., min_length=1, max_length=20),
+    gu: str | None = None,
+    user: dict = Depends(current_user),
+):
+    """87/88 problem-type -> possible teams, not an automatic decision."""
+    if user.get("role") not in {"operator", "city", "district"}:
+        raise ApiError(403, "forbidden_role", "조회 권한이 없습니다")
+    if user.get("role") == "district":
+        allowed = allowed_gus(user)
+        if not allowed:
+            raise ApiError(403, "forbidden_gu", "담당 구를 확인할 수 없습니다")
+        if gu is None:
+            if len(allowed) != 1:
+                raise ApiError(422, "gu_required", "담당 구를 지정해 주세요")
+            gu = allowed[0]
+        check_gu(user, gu)
+    elif gu is None:
+        raise ApiError(422, "gu_required", "구를 지정해 주세요")
+    if gu not in DISTRICTS:
+        raise ApiError(422, "invalid_gu", "지원하지 않는 구입니다")
+    try:
+        return read_department_reference(jurisdictionId, gu)
+    except ValueError:
+        raise ApiError(422, "invalid_jurisdiction_id", "담당 부서 유형 ID가 올바르지 않습니다") from None
+    except LookupError:
+        raise ApiError(404, "jurisdiction_not_found", "해당 문제 유형이 없습니다") from None
+
+
 @router.get("/runs")
-def runs(limit: int = Query(50, ge=1, le=500), _u: dict = Depends(current_user),
+def runs(limit: int = Query(50, ge=1, le=500), user: dict = Depends(current_user),
          repo: PriorityRepository = Depends(get_repository)):
-    return {"runs": [_run(r) for r in repo.list_runs(limit)]}
+    from importlib import import_module
+    _contract = import_module("app.services.d10.d10_run_contract")
+    _workflow = import_module("app.services.d10.d10_run_workflow_db")
+    rows = [_run(r) for r in repo.list_runs(limit)]
+    metadata = _workflow.metadata_for_runs([int(r["run_id"]) for r in rows])
+    return {"runs": _contract.visible_run_rows(
+        rows, is_operator=(user.get("role") == "operator"),
+        verified_metadata=metadata
+    )}
+
+
+@router.get("/runs/{run_id}/decisions")
+def district_decisions(
+    run_id: int,
+    gu: str | None = None,
+    decision: str | None = None,
+    limit: int = Query(100, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+    user: dict = Depends(current_user),
+    repo: PriorityRepository = Depends(get_repository),
+):
+    """G-03 saved decisions for one district; no dev-memory fallback."""
+    from importlib import import_module
+    from app.services.priority.decision_list import read_district_decisions
+    from app.services.priority.decision_list import DISTRICTS, DECISIONS
+    if run_id <= 1:
+        raise ApiError(404, "run_not_found", "운영 가능한 회차가 없습니다")
+    if repo.get_run(run_id) is None:
+        raise ApiError(404, "run_not_found", "회차를 찾을 수 없습니다")
+    if user.get("role") not in {"operator", "city", "district"}:
+        raise ApiError(403, "forbidden_role", "조회 권한이 없습니다")
+    if decision is not None and decision not in DECISIONS:
+        raise ApiError(422, "invalid_decision", "결정 필터가 올바르지 않습니다")
+    if user.get("role") == "district":
+        allowed = allowed_gus(user)
+        if not allowed:
+            raise ApiError(403, "forbidden_gu", "담당 구를 확인할 수 없습니다")
+        if gu is not None:
+            check_gu(user, gu)
+        if gu is None:
+            if len(allowed) != 1:
+                raise ApiError(422, "gu_required", "담당 구 지정이 필요합니다")
+            gu = allowed[0]
+    elif gu is None:
+        raise ApiError(422, "gu_required", "구를 지정해 주세요")
+    if gu not in DISTRICTS:
+        raise ApiError(422, "invalid_gu", "지원하지 않는 구입니다")
+    # Match D-10 public visibility. Unknown/unopened/half-year runs are not
+    # exposed to nonoperators by the decision-list endpoint either.
+    if user.get("role") != "operator":
+        workflow = import_module("app.services.d10.d10_run_workflow_db")
+        metadata = workflow.metadata_for_runs([run_id]).get(run_id, {})
+        if metadata.get('kind') != '연간' or metadata.get('status') not in {'검토 중', '확정'}:
+            raise ApiError(404, "run_not_found", "조회 가능한 운영 회차가 아닙니다")
+    try:
+        return read_district_decisions(run_id=run_id, gu=gu,
+                                       decision=decision, limit=limit, offset=offset)
+    except LookupError:
+        raise ApiError(503, "decision_schema_unavailable", "운영 결정 저장 테이블이 아직 적용되지 않았습니다") from None
 
 
 @router.get("/runs/{run_id}/candidates")

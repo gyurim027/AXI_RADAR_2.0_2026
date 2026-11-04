@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 from app.core import db
+from app.services.priority.location_labels import attach_location, location_labels_for_gids
 from app.services.priority.db8_details import COLS as DB8_COLS, decode_db_row
 from app.services.scoring.setting_links import attach_run_versions
 
@@ -52,18 +53,21 @@ class PriorityRepository:
         rows = db.read_only(
             "SELECT " + ", ".join("c." + k for k in CANDIDATE_COLS) + f", {_GU} AS gu, f.id_center_lat AS center_lat, f.id_center_lon AS center_lon " + base +
             " ORDER BY c.rank_no IS NULL, c.rank_no, c.gid LIMIT %s OFFSET %s", [*args, limit, offset])
+        labels = location_labels_for_gids([row["gid"] for row in rows], db.read_only)
         for row in rows:
             row["details"] = decode_db_row(row)
+            attach_location(row, labels)
         return rows, int(total[0]["n"]) if total else 0
 
     def get_candidate(self, run_id: int, gid: str) -> dict | None:
         rows = db.read_only(
-            "SELECT " + ", ".join("c." + k for k in CANDIDATE_COLS) + f", {_GU} AS gu "
+            "SELECT " + ", ".join("c." + k for k in CANDIDATE_COLS) + f", {_GU} AS gu, f.id_center_lat AS center_lat, f.id_center_lon AS center_lon "
             "FROM priority_candidate c LEFT JOIN grid_feature f ON f.ID_gid = c.gid "
             "WHERE c.run_id = %s AND c.gid = %s", (run_id, gid))
         if not rows:
             return None
         cand = rows[0]
+        attach_location(cand, location_labels_for_gids([gid], db.read_only))
         from app.services.priority.details import read_evidence
         cand["details"] = read_evidence(db.read_only, run_id, gid)
         cand["actions"] = db.read_only(
