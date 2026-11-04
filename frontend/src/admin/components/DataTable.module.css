@@ -111,7 +111,7 @@
   background: var(--radar-admin-component-table-row-expanded-bg);
 }
 .expandedCell {
-  padding: var(--a-s4) var(--a-s6);
+  padding: var(--a-s6) var(--a-s8); /* 펼침 안쪽 여백: 세로 24px, 가로 32px */
   border-top: 1px solid var(--radar-admin-semantic-color-border-default);
   border-bottom: 1px solid var(--radar-admin-semantic-color-border-default);
   font-size: var(--a-fs-sm);

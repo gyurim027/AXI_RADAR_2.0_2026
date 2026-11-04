@@ -247,12 +247,12 @@
 }
 .fullList {
   display: grid;
-  gap: var(--a-s3);
+  gap: var(--a-s5); /* 항목 사이 20px */
   margin: 0;
 }
 .fullRow {
   display: grid;
-  grid-template-columns: 120px minmax(0, 1fr); /* 라벨 120px, 값은 첫 열 글자 시작점에 맞춘 안쪽 여백 위에서 시작 */
+  grid-template-columns: 148px minmax(0, 1fr); /* 라벨 120px, 값은 첫 열 글자 시작점에 맞춘 안쪽 여백 위에서 시작 */
   gap: var(--a-s4);
 }
 .fullRow dt {
@@ -260,13 +260,13 @@
   align-items: center;
   gap: var(--a-s2);
   font-size: var(--a-fs-sm);
-  font-weight: var(--a-fw-medium);
-  color: var(--radar-admin-semantic-color-text-secondary);
+  font-weight: var(--a-fw-semibold); /* 라벨은 굵게, 기본색 */
+  color: var(--radar-admin-semantic-color-text-primary);
 }
 .fullRow dd {
   margin: 0;
   font-size: var(--a-fs-sm);
-  line-height: var(--a-lh-body);
+  line-height: 1.7; /* 글이 길어도 줄 사이가 숨 쉬도록 */
   white-space: pre-line;
 }
 .fullIcon {
