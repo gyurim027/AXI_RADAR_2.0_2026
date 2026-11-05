@@ -58,6 +58,7 @@ export default function BottomBar({ scrollRef, message, buttonLabel, buttonVaria
   return (
     <div
       ref={barRef}
+      data-guide="confirm"
       className={`${styles.bar} ${visible ? '' : styles.hidden}`}
       role="region"
       aria-label="우선 점검 대상 확정"

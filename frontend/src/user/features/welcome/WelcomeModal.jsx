@@ -5,24 +5,43 @@ import { useAuth } from '../../../app/providers/AuthProvider.jsx';
 import { InfoHelp } from '../../components/FormControls.jsx';
 import { WELCOME as C } from './copy.js';
 import { Burst, Star, StepArt } from './illustrations.jsx';
-import { clampStep, shouldOpenWelcome } from './welcomeLogic.js';
+import { setWelcomeOpen } from '../../../shared/guide/guideStore.js';
+import { clampStep, welcomeMode } from './welcomeLogic.js';
 import styles from './WelcomeModal.module.css';
 
 const FOCUSABLE = 'a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])';
 const TONES = ['blue', 'mint', 'peach', 'lilac', 'green', 'amber', 'sky'];
 
 /** 로그인 직후(또는 메뉴의 `소개`)에 뒤 화면을 흐리게 하고 위에 뜨는 소개 모달. 한 곳에서만 그린다. */
+const TAB_KEY = 'radar.welcome.tab.v1';
+const readTabSeen = () => {
+  try { return window.sessionStorage.getItem(TAB_KEY) === '1'; } catch { return false; }
+};
+const writeTabSeen = () => {
+  try { window.sessionStorage.setItem(TAB_KEY, '1'); } catch { /* 저장을 막은 환경에서는 이 화면을 다시 열 때 한 번 더 보인다 */ }
+};
+
 export default function WelcomeModal() {
-  const { user } = useAuth();
+  const { user, checking } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  if (!shouldOpenWelcome(location.state, user)) return null;
-  const close = () => navigate(`${location.pathname}${location.search}${location.hash}`, { replace: true, state: null });
-  return <WelcomeDialog key={location.key} role={user.role} onClose={close} />;
+  const [seenThisTab, setSeenThisTab] = useState(readTabSeen);
+  const mode = checking ? null : welcomeMode({ state: location.state, user, pathname: location.pathname, seenThisTab });
+  if (!mode) return null;
+  const close = () => {
+    if (mode === 'replay') {
+      navigate(`${location.pathname}${location.search}${location.hash}`, { replace: true, state: null });
+    } else {
+      writeTabSeen();
+      setSeenThisTab(true);
+    }
+  };
+  return <WelcomeDialog key={mode === 'replay' ? location.key : 'prelogin'} role={user?.role ?? 'district'} onClose={close} />;
 }
 
 function WelcomeDialog({ role, onClose }) {
   const [index, setIndex] = useState(0);
+  const [tab, setTab] = useState(role);
   const [dir, setDir] = useState('next');
   const cardRef = useRef(null);
   const count = C.steps.length;
@@ -36,6 +55,12 @@ function WelcomeDialog({ role, onClose }) {
       return nextIndex;
     });
   }, [count]);
+
+  // 소개 모달이 떠 있는 동안에는 화면 안내(코치마크)를 시작하지 않는다
+  useEffect(() => {
+    setWelcomeOpen(true);
+    return () => setWelcomeOpen(false);
+  }, []);
 
   useEffect(() => {
     const previous = document.activeElement;
@@ -82,7 +107,7 @@ function WelcomeDialog({ role, onClose }) {
             <div className={styles.slide} data-dir={dir} key={step.key} aria-live="polite">
               <p className={styles.kicker}>{step.kicker}</p>
               <h2 id="welcome-title" className={styles.title}>{step.title}</h2>
-              <StepBody step={step} role={role} />
+              <StepBody step={step} role={role} tab={tab} setTab={setTab} />
             </div>
           </div>
 
@@ -104,7 +129,7 @@ function WelcomeDialog({ role, onClose }) {
   );
 }
 
-function StepBody({ step, role }) {
+function StepBody({ step, role, tab, setTab }) {
   switch (step.key) {
     case 'intro':
       return (
@@ -127,30 +152,32 @@ function StepBody({ step, role }) {
           <p className={styles.note}>{step.note}</p>
         </>
       );
-    case 'flow':
+    case 'guide': {
+      const current = step.tabs.find((t) => t.key === tab) || step.tabs[0];
       return (
         <>
-          <ol className={styles.flow}>
-            {step.flow.map((f, i) => (
-              <li key={f.key} className={styles.flowItem}>
+          <div className={styles.tabs} role="tablist" aria-label={step.title}>
+            {step.tabs.map((t) => (
+              <button key={t.key} type="button" role="tab" aria-selected={t.key === current.key} className={`${styles.tab} ${t.key === current.key ? styles.tabOn : ''}`} onClick={() => setTab(t.key)}>
+                {t.label}{t.key === role ? <i className={styles.me}>내 역할</i> : null}
+              </button>
+            ))}
+          </div>
+          <ol className={styles.flow} role="tabpanel">
+            {current.steps.map((f, i) => (
+              <li key={f.label} className={styles.flowItem}>
                 <span className={styles.num}>{i + 1}</span>
-                <span>{f.label}</span>
-                {f.help ? <InfoHelp label={`${f.label} 도움말 보기`}>{f.help}</InfoHelp> : null}
+                <span className={styles.flowText}><b>{f.label}</b> {f.text}{f.help ? <InfoHelp label={`${f.label} 도움말 보기`}>{f.help}</InfoHelp> : null}</span>
               </li>
             ))}
           </ol>
-          <ul className={styles.roles}>
-            {step.roles.map((r) => (
-              <li key={r.key} className={`${styles.role} ${r.key === role ? styles.roleOn : ''}`}>
-                <b>{r.label}</b><span>{r.text}</span>
-              </li>
-            ))}
-          </ul>
           <p className={styles.terms}>
             {step.terms.map((t) => (<span key={t.key} className={styles.term}>{t.label}<InfoHelp label={`${t.label} 도움말 보기`}>{t.help}</InfoHelp></span>))}
           </p>
+          <p className={styles.note}>{step.note}</p>
         </>
       );
+    }
     case 'done':
       return (
         <>

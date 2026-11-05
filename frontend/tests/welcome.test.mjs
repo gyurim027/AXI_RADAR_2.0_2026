@@ -41,15 +41,18 @@ test('로그인 전에 가려던 주소가 역할에 맞으면 그곳으로, 아
   } finally { await m.close(); }
 });
 
-test('소개 모달은 로그인한 사용자가 welcome 표시를 받았을 때만 연다', async () => {
+test('소개 모달 열기 규칙: 로그인 전 자동(탭당 한 번), 로그인 후는 메뉴로 연 경우만', async () => {
   const { createServer } = await import('vite');
   const server = await createServer({ configFile: false, envFile: false, logLevel: 'silent', server: { middlewareMode: true }, appType: 'custom' });
   try {
-    const { shouldOpenWelcome, clampStep } = await server.ssrLoadModule('/src/user/features/welcome/welcomeLogic.js');
-    assert.equal(shouldOpenWelcome({ welcome: true }, { role: 'district' }), true);
-    assert.equal(shouldOpenWelcome({ welcome: true }, null), false);
-    assert.equal(shouldOpenWelcome(null, { role: 'district' }), false);
-    assert.equal(shouldOpenWelcome({ welcome: 'yes' }, { role: 'district' }), false);
+    const { welcomeMode, clampStep } = await server.ssrLoadModule('/src/user/features/welcome/welcomeLogic.js');
+    const user = { role: 'district' };
+    assert.equal(welcomeMode({ state: null, user: null, pathname: '/login', seenThisTab: false }), 'prelogin');
+    assert.equal(welcomeMode({ state: null, user: null, pathname: '/login', seenThisTab: true }), null);
+    assert.equal(welcomeMode({ state: null, user: null, pathname: '/candidates', seenThisTab: false }), null);
+    assert.equal(welcomeMode({ state: { welcome: true }, user, pathname: '/candidates', seenThisTab: true }), 'replay');
+    assert.equal(welcomeMode({ state: null, user, pathname: '/candidates', seenThisTab: false }), null);
+    assert.equal(welcomeMode({ state: { welcome: 'yes' }, user, pathname: '/candidates', seenThisTab: false }), null);
     assert.equal(clampStep(-1, 7), 0);
     assert.equal(clampStep(3, 7), 3);
     assert.equal(clampStep(9, 7), 6);

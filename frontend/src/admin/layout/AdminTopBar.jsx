@@ -7,6 +7,7 @@ import { useAdmin } from '../AdminProvider.jsx';
 import { ADMIN_COPY } from '../copy.js';
 import AdminNotifications from './AdminNotifications.jsx';
 import WelcomeButton from '../../user/features/welcome/WelcomeButton.jsx';
+import GuideHelpButton from '../../shared/guide/GuideHelpButton.jsx';
 import ViewAsDialog from './ViewAsDialog.jsx';
 import styles from './AdminTopBar.module.css';
 
@@ -44,6 +45,7 @@ export default function AdminTopBar() {
           );
         })}
         <WelcomeButton className={styles.tab} />
+        <GuideHelpButton />
       </nav>
 
       <div className={styles.tools}>

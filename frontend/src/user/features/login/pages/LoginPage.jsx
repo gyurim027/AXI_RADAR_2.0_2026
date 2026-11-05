@@ -64,7 +64,7 @@ export default function LoginPage() {
   const [busy, setBusy] = useState(false);
 
   if (checking) return <p role="status">로그인을 확인하고 있습니다.</p>;
-  if (user) return <Navigate to={startPath(user.role, location.state?.from)} replace state={{ welcome: true }} />;
+  if (user) return <Navigate to={startPath(user.role, location.state?.from)} replace />;
 
   const canSubmit = loginId.trim() !== '' && password !== '';
 
@@ -76,7 +76,7 @@ export default function LoginPage() {
       const r = await signIn(id.trim(), pw);
       if (r.ok) {
         const from = location.state?.from;
-        navigate(startPath(r.user.role, from), { replace: true, state: { welcome: true } });
+        navigate(startPath(r.user.role, from), { replace: true });
       } else if (r.reason === 'locked') {
         setError(C.locked(MAX_FAILS, r.lockMinutes));
       } else {

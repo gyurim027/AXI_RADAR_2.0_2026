@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
 import RequireUser from './RequireUser.jsx';
 import WelcomeModal from '../user/features/welcome/WelcomeModal.jsx';
+import ScreenGuide from '../shared/guide/ScreenGuide.jsx';
 import UserLayout from '../user/layout/UserLayout.jsx';
 import LoginPage from '../user/features/login/pages/LoginPage.jsx';
 import AdminLayout from '../admin/layout/AdminLayout.jsx';
@@ -17,6 +18,7 @@ function RootShell() {
     <>
       <Outlet />
       <WelcomeModal />
+      <ScreenGuide />
     </>
   );
 }

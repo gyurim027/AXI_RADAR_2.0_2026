@@ -42,26 +42,48 @@ export const WELCOME = {
       note: 'RADAR는 PoC용 MVP입니다. 업무 시간 절감과 보행 환경 개선 효과는 실제 업무에 적용하면서 확인해 갑니다.',
     },
     {
-      key: 'flow',
-      kicker: '사용 방법',
-      title: '이렇게 사용합니다',
-      flow: [
-        { key: 'view', label: '점검 후보 보기', help: null },
-        { key: 'basis', label: '근거 확인', help: '점검 필요도는 100점 만점이며, 점수가 높을수록 먼저 점검할 필요가 있습니다.' },
-        { key: 'decide', label: '결정', help: null },
-        { key: 'confirm', label: '확정', help: '3개 구가 모두 확정하면 그해 회차가 확정됩니다.' },
-        { key: 'request', label: '점검 요청서', help: null },
-      ],
-      roles: [
-        { key: 'district', label: '구 도로관리팀', text: '자기 구의 후보 확인, 결정, 확정' },
-        { key: 'city', label: '시 도로과', text: '3개 구 현황 확인, 공통 기준 승인' },
-        { key: 'operator', label: 'RADAR 운영자', text: '자료, 기준, 회차, 계정 관리' },
+      key: 'guide',
+      kicker: '시작 가이드',
+      title: '역할별로 이렇게 시작합니다',
+      tabs: [
+        {
+          key: 'district',
+          label: '구 도로관리팀',
+          steps: [
+            { label: '점검 후보 보기', text: '지도와 표에서 후보를 보고 필터로 좁힙니다.', help: null },
+            { label: '후보 열기', text: '요약과 상세에서 순위 근거, 관련 조문, 담당 부서, 작년 결정을 봅니다.', help: '점검 필요도는 100점 만점이며, 점수가 높을수록 먼저 점검할 필요가 있습니다.' },
+            { label: '결정 기록', text: '우선 점검 대상, 제외, 보류를 고르고 사유를 적습니다.', help: null },
+            { label: '확정', text: '자기 구 검토를 마치고 우선 점검 대상을 확정합니다.', help: '3개 구가 모두 확정하면 그해 회차가 확정됩니다.' },
+            { label: '점검 요청서', text: '관할 부서별 대상 목록, 근거, 요청안을 확인합니다.', help: null },
+          ],
+        },
+        {
+          key: 'city',
+          label: '시 도로과',
+          steps: [
+            { label: '3개 구 후보 보기', text: '구 선택에서 3개 구 전체를 봅니다. 결정은 보기 전용입니다.', help: null },
+            { label: '구별 비교', text: '구마다 기록이 쏠렸는지 확인합니다.', help: null },
+            { label: '승인 대기', text: 'RADAR 운영자의 제안을 승인하거나 반려합니다.', help: null },
+            { label: '근거 확인', text: '구별 근거표와 우선순위 점수 근거를 봅니다.', help: null },
+          ],
+        },
+        {
+          key: 'operator',
+          label: 'RADAR 운영자',
+          steps: [
+            { label: '대시보드', text: '회차 상태와 다음에 할 일을 확인합니다.', help: null },
+            { label: '데이터', text: '자료를 올리고 검사 결과를 확인합니다.', help: null },
+            { label: '회차', text: '회차를 만들고 산정을 시작한 뒤 검토 중으로 엽니다.', help: '연도별로 계산한 점검 순위 한 묶음입니다.' },
+            { label: '산정 기준', text: '가중치와 기준값을 고쳐 승인을 요청합니다.', help: null },
+            { label: '승인 현황', text: '제안이 어디까지 왔는지 확인합니다.', help: null },
+          ],
+        },
       ],
       terms: [
         { key: 'cell', label: '구역(격자)', help: '성남시를 일정한 크기로 나눈 단위입니다. 점수는 구역마다 계산합니다.' },
         { key: 'unrated', label: '미평가', help: '자료가 없어 평가하지 못한 분야입니다. 0점으로 처리하지 않았습니다.' },
-        { key: 'run', label: '회차', help: '연도별로 계산한 점검 순위 한 묶음입니다.' },
       ],
+      note: '각 화면에 처음 들어가면 핵심 기능을 순서대로 안내합니다. 위쪽 ? 버튼으로 다시 볼 수 있습니다.',
     },
     {
       key: 'done',

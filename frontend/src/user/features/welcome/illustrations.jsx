@@ -71,7 +71,7 @@ const ART = {
 };
 
 export function StepArt({ name }) {
-  return ART[name] || null;
+  return ART[name] || ART.flow || null;
 }
 
 /** 카드 밖에 떠 있는 장식 도형 */

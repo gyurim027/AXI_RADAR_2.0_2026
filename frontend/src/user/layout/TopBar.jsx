@@ -10,6 +10,7 @@ import { dataYear, runOptionLabel } from '../../shared/utils/format.js';
 import { InfoHelp, SelectField } from '../components/FormControls.jsx';
 import Notifications from './Notifications.jsx';
 import WelcomeButton from '../features/welcome/WelcomeButton.jsx';
+import GuideHelpButton from '../../shared/guide/GuideHelpButton.jsx';
 import styles from './TopBar.module.css';
 
 /** US-00 공통 상단: 메뉴, 점검 해 선택, 구 선택, 알림, 계정 (디자인 시스템 7-1). 하위 탭은 SubNav가 아래 줄에 보인다. */
@@ -51,6 +52,7 @@ export default function TopBar() {
           );
         })}
         <WelcomeButton className={styles.navItem} />
+        <GuideHelpButton />
       </nav>
 
       <div className={styles.tools}>

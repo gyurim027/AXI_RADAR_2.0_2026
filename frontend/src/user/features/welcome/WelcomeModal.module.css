@@ -100,7 +100,7 @@
 
 .bodyWrap {
   flex: 0 1 auto;
-  height: 340px; /* 단계가 바뀌어도 카드 높이가 변하지 않게 고정, 작은 화면에서는 줄어들며 스크롤 */
+  height: 372px; /* 단계가 바뀌어도 카드 높이가 변하지 않게 고정, 작은 화면에서는 줄어들며 스크롤 */
   min-height: 160px;
   overflow-y: auto;
   padding: 0 28px;
@@ -200,34 +200,46 @@
     linear-gradient(135deg, #ff8a3d, #ff4fa0);
 }
 
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--w-line);
+  border-radius: 999px;
+  background: #fff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--w-muted);
+  cursor: pointer;
+}
+.tab:hover { background: #f5f7fc; }
+.tabOn { border-color: transparent; background: linear-gradient(135deg, #e3edff, #ece4ff); color: #3a49c8; }
+.tab:focus-visible { outline: 3px solid rgba(31, 107, 255, 0.45); outline-offset: 2px; }
+.me { padding: 1px 6px; border-radius: 999px; background: #3a6bff; font-style: normal; font-size: 10px; color: #fff; }
 .flow {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 8px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
-.flowItem {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 12px 6px 8px;
-  border-radius: 999px;
-  background: #f5f7fc;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--w-ink);
-}
+.flowItem { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; line-height: 1.5; color: var(--w-text); }
+.flowText b { color: var(--w-ink); }
 .num {
   display: grid;
   place-items: center;
   flex: none;
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--w-blue), var(--w-violet));
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   color: #fff;
 }

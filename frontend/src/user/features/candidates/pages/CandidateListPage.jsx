@@ -209,7 +209,7 @@ function CandidateListPage() {
 
           {data ? <KpiCards counts={data.counts} active={filters.decision} onPick={(d) => changeFilters({ ...filters, decision: d })} /> : null}
 
-          <div className={styles.filterRow}>
+          <div className={styles.filterRow} data-guide="filter">
             <FilterBar
               filters={filters}
               setFilters={changeFilters}
@@ -289,7 +289,7 @@ function CandidateListPage() {
 
       {split.wide ? <SplitHandle state={split.state} onChange={split.change} onDragState={split.setDragging} containerRef={splitRef} /> : null}
 
-      <div className={`${styles.mapCol} ${split.mapHidden ? styles.collapsed : ''}`} ref={mapColRef} inert={split.mapHidden}>
+      <div className={`${styles.mapCol} ${split.mapHidden ? styles.collapsed : ''}`} ref={mapColRef} inert={split.mapHidden} data-guide="map">
         <CandidateMap
           items={filtered}
           unrated={unrated}
