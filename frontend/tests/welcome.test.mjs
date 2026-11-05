@@ -10,11 +10,6 @@ async function load(env) {
   } catch (e) { await server.close(); throw e; }
 }
 
-test('소개 화면 주소는 /welcome이다', async () => {
-  const m = await load({});
-  try { assert.equal(m.landing.WELCOME_PATH, '/welcome'); } finally { await m.close(); }
-});
-
 test('연습용 모드: 운영자는 어드민, 나머지는 점검 후보로 시작한다', async () => {
   const m = await load({});
   try {
@@ -41,8 +36,23 @@ test('로그인 전에 가려던 주소가 역할에 맞으면 그곳으로, 아
     assert.equal(m.landing.startPath('district', '/admin/runs'), '/candidates'); // 사용자 계정은 어드민 주소로 가지 않는다
     assert.equal(m.landing.startPath('operator', '/candidates'), '/admin'); // 운영자는 사용자 주소로 가지 않는다
     assert.equal(m.landing.startPath('district', '/login'), '/candidates');
-    assert.equal(m.landing.startPath('district', '/welcome'), '/candidates');
     assert.equal(m.landing.startPath('district', '//evil.example'), '/candidates');
     assert.equal(m.landing.startPath('district', 'https://evil.example'), '/candidates');
   } finally { await m.close(); }
+});
+
+test('소개 모달은 로그인한 사용자가 welcome 표시를 받았을 때만 연다', async () => {
+  const { createServer } = await import('vite');
+  const server = await createServer({ configFile: false, envFile: false, logLevel: 'silent', server: { middlewareMode: true }, appType: 'custom' });
+  try {
+    const { shouldOpenWelcome, clampStep } = await server.ssrLoadModule('/src/user/features/welcome/welcomeLogic.js');
+    assert.equal(shouldOpenWelcome({ welcome: true }, { role: 'district' }), true);
+    assert.equal(shouldOpenWelcome({ welcome: true }, null), false);
+    assert.equal(shouldOpenWelcome(null, { role: 'district' }), false);
+    assert.equal(shouldOpenWelcome({ welcome: 'yes' }, { role: 'district' }), false);
+    assert.equal(clampStep(-1, 7), 0);
+    assert.equal(clampStep(3, 7), 3);
+    assert.equal(clampStep(9, 7), 6);
+    assert.equal(clampStep(2, 0), 0);
+  } finally { await server.close(); }
 });

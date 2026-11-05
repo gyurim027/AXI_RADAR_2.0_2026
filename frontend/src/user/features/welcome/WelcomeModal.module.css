@@ -1,0 +1,360 @@
+/* 소개 모달 전용 스타일. 디자인 시스템 토큰을 쓰지 않고 이 파일 안에서만 정한다. */
+.scrim {
+  --w-ink: #15182b;
+  --w-text: #3b4256;
+  --w-muted: #6a7184;
+  --w-line: #e7eaf3;
+  --w-blue: #1f6bff;
+  --w-violet: #6a4dff;
+  position: fixed;
+  inset: 0;
+  z-index: var(--component-modal-z, 1000);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(226, 232, 242, 0.55);
+  backdrop-filter: blur(14px) saturate(1.05);
+  -webkit-backdrop-filter: blur(14px) saturate(1.05);
+  animation: fade 0.25s ease-out both;
+}
+.stage {
+  position: relative;
+  width: min(440px, 100%);
+}
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 32px);
+  overflow: hidden;
+  border-radius: 28px;
+  background: #fff;
+  box-shadow: 0 30px 80px rgba(40, 52, 96, 0.22), 0 6px 18px rgba(40, 52, 96, 0.1);
+  animation: pop 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  outline: none;
+}
+
+/* 위쪽: 부드러운 그라디언트가 아래로 갈수록 흰색에 녹는다 */
+.top {
+  --c1: #a9ccff;
+  --c2: #c7b8ff;
+  --c3: #bff1ea;
+  position: relative;
+  flex: none;
+  height: 168px;
+  background:
+    linear-gradient(to bottom, rgba(255, 255, 255, 0) 55%, #fff 100%),
+    radial-gradient(70% 90% at 12% 15%, var(--c1), transparent 62%),
+    radial-gradient(70% 90% at 90% 25%, var(--c2), transparent 62%),
+    radial-gradient(80% 90% at 50% 105%, var(--c3), transparent 66%),
+    #fff;
+}
+.top[data-tone='blue'] { --c1: #a9ccff; --c2: #c7b8ff; --c3: #bff1ea; }
+.top[data-tone='mint'] { --c1: #b5f0e6; --c2: #b9d4ff; --c3: #d9f7b8; }
+.top[data-tone='peach'] { --c1: #ffd2b8; --c2: #ffc2dc; --c3: #ffe9a8; }
+.top[data-tone='lilac'] { --c1: #d8c4ff; --c2: #ffc4e6; --c3: #b8d2ff; }
+.top[data-tone='green'] { --c1: #c4f2c4; --c2: #a9e5ff; --c3: #e6f7a8; }
+.top[data-tone='amber'] { --c1: #ffe3a3; --c2: #ffc9b0; --c3: #f3c4ff; }
+.top[data-tone='sky'] { --c1: #a9e0ff; --c2: #c4c8ff; --c3: #ffd0ec; }
+.art {
+  position: absolute;
+  left: 50%;
+  top: 30px;
+  display: grid;
+  place-items: center;
+  width: 96px;
+  height: 96px;
+  margin-left: -48px;
+  border-radius: 28px;
+  background: #fff;
+  box-shadow: 0 12px 30px rgba(70, 80, 160, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.8);
+  animation: bob 5s ease-in-out infinite, rise 0.4s ease-out both;
+}
+.count {
+  position: absolute;
+  left: 18px;
+  top: 16px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--w-text);
+}
+.close {
+  position: absolute;
+  right: 14px;
+  top: 12px;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.75);
+  color: var(--w-text);
+  cursor: pointer;
+}
+.close:hover { background: #fff; }
+
+.bodyWrap {
+  flex: 0 1 auto;
+  height: 340px; /* 단계가 바뀌어도 카드 높이가 변하지 않게 고정, 작은 화면에서는 줄어들며 스크롤 */
+  min-height: 160px;
+  overflow-y: auto;
+  padding: 0 28px;
+}
+.slide {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 6px;
+  animation: slide-next 0.3s ease-out both;
+}
+.slide[data-dir='prev'] { animation-name: slide-prev; }
+.kicker {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--w-blue);
+}
+.title {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.3;
+  font-weight: 800;
+  color: var(--w-ink);
+}
+.lead { font-size: 15px; line-height: 1.6; color: var(--w-text); }
+.text { font-size: 14px; line-height: 1.65; color: var(--w-text); }
+.mutedText { font-size: 13px; line-height: 1.55; color: var(--w-muted); }
+.note {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #eef4ff, #f3eeff);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--w-text);
+}
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: #f5f7fc;
+}
+.chip {
+  align-self: flex-start;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #e3edff, #ece4ff);
+  font-size: 12px;
+  font-weight: 700;
+  color: #3a49c8;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--w-text);
+}
+.list li {
+  position: relative;
+  padding-left: 24px;
+}
+.list li::before {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 0.55em;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--w-blue), var(--w-violet));
+}
+.listTwo { gap: 7px; }
+.check li::before {
+  left: 0;
+  top: 0.15em;
+  width: 16px;
+  height: 16px;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 8.5 L7 11.5 L12 5' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 12px no-repeat,
+    linear-gradient(135deg, #12b886, #2f7bff);
+}
+.arrow li::before {
+  left: 0;
+  top: 0.15em;
+  width: 16px;
+  height: 16px;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M5 11 L11 5 M6 5 H11 V10' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 12px no-repeat,
+    linear-gradient(135deg, #ff8a3d, #ff4fa0);
+}
+
+.flow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.flowItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 6px 8px;
+  border-radius: 999px;
+  background: #f5f7fc;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--w-ink);
+}
+.num {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--w-blue), var(--w-violet));
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+}
+.roles {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.role {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: #f5f7fc;
+  font-size: 13px;
+  color: var(--w-muted);
+}
+.role b { color: var(--w-ink); }
+.roleOn {
+  background: linear-gradient(135deg, #e3edff, #ece4ff);
+  color: var(--w-text);
+}
+.terms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 0;
+  font-size: 13px;
+  color: var(--w-text);
+}
+.term { display: inline-flex; align-items: center; gap: 4px; }
+
+.phases {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.phase {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: #f5f7fc;
+}
+.phaseHead { display: flex; align-items: center; gap: 8px; margin: 0; }
+.phaseTitle { margin: 0; font-size: 15px; font-weight: 700; color: var(--w-ink); }
+
+.foot {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 16px;
+  padding: 14px 28px 22px;
+}
+.actions { display: flex; align-items: center; gap: 10px; }
+.primary,
+.ghost {
+  min-height: 44px;
+  padding: 0 22px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+}
+.primary {
+  border: 0;
+  background: linear-gradient(135deg, #1f8bff, #4a5bff);
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(48, 98, 255, 0.35);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.primary:hover { transform: translateY(-1px); box-shadow: 0 12px 22px rgba(48, 98, 255, 0.4); }
+.ghost {
+  border: 1px solid var(--w-line);
+  background: #fff;
+  color: var(--w-text);
+}
+.ghost:hover { background: #f5f7fc; }
+.dots { display: flex; justify-content: center; gap: 8px; }
+.dot {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: #cfd5e4;
+  cursor: pointer;
+  transition: width 0.2s, background 0.2s;
+}
+.dot:hover { background: #aab3c9; }
+.dotOn { width: 22px; background: linear-gradient(90deg, var(--w-blue), var(--w-violet)); }
+.primary:focus-visible,
+.ghost:focus-visible,
+.dot:focus-visible,
+.close:focus-visible { outline: 3px solid rgba(31, 107, 255, 0.45); outline-offset: 2px; }
+
+/* 카드 밖에서 떠다니는 장식 */
+.deco { position: absolute; z-index: 2; pointer-events: none; animation: bob 6s ease-in-out infinite; }
+.decoStar { left: -26px; top: 42px; }
+.decoBurst { right: -22px; bottom: 70px; animation-delay: -2s; }
+.decoDot { right: -14px; top: 64px; width: 26px; height: 26px; border-radius: 50%; background: #ffe36a; animation-delay: -4s; }
+
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pop { from { opacity: 0; transform: translateY(14px) scale(0.97); } to { opacity: 1; transform: none; } }
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; } }
+@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+@keyframes slide-next { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: none; } }
+@keyframes slide-prev { from { opacity: 0; transform: translateX(-18px); } to { opacity: 1; transform: none; } }
+
+@media (max-width: 520px) {
+  .decoStar, .decoBurst, .decoDot { display: none; }
+  .bodyWrap { padding: 0 20px; }
+  .foot { padding: 12px 20px 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scrim, .card, .art, .slide, .deco { animation: none; }
+}
+@supports not (backdrop-filter: blur(1px)) {
+  .scrim { background: rgba(214, 222, 236, 0.92); }
+}

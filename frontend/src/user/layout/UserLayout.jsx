@@ -7,8 +7,7 @@ import { ROLE } from '../../shared/constants.js';
 import { RUN_STATUS } from '../../shared/constants.js';
 import { useAuth } from '../../app/providers/AuthProvider.jsx';
 import AppVersion from '../../shared/components/AppVersion.jsx';
-import { WELCOME_PATH } from '../features/welcome/landing.js';
-import { WELCOME } from '../features/welcome/copy.js';
+import WelcomeButton from '../features/welcome/WelcomeButton.jsx';
 import { useRun } from '../../app/providers/RunProvider.jsx';
 import TopBar from './TopBar.jsx';
 import SubNav from './SubNav.jsx';
@@ -38,7 +37,7 @@ function ServerUserLayout() {
       <a href="#main" className={styles.skip}>본문 바로가기</a>
       <header className={bar.bar}>
         <Link to={approvals ? '/reference/approvals' : '/'} className={bar.brand}>RADAR 보도 점검 우선순위</Link>
-        <nav aria-label="주 메뉴">{approvals ? <Link to="/reference/approvals">승인 대기</Link> : null}<Link to={WELCOME_PATH}>{WELCOME.menuLabel}</Link></nav>
+        <nav aria-label="주 메뉴">{approvals ? <Link to="/reference/approvals">승인 대기</Link> : null}<WelcomeButton plain /></nav>
         <div className={bar.account}><span>{user.org}</span><button type="button" className={bar.logout} onClick={logout}>로그아웃</button></div>
       </header>
       <main className={styles.main} id="main" tabIndex={-1}><div className={styles.content}>{approvals && onApprovals ? <Outlet /> : <NotConnected role={user.role} />}<AppVersion /></div></main>
