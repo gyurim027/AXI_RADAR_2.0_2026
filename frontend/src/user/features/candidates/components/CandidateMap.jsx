@@ -89,7 +89,7 @@ export default function CandidateMap({ items, unrated, boundaries, ownGu, select
       focus: L.layerGroup().addTo(map),
     };
     map.setView([37.41, 127.13], 12);
-    // 쌓인 배치(협조 모드): 지도 위 휠은 페이지를 스크롤하고, Ctrl(⌘)+휠일 때만 확대한다. 터치는 두 손가락만 지도를 움직인다.
+    // 쌓인 배치(협조 모드): 지도 위 휠은 페이지를 스크롤하고, Ctrl+휠일 때만 확대한다. 터치는 두 손가락만 지도를 움직인다.
     const box = map.getContainer();
     let hintTimer = 0;
     const showHint = (kind) => {

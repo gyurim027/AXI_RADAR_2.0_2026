@@ -23,9 +23,21 @@ test('서버 모드: 역할별 첫 화면을 따른다', async () => {
   const m = await load({ VITE_API_BASE_URL: 'http://127.0.0.1:8000' });
   try {
     assert.equal(m.landing.startPath('district'), '/candidates');
-    assert.equal(m.landing.startPath('operator'), '/admin/standards/criteria');
-    assert.equal(m.landing.startPath('city'), '/reference/approvals');
+    assert.equal(m.landing.startPath('operator'), '/admin'); // 대시보드(AD-01)가 첫 화면
+    assert.equal(m.landing.startPath('city'), '/candidates'); // 메뉴의 첫 화면
   } finally { await m.close(); }
+});
+
+test('서버 모드에서 대시보드 연결을 끄면 운영자는 산정 기준, 둘 다 끄면 계정 화면으로 시작한다', async () => {
+  const a = await load({ VITE_API_BASE_URL: 'http://x', VITE_OPS_API: 'false' });
+  try { assert.equal(a.landing.startPath('operator'), '/admin/standards/criteria'); } finally { await a.close(); }
+  const b = await load({ VITE_API_BASE_URL: 'http://x', VITE_OPS_API: 'false', VITE_SETTINGS_API: 'false' });
+  try { assert.equal(b.landing.startPath('operator'), '/admin/settings/accounts'); } finally { await b.close(); }
+});
+
+test('서버 모드에서 점검 후보가 연결되지 않은 시 도로과는 첫 메뉴인 승인 대기로 시작한다', async () => {
+  const m = await load({ VITE_API_BASE_URL: 'http://x', VITE_PRIORITY_API: 'false' });
+  try { assert.equal(m.landing.startPath('city'), '/reference/approvals'); } finally { await m.close(); }
 });
 
 test('로그인 전에 가려던 주소가 역할에 맞으면 그곳으로, 아니면 첫 화면으로 간다', async () => {

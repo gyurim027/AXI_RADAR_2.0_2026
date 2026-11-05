@@ -42,6 +42,14 @@ export default function Scene({ name, label }) {
           <Ripple variant="button" /><Cursor variant="button" />
         </>
       ) : null}
+      {name === 'goto' ? (
+        <>
+          <div className={styles.tabs}><b>현재</b><b className={styles.tabOn}>{label || '다음 메뉴'}</b><b>메뉴</b></div>
+          <span className={styles.next2}>{label || '다음 메뉴'}로 이동</span>
+          <Ripple variant="goto" /><Cursor variant="goto" />
+        </>
+      ) : null}
+      {name === 'done' ? <span className={styles.finish}>✓</span> : null}
       {name === 'map' ? (
         <>
           <div className={styles.mapGrid}>{Array.from({ length: 12 }, (_, i) => <b key={i} className={i % 5 === 1 || i === 6 ? styles.hot : ''} />)}</div>

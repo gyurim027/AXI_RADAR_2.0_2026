@@ -69,3 +69,32 @@ export function placeCoach(anchor, size, viewport, gap = 16, margin = 12) {
   if (above >= margin) return { side: 'above', left: clampX(centerX), top: above };
   return { side: 'over', left: clampX(centerX), top: clampY(centerY) };
 }
+
+/** '로'가 붙는 말(받침 없음·ㄹ받침)에는 '로', 나머지에는 '으로'를 붙인다. 예: 점검 후보 → 로, 산정 기준 → 으로 */
+export function josaRo(word) {
+  const last = String(word).trim().slice(-1);
+  const code = last.charCodeAt(0) - 0xac00;
+  if (!(code >= 0 && code <= 11171)) return '로'; // 한글이 아니거나 빈 글자
+  const final = code % 28;
+  return final === 0 || final === 8 ? '로' : '으로';
+}
+
+/**
+ * 이 화면이 역할의 핵심 경로에서 몇 번째인지, 다음 화면이 무엇인지 구한다.
+ * isOpen(path)가 거짓인 화면(서버에 연결되지 않은 화면)은 경로에서 건너뛴다.
+ */
+export function flowInfo(flows, screens, role, key, isOpen) {
+  const order = (flows[role] || []).map((k) => screens.find((s) => s.key === k)).filter((s) => s && isOpen(s.path));
+  const idx = order.findIndex((s) => s.key === key);
+  if (idx < 0) return { position: null, next: null, order };
+  return { position: { index: idx + 1, total: order.length }, next: order[idx + 1] || null, order };
+}
+
+/** 안내의 마지막에 붙는 카드: 다음 화면이 있으면 '다음은 ○○' 이동 카드, 없으면 '핵심 경로를 마쳤습니다' 카드. 경로 밖 화면이면 null. */
+export function closingStep(info, copy) {
+  if (!info.position) return null;
+  if (info.next) {
+    return { kind: 'next', target: info.next.spotlight, scene: 'goto', label: info.next.menuLabel, title: copy.nextTitle(info.next.menuLabel), bullets: info.next.entry, to: info.next.path };
+  }
+  return { kind: 'end', target: null, scene: 'done', title: copy.endTitle, bullets: copy.endBullets(info.order.map((s) => s.menuLabel)) };
+}

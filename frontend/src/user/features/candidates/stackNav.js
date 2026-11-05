@@ -1,6 +1,6 @@
 /** 쌓인 배치(1100px 미만)의 지도 제스처와 표·지도 전환 막대 판단. 화면 없이 시험할 수 있게 순수 함수로 둔다. */
 
-/** 지도 위 휠: 협조 모드에서는 Ctrl(맥은 ⌘)을 누른 때만 확대하고, 아니면 페이지가 스크롤된다. */
+/** 지도 위 휠: 협조 모드에서는 Ctrl을 누른 때만 확대하고, 아니면 페이지가 스크롤된다. */
 export function wheelZoomAllowed({ cooperative, ctrlKey, metaKey }) {
   return !cooperative || !!ctrlKey || !!metaKey;
 }

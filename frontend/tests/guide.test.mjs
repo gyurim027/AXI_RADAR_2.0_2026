@@ -89,7 +89,7 @@ test('화면 주소로 안내 설정을 찾는다', async () => {
 test('안내 설정은 모든 단계가 선택자·장면·제목·설명을 갖고, 역할 이름이 맞다', async () => {
   const { config, close } = await loadLogic();
   try {
-    const scenes = new Set(['select', 'menu', 'row', 'button', 'map']);
+    const scenes = new Set(['select', 'menu', 'row', 'button', 'map', 'goto', 'done']);
     const roles = new Set(['district', 'city', 'operator']);
     for (const screen of config.SCREENS) {
       assert.ok(screen.steps.length > 0, screen.key);
@@ -100,4 +100,83 @@ test('안내 설정은 모든 단계가 선택자·장면·제목·설명을 갖
       }
     }
   } finally { await close(); }
+});
+
+test("'로'와 '으로'를 받침에 맞춰 붙인다", async () => {
+  const { logic, close } = await loadLogic();
+  try {
+    assert.equal(logic.josaRo('점검 후보'), '로');
+    assert.equal(logic.josaRo('점검 요청서'), '로');
+    assert.equal(logic.josaRo('산정 기준'), '으로');
+    assert.equal(logic.josaRo('회차 목록'), '으로');
+    assert.equal(logic.josaRo('점수 근거'), '로');
+    assert.equal(logic.josaRo('서울'), '로'); // ㄹ받침
+    assert.equal(logic.josaRo(''), '로');
+  } finally { await close(); }
+});
+
+test('핵심 경로: 화면의 위치와 다음 화면을 구하고, 열리지 않는 화면은 건너뛴다', async () => {
+  const { logic, config, close } = await loadLogic();
+  try {
+    const all = () => true;
+    const op = (key, isOpen = all) => logic.flowInfo(config.FLOWS, config.SCREENS, 'operator', key, isOpen);
+    assert.deepEqual(op('admin-dashboard').position, { index: 1, total: 3 });
+    assert.equal(op('admin-dashboard').next.key, 'admin-criteria');
+    assert.equal(op('admin-runs').next, null);
+    assert.equal(op('candidates').position, null); // 운영자 경로 밖
+    // 산정 기준이 서버에 연결되지 않은 경우: 대시보드 다음은 회차 목록
+    const noCriteria = (p) => p !== '/admin/standards/criteria';
+    assert.equal(op('admin-dashboard', noCriteria).next.key, 'admin-runs');
+    assert.deepEqual(op('admin-dashboard', noCriteria).position, { index: 1, total: 2 });
+    const d = (key) => logic.flowInfo(config.FLOWS, config.SCREENS, 'district', key, all);
+    assert.equal(d('candidates').next.key, 'annual');
+    assert.equal(d('annual').next, null);
+    const c = (key) => logic.flowInfo(config.FLOWS, config.SCREENS, 'city', key, all);
+    assert.deepEqual(['candidates', 'approvals', 'conditions'].map((k) => c(k).position.index), [1, 2, 3]);
+    assert.equal(c('candidates').next.key, 'approvals');
+  } finally { await close(); }
+});
+
+test('안내의 마지막 카드: 다음 화면이 있으면 이동 카드, 마지막이면 마침 카드, 경로 밖이면 없음', async () => {
+  const { logic, config, close } = await loadLogic();
+  try {
+    const all = () => true;
+    const info = (role, key) => logic.flowInfo(config.FLOWS, config.SCREENS, role, key, all);
+    const next = logic.closingStep(info('operator', 'admin-dashboard'), config.GUIDE_COPY);
+    assert.equal(next.kind, 'next');
+    assert.equal(next.to, '/admin/standards/criteria');
+    assert.equal(next.title, '다음은 산정 기준');
+    assert.ok(next.target && next.bullets.length > 0);
+    const end = logic.closingStep(info('operator', 'admin-runs'), config.GUIDE_COPY);
+    assert.equal(end.kind, 'end');
+    assert.equal(end.target, null);
+    assert.ok(end.bullets[0].includes('대시보드') && end.bullets[0].includes('회차 목록'));
+    assert.equal(logic.closingStep(info('operator', 'candidates'), config.GUIDE_COPY), null);
+  } finally { await close(); }
+});
+
+test('핵심 경로 설정: 모든 화면 키가 실제 화면이고, 이동 주소가 화면 주소와 맞으며, 중복·순환이 없다', async () => {
+  const { logic, config, close } = await loadLogic();
+  try {
+    const keys = new Set(config.SCREENS.map((s) => s.key));
+    for (const [role, flow] of Object.entries(config.FLOWS)) {
+      assert.equal(new Set(flow).size, flow.length, `${role}: 중복`);
+      for (const k of flow) {
+        assert.ok(keys.has(k), `${role}/${k}`);
+        const screen = config.SCREENS.find((s) => s.key === k);
+        assert.ok(screen.path && screen.menuLabel && screen.entry.length > 0 && screen.spotlight, `${k}: 이동 정보`);
+        assert.equal(logic.findScreen(config.SCREENS, screen.path)?.key, k, `${k}: path가 자기 화면과 맞아야 함`);
+        const mine = screen.steps.some((s) => !s.roles || s.roles.includes(role));
+        assert.ok(mine, `${role}/${k}: 이 역할에 보일 단계가 있어야 함`);
+      }
+    }
+  } finally { await close(); }
+});
+
+test('화면에 보이는 글에 맥(⌘) 표기가 없다', async () => {
+  const { readFile } = await import('node:fs/promises');
+  for (const f of ['../src/shared/guide/guideConfig.js', '../src/user/features/candidates/copy.js', '../src/user/features/welcome/copy.js']) {
+    const text = await readFile(new URL(f, import.meta.url), 'utf8');
+    assert.ok(!/⌘|맥은|command 키/i.test(text), f);
+  }
 });

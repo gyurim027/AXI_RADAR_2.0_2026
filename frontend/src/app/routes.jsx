@@ -1,6 +1,8 @@
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
 import RequireUser from './RequireUser.jsx';
 import WelcomeModal from '../user/features/welcome/WelcomeModal.jsx';
+import { homePath } from '../user/features/welcome/landing.js';
+import { useAuth } from './providers/AuthProvider.jsx';
 import ScreenGuide from '../shared/guide/ScreenGuide.jsx';
 import UserLayout from '../user/layout/UserLayout.jsx';
 import LoginPage from '../user/features/login/pages/LoginPage.jsx';
@@ -11,6 +13,12 @@ import { candidateRoutes } from '../user/features/candidates/index.jsx';
 import { reportRoutes } from '../user/features/reports/index.jsx';
 import NoticePage from '../user/components/NoticePage.jsx';
 import { referenceRoutes } from '../user/features/reference/index.jsx';
+
+// 주소 없이 창을 열면 역할의 첫 메뉴로 보낸다 (구·시: 점검 후보, 운영자: 대시보드)
+function HomeRedirect() {
+  const { user } = useAuth();
+  return <Navigate to={homePath(user.role)} replace />;
+}
 
 // 모든 화면 위에 소개 모달(로그인 직후, 메뉴의 `소개`)을 한 곳에서 띄운다
 function RootShell() {
@@ -42,7 +50,7 @@ const routes = [
       {
         element: <UserLayout />,
         children: [
-          { index: true, element: <Navigate to="/candidates" replace /> },
+          { index: true, element: <HomeRedirect /> },
           ...candidateRoutes,
           ...reportRoutes,
           ...referenceRoutes,

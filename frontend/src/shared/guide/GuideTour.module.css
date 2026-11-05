@@ -11,6 +11,7 @@
   pointer-events: none;
 }
 .blocker { position: fixed; inset: 0; pointer-events: auto; background: transparent; }
+.dim { background: rgba(21, 24, 43, 0.46); }
 .spot {
   position: fixed;
   border-radius: 14px;
@@ -71,27 +72,23 @@
 .skip { border: 0; background: #eef1f7; color: var(--g-text); }
 .skip:hover { background: #e3e8f2; }
 .next { border: 0; background: linear-gradient(135deg, #1f8bff, #4a5bff); color: #fff; box-shadow: 0 6px 14px rgba(48, 98, 255, 0.35); }
-.skip:focus-visible, .next:focus-visible, .help:focus-visible { outline: 3px solid rgba(31, 107, 255, 0.45); outline-offset: 2px; }
-
-.help {
-  display: inline-grid;
-  place-items: center;
-  width: 26px;
-  height: 26px;
-  margin-left: 4px;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #1f8bff, #6a4dff);
-  color: #fff;
-  font: inherit;
-  font-size: 14px;
-  font-weight: 800;
-  cursor: pointer;
-  align-self: center;
-}
+.skip:focus-visible, .next:focus-visible { outline: 3px solid rgba(31, 107, 255, 0.45); outline-offset: 2px; }
 
 /* 카드 위 미니 장면: 기본 상태가 마지막 장면이라, 움직임을 끄면 결과가 보이는 그림으로 남는다 */
+.sceneWrap { position: relative; }
+.flowChip {
+  position: absolute;
+  left: 12px;
+  top: 10px;
+  z-index: 6;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  font-size: 11px;
+  font-weight: 800;
+  color: #3a49c8;
+  box-shadow: 0 2px 6px rgba(40, 52, 96, 0.12);
+}
 .stage {
   position: relative;
   height: 132px;
@@ -146,6 +143,18 @@
 .rip_row { left: 110px; top: 56px; animation: rip 3.2s ease-out infinite; }
 .rip_button { left: 236px; top: 62px; animation: rip 3.2s ease-out infinite; }
 
+/* 다음 메뉴 안내 장면: 메뉴 줄에서 커서가 탭으로 가 누른다 */
+.tabs { position: absolute; left: 24px; top: 26px; display: flex; gap: 6px; padding: 6px; border-radius: 12px; background: #fff; box-shadow: 0 4px 14px rgba(40, 52, 96, 0.12); }
+.tabs b { padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; color: #6a7184; }
+.tabs .tabOn { background: linear-gradient(135deg, #e3edff, #ece4ff); color: #3a49c8; animation: tabOn 3.2s ease-in-out infinite; }
+.next2 { position: absolute; left: 24px; top: 80px; padding: 6px 14px; border-radius: 10px; background: linear-gradient(135deg, #1f8bff, #4a5bff); color: #fff; font-size: 12px; font-weight: 800; box-shadow: 0 6px 14px rgba(48, 98, 255, 0.35); animation: show 3.2s ease-in-out infinite; }
+.cur_goto { transform: translate(120px, 40px); animation: curGoto 3.2s ease-in-out infinite; }
+.rip_goto { left: 130px; top: 44px; animation: rip 3.2s ease-out infinite; }
+.finish { position: absolute; left: 50%; top: 50%; display: grid; place-items: center; width: 64px; height: 64px; margin: -32px 0 0 -32px; border-radius: 50%; background: linear-gradient(135deg, #12b886, #2f7bff); color: #fff; font-size: 30px; font-weight: 800; box-shadow: 0 10px 24px rgba(40, 100, 200, 0.35); animation: pulse 2.4s ease-in-out infinite; }
+@keyframes tabOn { 0%, 36% { opacity: 0.35; } 46%, 90% { opacity: 1; } 100% { opacity: 0.35; } }
+@keyframes curGoto { 0% { transform: translate(250px, 110px); } 30%, 90% { transform: translate(130px, 44px); } 100% { transform: translate(250px, 110px); } }
+@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+
 @keyframes ping { 0% { transform: scale(0.6); opacity: 0.9; } 100% { transform: scale(1.9); opacity: 0; } }
 @keyframes pop { from { opacity: 0; transform: translateY(8px) scale(0.97); } to { opacity: 1; transform: none; } }
 @keyframes show { 0%, 38% { opacity: 0; transform: translateY(-6px); } 48%, 88% { opacity: 1; transform: none; } 96%, 100% { opacity: 0; transform: translateY(-6px); } }
@@ -161,7 +170,7 @@
 @keyframes curMap { 0% { transform: translate(110px, 100px); } 30%, 90% { transform: translate(150px, 70px); } 100% { transform: translate(110px, 100px); } }
 
 @media (prefers-reduced-motion: reduce) {
-  .card, .beacon::after, .dd, .panel, .pop, .cta, .check, .mapGrid, .key, .rows .rowOn, .cursor, .ripple { animation: none; }
+  .card, .beacon::after, .dd, .panel, .pop, .cta, .check, .mapGrid, .key, .rows .rowOn, .cursor, .ripple, .tabs .tabOn, .next2, .finish { animation: none; }
   .spot, .beacon { transition: none; }
   .cursor { transform: none; left: 150px; top: 70px; }
   .ripple { display: none; }
