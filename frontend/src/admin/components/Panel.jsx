@@ -1,9 +1,9 @@
 import styles from './Panel.module.css';
 
 /** 흰 패널 (디자인 시스템 6-2). 그림자 없이 1px 연한 선만 쓴다. */
-export default function Panel({ title, description, actions, children, className = '', 'aria-label': ariaLabel, padded = true }) {
+export default function Panel({ title, description, actions, children, className = '', 'aria-label': ariaLabel, 'data-guide': guide, padded = true }) {
   return (
-    <section className={`${styles.panel} ${className}`} aria-label={ariaLabel}>
+    <section className={`${styles.panel} ${className}`} aria-label={ariaLabel} data-guide={guide}>
       {title || actions ? (
         <div className={`${styles.head} ${padded ? '' : styles.headPad}`}>
           <div>

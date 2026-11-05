@@ -168,7 +168,7 @@ function Body({ data }) {
 
   return (
     <>
-      <Panel className={`${styles.next} ${data.run.name ? '' : styles.nextEmpty}`} aria-label={data.run.name ? DASH.runTitle(data.run.name) : DASH.noRun}>
+      <Panel data-guide="dash-next" className={`${styles.next} ${data.run.name ? '' : styles.nextEmpty}`} aria-label={data.run.name ? DASH.runTitle(data.run.name) : DASH.noRun}>
         {data.run.name ? (
           <div className={styles.nextMain}>
             <div className={styles.nextHead}>
@@ -194,9 +194,9 @@ function Body({ data }) {
         </div>
       </Panel>
       <h2 className={styles.section}>{DASH.todoTitle}</h2>
-      <div className={styles.grid}>{todo}</div>
+      <div className={styles.grid} data-guide="dash-todo">{todo}</div>
       <h2 className={styles.section}>{DASH.baseTitle}</h2>
-      <div className={styles.grid}>{criteriaCard}</div>
+      <div className={styles.grid} data-guide="dash-base">{criteriaCard}</div>
     </>
   );
 }

@@ -42,7 +42,7 @@ export default function FilterBar({ filters, setFilters, city, obstacleOptions, 
     <section className={styles.bar} aria-label="점검 후보 필터">
       <div className={styles.row}>
         {city ? (
-          <Button variant="soft" className={styles.btn} onClick={onCompare}>
+          <Button variant="soft" className={styles.btn} onClick={onCompare} data-guide="compare">
             {LIST.compareButton}
           </Button>
         ) : null}

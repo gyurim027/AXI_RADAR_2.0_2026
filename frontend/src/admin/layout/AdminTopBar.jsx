@@ -6,6 +6,7 @@ import Button from '../components/Button.jsx';
 import { useAdmin } from '../AdminProvider.jsx';
 import { ADMIN_COPY } from '../copy.js';
 import AdminNotifications from './AdminNotifications.jsx';
+import HelpMenu from '../../shared/guide/HelpMenu.jsx';
 import ViewAsDialog from './ViewAsDialog.jsx';
 import styles from './AdminTopBar.module.css';
 
@@ -60,6 +61,7 @@ export default function AdminTopBar() {
         </span>
         {independent ? <span className="sr-only">{ADMIN_COPY.runIndependent}</span> : null}
         <AdminNotifications />
+        <HelpMenu />
         <Button variant="soft" compact onClick={() => setViewAsOpen(true)}>
           {ADMIN_COPY.viewAs.button}
         </Button>

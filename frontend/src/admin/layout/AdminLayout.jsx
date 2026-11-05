@@ -6,6 +6,7 @@ import { Banner } from '../components/Panel.jsx';
 import { onActionError } from '../utils/actionError.js';
 import { ADMIN_COPY } from '../copy.js';
 import AdminNotifications from './AdminNotifications.jsx';
+import HelpMenu from '../../shared/guide/HelpMenu.jsx';
 import { EmptyState } from '../components/States.jsx';
 import { isOpenInServerMode } from '../serverRoutes.js';
 import AdminTopBar from './AdminTopBar.jsx';
@@ -35,7 +36,7 @@ function SettingsLayout(){
     <div className={styles.fixed}>
       <header className={topStyles.bar}>
         <Link className={topStyles.brand} to={backendHome('operator')}>{ADMIN_COPY.serviceName}</Link>
-        <div className={topStyles.tools}>{opsBackendEnabled?<AdminNotifications/>:null}<span className={topStyles.org}>{user.org}</span><button className={topStyles.logout} onClick={signOut}>로그아웃</button></div>
+        <div className={topStyles.tools}>{opsBackendEnabled?<AdminNotifications/>:null}<HelpMenu/><span className={topStyles.org}>{user.org}</span><button className={topStyles.logout} onClick={signOut}>로그아웃</button></div>
       </header>
       <nav className={sectionStyles.nav} aria-label="설정 관리">
         {menu.map((m)=><NavLink key={m.to} to={m.to} end={m.end} className={({isActive})=>`${sectionStyles.item} ${isActive?sectionStyles.active:''}`}>{m.label}</NavLink>)}

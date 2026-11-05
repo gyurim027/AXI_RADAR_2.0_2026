@@ -1,5 +1,9 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
 import RequireUser from './RequireUser.jsx';
+import WelcomeModal from '../user/features/welcome/WelcomeModal.jsx';
+import { homePath } from '../user/features/welcome/landing.js';
+import { useAuth } from './providers/AuthProvider.jsx';
+import ScreenGuide from '../shared/guide/ScreenGuide.jsx';
 import UserLayout from '../user/layout/UserLayout.jsx';
 import LoginPage from '../user/features/login/pages/LoginPage.jsx';
 import AdminLayout from '../admin/layout/AdminLayout.jsx';
@@ -10,8 +14,25 @@ import { reportRoutes } from '../user/features/reports/index.jsx';
 import NoticePage from '../user/components/NoticePage.jsx';
 import { referenceRoutes } from '../user/features/reference/index.jsx';
 
+// 주소 없이 창을 열면 역할의 첫 메뉴로 보낸다 (구·시: 점검 후보, 운영자: 대시보드)
+function HomeRedirect() {
+  const { user } = useAuth();
+  return <Navigate to={homePath(user.role)} replace />;
+}
+
+// 모든 화면 위에 소개 모달(로그인 직후, 메뉴의 `소개`)을 한 곳에서 띄운다
+function RootShell() {
+  return (
+    <>
+      <Outlet />
+      <WelcomeModal />
+      <ScreenGuide />
+    </>
+  );
+}
+
 // handle.fullHeight: 화면 전체 높이를 쓰는 목록+지도 화면 (디자인 시스템 9-1)
-export const router = createBrowserRouter([
+const routes = [
   { path: '/login', element: <LoginPage /> },
   {
     path: '/admin',
@@ -29,7 +50,7 @@ export const router = createBrowserRouter([
       {
         element: <UserLayout />,
         children: [
-          { index: true, element: <Navigate to="/candidates" replace /> },
+          { index: true, element: <HomeRedirect /> },
           ...candidateRoutes,
           ...reportRoutes,
           ...referenceRoutes,
@@ -38,4 +59,6 @@ export const router = createBrowserRouter([
       },
     ],
   },
-]);
+];
+
+export const router = createBrowserRouter([{ element: <RootShell />, children: routes }]);

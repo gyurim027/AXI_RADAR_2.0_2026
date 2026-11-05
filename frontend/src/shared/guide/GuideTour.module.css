@@ -1,0 +1,166 @@
+/* 화면 안내(코치마크) 전용 스타일. 디자인 시스템 토큰을 쓰지 않고 이 파일 안에서만 정한다. */
+.layer {
+  --g-ink: #15182b;
+  --g-text: #3b4256;
+  --g-muted: #6a7184;
+  --g-blue: #1f6bff;
+  --g-violet: #6a4dff;
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  pointer-events: none;
+}
+.blocker { position: fixed; inset: 0; pointer-events: auto; background: transparent; }
+.dim { background: rgba(21, 24, 43, 0.46); }
+.spot {
+  position: fixed;
+  border-radius: 14px;
+  box-shadow: 0 0 0 9999px rgba(21, 24, 43, 0.46), 0 0 0 2px rgba(255, 255, 255, 0.9);
+  transition: left 0.25s ease, top 0.25s ease, width 0.25s ease, height 0.25s ease;
+  pointer-events: none;
+}
+.beacon {
+  position: fixed;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ff8a2a;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.95);
+  transition: left 0.25s ease, top 0.25s ease;
+  pointer-events: none;
+}
+.beacon::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 138, 42, 0.75);
+  animation: ping 1.6s ease-out infinite;
+}
+
+.card {
+  position: fixed;
+  width: 320px;
+  max-width: calc(100vw - 24px);
+  overflow: hidden;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 24px 60px rgba(30, 40, 90, 0.35), 0 4px 14px rgba(30, 40, 90, 0.12);
+  pointer-events: auto;
+  outline: none;
+  animation: pop 0.25s ease-out both;
+}
+.body { display: flex; flex-direction: column; gap: 8px; padding: 16px 20px 6px; }
+.title { margin: 0; font-size: 17px; font-weight: 800; line-height: 1.3; color: var(--g-ink); }
+.bullets { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; font-size: 13px; line-height: 20px; color: var(--g-text); }
+.bullets li { position: relative; padding-left: 14px; }
+.bullets li::before { content: ''; position: absolute; left: 2px; top: 7.5px; width: 5px; height: 5px; border-radius: 50%; background: var(--g-blue); }
+.foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 20px 16px; }
+.dots { display: flex; align-items: center; gap: 6px; }
+.dot { width: 8px; height: 8px; padding: 0; border: 0; border-radius: 999px; background: #cfd5e4; cursor: pointer; transition: width 0.2s, background 0.2s; }
+.dot:hover { background: #aab3c9; }
+.dot:focus-visible { outline: 3px solid rgba(31, 107, 255, 0.45); outline-offset: 2px; }
+.dots .dotOn { width: 18px; background: linear-gradient(90deg, var(--g-blue), var(--g-violet)); }
+.actions { display: flex; gap: 8px; }
+.skip, .next {
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.skip { border: 0; background: #eef1f7; color: var(--g-text); }
+.skip:hover { background: #e3e8f2; }
+.next { border: 0; background: linear-gradient(135deg, #1f8bff, #4a5bff); color: #fff; box-shadow: 0 6px 14px rgba(48, 98, 255, 0.35); }
+.skip:focus-visible, .next:focus-visible { outline: 3px solid rgba(31, 107, 255, 0.45); outline-offset: 2px; }
+
+/* 카드 위 미니 장면: 기본 상태가 마지막 장면이라, 움직임을 끄면 결과가 보이는 그림으로 남는다 */
+.sceneWrap { position: relative; }
+.stage {
+  position: relative;
+  height: 132px;
+  overflow: hidden;
+  background:
+    radial-gradient(#dde3f4 1px, transparent 1.6px) 0 0 / 14px 14px,
+    #f6f8fd;
+}
+.cursor { position: absolute; left: 0; top: 0; z-index: 5; filter: drop-shadow(0 2px 3px rgba(20, 24, 43, 0.35)); }
+.ripple { position: absolute; z-index: 4; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%; background: rgba(31, 107, 255, 0.28); opacity: 0; }
+
+.sel, .pill, .cta {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #2b3150;
+}
+.sel { left: 28px; top: 26px; width: 170px; height: 34px; justify-content: space-between; padding: 0 12px; border: 1px solid #cfd6ea; background: #fff; }
+.caret { width: 7px; height: 7px; border-right: 2px solid #7a839c; border-bottom: 2px solid #7a839c; transform: rotate(45deg) translate(-2px, -2px); }
+.dd { position: absolute; left: 28px; top: 66px; width: 170px; display: flex; flex-direction: column; padding: 4px; border-radius: 10px; background: #fff; box-shadow: 0 10px 24px rgba(40, 52, 96, 0.2); animation: show 3.2s ease-in-out infinite; }
+.dd b { padding: 6px 8px; border-radius: 7px; font-size: 12px; font-weight: 600; color: #4a5170; }
+.ddOn { background: #e8efff; color: #2a4bd0 !important; }
+.pill { left: 28px; top: 28px; height: 32px; padding: 0 16px; background: #fff; border: 1px solid #cfd6ea; }
+.panel { position: absolute; left: 100px; top: 20px; display: flex; flex-direction: column; gap: 4px; padding: 8px; border-radius: 12px; background: #fff; box-shadow: 0 10px 24px rgba(40, 52, 96, 0.2); animation: show 3.2s ease-in-out infinite; }
+.panel b { padding: 5px 12px; border-radius: 999px; background: #eef2ff; font-size: 12px; font-weight: 700; color: #3a49c8; }
+.rows { position: absolute; left: 24px; top: 20px; width: 170px; display: flex; flex-direction: column; gap: 8px; }
+.rows b { height: 22px; border-radius: 7px; background: #fff; border: 1px solid #dfe4f3; }
+.rows .rowOn { background: #e8efff; border-color: #a9c0ff; animation: rowOn 3.2s ease-in-out infinite; }
+.pop { position: absolute; left: 206px; top: 22px; width: 90px; display: flex; flex-direction: column; gap: 6px; padding: 10px; border-radius: 12px; background: #fff; box-shadow: 0 10px 24px rgba(40, 52, 96, 0.2); animation: show 3.2s ease-in-out infinite; }
+.pop i, .bar i { height: 6px; border-radius: 3px; background: #cfd6ea; }
+.pop .popShort { width: 60%; }
+.bar { position: absolute; left: 20px; top: 52px; width: 160px; display: flex; flex-direction: column; gap: 8px; }
+.bar i { height: 8px; }
+.bar .barShort { width: 60%; }
+.cta { left: 206px; top: 44px; height: 36px; padding: 0 20px; background: linear-gradient(135deg, #1f8bff, #4a5bff); color: #fff; box-shadow: 0 6px 14px rgba(48, 98, 255, 0.35); animation: press 3.2s ease-in-out infinite; }
+.check { position: absolute; left: 272px; top: 34px; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: #12b886; color: #fff; font-size: 13px; font-weight: 800; animation: show 3.2s ease-in-out infinite; }
+.mapGrid { position: absolute; left: 24px; top: 20px; display: grid; grid-template-columns: repeat(4, 44px); gap: 6px; transform-origin: 30% 30%; animation: zoom 3.2s ease-in-out infinite; }
+.mapGrid b { height: 32px; border-radius: 8px; background: #cfe0ff; }
+.mapGrid .hot { background: #3a6bff; }
+.key { position: absolute; right: 18px; top: 16px; padding: 4px 10px; border-radius: 8px; border: 1px solid #cfd6ea; background: #fff; font-size: 12px; font-weight: 700; color: #3b4256; animation: keyDown 3.2s ease-in-out infinite; }
+
+.cur_select { transform: translate(120px, 96px); animation: curSelect 3.2s ease-in-out infinite; }
+.cur_menu { transform: translate(60px, 52px); animation: curMenu 3.2s ease-in-out infinite; }
+.cur_row { transform: translate(110px, 60px); animation: curRow 3.2s ease-in-out infinite; }
+.cur_button { transform: translate(236px, 66px); animation: curButton 3.2s ease-in-out infinite; }
+.cur_map { transform: translate(150px, 70px); animation: curMap 3.2s ease-in-out infinite; }
+.rip_select { left: 118px; top: 44px; animation: rip 3.2s ease-out infinite; }
+.rip_menu { left: 60px; top: 44px; animation: rip 3.2s ease-out infinite; }
+.rip_row { left: 110px; top: 56px; animation: rip 3.2s ease-out infinite; }
+.rip_button { left: 236px; top: 62px; animation: rip 3.2s ease-out infinite; }
+
+/* 다음 메뉴 안내 장면: 메뉴 줄에서 커서가 탭으로 가 누른다 */
+.tabs { position: absolute; left: 24px; top: 26px; display: flex; gap: 6px; padding: 6px; border-radius: 12px; background: #fff; box-shadow: 0 4px 14px rgba(40, 52, 96, 0.12); }
+.tabs b { padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; color: #6a7184; }
+.tabs .tabOn { background: linear-gradient(135deg, #e3edff, #ece4ff); color: #3a49c8; animation: tabOn 3.2s ease-in-out infinite; }
+.next2 { position: absolute; left: 24px; top: 80px; padding: 6px 14px; border-radius: 10px; background: linear-gradient(135deg, #1f8bff, #4a5bff); color: #fff; font-size: 12px; font-weight: 800; box-shadow: 0 6px 14px rgba(48, 98, 255, 0.35); animation: show 3.2s ease-in-out infinite; }
+.cur_goto { transform: translate(120px, 40px); animation: curGoto 3.2s ease-in-out infinite; }
+.rip_goto { left: 130px; top: 44px; animation: rip 3.2s ease-out infinite; }
+.finish { position: absolute; left: 50%; top: 50%; display: grid; place-items: center; width: 64px; height: 64px; margin: -32px 0 0 -32px; border-radius: 50%; background: linear-gradient(135deg, #12b886, #2f7bff); color: #fff; font-size: 30px; font-weight: 800; box-shadow: 0 10px 24px rgba(40, 100, 200, 0.35); animation: pulse 2.4s ease-in-out infinite; }
+@keyframes tabOn { 0%, 36% { opacity: 0.35; } 46%, 90% { opacity: 1; } 100% { opacity: 0.35; } }
+@keyframes curGoto { 0% { transform: translate(250px, 110px); } 30%, 90% { transform: translate(130px, 44px); } 100% { transform: translate(250px, 110px); } }
+@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+
+@keyframes ping { 0% { transform: scale(0.6); opacity: 0.9; } 100% { transform: scale(1.9); opacity: 0; } }
+@keyframes pop { from { opacity: 0; transform: translateY(8px) scale(0.97); } to { opacity: 1; transform: none; } }
+@keyframes show { 0%, 38% { opacity: 0; transform: translateY(-6px); } 48%, 88% { opacity: 1; transform: none; } 96%, 100% { opacity: 0; transform: translateY(-6px); } }
+@keyframes rowOn { 0%, 38% { opacity: 0.2; } 48%, 90% { opacity: 1; } 100% { opacity: 0.2; } }
+@keyframes press { 0%, 36% { transform: none; } 40% { transform: scale(0.94); } 46%, 100% { transform: none; } }
+@keyframes zoom { 0%, 30% { transform: scale(1); } 55%, 90% { transform: scale(1.18); } 100% { transform: scale(1); } }
+@keyframes keyDown { 0%, 25% { background: #fff; } 35%, 90% { background: #e8efff; border-color: #a9c0ff; } 100% { background: #fff; } }
+@keyframes rip { 0%, 33% { opacity: 0; transform: scale(0.3); } 38% { opacity: 1; transform: scale(0.6); } 55%, 100% { opacity: 0; transform: scale(1.6); } }
+@keyframes curSelect { 0% { transform: translate(250px, 110px); } 30%, 38% { transform: translate(120px, 46px); } 62%, 90% { transform: translate(110px, 98px); } 100% { transform: translate(250px, 110px); } }
+@keyframes curMenu { 0% { transform: translate(210px, 100px); } 30%, 40% { transform: translate(62px, 48px); } 90% { transform: translate(62px, 48px); } 100% { transform: translate(210px, 100px); } }
+@keyframes curRow { 0% { transform: translate(230px, 110px); } 30%, 40% { transform: translate(112px, 58px); } 90% { transform: translate(112px, 58px); } 100% { transform: translate(230px, 110px); } }
+@keyframes curButton { 0% { transform: translate(120px, 110px); } 30%, 42% { transform: translate(236px, 66px); } 90% { transform: translate(236px, 66px); } 100% { transform: translate(120px, 110px); } }
+@keyframes curMap { 0% { transform: translate(110px, 100px); } 30%, 90% { transform: translate(150px, 70px); } 100% { transform: translate(110px, 100px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .card, .beacon::after, .dd, .panel, .pop, .cta, .check, .mapGrid, .key, .rows .rowOn, .cursor, .ripple, .tabs .tabOn, .next2, .finish { animation: none; }
+  .spot, .beacon { transition: none; }
+  .cursor { transform: none; left: 150px; top: 70px; }
+  .ripple { display: none; }
+}
