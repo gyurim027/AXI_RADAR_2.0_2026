@@ -1,0 +1,198 @@
+.page {
+  min-height: 100vh;
+  background: var(--semantic-color-bg-shell);
+}
+.skip {
+  position: absolute;
+  left: -9999px;
+}
+.skip:focus {
+  left: var(--space-16);
+  top: var(--space-8);
+  z-index: 10;
+  padding: var(--space-8) var(--space-12);
+  background: var(--semantic-color-bg-surface);
+}
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-16);
+  height: var(--component-topbar-height);
+  padding: 0 var(--semantic-layout-page-margin);
+  background: var(--component-topbar-bg);
+  border-bottom: 1px solid var(--component-topbar-border);
+}
+.brand {
+  font-size: var(--fs-body);
+  font-weight: var(--fw-bold);
+  color: var(--semantic-color-text-strong);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.brandRest {
+  font-weight: var(--fw-regular);
+}
+.account {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  font-size: var(--fs-small);
+  color: var(--semantic-color-text-muted);
+}
+.logout {
+  min-height: 32px;
+  padding: 0 var(--space-4);
+  border: 0;
+  background: none;
+  color: var(--semantic-color-primary-strong);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-40);
+  max-width: 960px;
+  margin: 0 auto;
+  padding: var(--space-40) var(--semantic-layout-page-margin) var(--space-48);
+}
+.main:focus {
+  outline: none;
+}
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-12);
+}
+.eyebrow {
+  font-size: var(--fs-small);
+  font-weight: var(--fw-semibold);
+  color: var(--semantic-color-primary-strong);
+}
+.title {
+  font-size: var(--fs-h1);
+  font-weight: var(--fw-bold);
+  color: var(--semantic-color-text-strong);
+}
+.lead {
+  margin-bottom: var(--space-8);
+  font-size: var(--fs-lead);
+  color: var(--semantic-color-text);
+}
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+.h2 {
+  font-size: var(--fs-h2);
+  font-weight: var(--fw-bold);
+  color: var(--semantic-color-text-strong);
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-16);
+}
+.body {
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  color: var(--semantic-color-text);
+}
+.muted {
+  font-size: var(--fs-small);
+  color: var(--semantic-color-text-muted);
+}
+.flow,
+.history,
+.roles,
+.terms {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.step {
+  display: flex;
+  gap: var(--space-12);
+  align-items: flex-start;
+}
+.num {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  background: var(--semantic-color-primary-soft);
+  color: var(--semantic-color-primary-strong);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-bold);
+}
+.stepText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.stepLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-semibold);
+  color: var(--semantic-color-text-strong);
+}
+.roles {
+  padding-top: var(--space-8);
+  border-top: 1px solid var(--semantic-color-border-subtle);
+}
+.role {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-12);
+}
+.terms {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--space-16);
+}
+.term {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  font-size: var(--fs-small);
+  color: var(--semantic-color-text);
+}
+.history {
+  flex-direction: row;
+  gap: var(--space-16);
+}
+.phase {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+  padding: var(--space-16);
+  border: 1px solid var(--semantic-color-border-card);
+  border-radius: var(--radius-md);
+  background: var(--semantic-color-bg-surface);
+}
+.phaseHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+@media (max-width: 1099px) {
+  .cards,
+  .history {
+    grid-template-columns: 1fr;
+    flex-direction: column;
+  }
+}

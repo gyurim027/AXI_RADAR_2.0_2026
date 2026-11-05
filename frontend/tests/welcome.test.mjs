@@ -1,0 +1,48 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+
+// 시작 주소는 서버 모드 여부에 따라 달라지므로, 환경을 바꿔 모듈을 새로 불러와 확인한다.
+async function load(env) {
+  const { createServer } = await import('vite');
+  const server = await createServer({ configFile: false, envFile: false, logLevel: 'silent', server: { middlewareMode: true }, appType: 'custom', define: Object.fromEntries(Object.entries(env).map(([k, v]) => [`import.meta.env.${k}`, JSON.stringify(v)])) });
+  try {
+    return { landing: await server.ssrLoadModule('/src/user/features/welcome/landing.js'), close: () => server.close() };
+  } catch (e) { await server.close(); throw e; }
+}
+
+test('소개 화면 주소는 /welcome이다', async () => {
+  const m = await load({});
+  try { assert.equal(m.landing.WELCOME_PATH, '/welcome'); } finally { await m.close(); }
+});
+
+test('연습용 모드: 운영자는 어드민, 나머지는 점검 후보로 시작한다', async () => {
+  const m = await load({});
+  try {
+    assert.equal(m.landing.startPath('operator'), '/admin');
+    assert.equal(m.landing.startPath('district'), '/candidates');
+    assert.equal(m.landing.startPath('city'), '/candidates');
+  } finally { await m.close(); }
+});
+
+test('서버 모드: 역할별 첫 화면을 따른다', async () => {
+  const m = await load({ VITE_API_BASE_URL: 'http://127.0.0.1:8000' });
+  try {
+    assert.equal(m.landing.startPath('district'), '/candidates');
+    assert.equal(m.landing.startPath('operator'), '/admin/standards/criteria');
+    assert.equal(m.landing.startPath('city'), '/reference/approvals');
+  } finally { await m.close(); }
+});
+
+test('로그인 전에 가려던 주소가 역할에 맞으면 그곳으로, 아니면 첫 화면으로 간다', async () => {
+  const m = await load({});
+  try {
+    assert.equal(m.landing.startPath('district', '/reports/basis'), '/reports/basis');
+    assert.equal(m.landing.startPath('operator', '/admin/runs'), '/admin/runs');
+    assert.equal(m.landing.startPath('district', '/admin/runs'), '/candidates'); // 사용자 계정은 어드민 주소로 가지 않는다
+    assert.equal(m.landing.startPath('operator', '/candidates'), '/admin'); // 운영자는 사용자 주소로 가지 않는다
+    assert.equal(m.landing.startPath('district', '/login'), '/candidates');
+    assert.equal(m.landing.startPath('district', '/welcome'), '/candidates');
+    assert.equal(m.landing.startPath('district', '//evil.example'), '/candidates');
+    assert.equal(m.landing.startPath('district', 'https://evil.example'), '/candidates');
+  } finally { await m.close(); }
+});

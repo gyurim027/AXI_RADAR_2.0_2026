@@ -6,6 +6,8 @@ import Button from '../components/Button.jsx';
 import { useAdmin } from '../AdminProvider.jsx';
 import { ADMIN_COPY } from '../copy.js';
 import AdminNotifications from './AdminNotifications.jsx';
+import { WELCOME_PATH } from '../../user/features/welcome/landing.js';
+import { WELCOME } from '../../user/features/welcome/copy.js';
 import ViewAsDialog from './ViewAsDialog.jsx';
 import styles from './AdminTopBar.module.css';
 
@@ -42,6 +44,7 @@ export default function AdminTopBar() {
             </NavLink>
           );
         })}
+        <NavLink to={WELCOME_PATH} className={`${styles.tab} ${pathname === WELCOME_PATH ? styles.active : ''}`}>{WELCOME.menuLabel}</NavLink>
       </nav>
 
       <div className={styles.tools}>
