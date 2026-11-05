@@ -75,8 +75,8 @@ export const SCREENS = [
     key: 'admin-dashboard',
     path: '/admin',
     menuLabel: '대시보드',
-    entry: ['`대시보드` 메뉴에서 엽니다.', '회차 상태와 다음에 할 일을 봅니다.'],
-    spotlight: 'header nav a[href="/admin"]',
+    entry: ['위쪽 메뉴에서 대시보드를 엽니다.', '회차 상태와 다음에 할 일을 봅니다.'],
+    spotlight: 'header nav a[href="/admin"], nav[aria-label="설정 관리"] a[href="/admin"]',
     match: /^\/admin\/?$/,
     steps: [
       { target: '[data-guide="dash-next"]', scene: 'button', title: '회차 준비 상태', bullets: ['지금 회차의 상태와 다음에 할 일을 봅니다.'] },
@@ -88,7 +88,7 @@ export const SCREENS = [
     key: 'admin-runs',
     path: '/admin/runs/list',
     menuLabel: '회차 목록',
-    entry: ['`산정` 메뉴의 `회차 목록` 탭에서 엽니다.', '산정을 시작하고 검토 중으로 엽니다.'],
+    entry: ['위쪽 메뉴에서 회차 목록을 엽니다.', '산정을 시작하고 검토 중으로 엽니다.'],
     spotlight: 'a[href="/admin/runs/list"]:not(header a)',
     match: /^\/admin\/runs\/list\/?$/,
     steps: [
@@ -101,8 +101,8 @@ export const SCREENS = [
     key: 'admin-criteria',
     path: '/admin/standards/criteria',
     menuLabel: '산정 기준',
-    entry: ['`산정` 메뉴의 `산정 기준` 탭에서 엽니다.', '가중치와 기준값을 고쳐 승인을 요청합니다.'],
-    spotlight: 'header nav a[href^="/admin/runs/"]',
+    entry: ['위쪽 메뉴에서 산정 기준을 엽니다.', '가중치와 기준값을 고쳐 승인을 요청합니다.'],
+    spotlight: 'header nav a[href^="/admin/runs/"], nav[aria-label="설정 관리"] a[href="/admin/standards/criteria"]',
     match: /^\/admin\/standards\/criteria\/?$/,
     steps: [
       { target: 'main table', scene: 'row', title: '산정 기준 버전', bullets: ['버전 목록을 보고, 버전을 누르면 상세로 갑니다.'] },

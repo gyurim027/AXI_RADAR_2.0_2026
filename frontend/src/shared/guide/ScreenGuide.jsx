@@ -27,7 +27,7 @@ function storage() {
 const isOpenPath = (path) => !backendAuthEnabled || (path.startsWith('/admin') ? isOpenInServerMode(path) : isUserOpenInServerMode(path));
 
 const POLL_MS = 250;
-const POLL_MAX = 14; // 약 3.5초 동안 대상이 나타나길 기다린다
+const POLL_MAX = 48; // 약 12초 동안 대상이 나타나길 기다린다 (서버 응답이 느린 대시보드 등)
 const SETTLE_MS = 700; // 처음 대상이 보인 뒤 나머지가 그려질 시간을 조금 더 준다
 
 /**

@@ -167,3 +167,15 @@ test('화면에 보이는 글에 맥(⌘) 표기가 없다', async () => {
     assert.ok(!/⌘|맥은|command 키/i.test(text), f);
   }
 });
+
+test('서버 연결 모드 어드민(한 줄 메뉴)에서도 다음 메뉴를 강조할 수 있다', async () => {
+  const { config, close } = await loadLogic();
+  try {
+    for (const key of ['admin-dashboard', 'admin-criteria']) {
+      const screen = config.SCREENS.find((s) => s.key === key);
+      assert.ok(screen.spotlight.includes('nav[aria-label="설정 관리"]'), key);
+    }
+    const runs = config.SCREENS.find((s) => s.key === 'admin-runs');
+    assert.ok(runs.spotlight.includes(':not(header a)'), 'admin-runs'); // 한 줄 메뉴의 `회차`도 잡힌다
+  } finally { await close(); }
+});
