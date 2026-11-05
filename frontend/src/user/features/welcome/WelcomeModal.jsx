@@ -107,14 +107,14 @@ function WelcomeDialog({ role, onClose }) {
             <div className={styles.slide} data-dir={dir} key={step.key} aria-live="polite">
               <p className={styles.kicker}>{step.kicker}</p>
               <h2 id="welcome-title" className={styles.title}>{step.title}</h2>
-              <StepBody step={step} role={role} tab={tab} setTab={setTab} />
+              <StepBody step={step} tab={tab} setTab={setTab} />
             </div>
           </div>
 
           <footer className={styles.foot}>
             <div className={styles.actions}>
-              <button type="button" className={styles.primary} onClick={last ? onClose : () => go(index + 1)}>{last ? C.start : C.next}</button>
               {index > 0 ? <button type="button" className={styles.ghost} onClick={() => go(index - 1)}>{C.prev}</button> : null}
+              <button type="button" className={styles.primary} onClick={last ? onClose : () => go(index + 1)}>{last ? C.start : C.next}</button>
             </div>
             <div className={styles.dots} role="group" aria-label={C.dialogLabel}>
               {C.steps.map((s, i) => (
@@ -129,7 +129,7 @@ function WelcomeDialog({ role, onClose }) {
   );
 }
 
-function StepBody({ step, role, tab, setTab }) {
+function StepBody({ step, tab, setTab }) {
   switch (step.key) {
     case 'intro':
       return (
@@ -159,7 +159,7 @@ function StepBody({ step, role, tab, setTab }) {
           <div className={styles.tabs} role="tablist" aria-label={step.title}>
             {step.tabs.map((t) => (
               <button key={t.key} type="button" role="tab" aria-selected={t.key === current.key} className={`${styles.tab} ${t.key === current.key ? styles.tabOn : ''}`} onClick={() => setTab(t.key)}>
-                {t.label}{t.key === role ? <i className={styles.me}>내 역할</i> : null}
+                {t.label}
               </button>
             ))}
           </div>
@@ -167,7 +167,7 @@ function StepBody({ step, role, tab, setTab }) {
             {current.steps.map((f, i) => (
               <li key={f.label} className={styles.flowItem}>
                 <span className={styles.num}>{i + 1}</span>
-                <span className={styles.flowText}><b>{f.label}</b> {f.text}{f.help ? <InfoHelp label={`${f.label} 도움말 보기`}>{f.help}</InfoHelp> : null}</span>
+                <span className={styles.flowText}><b>{f.label}</b> {f.text}{f.help ? <span className={styles.helpSlot}><InfoHelp label={`${f.label} 도움말 보기`}>{f.help}</InfoHelp></span> : null}</span>
               </li>
             ))}
           </ol>

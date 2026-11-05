@@ -163,18 +163,18 @@
   padding: 0;
   list-style: none;
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 21px;
   color: var(--w-text);
 }
 .list li {
   position: relative;
-  padding-left: 24px;
+  padding-left: 26px;
 }
 .list li::before {
   content: '';
   position: absolute;
-  left: 4px;
-  top: 0.55em;
+  left: 3px;
+  top: 6.5px; /* 줄 높이 21px의 가운데에 8px 점 */
   width: 8px;
   height: 8px;
   border-radius: 50%;
@@ -183,7 +183,7 @@
 .listTwo { gap: 7px; }
 .check li::before {
   left: 0;
-  top: 0.15em;
+  top: 2.5px; /* 줄 높이 21px의 가운데에 16px 아이콘 */
   width: 16px;
   height: 16px;
   background:
@@ -192,7 +192,7 @@
 }
 .arrow li::before {
   left: 0;
-  top: 0.15em;
+  top: 2.5px;
   width: 16px;
   height: 16px;
   background:
@@ -219,7 +219,6 @@
 .tab:hover { background: #f5f7fc; }
 .tabOn { border-color: transparent; background: linear-gradient(135deg, #e3edff, #ece4ff); color: #3a49c8; }
 .tab:focus-visible { outline: 3px solid rgba(31, 107, 255, 0.45); outline-offset: 2px; }
-.me { padding: 1px 6px; border-radius: 999px; background: #3a6bff; font-style: normal; font-size: 10px; color: #fff; }
 .flow {
   display: flex;
   flex-direction: column;
@@ -228,15 +227,16 @@
   padding: 0;
   list-style: none;
 }
-.flowItem { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; line-height: 1.5; color: var(--w-text); }
+.flowItem { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; line-height: 22px; color: var(--w-text); }
 .flowText b { color: var(--w-ink); }
+.helpSlot { display: inline-flex; align-items: center; height: 18px; margin-left: 4px; vertical-align: middle; line-height: 1; }
 .num {
   display: grid;
   place-items: center;
   flex: none;
   width: 22px;
   height: 22px;
-  margin-top: 1px;
+  margin-top: 0;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--w-blue), var(--w-violet));
   font-size: 11px;
@@ -303,7 +303,7 @@
   gap: 16px;
   padding: 14px 28px 22px;
 }
-.actions { display: flex; align-items: center; gap: 10px; }
+.actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
 .primary,
 .ghost {
   min-height: 44px;

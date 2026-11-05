@@ -51,9 +51,9 @@
 }
 .body { display: flex; flex-direction: column; gap: 8px; padding: 16px 20px 6px; }
 .title { margin: 0; font-size: 17px; font-weight: 800; line-height: 1.3; color: var(--g-ink); }
-.bullets { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; font-size: 13px; line-height: 1.55; color: var(--g-text); }
+.bullets { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; font-size: 13px; line-height: 20px; color: var(--g-text); }
 .bullets li { position: relative; padding-left: 14px; }
-.bullets li::before { content: ''; position: absolute; left: 2px; top: 0.62em; width: 5px; height: 5px; border-radius: 50%; background: var(--g-blue); }
+.bullets li::before { content: ''; position: absolute; left: 2px; top: 7.5px; width: 5px; height: 5px; border-radius: 50%; background: var(--g-blue); }
 .foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 20px 16px; }
 .dots { display: flex; gap: 6px; }
 .dots i { width: 7px; height: 7px; border-radius: 999px; background: #cfd5e4; transition: width 0.2s, background 0.2s; }
