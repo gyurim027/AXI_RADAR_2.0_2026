@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { GUIDE_COPY } from './guideConfig.js';
-import { clampIndex, josaRo, placeCoach } from './guideLogic.js';
+import { clampIndex, placeCoach } from './guideLogic.js';
 import Scene from './scenes.jsx';
 import styles from './GuideTour.module.css';
 
@@ -10,9 +10,9 @@ const PAD = 6; // 강조 상자가 대상보다 조금 크게 그려지는 여�
 /**
  * 화면 위에서 대상 요소를 밝게 두고, 옆에 설명 카드를 보여 주는 순서 안내(코치마크).
  * 마지막 카드가 `다음은 ○○` 이동 카드(kind: 'next')나 `핵심 경로를 마쳤습니다`(kind: 'end')일 수 있다.
- * position은 { index, total }(핵심 경로 안의 위치), onGo(to)는 다음 화면으로 이동한다.
+ * 단계 점(페이지 표시)을 누르면 그 단계로 이동하고, `다음은 ○○` 카드의 `다음`은 다음 화면으로 이동(onGo)한다.
  */
-export default function GuideTour({ steps, position, onClose, onGo }) {
+export default function GuideTour({ steps, onClose, onGo }) {
   const [index, setIndex] = useState(0);
   const [rect, setRect] = useState(null);
   const [pos, setPos] = useState(null);
@@ -89,8 +89,9 @@ export default function GuideTour({ steps, position, onClose, onGo }) {
   }, [steps.length, onClose]);
 
   const spot = rect ? { left: rect.left - PAD, top: rect.top - PAD, width: rect.width + PAD * 2, height: rect.height + PAD * 2 } : null;
-  const primary = isNext ? `${step.label}${josaRo(step.label)} 이동` : last ? GUIDE_COPY.done : GUIDE_COPY.next;
-  const secondary = isNext ? GUIDE_COPY.later : last ? null : GUIDE_COPY.skip;
+  // 이동 카드도 다른 카드와 같은 버튼 이름을 쓴다: `건너뛰기`, `다음`(마지막 카드만 `끝`)
+  const primary = last && !isNext ? GUIDE_COPY.done : GUIDE_COPY.next;
+  const secondary = last && !isNext ? null : GUIDE_COPY.skip;
 
   return createPortal(
     <div className={styles.layer}>
@@ -107,7 +108,6 @@ export default function GuideTour({ steps, position, onClose, onGo }) {
         tabIndex={-1}
       >
         <div className={styles.sceneWrap}>
-          {position ? <span className={styles.flowChip}>{GUIDE_COPY.flowChip(position.index, position.total)}</span> : null}
           <Scene key={step.title} name={step.scene} label={step.label} />
         </div>
         <div className={styles.body}>
@@ -115,8 +115,10 @@ export default function GuideTour({ steps, position, onClose, onGo }) {
           <ul className={styles.bullets}>{step.bullets.map((b) => <li key={b}>{b}</li>)}</ul>
         </div>
         <footer className={styles.foot}>
-          <div className={styles.dots} aria-label={`${steps.length}단계 중 ${index + 1}단계`}>
-            {steps.map((s) => <i key={s.title} className={s === step ? styles.dotOn : ''} />)}
+          <div className={styles.dots} role="group" aria-label={GUIDE_COPY.pagesLabel}>
+            {steps.map((s, i) => (
+              <button key={s.title} type="button" className={`${styles.dot} ${i === index ? styles.dotOn : ''}`} aria-label={`${i + 1}단계 안내 보기`} aria-current={i === index ? 'step' : undefined} onClick={() => setIndex(i)} />
+            ))}
           </div>
           <div className={styles.actions}>
             {secondary ? <button type="button" className={styles.skip} onClick={onClose}>{secondary}</button> : null}

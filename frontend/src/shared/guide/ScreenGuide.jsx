@@ -53,7 +53,7 @@ export default function ScreenGuide() {
     if (!steps.length) return null;
     const info = flowInfo(FLOWS, SCREENS, role, screen.key, isOpenPath);
     const closing = closingStep(info, GUIDE_COPY);
-    return { key: screen.key, steps: closing ? [...steps, closing] : steps, position: info.position };
+    return { key: screen.key, steps: closing ? [...steps, closing] : steps };
   }, [screen, role]);
 
   useEffect(() => {
@@ -99,5 +99,5 @@ export default function ScreenGuide() {
     navigate(to, { state: { guideFlow: true } });
   };
 
-  return tour && tour.key === key && !welcomeOpen ? <GuideTour steps={tour.steps} position={tour.position} onClose={() => setTour(null)} onGo={go} /> : null;
+  return tour && tour.key === key && !welcomeOpen ? <GuideTour steps={tour.steps} onClose={() => setTour(null)} onGo={go} /> : null;
 }

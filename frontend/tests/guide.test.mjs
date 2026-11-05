@@ -102,19 +102,6 @@ test('안내 설정은 모든 단계가 선택자·장면·제목·설명을 갖
   } finally { await close(); }
 });
 
-test("'로'와 '으로'를 받침에 맞춰 붙인다", async () => {
-  const { logic, close } = await loadLogic();
-  try {
-    assert.equal(logic.josaRo('점검 후보'), '로');
-    assert.equal(logic.josaRo('점검 요청서'), '로');
-    assert.equal(logic.josaRo('산정 기준'), '으로');
-    assert.equal(logic.josaRo('회차 목록'), '으로');
-    assert.equal(logic.josaRo('점수 근거'), '로');
-    assert.equal(logic.josaRo('서울'), '로'); // ㄹ받침
-    assert.equal(logic.josaRo(''), '로');
-  } finally { await close(); }
-});
-
 test('핵심 경로: 화면의 위치와 다음 화면을 구하고, 열리지 않는 화면은 건너뛴다', async () => {
   const { logic, config, close } = await loadLogic();
   try {

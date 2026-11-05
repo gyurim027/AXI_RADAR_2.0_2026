@@ -70,15 +70,6 @@ export function placeCoach(anchor, size, viewport, gap = 16, margin = 12) {
   return { side: 'over', left: clampX(centerX), top: clampY(centerY) };
 }
 
-/** '로'가 붙는 말(받침 없음·ㄹ받침)에는 '로', 나머지에는 '으로'를 붙인다. 예: 점검 후보 → 로, 산정 기준 → 으로 */
-export function josaRo(word) {
-  const last = String(word).trim().slice(-1);
-  const code = last.charCodeAt(0) - 0xac00;
-  if (!(code >= 0 && code <= 11171)) return '로'; // 한글이 아니거나 빈 글자
-  const final = code % 28;
-  return final === 0 || final === 8 ? '로' : '으로';
-}
-
 /**
  * 이 화면이 역할의 핵심 경로에서 몇 번째인지, 다음 화면이 무엇인지 구한다.
  * isOpen(path)가 거짓인 화면(서버에 연결되지 않은 화면)은 경로에서 건너뛴다.

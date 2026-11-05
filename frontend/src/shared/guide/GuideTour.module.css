@@ -56,8 +56,10 @@
 .bullets li { position: relative; padding-left: 14px; }
 .bullets li::before { content: ''; position: absolute; left: 2px; top: 7.5px; width: 5px; height: 5px; border-radius: 50%; background: var(--g-blue); }
 .foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 20px 16px; }
-.dots { display: flex; gap: 6px; }
-.dots i { width: 7px; height: 7px; border-radius: 999px; background: #cfd5e4; transition: width 0.2s, background 0.2s; }
+.dots { display: flex; align-items: center; gap: 6px; }
+.dot { width: 8px; height: 8px; padding: 0; border: 0; border-radius: 999px; background: #cfd5e4; cursor: pointer; transition: width 0.2s, background 0.2s; }
+.dot:hover { background: #aab3c9; }
+.dot:focus-visible { outline: 3px solid rgba(31, 107, 255, 0.45); outline-offset: 2px; }
 .dots .dotOn { width: 18px; background: linear-gradient(90deg, var(--g-blue), var(--g-violet)); }
 .actions { display: flex; gap: 8px; }
 .skip, .next {
@@ -76,19 +78,6 @@
 
 /* 카드 위 미니 장면: 기본 상태가 마지막 장면이라, 움직임을 끄면 결과가 보이는 그림으로 남는다 */
 .sceneWrap { position: relative; }
-.flowChip {
-  position: absolute;
-  left: 12px;
-  top: 10px;
-  z-index: 6;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.9);
-  font-size: 11px;
-  font-weight: 800;
-  color: #3a49c8;
-  box-shadow: 0 2px 6px rgba(40, 52, 96, 0.12);
-}
 .stage {
   position: relative;
   height: 132px;
