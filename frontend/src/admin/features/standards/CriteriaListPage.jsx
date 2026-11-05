@@ -47,7 +47,7 @@ function MockCriteriaListPage() {
       <PageHeader title={CRITERIA.title} subtitle={CRITERIA.subtitle} />
       <Toolbar
         actions={
-          <Button variant="primary" loading={busy} onClick={create}>
+          <Button variant="primary" loading={busy} onClick={create} data-guide="criteria-create">
             {CRITERIA.create}
           </Button>
         }

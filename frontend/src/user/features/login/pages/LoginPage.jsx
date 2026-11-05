@@ -2,8 +2,8 @@ import AppVersion from '../../../../shared/components/AppVersion.jsx';
 import { useEffect, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../../app/providers/AuthProvider.jsx';
-import { backendAuthEnabled, backendBaseUrl, backendHome } from '../../../../api/backend.js';
-import { ROLE } from '../../../../shared/constants.js';
+import { backendAuthEnabled, backendBaseUrl } from '../../../../api/backend.js';
+import { startPath } from '../../welcome/landing.js';
 import Button from '../../../components/Button.jsx';
 import { TextField } from '../../../components/FormControls.jsx';
 import { LOGIN_COPY as C } from '../copy.js';
@@ -64,7 +64,7 @@ export default function LoginPage() {
   const [busy, setBusy] = useState(false);
 
   if (checking) return <p role="status">로그인을 확인하고 있습니다.</p>;
-  if (user) return <Navigate to={backendAuthEnabled ? backendHome(user.role) : user.role === ROLE.OPERATOR ? '/admin' : '/candidates'} replace />;
+  if (user) return <Navigate to={startPath(user.role, location.state?.from)} replace />;
 
   const canSubmit = loginId.trim() !== '' && password !== '';
 
@@ -76,7 +76,7 @@ export default function LoginPage() {
       const r = await signIn(id.trim(), pw);
       if (r.ok) {
         const from = location.state?.from;
-        navigate(backendAuthEnabled ? backendHome(r.user.role) : r.user.role === ROLE.OPERATOR ? '/admin' : from && from !== '/login' ? from : '/candidates', { replace: true });
+        navigate(startPath(r.user.role, from), { replace: true });
       } else if (r.reason === 'locked') {
         setError(C.locked(MAX_FAILS, r.lockMinutes));
       } else {

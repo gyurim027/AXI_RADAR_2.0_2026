@@ -14,10 +14,16 @@ export const g06BackendEnabled = import.meta.env?.VITE_G06_API === 'true';
 export const priorityBackendEnabled = on(import.meta.env?.VITE_PRIORITY_API);
 export const backendAuthEnabled = i07BackendEnabled || settingsBackendEnabled || opsBackendEnabled;
 
-/** 서버 연결 모드에서 로그인 뒤 처음 여는 화면 */
+/**
+ * 서버 연결 모드에서 창을 열거나 로그인한 뒤 처음 여는 화면 = 메뉴의 첫 화면.
+ * 운영자는 대시보드(AD-01), 구·시는 점검 후보다. 점검 후보가 연결되지 않은 시 도로과만 첫 메뉴가 승인 대기다.
+ */
 export function backendHome(role) {
-  if (role === 'operator') return settingsBackendEnabled ? '/admin/standards/criteria' : '/admin/settings/accounts';
-  if (role === 'city' && i07BackendEnabled) return '/reference/approvals';
+  if (role === 'operator') {
+    if (opsBackendEnabled) return '/admin';
+    return settingsBackendEnabled ? '/admin/standards/criteria' : '/admin/settings/accounts';
+  }
+  if (role === 'city' && !priorityBackendEnabled && i07BackendEnabled) return '/reference/approvals';
   return '/candidates';
 }
 const baseUrl = import.meta.env?.VITE_API_BASE_URL || 'http://127.0.0.1:8000';

@@ -133,7 +133,7 @@ export default function RunListPage() {
   return (
     <div>
       <PageHeader title={RUNS.title} subtitle={RUNS.subtitle}>
-        <Button variant="primary" disabled={adminRunsFromServer} onClick={() => setCreating(true)}>
+        <Button variant="primary" disabled={adminRunsFromServer} onClick={() => setCreating(true)} data-guide="run-create">
           {RUNS.create}
         </Button>
       </PageHeader>
