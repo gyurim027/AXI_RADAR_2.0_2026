@@ -81,11 +81,16 @@ export function flowInfo(flows, screens, role, key, isOpen) {
   return { position: { index: idx + 1, total: order.length }, next: order[idx + 1] || null, order };
 }
 
-/** 안내의 마지막에 붙는 카드: 다음 화면이 있으면 '다음은 ○○' 이동 카드, 없으면 '핵심 경로를 마쳤습니다' 카드. 경로 밖 화면이면 null. */
+/**
+ * 안내의 마지막에 붙는 카드. 다음 화면이 있으면 '다음은 ○○' 이동 카드, 경로의 마지막 화면이면 그 화면의 done(다음 역할이 이어서 할 일)을 보인다.
+ * 경로 밖 화면이거나 done이 없으면 null이다.
+ */
 export function closingStep(info, copy) {
   if (!info.position) return null;
   if (info.next) {
     return { kind: 'next', target: info.next.spotlight, scene: 'goto', label: info.next.menuLabel, title: copy.nextTitle(info.next.menuLabel), bullets: info.next.entry, to: info.next.path };
   }
-  return { kind: 'end', target: null, scene: 'done', title: copy.endTitle, bullets: copy.endBullets(info.order.map((s) => s.menuLabel)) };
+  const current = info.order[info.position.index - 1];
+  if (!current?.done) return null;
+  return { kind: 'end', target: null, scene: 'done', title: current.done.title, bullets: current.done.bullets };
 }

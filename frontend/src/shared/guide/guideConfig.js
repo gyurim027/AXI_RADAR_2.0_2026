@@ -13,8 +13,6 @@ export const GUIDE_COPY = {
   openWelcome: '서비스 소개 보기',
   pagesLabel: '안내 단계',
   nextTitle: (label) => `다음은 ${label}`,
-  endTitle: '핵심 경로를 마쳤습니다',
-  endBullets: (labels) => [`${labels.join(', ')}까지 살펴봤습니다.`, '? 버튼에서 안내를 다시 볼 수 있습니다.'],
 };
 
 // 역할별 핵심 경로(화면 키 순서). 안내의 마지막 카드가 다음 화면으로 이어 준다.
@@ -49,6 +47,7 @@ export const SCREENS = [
     path: '/reports/annual',
     menuLabel: '점검 요청서',
     entry: ['`보고서` 메뉴의 `점검 요청서`에서 엽니다.', '확정한 대상을 관할 부서별 요청서로 확인합니다.'],
+    done: { title: '관할 부서에 전달해 주세요', bullets: ['부서별 점검 요청서를 확인하고 관할 부서 담당자에게 전달합니다.', '시 도로과는 3개 구의 확정 현황과 근거를 확인합니다.'] },
     spotlight: 'header nav a[href^="/reports/"]',
     match: /^\/reports\/annual\/?$/,
     steps: [{ target: 'main table', scene: 'row', title: '점검 요청서', bullets: ['관할 부서별로 대상 목록, 근거, 요청안, 조치 제안을 확인합니다.'] }],
@@ -58,6 +57,7 @@ export const SCREENS = [
     path: '/reports/conditions',
     menuLabel: '점수 근거',
     entry: ['`보고서` 메뉴의 `점수 근거`에서 엽니다.', '회차에 쓴 자료와 기준을 한 장으로 봅니다.'],
+    done: { title: '구별 확정을 확인해 주세요', bullets: ['점검 후보에서 3개 구의 확정 현황을 확인합니다.', '3개 구가 모두 확정하면 그해 회차가 확정됩니다.'] },
     spotlight: 'header nav a[href^="/reports/"]',
     match: /^\/reports\/conditions\/?$/,
     steps: [{ target: 'main table', scene: 'row', title: '우선순위 점수 근거', bullets: ['회차에 쓴 자료와 기준을 한 장으로 남깁니다.'] }],
@@ -89,6 +89,7 @@ export const SCREENS = [
     path: '/admin/runs/list',
     menuLabel: '회차 목록',
     entry: ['위쪽 메뉴에서 회차 목록을 엽니다.', '산정을 시작하고 검토 중으로 엽니다.'],
+    done: { title: '다음은 구 도로관리팀 차례입니다', bullets: ['회차를 열면 구 계정에서 점검 후보를 확인하고 결정을 진행합니다.', '3개 구가 모두 확정하면 그해 회차가 확정됩니다.'] },
     spotlight: 'a[href="/admin/runs/list"]:not(header a)',
     match: /^\/admin\/runs\/list\/?$/,
     steps: [

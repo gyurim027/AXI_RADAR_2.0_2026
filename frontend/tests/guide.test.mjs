@@ -137,8 +137,21 @@ test('안내의 마지막 카드: 다음 화면이 있으면 이동 카드, 마�
     const end = logic.closingStep(info('operator', 'admin-runs'), config.GUIDE_COPY);
     assert.equal(end.kind, 'end');
     assert.equal(end.target, null);
-    assert.ok(end.bullets[0].includes('대시보드') && end.bullets[0].includes('회차 목록'));
+    assert.equal(end.title, '다음은 구 도로관리팀 차례입니다'); // 시연용 문구 대신 다음 역할이 할 일
     assert.equal(logic.closingStep(info('operator', 'candidates'), config.GUIDE_COPY), null);
+  } finally { await close(); }
+});
+
+test('경로의 마지막 화면은 다음 역할이 할 일(done)을 갖고, 시연용 문구가 없다', async () => {
+  const { config, close } = await loadLogic();
+  try {
+    for (const [role, flow] of Object.entries(config.FLOWS)) {
+      const last = config.SCREENS.find((s) => s.key === flow[flow.length - 1]);
+      assert.ok(last.done?.title && last.done.bullets.length > 0, `${role}/${last.key}`);
+    }
+    const all = JSON.stringify(config);
+    assert.ok(!all.includes('핵심 경로를 마쳤습니다'));
+    assert.ok(!all.includes('살펴봤습니다'));
   } finally { await close(); }
 });
 
