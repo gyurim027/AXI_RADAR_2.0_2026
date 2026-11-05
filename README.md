@@ -95,9 +95,12 @@ SQL을 실행하면 로그인용 시험 계정 6개가 함께 들어갑니다: `
 ```
 VITE_API_BASE_URL=http://127.0.0.1:8000
 VITE_DEV_LOGIN_PASSWORD=0000
+VITE_G03_API=true
+VITE_G06_API=true
 ```
 
-`VITE_DEV_LOGIN_PASSWORD`를 넣으면 개발 서버의 로그인 화면에 있는 개발용 간편 로그인 버튼으로 바로 들어갈 수 있습니다. 넣지 않으면 아이디와 비밀번호를 직접 입력합니다.
+- `VITE_DEV_LOGIN_PASSWORD`: 로그인 화면의 개발용 간편 로그인 버튼이 비밀번호까지 채웁니다. 없으면 아이디만 채워집니다.
+- `VITE_G03_API`, `VITE_G06_API`: 점검 후보 결정과 구 확정 버튼을 서버에 연결합니다. 없으면 결정 버튼이 동작하지 않습니다. 서버 `.env`의 `AI_G03_DEV_API_ENABLED=1`, `AI_G06_DEV_API_ENABLED=1`도 필요하며, `.env.example`에 이미 들어 있습니다.
 
 그다음 `npm run dev`를 다시 실행합니다. 서버 주소가 있으면 서버 연결 모드, `VITE_API_BASE_URL` 줄을 지우면 1번의 가짜 서버 모드입니다. 다른 옵션은 `frontend/.env.example`에 있습니다.
 
@@ -182,6 +185,7 @@ node --test tests/*.test.*         # 프론트엔드 테스트
 | DB | `setting_table_missing`, `decision_schema_unavailable` | DB에 표가 없다 (SQL 버전이 낮다) | 최신 SQL(`v2.5`)로 표를 다시 만듭니다. 이 SQL은 데이터를 지웁니다 |
 | 로그인 | `login_required`, `token_expired`, `role_changed` | 로그인이 없거나 시간이 지났거나 역할이 바뀌었다 | 다시 로그인합니다 |
 | 로그인 | `wrong_password`, `account_locked` (423) | 비밀번호를 여러 번 틀려 잠겼다 | 잠금 시간이 지난 뒤 다시 합니다. 운영자가 어드민에서 임시 비밀번호를 다시 만들면 잠금도 풀립니다 |
+| 로그인 | 간편 로그인 버튼이 아이디만 채운다 | `frontend/.env.local`에 `VITE_DEV_LOGIN_PASSWORD`가 없다 | 값을 넣고 `npm run dev`를 다시 켭니다 |
 | 로그인 | `inactive_account` | 사용 중지된 계정이다 | 운영자가 어드민에서 계정을 `사용 중`으로 바꿉니다 |
 | 권한 | `forbidden_role`, `forbidden_gu` | 역할이나 담당 구가 맞지 않는다 | 맞는 계정으로 로그인합니다 (구 팀은 자기 구만 봅니다) |
 | 민원 적재 | `too_large` (413), `empty_file`, `invalid_input` | 파일이 크거나 비었거나 입력이 틀렸다 | 한 달치 xlsx인지, 공식 원본 여부 선택이 맞는지 확인합니다 |
@@ -192,6 +196,7 @@ node --test tests/*.test.*         # 프론트엔드 테스트
 | 산정 | `rerun_not_supported`, `rerun_input_missing` | 화면에서는 다시 실행할 수 없다 | 터미널에서 `scripts/run_official_priority`로 다시 돌립니다 |
 | 입력 판본 | `input_build_lookup_blocked` (409) | 입력 판본 조회가 막혔다 | 응답 메시지에 이유가 나옵니다. 원천 감사 승인 상태를 확인합니다 |
 | 후보 | `candidate_not_found` (404), `gu_required` (422) | 그 회차에 격자가 없거나 구를 안 정했다 | 회차와 격자 번호, 구 선택을 확인합니다 |
+| 결정·확정 | 점검 후보 결정·확정 버튼이 안 보이거나 동작하지 않는다 | 화면 쪽 `VITE_G03_API`, `VITE_G06_API`가 꺼져 있거나, 구 도로관리팀 계정이 아니거나, 회차가 검토 중이 아니다 | `frontend/.env.local`에 두 값을 `true`로 넣고 `npm run dev`를 다시 켭니다. 구 도로관리팀 계정(`suj` 등)으로 검토 중인 회차를 엽니다 |
 | 결정·확정 | 403 "개발용 API 비활성화" | `AI_G03_DEV_API_ENABLED`, `AI_G06_DEV_API_ENABLED`가 `1`이 아니다 | `.env.example`을 복사했는지 확인하고 서버를 다시 켭니다 |
 | 결정·확정 | 서버를 다시 켰더니 결정이 사라졌다 | `RADAR_G03_PERSIST_ENABLED=0`이면 결정을 메모리에만 둔다 | 현재 알려진 동작입니다. 운영 DB 연동이 끝나기 전까지 `.env.example`대로 `0`으로 둡니다 |
 | AI | `local_access_only` (403) | 설명문 일부 API는 서버 PC에서만 열린다 | 서버가 켜진 PC에서 호출합니다 |
