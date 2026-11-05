@@ -7,7 +7,7 @@ const C = ['city'];
 export const GUIDE_COPY = {
   skip: '건너뛰기',
   next: '다음',
-  done: '끝',
+  done: '완료',
   helpMenuLabel: '도움말',
   replayScreen: '이 화면 안내 다시 보기',
   openWelcome: '서비스 소개 보기',

@@ -192,3 +192,13 @@ test('서버 연결 모드 어드민(한 줄 메뉴)에서도 다음 메뉴를 �
     assert.ok(runs.spotlight.includes(':not(header a)'), 'admin-runs'); // 한 줄 메뉴의 `회차`도 잡힌다
   } finally { await close(); }
 });
+
+test('코치마크 버튼 이름은 건너뛰기·다음·완료로 통일한다', async () => {
+  const { config, close } = await loadLogic();
+  try {
+    assert.equal(config.GUIDE_COPY.skip, '건너뛰기');
+    assert.equal(config.GUIDE_COPY.next, '다음');
+    assert.equal(config.GUIDE_COPY.done, '완료');
+    assert.ok(!JSON.stringify(config.GUIDE_COPY).includes('끝'));
+  } finally { await close(); }
+});

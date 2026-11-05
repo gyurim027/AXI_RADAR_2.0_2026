@@ -89,7 +89,7 @@ export default function GuideTour({ steps, onClose, onGo }) {
   }, [steps.length, onClose]);
 
   const spot = rect ? { left: rect.left - PAD, top: rect.top - PAD, width: rect.width + PAD * 2, height: rect.height + PAD * 2 } : null;
-  // 이동 카드도 다른 카드와 같은 버튼 이름을 쓴다: `건너뛰기`, `다음`(마지막 카드만 `끝`)
+  // 이동 카드도 다른 카드와 같은 버튼 이름을 쓴다: `건너뛰기`, `다음`(마지막 카드만 `완료`)
   const primary = last && !isNext ? GUIDE_COPY.done : GUIDE_COPY.next;
   const secondary = last && !isNext ? null : GUIDE_COPY.skip;
 
